@@ -445,3 +445,68 @@ th, td {
 	  margin: 10px;
 	}
 	
+/*Map Gallery*/
+ .project {
+      width: 80%;
+      min-width: 800px;
+      height: 100%;
+      margin: 35px auto;
+    }
+
+    .project:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+
+    .project-image {
+      width: 388px;
+      height: 240px;
+      background: white;
+      float: left;
+      margin-right: 20px;
+      border: 2px solid #dddddd;
+      object-fit: cover;
+    }
+
+    /* Adjust the dropdown styles */
+    .dropdown {
+      /*width: 80%;*/
+      margin: 0 auto;
+      margin-top: 10px;
+    }
+
+    label {
+      margin: 0;
+      padding: 0;
+      font-family: 'Libre Franklin', sans-serif;
+      color: whitesmoke;
+      font-size: 16px;
+      text-align: right;
+      margin-right: 10px;
+      font-weight: normal;
+      font-style: normal; 
+      text-decoration: none;
+    }
+
+    select {
+      width: 70px;
+      padding: 2px;
+      height: auto;
+      margin-right: 0px;
+    }
+
+    .gin-span {
+      padding: 16px 12px;
+      text-decoration: none;
+      font-family: 'Libre Franklin', sans-serif;
+      color: whitesmoke;
+      font-size: 15px;
+      font-weight: normal;
+      font-style: normal; 
+      text-decoration: none;
+    }
+    
+.gin-link {
+      text-decoration: none; /* Remove underline */
+    }

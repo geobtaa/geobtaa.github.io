@@ -2473,233 +2473,9 @@
                   
 
 
-<!DOCTYPE html>
-<html lang="en">
+  <h1>Test</h1>
 
-<head>
-  <meta charset="utf-8" />
-  <!-- Give the page a title -->
-  <title>BTAA Map Gallery</title>
-
-  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-  <!-- Add a link to normalize.css -->
-  <link rel="stylesheet" href="../../assets/external/cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
-  <!-- Add fonts -->
-  
-  
-  <link href="../../assets/external/fonts.googleapis.com/css2.4ae0f283.css" rel="stylesheet"> 
-  <!-- All the CSS code goes inside the style tags below -->
-  <style>
-    body {
-      background: #f5f5f5;
-      font-family: 'Libre Franklin', sans-serif;
-      font-weight: normal;
-      font-style: normal; 
-      text-decoration: none;
-    }
-
-    header {
-      width: 100%;
-      min-width: 800px;
-      margin: 0 auto;
-      background: #184c7c;
-      padding: 15px 0 20px;
-      display: flex;
-      justify-content: space-between;
-      /* Push h1 and h2 to the left and right edges */
-      align-items: center;
-      /* Vertically center content */
-      flex-wrap: wrap;
-      /* Allow items to wrap to the next line if needed */
-    }
-
-    .header-elements {
-      width: 80%;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between; /* Distribute elements horizontally */
-      align-items: center; /* Vertically center content */
-    }
-
-    h1 {
-      font-family: 'Libre Franklin', sans-serif;
-      /*width: 80%;*/
-      margin: 0 auto;
-      color: whitesmoke;
-      font-weight: normal;
-      font-style: normal; 
-      text-decoration: none;
-    }
-
-    /* Ensure that the h2 is left-aligned to the same margin as h1 */
-    h2 {
-      font-family: 'Libre Franklin', sans-serif;
-      /*width: 80%;*/
-      margin: 0 auto;
-      color: whitesmoke;
-      font-weight: normal;
-      font-style: normal; 
-      text-decoration: none;
-    }
-
-    h3 {
-      font-family: 'Libre Franklin', sans-serif;
-      color: #375671;
-      font-weight: normal;
-      font-style: normal; 
-      text-decoration: none;
-    }
-
-    h4 {
-      font-family: 'Libre Franklin', sans-serif;
-      font-size: 1em;
-      color: #375671;
-      font-weight: normal;
-      font-style: normal; 
-      text-decoration: none;
-    }
-
-    h5 {
-      font-family: 'Libre Franklin', sans-serif;
-      font-size: 1.5em;
-      color: #375671;
-      width: 80%;
-      margin: 0 auto;
-      margin-top: 50px;
-      margin-bottom: 25px;
-      text-align: center;
-      font-weight: normal;
-      font-style: normal; 
-      text-decoration: none;
-    }
-
-    p {
-      font-size: .9em;
-      color: #375671;
-      /* ensure this is left-aligned to the right of the project-image */
-      margin-left: 412px;
-    }
-
-    li {
-      list-style-type: none;
-      font-size: .9em;
-      color: #375671;
-      line-height: 1.6em;
-      /* ensure this is left-aligned to the right of the project-image */
-      margin-left: 412px;
-    }
-
-    a,
-    a:visited {
-      color: #003d71;
-    }
-
-    .project {
-      width: 80%;
-      min-width: 800px;
-      height: 100%;
-      margin: 35px auto;
-    }
-
-    .project:after {
-      content: "";
-      display: table;
-      clear: both;
-    }
-
-    .project-image {
-      width: 388px;
-      height: 240px;
-      background: white;
-      float: left;
-      margin-right: 20px;
-      border: 2px solid #dddddd;
-      object-fit: cover;
-    }
-
-    /* Adjust the dropdown styles */
-    .dropdown {
-      /*width: 80%;*/
-      margin: 0 auto;
-      margin-top: 10px;
-    }
-
-    label {
-      margin: 0;
-      padding: 0;
-      font-family: 'Libre Franklin', sans-serif;
-      color: whitesmoke;
-      font-size: 16px;
-      text-align: right;
-      margin-right: 10px;
-      font-weight: normal;
-      font-style: normal; 
-      text-decoration: none;
-    }
-
-    select {
-      width: 70px;
-      padding: 2px;
-      height: auto;
-      margin-right: 0px;
-    }
-
-    .gin-span {
-      padding: 16px 12px;
-      text-decoration: none;
-      font-family: 'Libre Franklin', sans-serif;
-      color: whitesmoke;
-      font-size: 15px;
-      font-weight: normal;
-      font-style: normal; 
-      text-decoration: none;
-    }
-
-    header .logo {
-      display: flex;
-      align-items: center;
-      margin-right: 12px;
-    }
-
-    header .logo img {
-      height: 60px; /* Adjust the height as needed */
-      max-width: 100%; /* Make sure the image doesn't exceed its container */
-    }
-
-    .gin-link {
-      text-decoration: none; /* Remove underline */
-    }
-
-    hr { 
-      background-color: #375671; 
-      border: none; 
-      height: 1px;
-      width: 5%; 
-      text-align: center; 
-      margin-bottom: 25px;
-    } 
-
-  </style>
- <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"/><style>
-        html.glightbox-open { overflow: initial; height: 100%; }
-        .gslide-title { margin-top: 0px; user-select: text; }
-        .gslide-desc { color: #666; user-select: text; }
-        .gslide-image img { background: white; }
-        
-            .gscrollbar-fixer { padding-right: 15px; }
-            .gdesc-inner { font-size: 0.75rem; }
-            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color);}
-            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color);}
-            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color);}
-            </style> <script src="../../assets/javascripts/glightbox.min.js"></script></head>
-
-<body>
-  <header>
-    <div class="header-elements">
-      <div id="title">
-        <h1>Map Gallery</h1>
-        <h2>BTAA GIN Conference, <span id="year-text">2023</span></h2>
-        <div class="dropdown">
+<div class="dropdown">
           <label for="year">Select Map Gallery Year:</label>
           <select id="year">
             <!-- Make the default value the most recent year -->
@@ -2709,30 +2485,19 @@
             <option value="2020">2020</option>
           </select>
         </div>
-      </div>
-      <div class="logo">
-        <a class="gin-link" href="https://sites.google.com/umn.edu/btaa-gdp/home" aria-hidden="false" tabindex="0">
-          <div class="logo">
-            <a class="glightbox" href="logo/btaa-logo-white.png" data-type="image" data-width="100%" data-height="100%" data-desc-position="top"><img src="logo/btaa-logo-white.png" role="img" /></a>
-            <span class="gin-span">BTAA-GIN</span>
-          </div>
-        </a>
-      </div>
-    </div>
-  </header>  
-  <h5>Interactive Maps</h5>
-  <hr>
-  <div id="interactive"></div>
-  <h5>Static Maps</h5>
-  <hr>
-  <div id="static"></div>
-  <!-- Papaparse for bringing in Google spreadsheet data -->
-  <script src="../../assets/external/cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js "></script>
-  <!-- Add a link to the jQuery JavaScript library so you can leverage ajax methods to load your data -->
-  <script src="../../assets/external/cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <!-- Custom JavaScript below -->
+<h5>Interactive Maps</h5>
+<hr>
+<div id="interactive"></div>
+<h5>Static Maps</h5>
+<hr>
+<div id="static"></div>
+<!-- Papaparse for bringing in Google spreadsheet data -->
+<script src="../../assets/external/cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js "></script>
+<!-- Add a link to the jQuery JavaScript library so you can leverage ajax methods to load your data -->
+<script src="../../assets/external/cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<!-- Custom JavaScript below -->
 
-  <script>
+<script>
 
     function loadGoogleSheetData(year) {
 
