@@ -1,0 +1,237 @@
+site_name: Geospatial Information Network
+site_author: Big Ten Academic Alliance Geospatial Information Network
+site_url: https://geobtaa.github.io
+copyright : "&copy; 2016-2023 Big Ten Academic Alliance Geospatial Information Network"
+noindex: true 
+
+theme: 
+      name: material
+      favicon: images/btaa-geodata.png
+#       palette:
+#             scheme: gin    
+      highlightjs: true
+      logo: images/gin-white.png
+      font:
+            text: Libre Franklin
+      custom_dir: overrides
+      features:
+            - navigation.instant
+            - navigation.instant.prefetch
+            - navigation.instant.progress
+            - navigation.tracking
+            - navigation.tabs
+            - navigation.tabs.sticky
+            - navigation.sections
+            - navigation.expand
+#             - navigation.path
+#             - navigation.prune
+            - navigation.indexes
+            - navigation.top
+            - navigation.sections
+            - toc.follow
+            - toc.integrate
+
+    
+plugins:
+      - privacy
+      - tags:
+            tags_compare_reverse: true
+            tags_slugify: !!python/object/apply:pymdownx.slugs.slugify
+                  kwds:
+                        case: lower
+#             tags_file: library/index.md
+            tags_extra_files:
+                  library/dates.md: ['2018', '2019','2020','2021','2022','2023','2024','2025']
+                  library/topics.md: [reports, proposals, guidelines, charters, practices]
+                      
+      - table-reader
+      - search
+      - open-in-new-tab
+      - optimize
+      - glightbox:
+            touchNavigation: true
+            loop: false
+            effect: zoom
+            slide_effect: slide
+            width: 100%
+            height: 100%
+            zoomable: true
+            draggable: true
+            skip_classes:
+                  - custom-skip-class-name
+            auto_caption: true
+            caption_position: top
+#       - blog:
+#             blog_dir: updates
+#             categories: false
+#             archive: false
+#             post_date_format: medium
+#             archive_date_format: yyyy
+
+#       - pdf-export:
+#             verbose: true
+#             media_type: print
+
+extra_css:
+      - stylesheets/extra.css
+
+extra_javascript:
+      - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
+      - javascripts/tablesort.js
+
+markdown_extensions:
+      - abbr
+      - tables
+      - attr_list
+      - def_list
+      - md_in_html
+      - meta
+      - footnotes
+      - admonition
+      - pymdownx.critic
+      - pymdownx.caret
+      - pymdownx.keys
+      - pymdownx.mark
+      - pymdownx.tilde
+      - pymdownx.details
+      - pymdownx.superfences:
+            custom_fences:
+                  - name: mermaid
+                    class: mermaid
+                    format: !!python/name:pymdownx.superfences.fence_code_format
+                    showSequenceNumbers: true
+      - pymdownx.snippets
+      - pymdownx.magiclink
+      - pymdownx.tasklist:
+            custom_checkbox: true
+      - pymdownx.emoji:
+            emoji_index: !!python/name:material.extensions.emoji.twemoji 
+            emoji_generator: !!python/name:material.extensions.emoji.to_svg
+            options:
+                  custom_icons:
+                        - overrides/.icons
+      - pymdownx.tabbed:
+            slugify: !!python/object/apply:pymdownx.slugs.slugify
+                  kwds:
+                        case: lower
+      - toc:
+              toc_depth: 2
+              title: On this page
+              permalink: true
+              permalink_title: Anchor link to this section for reference
+
+extra:
+      generator: false
+      tags:
+            library: libr
+            '2012': '2012'
+            '2015': '2015'
+            '2016': '2016'
+            '2017': '2017'
+            '2018': '2018'
+            '2019': '2019'
+            '2020': '2020'
+            '2021': '2021'
+            '2022': '2022'
+            '2023': '2023'
+            '2024': '2024'
+            '2025': '2025'
+            'reports': reports
+            'proposals': proposals
+            'program guidelines': guidelines
+            'charters': charters
+            'best practices': practices
+      social:
+            - icon: material/email 
+              link: https://geo.btaa.org/feedback
+            - icon: simple/youtube
+              link: https://www.youtube.com/@geobtaa1585
+
+nav:
+
+# - Home: 'index.md'
+
+- About:
+      - 'Who we are': 'about/participants.md'
+      - 'Committees': 'about/committees.md'
+      - 'Guiding Principles': 'about/btaa-gin.md'
+      - 'History': 'about/history.md'
+      - 'Contact us': 'https://geo.btaa.org/feedback'
+#       - 'Updates': 
+#             'updates/index.md'
+                 
+
+- Technology: 
+      - 'Technology projects': 'technology/projects.md'
+      - 'About the BTAA Geoportal': 'technology/geoportal.md'
+
+# - User Resources:
+- Research Guides:
+        - 'guides/index.md'
+        - 'BTAA Geoportal Search strategies': 'guides/search-strategies.md'
+        - 'Understanding metadata': 'guides/understanding-metadata.md'
+        - 'Citing geospatial data':  'guides/cite-data.md'
+        - 'Licensed data' : 'guides/licensed-data.md'
+        - 'U.S. Census data' : 'guides/census.md'
+        - 'Fire insurance maps'  : 'guides/fire-insurance.md'   
+        - 'Public Land Survey System (PLSS) Plats' : 'guides/plss.md'
+
+- Tutorials:
+        - 'tutorials/index.md'
+        - '1. Types of Geospatial Information': 'tutorials/01_types-of-geospatial-information.md'
+        - '2. Find Maps': 'tutorials/02_find-maps.md'
+        - '3. Find Geospatial Data': 'tutorials/03_find-geospatial-data.md'
+        - '4. Evaluate Geospatial Information': 'tutorials/04_evaluate-geospatial-information.md'
+        - '5. Web Services': 'tutorials/05_web-services.md'
+        - '6. Link Tabular Data': 'tutorials/06_link-tabular-data.md'
+        - '7. Georeference': 'tutorials/07_georeference.md'
+        - '8. Digitize': 'tutorials/08_digitize.md'
+        - '9. Create Elevation Surface Models': 'tutorials/09_create-elevation-surface-models.md'
+        - '10. Zonal Stats Tool': 'tutorials/10_zonal-stats-tool.md'
+        - '11. Story Maps': 'tutorials/11_story-maps.md'
+      
+
+- Document Library:
+      - Browse:
+            - 'By topic': 'library/topics.md'
+            - 'By date': 'library/dates.md'
+      - All Documents:
+#             - 'Presentations': 'library/presentations.md'
+            - 'Analytics Working Group Report': 'library/analytics-working-group-report.md'
+            - 'Best Practices for ArcGIS Hubs': 'library/best-practices-open-data-portals.md'
+            - 'Collection Development Policy': 'library/collection-development-policy.md'
+            - 'Curation Priorities': 'library/curation-priorities.md'
+            - 'Diverse Collections Report': 'library/diverse-collections.md'
+            - 'Impact Report 2020': 'library/impactReport_2020-05.md'
+            - 'Land acknowledgement Action Plan' : 'library/actionPlan.md' 
+            - 'Licensed Data Implementation': 'library/licensed-data-implementation.md'
+            - 'Original Content Guidelines': 'library/original-content.md'
+            - 'Rates of Change for Open Data': 'library/rates-of-change.md'
+            - 'Staff Time for Ephemeral Data': 'library/ephemeral-costs.md'
+            - 'User Personas': 'library/user-personas.md'
+            - 'Continuation Proposal 2021': 'library/continuation_2021.md'
+            - 'A Spatial Data Infrastructure (SDI) for the BTAA': 'library/btaa-sdi-2019.md'
+            - 'Continuation Proposal 2019': 'library/continuation_2019.md'
+            - 'Continuation Proposal 2017': 'library/continuation_2017.md'
+            - 'CIC Geospatial Data Discovery Project Charter (2015)': 'library/cic-charter.md'
+            - 'Proposal for a Geospatial Data Discovery Project Across the CIC (2015)': 'library/cic-proposal.md'
+            - 'Journal Articles': 'library/articles.md'
+   
+- GIS Conference:
+      - 'index' : 'conference/index.md'
+      - Map Gallery: 'conference/map-gallery.md'
+      - Past Conferences:
+              - 2023: 'conference/2023.md'
+              - 2022: 'conference/2022.md'   
+              - 2021: 'conference/2021.md'
+              - 2020: 'conference/2020.md'
+              
+- Blog ↗: 'https://geobtaa.blogspot.com'
+
+      
+
+      
+
+
+
+
