@@ -22,7 +22,7 @@ theme:
             - navigation.tabs
             - navigation.tabs.sticky
             - navigation.sections
-            - navigation.expand
+#             - navigation.expand
 #             - navigation.path
 #             - navigation.prune
             - navigation.indexes
@@ -61,12 +61,14 @@ plugins:
                   - custom-skip-class-name
             auto_caption: true
             caption_position: top
-#       - blog:
-#             blog_dir: updates
-#             categories: false
-#             archive: false
-#             post_date_format: medium
-#             archive_date_format: yyyy
+      - blog:
+            blog_dir: updates
+            categories: false
+            archive: true
+            post_readtime: false
+            post_date_format: medium
+            post_url_date_format: yyyy
+            archive_date_format: yyyy
 
 #       - pdf-export:
 #             verbose: true
@@ -157,8 +159,10 @@ nav:
       - 'Guiding Principles': 'about/btaa-gin.md'
       - 'History': 'about/history.md'
       - 'Contact us': 'https://geo.btaa.org/feedback'
-#       - 'Updates': 
-#             'updates/index.md'
+      - 'Updates': 
+            - 'updates/index.md'
+      
+
                  
 
 - Technology: 

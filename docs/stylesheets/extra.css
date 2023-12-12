@@ -185,6 +185,15 @@ a:hover {
 }
 
 
+#__nav_1_6_2_label {
+      color: var(--md-primary-fg-color);
+}
+
+.md-nav__title {
+ display: inline-block;
+}
+
+
 .md-sidebar--primary .md-sidebar__scrollwrap {
       padding: 1em;
       
@@ -437,6 +446,7 @@ th, td {
   	padding: 20px; /* Padding inside the div */
   	margin: 15px 0; /* Margin around the div */
   	border-radius: 5px; /* Optional: Rounded corners */
+  	width: 75%;
   	}
   	
    .md-post--excerpt .md-post__content img {
