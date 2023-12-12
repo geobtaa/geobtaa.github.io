@@ -2,7 +2,6 @@ site_name: Geospatial Information Network
 site_author: Big Ten Academic Alliance Geospatial Information Network
 site_url: https://geobtaa.github.io
 copyright : "&copy; 2016-2023 Big Ten Academic Alliance Geospatial Information Network"
-noindex: true 
 
 theme: 
       name: material
