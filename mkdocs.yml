@@ -147,6 +147,8 @@ extra:
               link: https://geo.btaa.org/feedback
             - icon: simple/youtube
               link: https://www.youtube.com/@geobtaa1585
+      analytics:
+            provider: custom
 
 nav:
 
