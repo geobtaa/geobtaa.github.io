@@ -157,6 +157,7 @@ nav:
 - About:
       - 'Who we are': 'about/participants.md'
       - 'Committees': 'about/committees.md'
+      - 'Working Groups': 'about/working-groups.md'
       - 'Guiding Principles': 'about/btaa-gin.md'
       - 'History': 'about/history.md'
       - 'Contact us': 'https://geo.btaa.org/feedback'
