@@ -2,462 +2,467 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://geobtaa.github.io/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/about/btaa-gin/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/about/committees/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/about/history/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/about/participants/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://geobtaa.github.io/about/working-groups/</loc>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/conference/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/conference/2020/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/conference/2021/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/conference/2022/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/conference/2023/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/conference/map-gallery/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/conference/test/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/guides/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/guides/census/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/guides/cite-data/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/guides/fire-insurance/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/guides/licensed-data/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/guides/plss/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/guides/search-strategies/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/guides/understanding-metadata/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/actionPlan/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/analytics-working-group-report/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/articles/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/best-practices-open-data-portals/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/btaa-sdi-2019/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/cic-charter/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/cic-proposal/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/collection-development-policy/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/continuation_2017/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/continuation_2019/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/continuation_2021/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/curation-priorities/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/dates/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/diverse-collections/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/ephemeral-costs/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/impactReport_2020-05/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/licensed-data-implementation/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/original-content/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/presentations/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/rates-of-change/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/topics/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/user-personas/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/workgroup-reports/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/news/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/program-updates/update_2020-07/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/program-updates/update_2022-01/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/program-updates/update_2022-02/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/program-updates/update_2022-03/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/program-updates/update_2022-04/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/program-updates/update_2022-05/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/program-updates/update_2022-06/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/program-updates/update_2022-07/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/program-updates/update_2022-08/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/program-updates/update_2022-09/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/program-updates/update_2022-10/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/program-updates/update_2022-11/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/program-updates/update_2022-12/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/technology/geoportal/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/technology/projects/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/01_types-of-geospatial-information/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/02_find-maps/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/03_find-geospatial-data/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/04_evaluate-geospatial-information/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/05_web-services/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/06_link-tabular-data/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/07_georeference/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/08_digitize/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/09_create-elevation-surface-models/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/10_zonal-stats-tool/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/11_story-maps/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/glossary/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/activities/03_activity-1/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/tutorials/activities/03_activity-2/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/2023/january-2023-program-status-report/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/2023/february-2023-program-status-report/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/2023/march-2023-program-status-report/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/2023/april-2023-program-status-report/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/2023/may-2023-program-status-report/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/2023/june-2023-program-status-report/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/2023/july-2023-program-status-report/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/2023/august-2023-program-status-report/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/2023/september-2023-program-status-report/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/2023/october-2023-program-status-report/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/2023/november-2023-program-status-report/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/archive/2023/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/page/2/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/updates/archive/2023/page/2/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/dates/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://geobtaa.github.io/library/topics/</loc>
-         <lastmod>2023-12-28</lastmod>
+         <lastmod>2024-01-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
