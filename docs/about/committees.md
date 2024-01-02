@@ -10,6 +10,10 @@
 -    ### Knowledge Committee
 
     *Enhancing our professional community*
+    
+    !!! abstract "Mission"
+    
+		The Knowledge Committee will identify and implement strategies for knowledge sharing internally among BTAA Geospatial Information Network members and externally with the broader map and geospatial librarian community. We will do this by establishing research agendas, coordinating research, and reporting/publishing on topics relevant to the geospatial librarian field and the BTAA-GIN. 
 
     * Milan Budhathoki
     * Sandi Caldrone
@@ -29,17 +33,26 @@
 -    ### Community Engagement Committee
 
     *Connecting with the public*
+    
+    !!! abstract "Mission"
+    
+	    The mission of the Community Engagement Committee is to promote and enhance the visibility and utilization of the BTAA Geoportal, as well as public and shared geospatial data and technology, among GIN (Geospatial Information Network) members and Geoportal users. Our committee is committed to fostering inclusivity and promoting diversity and equity in geospatial resources. We achieve this by expanding the community of Geoportal users through the inclusion and promotion of new and existing resources.
  
     * Tara Anthony
     * Jay Bowen (Co-Chair)
     * Laura McElfresh
     * Sue Oldenburg (Co-Chair)
     * Nicole Scholtz
+    * Rob Shepard
     * Kathleen Weessies
 
 -    ### TECHnology Committee
 
     *Building the Geoportal*
+    
+    !!! abstract "Mission"
+    
+		The TECH Committee strives to enhance the BTAA Geoportal to improve the discoverability, accessibility, and usability of geospatial information. This enhancement is achieved through continual research, guidance, and contributions in metadata creation, interface design, and application development.
 
     * Daniel Dotson
     * Caroline Kayko
