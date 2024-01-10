@@ -46,7 +46,7 @@ plugins:
       - table-reader
       - search
       - open-in-new-tab
-      - optimize
+#       - optimize
       - glightbox:
             touchNavigation: true
             loop: false
@@ -110,13 +110,14 @@ markdown_extensions:
             emoji_generator: !!python/name:material.extensions.emoji.to_svg
             options:
                   custom_icons:
-                        - overrides/.icons
+                        - overrides/.icons      
       - pymdownx.tabbed:
+            alternate_style: true
             slugify: !!python/object/apply:pymdownx.slugs.slugify
                   kwds:
                         case: lower
       - toc:
-              toc_depth: 2
+              toc_depth: 3
               title: On this page
               permalink: true
               permalink_title: Anchor link to this section for reference
