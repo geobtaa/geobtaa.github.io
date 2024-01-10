@@ -28,7 +28,7 @@
 
     !!! abstract "Mission"
     
-	    The Cooridination Committee is responsible for coordinating the work of the other committees, ensuring communication between committees, defining and tracking annual program goals, and overal strategic planning.
+	    The Coordination Committee is responsible for coordinating the work of the other committees, ensuring communication between committees, defining and tracking annual program goals, and overall strategic planning.
 
     * Ryan Mattke (Chair)
     * Karen Majewicz
