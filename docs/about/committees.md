@@ -73,9 +73,9 @@ Represents the strategic and financial interests of participating institutions t
 
 **Members**
 
-* Lisa German- Dean of Libraries & University Librarian, Minnesota - Chair
-* Beth McNeil- Dean of Libraries, Purdue
-* Faye Chadwell - Dean of Libraries, Pennsylvania State University
+* Lisa German- Dean of Libraries & University Librarian, University of Minnesota - Chair
+* Faye Chadwell - Dean of Libraries and Scholarly Communications, Pennsylvania State University
+* Claire Stewart - Dean of Libraries and University Librarian, University of Illinois
 * Cody Hanson (ex-officio)- Director, Web Development Minnesota
 * Maurice York (ex-officio)- Director of Library Initiatives, Big Ten Academic Alliance
 
