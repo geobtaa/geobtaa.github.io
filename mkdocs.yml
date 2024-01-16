@@ -46,7 +46,8 @@ plugins:
       - table-reader
       - search
       - open-in-new-tab
-#       - optimize
+      - optimize
+      - git-revision-date-localized
       - glightbox:
             touchNavigation: true
             loop: false
@@ -215,6 +216,7 @@ nav:
             - 'Original Content Guidelines': 'library/original-content.md'
             - 'Rates of Change for Open Data': 'library/rates-of-change.md'
             - 'Staff Time for Ephemeral Data': 'library/ephemeral-costs.md'
+            - 'Team Member Role Description': 'library/team-member-role.md'
             - 'User Personas': 'library/user-personas.md'
             - 'Continuation Proposal 2021': 'library/continuation_2021.md'
             - 'A Spatial Data Infrastructure (SDI) for the BTAA': 'library/btaa-sdi-2019.md'
