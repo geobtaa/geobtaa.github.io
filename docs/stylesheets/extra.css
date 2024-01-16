@@ -50,7 +50,7 @@ a:hover {
 }
 
 .md-typeset h3 {
-      color: #760f13;  
+      color: #0088CE;  
       font-size: 1.2em;
       font-weight: 600; 
 }
@@ -74,6 +74,7 @@ a:hover {
       box-shadow: 0 0 .2rem #005E8E, 0 .2rem .4rem #0003;
       transition:transform .25s cubic-bezier(.1, .7, .1, 1), box-shadow .25s
 }
+
 
 
 /* Header Logo Styles */
@@ -162,9 +163,6 @@ a:hover {
       margin-top: 0;
 }
 
-
-
-
 .md-nav--lifted>.md-nav__list>.md-nav__item--active>.md-nav__link {
       box-shadow: 0 0 0 0;
       font-size:1.5em;
@@ -181,8 +179,17 @@ a:hover {
 .md-sidebar--primary {
       width: 20%;
       /* color: #fff !important; */
-      
 
+}
+
+.md-sidebar__inner {
+/*       background-color: #f7f7f7; */
+       border-right: solid #005E8E 1px;
+}
+
+
+.md-sidebar__inner .md-nav  {
+       font-size: 1em;
 }
 
 
@@ -215,6 +222,11 @@ a.md-nav__link a.md-nav__link--active {
 
 .md-nav md-nav--secondary{
       background-color: orange !important;
+}
+
+.md-post__back {
+    border-bottom: none;
+    background-color: none;
 }
 
 

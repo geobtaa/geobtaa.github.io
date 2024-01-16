@@ -1,6 +1,6 @@
 site_name: Geospatial Information Network
 site_author: Big Ten Academic Alliance Geospatial Information Network
-site_url: https://geobtaa.github.io
+site_url: https://gin.btaa.org
 copyright : "&copy; 2016-2023 Big Ten Academic Alliance Geospatial Information Network"
 
 theme: 
@@ -163,7 +163,7 @@ nav:
       - 'Guiding Principles': 'about/btaa-gin.md'
       - 'History': 'about/history.md'
       - 'Contact us': 'https://geo.btaa.org/feedback'
-      - 'Updates': 
+      - 'Program Updates': 
             - 'updates/index.md'
       
 
