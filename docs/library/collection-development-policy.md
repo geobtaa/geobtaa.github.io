@@ -1,7 +1,7 @@
 ---
 tags:
   - program guidelines
-  - '2021'
+  - '2022'
 ---
 
 # BTAA Geoportal Collection Development Policy
@@ -13,15 +13,11 @@ tags:
 
 The BTAA Geospatial Information Network is a collaborative project to enhance discoverability, facilitate access, and connect scholars across the Big Ten Academic Alliance (BTAA) to scanned maps, geospatial data, and aerial imagery resources. The project’s main output is the [BTAA Geoportal](https://geo.btaa.org/), which serves as a platform through which participating libraries can share materials from their collections to make them more easily discoverable and accessible to varied user communities. Collections within the Geoportal primarily support the research, teaching, learning, and information needs of faculty, staff, and students at participating institutions and beyond.
 
- 
-
-The project supports the creation and aggregation of discovery-focused metadata describing geospatial resources from participating institutions and public sources across the Big Ten region and makes those resources discoverable via an open source portal. For more information and a list of participating BTAA institutions, [please visit our project site](https://sites.google.com/umn.edu/btaa-gdp/home).
-
+The project supports the creation and aggregation of discovery-focused metadata describing geospatial resources from participating institutions and public sources across the Big Ten region and makes those resources discoverable via an open source portal.
 
 ## Summary of Collection Scope
 
 Access to the BTAA Geoportal is open to all. This collection consists of geospatial resources relevant to all disciplines. Access to resources is curated based on their authoritativeness, currency, comprehensiveness, ease of use, and relevancy. Materials included are generally publicly available geospatial datasets (vector/raster), scanned maps (georeferenced or with bounding box coordinates), and aerial imagery. Scanned maps protected by copyright are not included in the Geoportal. Access to licensed resources may be restricted to users affiliated with a participating institution.
-
 
 
 1. Geographic areas: Items in the collection vary in scale based on subject and range from global to local. Geographic areas vary based on subject and may refer to biomes/ecosystems, political boundaries, cultural boundaries, economic boundaries, or land use types. In addition to a geographic focus on the Big Ten region (i.e., the states where participating institutions are located), the collection will emphasize resources and topics relevant to faculty and student research interests and reflect the strengths of participating library collections.

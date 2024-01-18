@@ -206,9 +206,11 @@ nav:
       #       - 'By topic': 'library/topics.md'
       #       - 'By date': 'library/dates.md'
       - 'Journal Articles': 'library/articles.md'
+      - 'Workgroup Reports': 'library/workgroup-reports.md'
       # - 'Presentations': 'library/presentations.md'      
       - All Documents:
             - 'Analytics Working Group Report': 'library/analytics-working-group-report.md'
+            - 'ArcGIS Open Data Portal Survey Summary': 'library/ArcGIS-ODP-survey-summary.md'
             - 'Best Practices for ArcGIS Hubs': 'library/best-practices-open-data-portals.md'
             - 'BTAA GIS Conference 2023 Wrap-Up Report': 'library/conference-report-2023.md'
             - 'CIC Geospatial Data Discovery Project Charter (2015)': 'library/cic-charter.md'
