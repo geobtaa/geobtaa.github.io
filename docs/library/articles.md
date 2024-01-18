@@ -16,4 +16,4 @@
 
 :octicons-book-24: Weessies K., Wilson, K. (2016). The long road to map discovery: two multi-institutional projects. Digital Approaches to Cartographic Heritage Riga 2016 Conference Proceedings. Edited by Evangelos Livieratos. [LINK](https://drive.google.com/file/d/0Bzey4db5I-ovMkNHNUxrM0xfS0E/view)
 
-:octicons-book-24: Bidney, M., Mattke, R. & Weessies, K. (2012). A Collaborative Vision for Spatial Scholarship Across the CIC. (white paper). [LINK](https://drive.google.com/file/d/0Bw-n3BDfLcu8eXBOWi1yWGJ4ajQ/view)
+:octicons-book-24: Bidney, Marcy; Mattke, Ryan; Weessies, Kathleen. (2012). A Collaborative Vision for Spatial Scholarship Across the CIC. https://hdl.handle.net/11299/213250

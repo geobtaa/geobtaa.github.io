@@ -18,7 +18,6 @@ Established in 2020, the BTAA GIS Conference is a virtual event organized by geo
 *   Two Lightning Talks sessions (50 minutes each)
 *   Three Presentation Sessions (1 hour each)
 
-
 ## Conference Statistics 2023
 
 * Number of registrations: 212
@@ -41,8 +40,6 @@ Our keynote speaker was **Katie McDonough**, who called in from the Alan Turing 
 
 ## BTAA GIS Conference 2023 Planning Group
 
-
-
 !!! abstract  "Conference team"
 
     **BTAA-GIN Planning Group**
@@ -61,7 +58,6 @@ Our keynote speaker was **Katie McDonough**, who called in from the Alan Turing 
     * Susanne Garrison, Community Coordinator
     * Tim Newcomb, Operations Coordinator
 
-
 The BTAA-GIN Conference Planning Group met 7 times between July and November. We also had three tech rehearsals with the BTAA IT team. The planning group divided up roles and responsibilities by identifying task leads, including communicating with the keynote speaker, managing the website pages, issuing proposals, putting the conference agenda together, building the map gallery, coordinating Zoom, and editing the videos.
 
 We used a planning spreadsheet to keep track of our work: [2023 BTAA GIS Conference Planning](https://docs.google.com/spreadsheets/d/14EqhfGZwYZ2daYfg_tCY9DA9weGKsHfhQ1fRVlkwWIw/edit?usp=sharing)
@@ -69,7 +65,7 @@ We used a planning spreadsheet to keep track of our work: [2023 BTAA GIS Confere
 ## Key Takeaways (2023)
 
 ### Plusses
-:material-plus: Reach of the conference continues beyond the day-of event via YouTube videos, viewed increasingly over time (see Appendix 3 for total views table? Especially 2022.)
+:material-plus: Reach of the conference continues beyond the day-of event via YouTube videos, viewed increasingly over time.
 
 :material-plus: The BTAA IT partners were wonderful and went above and beyond to help us: three tech rehearsals and staying online the whole time to manage the Zoom.
 

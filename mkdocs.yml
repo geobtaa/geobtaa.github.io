@@ -44,6 +44,8 @@ plugins:
                   library/topics.md: [reports, proposals, guidelines, charters, practices]
                       
       - table-reader
+      # - exporter
+      # - exporter-pdf
       - search
       - open-in-new-tab
       - optimize
@@ -70,9 +72,9 @@ plugins:
             post_url_date_format: yyyy
             archive_date_format: yyyy
 
-#       - pdf-export:
-#             verbose: true
-#             media_type: print
+      # - pdf-export:
+      #       verbose: true
+      #       media_type: print
 
 extra_css:
       - stylesheets/extra.css
@@ -200,9 +202,9 @@ nav:
       
 
 - Document Library:
-      - Browse:
-            - 'By topic': 'library/topics.md'
-            - 'By date': 'library/dates.md'
+      # - Browse:
+      #       - 'By topic': 'library/topics.md'
+      #       - 'By date': 'library/dates.md'
       - 'Journal Articles': 'library/articles.md'
       # - 'Presentations': 'library/presentations.md'      
       - All Documents:

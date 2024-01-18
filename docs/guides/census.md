@@ -100,7 +100,7 @@ PolicyMap is a community-focused resource which contains many public and private
 
 !!! note ""
 
-**PolicyMap use cases:**
+	**PolicyMap use cases:**
 
 	- Easily make a Multi Layer Map, where you pick several data layers and find the places where they overlap, e.g. areas with a certain level of poverty, with food deserts, and low access to vehicles
 	- Narrow down a study area or use interactive tool to compare areas

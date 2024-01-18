@@ -1,8 +1,3 @@
----
-hide:
-
----
-
 # Tracking rates of change of Open Data Portals
 
 Many of our reports note that most open data is ephemeral and that it regularly disappears or is overwritten.  We informally tracked this rate of change during two periods.
