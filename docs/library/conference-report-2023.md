@@ -13,6 +13,7 @@ Issued: December 21, 2023
 Established in 2020, the BTAA GIS Conference is a virtual event organized by geospatial information users and educators in Big Ten institutions to present their work, exchange information, and develop potential collaborations. It is open to all participants, including those outside the BTAA network. 
 
 [The 4th annual conference was held on November 8th, 2023](../../conference/2023/). The conference spanned the hours of 9:00 AM to 4:10 PM Central Standard Time. The schedule included:
+
 *   Short Introduction (5 minutes)
 *   Keynote (1 hour)
 *   Two Lightning Talks sessions (50 minutes each)

@@ -1,19 +1,15 @@
 title,creator,date,description
-[BTAA GIS Conference 2023 Wrap-Up Report](../conference-report-2023/),BTAA GIS Conference Planning Group,2022-12,
-Best Practices for Inputting Creator Field Data,Creator Normalization Working Group,2022-12,
-"OpenRefine + FAST process (+ VIAF, Wikidata, TGN)",Creator Normalization Working Group,2022-12,
-"Final Report, Original Content Working Group: October 2022",Original Content Working Group,2022-10,
-Final Report: Land Acknowledgement Working Group,Land Acknowledgement Working Group,2022-08,
+[BTAA GIS Conference 2023 Wrap-Up Report](../conference-report-2023/),BTAA GIS Conference Planning Group,2022-12,"Summary of the BTAA GIS Conference, including plusses, minuses, and deltas."
+[Best Practices for Inputting Creator Field Data](../metadata/recipes/standardize-creators/),Creator Normalization Working Group,2022-12,"To ensure that the Geoportal’s collocation functions operate properly, this document recommends using the formulation of personal and corporate body names as they are found in identity registries and, when creators are not available in those registries, provides guidance for formulating names of creators."
+[Original Content Working Group Final Report: October 2022](../original-content/),Original Content Working Group,2022-10,"The working group focused on the BTAA-GIN authored documents available on our public-facing websites, primarily our tutorials, collection guides, and reports. We were to assess the practicality and effectiveness of our current solution and make recommendations for any changes. "
+[Land Acknowledgement Working Group Final Report](../land-acknow-wg-final-report/),Land Acknowledgement Working Group,2022-08,"The Land Acknowledgement Working Group, active from March to July 2022, explored the scholarship around the idea of land acknowledgements and investigated strategies for incorporating resources and information into the BTAA-GIN websites."
 [Diverse Collections Working Group Summary Report: December 2021](../diverse-collections/),Diverse Collections Working Group,2021-12,The purpose of the Diverse Collections Working Group was to define and assess diversity in our current geoportal collections and make recommendations for future collection development activities prioritizing diversity.
-[BTAA Geoportal Collection Development Policy](../collection-development-policy/),Collection Development & Education Outreach Committee,2021-02,Summary of collection scope and statement of communication
-Licensed Data Working Group Final Report,Licensed Data Working Group,2021-01,
+[Licensed Data Working Group Final Report](../licensed-data-implementation/),Licensed Data Working Group,2021-01,
 Web Services ArcGIS Online Pilot Report,Web Services Working Group,2020-05,
 "[Impact Report, BTAA Geospatial Data Project: May 2020](../impactReport_2020-05/)",Impact Report Working Group,2020-05,An assessment of the BTAA GDP covering 2015 through 2020 that identifies the impacts and outcomes of the project.
 Maps Scanning Workflow Working Group Final Report,Maps Scanning Working Group,2020-01,
 Web Services Report,,2019-10,
 Potential expansion directions for BTAA Geospatial Data Project,Strategic Leadership Group Working Group,2019-10,
-Guide to Citing Geospatial Data,Metadata Committee,2019-08,
-Communication Strategy 2019,Communications Committee,2019-01,
 [User Personas for the BTAA Geoportal](../user-personas/),User Personas and Stories Working Group,2018-09,Illustration of our audience and stakeholders for guiding development of the geoportal and potential project expansion.
 [Analytics Working Group Final Report](../analytics-working-group-report/),Analytics Working Group,2018-06,Report of what analytics information to collect for the BTAA Geoportal
 [Best Practices for ArcGIS Hub/Open Data Portals](../best-practices-open-data-portals/),ArcGIS Working Group,2018-06,This guide presents publishing workflows that improve the stability of data identifiers and maximize benefits from metadata of resources on ArcGIS Hub / Open Data Portals.
