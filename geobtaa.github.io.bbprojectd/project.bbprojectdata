@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>HierarchyData</key>
+	<array>
+		<string>A2E512EE-31D3-4B40-B13F-07D82E4B8D5A</string>
+	</array>
+	<key>ProjectItems</key>
+	<dict>
+		<key>A2E512EE-31D3-4B40-B13F-07D82E4B8D5A</key>
+		<dict>
+			<key>ItemData</key>
+			<dict>
+				<key>BookmarkData</key>
+				<data>
+				Ym9va8ACAAAAAAQQMAAAANjvVi+N5yxfvhYlvx3JDi4l
+				Lca/ttFAjQjJGUgOSfqXvAEAAAQAAAADAwAAAAgAKAUA
+				AAABAQAAVXNlcnMAAAAIAAAAAQEAAG1hamV3MDMwBgAA
+				AAEBAABHaXRIdWIAABEAAAABAQAAZ2VvYnRhYS5naXRo
+				dWIuaW8AAAAQAAAAAQYAABAAAAAgAAAAMAAAAEAAAAAI
+				AAAABAMAAIRcAAAAAAAACAAAAAQDAADhtQMAAAAAAAgA
+				AAAEAwAAH8oSAAAAAAAIAAAABAMAAOqEfAQAAAAAEAAA
+				AAEGAAB0AAAAhAAAAJQAAACkAAAACAAAAAAEAABBxZCU
+				XP0SuRgAAAABAgAAAgAAAAAAAAAPAAAAAAAAAAAAAAAA
+				AAAACAAAAAQDAAACAAAAAAAAAAQAAAADAwAA9wEAAAgA
+				AAABCQAAZmlsZTovLy8MAAAAAQEAAE1hY2ludG9zaCBI
+				RAgAAAAEAwAAAJCClucAAAAIAAAAAAQAAEHFlk7IgAAA
+				JAAAAAEBAAAyRUQ5QjNDOS04MjUyLTQ3QjItQTE5NC04
+				MkNGMDQ4REE0OEYYAAAAAQIAAIEAAAABAAAA7xMAAAEA
+				AAAAAAAAAAAAAAEAAAABAQAALwAAAAAAAAABBQAAzAAA
+				AP7///8BAAAAAAAAABAAAAAEEAAAXAAAAAAAAAAFEAAA
+				tAAAAAAAAAAQEAAA3AAAAAAAAABAEAAAzAAAAAAAAAAC
+				IAAAqAEAAAAAAAAFIAAAGAEAAAAAAAAQIAAAKAEAAAAA
+				AAARIAAAXAEAAAAAAAASIAAAPAEAAAAAAAATIAAATAEA
+				AAAAAAAgIAAAiAEAAAAAAAAwIAAAtAEAAAAAAAABwAAA
+				/AAAAAAAAAARwAAAIAAAAAAAAAASwAAADAEAAAAAAAAQ
+				0AAABAAAAAAAAAA=
+				</data>
+				<key>FileURL</key>
+				<string>file:///Users/majew030/GitHub/geobtaa.github.io/</string>
+				<key>HasSecurityScope</key>
+				<true/>
+				<key>RelativePath</key>
+				<string>./</string>
+				<key>TypeID</key>
+				<string>_CFileLocator</string>
+				<key>Version</key>
+				<integer>1</integer>
+			</dict>
+			<key>ItemName</key>
+			<string>geobtaa.github.io</string>
+			<key>ItemType</key>
+			<string>FolderReference</string>
+		</dict>
+	</dict>
+	<key>com.barebones.DocumentFormatVersion</key>
+	<integer>5</integer>
+	<key>com.barebones.DocumentType</key>
+	<string>Project</string>
+</dict>
+</plist>
