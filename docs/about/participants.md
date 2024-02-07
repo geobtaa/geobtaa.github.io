@@ -4,7 +4,7 @@ We are a collaboration of library-affiliated staff from Big Ten Academic Allianc
 
 ## Participating Institutions
 
-![](../images/BTAA-GIN-institutions-crop.png){ align=right width=60% }
+<iframe width="100%" height="864" frameborder="0" src="https://ui-libraries.github.io/btaa-gin-members"></iframe>
 
 1. Indiana University Bloomington
 1. Michigan State University
