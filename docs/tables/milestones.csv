@@ -1,4 +1,4 @@
-Year,Events,Geoportal development,Members join
+Year,Events,Technology,Members join
 2012,CIC Center for Library Initiatives conference focused on geospatial,-,-
 2015,"Project kickoff meeting with 9 institutions 1st project summit",Environmental scan of available technologies,"9 institutions sign on
 Metadata coordinator"
@@ -21,4 +21,5 @@ Metadata editor (GEOMG) put into production
 Evolved from the ""BTAA Geospatial Data Project"" into the ""BTAA Geospatial Information Network""","Developed and upgraded to GeoBlacklight 4.0
 Cloud hosting for Geoportal  moved to AWS",Rutgers University-New Brunswick
 2023,"Implemented new governance and committee structure 
-4th BTAA GIS Conference",-,Northwestern University
+4th BTAA GIS Conference",Released Harvesting Guide,Northwestern University
+2024,-,Geodata Collection Pilot,-
