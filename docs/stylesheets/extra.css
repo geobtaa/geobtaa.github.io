@@ -437,6 +437,7 @@ th, td {
 
 .md-typeset__table table:not([class]) {
     font-size: .74rem;
+    line-height: 1rem;
     border-right: none;
 }
 
