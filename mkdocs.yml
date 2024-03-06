@@ -126,7 +126,7 @@ markdown_extensions:
               permalink_title: Anchor link to this section for reference
 
 extra:
-#       generator: false
+      generator: false
       tags:
             library: libr
             '2012': '2012'
