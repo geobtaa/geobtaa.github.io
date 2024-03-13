@@ -43,7 +43,9 @@ Through completing this tutorial, students will:
 
 ## Framing your search
 
-As you get started, one way to frame your search is by asking yourself some What, Where, When, and Who questions. Your answers to these questions will help you to determine the initial scope of your data needs in relation to your research question and to brainstorm some potential sources to begin your search.
+As you get started, one way to frame your search is by asking yourself some What, Where, When, and Who questions. Your answers to these questions will help you to determine the initial scope of your data needs in relation to your research question and to brainstorm some potential sources to begin your search.*
+
+*Questions adapted from Kellam, Lynda. 2013. “Data Reference Interview.” Available at: https://www.slideshare.net/lyndamk/data-refinterview
 
 
 #### What
