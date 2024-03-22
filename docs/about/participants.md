@@ -32,7 +32,7 @@ Our Team Members form the core of BTAA-GIN, each contributing a different set of
 
 ## University of Minnesota Operations Staff
 
-* Cody Hanson- Director, Web Development - Administrative Lead
+* Cody Hanson- IT Director - Administrative Lead
 * Ryan Mattke - Project Lead
 * Karen Majewicz - Geospatial Product Manager
 * Eric Larson - Lead Application Developer
