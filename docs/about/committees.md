@@ -80,7 +80,7 @@ Represents the strategic and financial interests of participating institutions t
 * Lisa German- Dean of Libraries & University Librarian, University of Minnesota - Chair
 * Faye Chadwell - Dean of Libraries and Scholarly Communications, Pennsylvania State University
 * Claire Stewart - Dean of Libraries and University Librarian, University of Illinois
-* Cody Hanson (ex-officio)- Director, Web Development, University of Minnesota Libraries
+* Cody Hanson (ex-officio)- IT Director, University of Minnesota Libraries
 * Maurice York (ex-officio)- Director of Library Initiatives, Big Ten Academic Alliance
 
 
