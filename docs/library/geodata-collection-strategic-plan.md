@@ -96,4 +96,60 @@ When geospatial data is newly created, it holds high value due to its immediate 
 
 #### 2.2.2 A significant contribution to the BIG Collection Initiative
 
-The BIG Collection Initiative aims to create a cohesive network environment that provides universal content availability, enhances resource discovery, and ensures frictionless access. The initiative also prioritizes the long-term sustainability of both print and digital collections through coordinated preservation and digitization efforts. Our plan to curate geospatial data aligns with the B1G Collection Initiative, leveraging the collective strengths of BTAA libraries.
+The [BIG Collection Initiative](https://btaa.org/library/big-collection/the-big-collection-introduction) aims to create a cohesive network environment that provides universal content availability, enhances resource discovery, and ensures frictionless access. The initiative also prioritizes the long-term sustainability of both print and digital collections through coordinated preservation and digitization efforts. Our plan to curate geospatial data aligns with the B1G Collection Initiative, leveraging the collective strengths of BTAA libraries.
+
+## 3. Overview of Scope Expansion
+
+### 3.1 Collection Policy
+
+Our current collection policy covers metadata records for geodata and historical scanned maps. Our expanded policy will include a curated collection of public geodata, selectively chosen with the BTAA researchers in mind.
+
+**Geoportal Collections**
+
+| Collection                                                                                             | Hosting location                                                                                | Status  |
+|--------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|---------|
+|  Collection A: Data Registry Public and licensed geodata.                                              | External data portals  (state & local governments, research institutes, vendors, and libraries) | Active  |
+| Collection B: Library Repositories Scanned maps and curated geodata.                                   | BTAA digital libraries                                                                          | Active  |
+|  Collection C: BTAA-GIN Geodata Foundational free and open public geodata layers from the recent past. | BTAA-GIN Amazon cloud storage                                                                   | Planned |
+
+
+### 3.2 Geodata Lifecycle
+Under our current scope, we are only able to provide external links to the most recent versions of any dataset. When authors overwrite a public dataset, we must re-harvest the metadata and discard the previous version with its broken access links. Under our expanded scope, we will save versions of geodata before they are overwritten.  Users will still be able to access current versions from the original data provider, but will also be able to download historical versions.
+
+<figure markdown="span">
+  ![u-shaped curve](images/lifecycle-1.png){ width="600" loading=lazy}
+  <figcaption>Geodata Lifecycle in the BTAA-GIN ecosystem (Current operations)</figcaption>
+</figure>
+
+<figure markdown="span">
+  ![u-shaped curve](images/lifecycle-2.png){ width="600" loading=lazy}
+  <figcaption>Geodata Lifecycle in the BTAA-GIN ecosystem (Expanded operations)</figcaption>
+</figure>
+
+### 3.3 Staffing Plan
+
+#### 3.3.1 Leadership Team
+
+* Program Lead: Continues to lead strategic planning and coordination.
+* Geospatial Product Manager: Remains in charge of technical management and adds data curation to portfolio. Other program current responsibilities shift to new hire (see below).
+* Program and Outreach Coordinator (New): Manages community outreach and engagement, program coordination, and team management.
+
+#### 3.3.2 Development and Technical Implementation
+
+* Lead Developer (Current, Part-time, Contracted): Role expands from one week to two weeks per month to focus on BTAA Geoportal and Admin Toolkit software applications.
+* Cloud Solutions Consultant(s) (New, Temporary, Consultant): Collaborates with the Lead Developer and the University of Minnesota IT team to establish and optimize an Amazon Cloud-based storage infrastructure. This expertise may also be found in-house at one of the partner institutions.
+
+#### 3.3.3 Metadata and Data Curation
+
+* Graduate Research Assistant (Current): Role may shift to focus more on processing data, under the direction of the Geospatial Product Coordinator.
+* Program Team: Advises leadership team on identifying content, developing workflows, and maintaining communication with data providers.
+
+## 4. FUTURE CONSIDERATIONS
+
+### 4.1 Emerging technologies
+
+Once we have transitioned to cloud object storage, we will be well-positioned to harness emerging technologies that improve user experience. Many of these innovations originate within BTAA institutions, making them prime candidates for collaborative implementation. For instance, the University of Minnesota's groundbreaking Machines Reading Maps project offers a novel possibility: it can transform text from historical maps into searchable geocoded data. Similarly, we could adopt Northwestern University's Serverless IIIF, an AWS serverless application that enables image views.
+
+### 4.2 Preservation
+
+While the long-term preservation of collected datasets is outside the framework of our immediate plans, it is an essential component that merits future evaluation. In the future, we will likely need to develop workflows that include duplicating datasets to more permanent storage locations, verification and validation to maintain data integrity, and migration processes to adapt to evolving technologies and formats.
