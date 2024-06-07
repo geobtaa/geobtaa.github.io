@@ -28,7 +28,7 @@ theme:
             - navigation.top
             - navigation.sections
             - toc.follow
-            - toc.integrate
+#             - toc.integrate
 
     
 plugins:
@@ -174,6 +174,7 @@ nav:
 - Technology: 
       - 'Technology projects': 'technology/projects.md'
       - 'About the BTAA Geoportal': 'technology/geoportal.md'
+      - 'Geodata Collection': 'technology/geodata-collection.md'
 
 # - User Resources:
 - Research Guides:
@@ -219,6 +220,7 @@ nav:
             - 'Curation Priorities': 'library/curation-priorities.md'
             - 'Diverse Collections Report': 'library/diverse-collections.md'
             - 'Geodata Collection Strategic Plan': 'library/geodata-collection-strategic-plan.md'
+            - 'Geodata Collection Implementation Plan': 'library/implementation-plan.md'
             - 'Harmful Language Statement': 'library/harmful-language.md'
             - 'Impact Report 2020': 'library/impactReport_2020-05.md'
             - 'Land acknowledgement Action Plan' : 'library/actionPlan.md' 
