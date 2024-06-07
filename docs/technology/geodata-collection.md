@@ -4,8 +4,8 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 !!! info "Plan documents"
 
-	*  [Geodata Collection Strategic Plan](../library/geodata-collection-strategic-plan/)
-	*  [Geodata Collection Implementation Plan](library/implementation-plan/)
+	*  [Geodata Collection Strategic Plan](../../library/geodata-collection-strategic-plan/)
+	*  [Geodata Collection Implementation Plan](../../library/implementation-plan/)
 	
 
 ## STRATEGIC ROADMAP
