@@ -40,6 +40,18 @@
     [:octicons-arrow-right-24: Read the handbook](https://z.umn.edu/gbl-handbook)
     
 	[:octicons-arrow-right-24: Clone the Harvesting Guide](https://github.com/geobtaa/harvesting-guide).
+	
+	
+-  ### Geodata Collection
+
+    ---
+        
+    ![](../library/images/aws-architecture.png)
+	
+    This initiative involves expanding our technology stack for collection and storage of open geospatial data. 
+
+    [:octicons-arrow-right-24: Read more about the initiative](geodata-collection.md)
+    
 
 </div>
 
