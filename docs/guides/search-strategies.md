@@ -40,6 +40,8 @@ The facets on the homepage and search results page can filter results by various
 * Provider: The source, host, or distributor of the resource
 * Public/Restricted: Public records can be accessed by anyone. Restricted records require an institutional login or authentication protocal to access.
 * Institutional Access: This facet filters the restricted records by which institutions subscribe and provide access.
+* Georeferenced: To indicate whether or not a scanned map or other imagery has a georeferenced version.
+* Georeferenced via Allmaps Plugin:  To filter all of the maps hosted via a IIIF manifest with a count of how many have been georeferenced with an external service, [AllMaps](https://allmaps.org)
 
 ## Advanced search
 
