@@ -42,7 +42,7 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [x] Establish Amazon cloud storage (S3) accounts: Set up and configure Amazon S3 buckets for data storage.
 
-- [ ] {++Implement asset management tools in our Admin Toolkit: Integrate or develop tools within the Admin Toolkit for ingesting and managing datasets.++}
+- [ ] {++Integrate or develop tools within the Admin Toolkit for ingesting and managing datasets.++}
 
 - [ ] {++Test adding sample datasets to Amazon S3: Conduct tests to ensure data can be stored, accessed, and managed effectively in the cloud environment.++}
 
@@ -50,10 +50,9 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [x] Obtain official approval of the BTAA-GIN Geodata Collection Strategic Plan.
 
-- [ ] Document the setup and configuration processes for S3 accounts and asset management tools.
+- [ ] {++Document the setup and configuration processes for S3 accounts and asset management tools.++}
 
-- [ ] Define and document pilot testing procedures and results.
-
+- [ ] Document pilot testing procedures and decisions.
 
 ### 2. Develop Curation Plan and Explore Technology Enhancements (2024 Q3-Q4)
 
