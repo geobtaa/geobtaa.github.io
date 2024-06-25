@@ -38,7 +38,7 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [ ] Conduct the interview and selection process.
 
-#### Technical Setup and Testing
+#### Technical Setup
 
 - [x] Establish Amazon cloud storage (S3) accounts: Set up and configure Amazon S3 buckets for data storage.
 
@@ -46,13 +46,14 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [ ] {++Test adding sample datasets to Amazon S3: Conduct tests to ensure data can be stored, accessed, and managed effectively in the cloud environment.++}
 
-#### Documentation and Process Definition
+#### Documentation and Process
 
 - [x] Obtain official approval of the BTAA-GIN Geodata Collection Strategic Plan.
 
 - [ ] Document the setup and configuration processes for S3 accounts and asset management tools.
 
-- [ ] Define and document pilot testing procedures: Establish how the testing of sample datasets will be conducted, including success criteria and evaluation metrics.
+- [ ] Define and document pilot testing procedures and results.
+
 
 ### 2. Develop Curation Plan and Explore Technology Enhancements (2024 Q3-Q4)
 
@@ -66,7 +67,7 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [ ] Assess data types and sources: Identify and the types of geospatial data to be included in the collection.
 
-- [ ] Define curation criteria and processes: Establish standards for data selection, acquisition, and quality control.
+- [ ] Define curation criteria: Establish standards for data selection, acquisition, and quality control.
 
 - [ ] Document the curation plan: Create detailed documentation outlining the curation strategy, procedures, and responsibilities.
 
