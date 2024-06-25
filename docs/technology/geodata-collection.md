@@ -24,9 +24,9 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [x] Research existing geodata archiving practices across the BTAA region
 
-- [ ] {++Create a set of sample datasets: Select or create datasets that represent the variety and scope of data to be managed.++}
+- [ ] {++Determine guidelines for data collection, management, and storage that the pilot will adhere to.++}
 
-- [ ] Establish a framework of best practices: Develop guidelines for data collection, management, and storage for the pilot.
+- [ ] {++Create a set of sample datasets: Select or create datasets that represent the variety and scope of data to be managed.++}
 
 #### Recruitment and Staffing
 
@@ -34,7 +34,7 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [x] Draft job description Program and Outreach Coordinator
 
-- [ ] {++Advertise the position++}
+- [x] Advertise the position
 
 - [ ] Conduct the interview and selection process.
 
@@ -50,9 +50,10 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [x] Obtain official approval of the BTAA-GIN Geodata Collection Strategic Plan.
 
+- [ ] Document the setup and configuration processes for S3 accounts and asset management tools.
+
 - [ ] Define and document pilot testing procedures and results.
 
-- [ ] Document the setup the S3 accounts and asset management tools.
 
 ### 2. Develop Curation Plan and Explore Technology Enhancements (2024 Q3-Q4)
 
