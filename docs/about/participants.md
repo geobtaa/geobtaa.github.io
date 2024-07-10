@@ -54,13 +54,18 @@ For operations at the University of Minnesota:
 
 * John Butler, Associate University Librarian for Data & Technology - University of Minnesota (sponsor 2015-2021)
 * Kirsten Clark, Director, Access and Information Services - University of Minnesota (sponsor 2019-2021)
-* Claire Stewart, Associate University Librarian for Research & Learning - University of Minnesota (sponsor 2015-2019)
-* Michael Johnson - Web Analytics
-* Paul Bramscher - Linux Systems Administrator and Software Administrator 
+* Claire Stewart, Associate University Librarian for Research & Learning - University of Minnesota (sponsor 2015-201
  
 Executive Committee:
 
 * Barbara Dewey- Dean of University Libraries & Scholarly Communications, Penn State (2020)
+
+
+### University of Minnesota Staff
+
+* Michael Johnson - Web Analytics
+* Paul Bramscher - Linux Systems Administrator and Software Administrator 
+
 
 ### Graduate Research Assistant Alumni
 

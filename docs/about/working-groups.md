@@ -5,7 +5,10 @@ Committees periodically charge short term Working Groups to complete specific pr
 
 ## Active Working Groups 
 
-Geodata Pilot Collection Working Group
+* Geodata Pilot Collection Working Group
+* FAST Subject Headings Workgroup
+* Scalable Approaches Workgroup
+* Service Models Workgroup
 
 
 ## Sunsetted Working Groups
@@ -500,15 +503,102 @@ The following chart shows the active dates of the working groups.
     <td class="tg-0lax"></td>
     <td class="tg-0lax"></td>
     <td class="tg-y6fn"><span style="font-weight:normal">x</span></td>
+    <td class="tg-y6fn"><span style="font-weight:normal">-</span></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+  </tr>
+   <tr>
+    <td class="tg-0lax"><span style="font-weight:normal">FAST Subject Headings</span></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-y6fn"><span style="font-weight:normal">x</span></td>
+    <td class="tg-y6fn"><span style="font-weight:normal">-</span></td>
+    <td class="tg-0lax"></td>
+  </tr>
+  
+   <tr>
+    <td class="tg-0lax"><span style="font-weight:normal">Scalable Approaches</span></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
     <td class="tg-0lax"></td>
     <td class="tg-0lax"></td>
     <td class="tg-0lax"></td>
   </tr>
+  <tr>
+    <td class="tg-0lax"><span style="font-weight:normal">Service Models</span></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+  </tr>
+
 </tbody>
 </table></div>
 
-### Analytics Working Group
-
-* Active May - November, 2018
-* [Charter](https://docs.google.com/document/d/1ktM4z6bqVeunAaP1EiA67oytOgXMeb55-8fPwHVwJNY/edit?usp=sharing)
-* [Final Report](https://gin.btaa.org/library/analytics-working-group-report/)
