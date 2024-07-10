@@ -36,10 +36,9 @@ Our Team Members form the core of BTAA-GIN, each contributing a different set of
 * Ryan Mattke - Project Lead
 * Karen Majewicz - Geospatial Product Manager
 * Eric Larson - Lead Application Developer
-* Owen Connolly - Geospatial Metadata Technician
 * Michael Berkowski - Web Developer
-* Michael Johnson - Web Analytics
-* Paul Bramscher - Linux Systems Administrator and Software Administrator 
+* Mark Engelmann - Web Analytics
+
 
 ## Alumni
 
@@ -56,6 +55,8 @@ For operations at the University of Minnesota:
 * John Butler, Associate University Librarian for Data & Technology - University of Minnesota (sponsor 2015-2021)
 * Kirsten Clark, Director, Access and Information Services - University of Minnesota (sponsor 2019-2021)
 * Claire Stewart, Associate University Librarian for Research & Learning - University of Minnesota (sponsor 2015-2019)
+* Michael Johnson - Web Analytics
+* Paul Bramscher - Linux Systems Administrator and Software Administrator 
  
 Executive Committee:
 
@@ -63,6 +64,7 @@ Executive Committee:
 
 ### Graduate Research Assistant Alumni
 
+* Owen Connolly - (2023-2024)
 * Alexander Danielson - (2022-2023)
 * Ziying (Gene) Cheng - (2020-2022)
 * Yijing (Zoey) Zhou - (2020-2021)
