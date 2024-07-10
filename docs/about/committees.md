@@ -44,6 +44,7 @@
  
     * Tara Anthony
     * Jay Bowen (Co-Chair)
+    * Méch	 Frazier
     * Laura McElfresh
     * Sue Oldenburg (Co-Chair)
     * Nicole Scholtz

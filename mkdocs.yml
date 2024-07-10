@@ -28,7 +28,7 @@ theme:
             - navigation.top
             - navigation.sections
             - toc.follow
-#             - toc.integrate
+            - toc.integrate
 
     
 plugins:
