@@ -24,9 +24,7 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [x] Research existing geodata archiving practices across the BTAA region
 
-- [ ] {++Determine guidelines for data collection, management, and storage that the pilot will adhere to.++}
-
-- [ ] {++Create a set of sample datasets: Select or create datasets that represent the variety and scope of data to be managed.++}
+- [x] Create a set of sample datasets: Select or create datasets that represent the variety and scope of data to be managed.
 
 #### Recruitment and Staffing
 
@@ -36,29 +34,27 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [x] Advertise the position
 
-- [ ] Conduct the interview and selection process.
 
 #### Technical Setup
 
 - [x] Establish Amazon cloud storage (S3) accounts: Set up and configure Amazon S3 buckets for data storage.
 
-- [ ] {++Integrate or develop tools within the Admin Toolkit for ingesting and managing datasets.++}
+- [x] Integrate or develop tools within the Admin Toolkit for ingesting and managing datasets.
 
-- [ ] {++Test adding sample datasets to Amazon S3: Conduct tests to ensure data can be stored, accessed, and managed effectively in the cloud environment.++}
+- [x] {Test adding sample datasets to Amazon S3: Conduct tests to ensure data can be stored, accessed, and managed effectively in the cloud environment.
 
 #### Documentation and Process
 
 - [x] Obtain official approval of the BTAA-GIN Geodata Collection Strategic Plan.
 
-- [ ] {++Document the setup and configuration processes for S3 accounts and asset management tools.++}
-
-- [ ] Document pilot testing procedures and decisions.
 
 ### 2. Develop Curation Plan and Explore Technology Enhancements (2024 Q3-Q4)
 
-#### Recruitment and Training
+#### Recruitment and Training for Program and Outreach Coordinator
 
-- [ ] Hire Program and Outreach Coordinator: Finalize the hiring process and onboard the new hire.
+- [ ] Conduct the interview and selection process.
+
+- [ ] Finalize the hiring process and onboard the new hire.
 
 - [ ] Conduct orientation and training: Provide training on project objectives, tools, and responsibilities.
 
@@ -83,6 +79,10 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 - [ ] Select a broader range of sample data: Identify and prepare additional datasets that cover a wider range of subjects and formats for testing.
 
 - [ ] Integrate new sample data into the pilot: Test the expanded collection in the Amazon S3 environment to assess scalability and performance.
+
+- [ ] {++Document the setup and configuration processes for S3 accounts and asset management tools.++}
+
+- [ ] Document pilot testing procedures and decisions.
 
 #### Technology Enhancement and Integration
 

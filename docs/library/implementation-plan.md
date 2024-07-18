@@ -121,6 +121,10 @@ will also be able to download historical versions.
 
 ## 2. STRATEGIC ROADMAP
 
+!!! info
+
+	This roadmap is a preliminary outline. To follow actual progress, see the [Geodata Collection page.](../../technology/geodata-collection/)
+
 ### 2.1 Foundations & Pilot Storage (2024 Q1-Q2)
 
 #### 2.1.1 Initiate Working Group and Planning
