@@ -44,14 +44,10 @@ Our Team Members form the core of BTAA-GIN, each contributing a different set of
 
 ### Project Sponsor Alumni
 
-For the Big Ten Academic Alliance Library Directors: 
 
 * Wendy Lougee, University Librarian and McKnight Presidential Professor - University of Minnesota  (2015-2020)
 * James Hilton, University Librarian and Dean of Libraries - University of Michigan
-* Kim Armstrong, BTAA CLI Big Ten Academic Alliance Director Library Initiatives 
-
-For operations at the University of Minnesota: 
-
+* Kim Armstrong, BTAA CLI Big Ten Academic Alliance Director Library Initiatives
 * John Butler, Associate University Librarian for Data & Technology - University of Minnesota (sponsor 2015-2021)
 * Kirsten Clark, Director, Access and Information Services - University of Minnesota (sponsor 2019-2021)
 * Claire Stewart, Associate University Librarian for Research & Learning - University of Minnesota (sponsor 2015-201
@@ -61,8 +57,9 @@ Executive Committee:
 * Barbara Dewey- Dean of University Libraries & Scholarly Communications, Penn State (2020)
 
 
-### University of Minnesota Staff
+### University of Minnesota Staff Alumni
 
+* Kevin Dyke - Spatial Curator and Geoportal developer
 * Michael Johnson - Web Analytics
 * Paul Bramscher - Linux Systems Administrator and Software Administrator 
 
