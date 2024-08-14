@@ -74,23 +74,20 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 - [ ] Redesign Geoportal Dev branch interface to improve discovery and access for the Geodata Collection.
 
 
-#### Recruitment and Training for Program and Outreach Coordinator
-
-- [ ] {++Conduct the interview and selection process.++}
-
-- [ ] Finalize the hiring process and onboard the new hire.
-
-- [ ] Conduct orientation and training: Provide training on project objectives, tools, and responsibilities.
-
 #### Curation Plan Development
 
 - [ ] {++Identify and the types of geospatial data to be included in the collection.++}
 
 - [ ] Define curation criteria, including data selection, acquisition, and quality control.
 
+#### Recruitment and Staffing
+
+- [ ] {++Continue process for interviewing for new position++}}
+- [ ] Finalize the hiring process and onboard new hire
+
 #### Communication Plan Development
 
-- [ ] Identify key stakeholders and communication needs: Map out stakeholders and determine their information requirements.
+- [ ] Identify key stakeholders.
 
 - [ ] Develop communication strategies (frequency, channels, and content).
 
