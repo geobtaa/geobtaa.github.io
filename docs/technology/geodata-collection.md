@@ -39,9 +39,9 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [x] Establish Amazon cloud storage (S3) accounts: Set up and configure Amazon S3 buckets for data storage.
 
-- [x] Integrate or develop tools within the Admin Toolkit for ingesting and managing datasets.
+- [x] Integrate or develop tools within GBL Admin for ingesting and managing datasets.
 
-- [x] {Test adding sample datasets to Amazon S3: Conduct tests to ensure data can be stored, accessed, and managed effectively in the cloud environment.
+- [x] Test adding sample datasets to Amazon S3: Conduct tests to ensure data can be stored, accessed, and managed effectively in the cloud environment.
 
 #### Documentation and Process
 
@@ -50,9 +50,33 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 ### 2. Develop Curation Plan and Explore Technology Enhancements (2024 Q3-Q4)
 
+#### Pilot Workgroup
+
+- [x] Determine staging environment for sharing datasets
+
+- [ ] {++Select a broader range of sample data.++}
+
+- [ ] {++Determine minimum metadata requirements.++}
+
+- [ ] {++Analyze and test new GBL Admin features for data management.++}
+
+- [ ] Integrate new sample data into the pilot
+
+- [ ] Sunset the pilot workgroup.
+
+
+#### Technology Enhancement and Integration
+
+- [ ] Implement GBL Admin features identifed as needed for data management. (i.e. fixity checks, administrative metadata views)
+
+- [ ] Begin planning for enhancing GBL Admin to feature batch uploads and processing.
+
+- [ ] Redesign Geoportal Dev branch interface to improve discovery and access for the Geodata Collection.
+
+
 #### Recruitment and Training for Program and Outreach Coordinator
 
-- [ ] Conduct the interview and selection process.
+- [ ] {++Conduct the interview and selection process.++}
 
 - [ ] Finalize the hiring process and onboard the new hire.
 
@@ -60,43 +84,25 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 #### Curation Plan Development
 
-- [ ] Assess data types and sources: Identify and the types of geospatial data to be included in the collection.
+- [ ] {++Identify and the types of geospatial data to be included in the collection.++}
 
-- [ ] Define curation criteria: Establish standards for data selection, acquisition, and quality control.
-
-- [ ] Document the curation plan: Create detailed documentation outlining the curation strategy, procedures, and responsibilities.
+- [ ] Define curation criteria, including data selection, acquisition, and quality control.
 
 #### Communication Plan Development
 
 - [ ] Identify key stakeholders and communication needs: Map out stakeholders and determine their information requirements.
 
-- [ ] Develop communication strategies: Create a plan detailing the frequency, channels, and content of communications.
+- [ ] Develop communication strategies (frequency, channels, and content).
 
-- [ ] Prepare communication templates and materials: Develop templates for newsletters, reports, and presentations to streamline ongoing communications.
+- [ ] Prepare communication templates and materials.
 
-#### Pilot Expansion and Testing
-
-- [ ] Select a broader range of sample data: Identify and prepare additional datasets that cover a wider range of subjects and formats for testing.
-
-- [ ] Integrate new sample data into the pilot: Test the expanded collection in the Amazon S3 environment to assess scalability and performance.
+#### Documentation and Process
 
 - [ ] {++Document the setup and configuration processes for S3 accounts and asset management tools.++}
 
 - [ ] Document pilot testing procedures and decisions.
 
-#### Technology Enhancement and Integration
-
-- [ ] Redesign Geoportal Dev branch interface: Enhance the user interface to better feature and access the Geodata Collection.
-
-- [ ] Enhance Admin Toolkit for batch processing: Develop or integrate batch asset management capabilities to improve efficiency.
-
-- [ ] Adjust Amazon services based on pilot feedback: Optimize cloud storage configurations and services to meet the project's evolving needs.
-
-#### Review and Refinement
-
-- [ ] Conduct a pilot review meeting: Assess the expanded pilot's performance, focusing on data management, storage efficiency, and user experience.
-
-- [ ] Update the framework of best practices: Refine data curation and management practices based on the insights gained from the expanded pilot testing.
+- [ ] Document the curation plan: Create detailed documentation outlining the curation strategy, procedures, and responsibilities.
 
 
 ### 3. Begin Active Curation and Implement Enhancements (2025 Q1-Q2)
@@ -111,7 +117,7 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [ ] Publish Geoportal design enhancements to the production site: Transition the updated Geoportal interface from the development branch to the live environment, ensuring all new features are fully operational.
 
-- [ ] Conduct final testing of the enhanced Admin Toolkit: Ensure that the new batch asset management functionalities are working as intended and integrate feedback from the pilot phase.
+- [ ] Conduct final testing of the enhanced GBL Admin: Ensure that the new batch asset management functionalities are working as intended and integrate feedback from the pilot phase.
 
 #### Monitoring and Evaluation
 
