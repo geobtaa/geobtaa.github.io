@@ -37,11 +37,11 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 #### Technical Setup
 
-- [x] Establish Amazon cloud storage (S3) accounts: Set up and configure Amazon S3 buckets for data storage.
+- [x] Establish Amazon cloud storage (S3) accounts for data storage.
 
 - [x] Integrate or develop tools within GBL Admin for ingesting and managing datasets.
 
-- [x] Test adding sample datasets to Amazon S3: Conduct tests to ensure data can be stored, accessed, and managed effectively in the cloud environment.
+- [x] Test adding sample datasets to Amazon S3.
 
 #### Documentation and Process
 
@@ -116,23 +116,23 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 #### Technology Deployment and Enhancement
 
-- [ ] Publish Geoportal design enhancements to the production site: Transition the updated Geoportal interface from the development branch to the live environment, ensuring all new features are fully operational.
+- [ ] Publish Geoportal design enhancements to the production site. (Transition the updated Geoportal interface from the development branch to the live environment.)
 
-- [ ] Conduct final testing of the enhanced GBL Admin: Ensure that the new batch asset management functionalities are working as intended and integrate feedback from the pilot phase.
+- [ ] Conduct final testing of the enhanced GBL Admin.
 
 #### Monitoring and Evaluation
 
-- [ ] Set up monitoring tools for the new systems: Implement tools to continuously monitor the performance and usage of the Geoportal and data repository, ensuring they meet user needs and technical requirements.
+- [ ] Set up monitoring tools for the new systems.
 
-- [ ] Review initial active curation outcomes: Evaluate the effectiveness of the curation process, identifying areas for improvement or adjustment.
+- [ ] Evaluate the effectiveness of the curation process, identifying areas for improvement or adjustment.
 
 ### 4. Documentation & Outreach (2025 Q3-Q4)
 
 #### Outreach and Communication
 
-- [ ] Develop and execute an outreach plan: Create a detailed plan for engaging with the community, including conferences, webinars, and workshops to showcase the project.
+- [ ] Create a detailed outreach plan for engaging with the community, including conferences, webinars, and workshops to showcase the project.
 
-- [ ] Prepare and publish outreach materials: Design and distribute materials to highlight the project's features and benefits.
+- [ ] Design and distribute outreach materials to highlight the project's features and benefits.
 
 #### Assessment and Feedback
 
