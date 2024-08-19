@@ -24,7 +24,7 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [x] Research existing geodata archiving practices across the BTAA region
 
-- [x] Create a set of sample datasets: Select or create datasets that represent the variety and scope of data to be managed.
+- [x] Create an initial set of test datasets.
 
 #### Recruitment and Staffing
 
@@ -54,7 +54,9 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 - [x] Determine staging environment for sharing datasets
 
-- [ ] {++Select a broader range of sample data.++}
+- [x] Select a broader range of sample data.
+
+- [x] Add sample data to staging area.
 
 - [ ] {++Determine minimum metadata requirements.++}
 
@@ -66,6 +68,8 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 
 #### Technology Enhancement and Integration
+
+- [x] Set up staging area (Box)
 
 - [ ] Implement GBL Admin features identifed as needed for data management. (i.e. fixity checks, administrative metadata views)
 
