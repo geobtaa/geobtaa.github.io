@@ -86,7 +86,7 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 #### Recruitment and Staffing
 
-- [ ] {++Continue process for interviewing for new position++}}
+- [ ] {++Continue process for interviewing for new position++}
 - [ ] Finalize the hiring process and onboard new hire
 
 #### Communication Plan Development
