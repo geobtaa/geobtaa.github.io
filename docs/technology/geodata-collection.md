@@ -1,4 +1,4 @@
-# BTAA-GIN Geodata Collection
+# BTAA-GIN Geodata Collection Strategic Roadmap
 
 The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and distribute open geodata. 
 
@@ -6,9 +6,6 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 
 	*  [Geodata Collection Strategic Plan](../../library/geodata-collection-strategic-plan/)
 	*  [Geodata Collection Implementation Plan](../../library/implementation-plan/)
-	
-
-## STRATEGIC ROADMAP
 
 *Follow our progress*
 
@@ -16,132 +13,110 @@ The BTAA-GIN Program launched a new initiative in 2024 to collect, store, and di
 - [ ] {++In progress++}
 - [ ] Not started
 
-### 1. Foundations & Pilot Storage (2024 Q1-Q2)
+## 1. Set up storage & pilot workgroup (2024 Q1-Q2)
 
-#### Initiate Working Group and Planning
+### Pilot Workgroup
 
-- [x] Establish and run the Geodata Collection Pilot Working Group.
-
-- [x] Research existing geodata archiving practices across the BTAA region
-
+- [x] Establish the Geodata Collection Pilot Working Group.
+- [x] Research existing geodata archiving practices across the BTAA region.
 - [x] Create an initial set of test datasets.
 
-#### Recruitment and Staffing
-
-- [x] Assess current team capabilities and identify gaps in skill or resources.
-
-- [x] Draft job description Program and Outreach Coordinator
-
-- [x] Advertise the position
-
-
-#### Technical Setup
+### Technology
 
 - [x] Establish Amazon cloud storage (S3) accounts for data storage.
-
-- [x] Integrate or develop tools within GBL Admin for ingesting and managing datasets.
-
+- [x] Develop techniques within GBL Admin for basic ingest of datasets.
 - [x] Test adding sample datasets to Amazon S3.
 
-#### Documentation and Process
+### Recruitment and staffing
+
+- [x] Assess current team capabilities and identify gaps in skill or resources.
+- [x] Draft job description Program and Outreach Coordinator.
+- [x] Advertise the position.
+
+### Documentation
 
 - [x] Obtain official approval of the BTAA-GIN Geodata Collection Strategic Plan.
+- [x] Create and publish a Geodata Collection Implementation Plan that expands on the Strategic Plan.
 
 
-### 2. Develop Curation Plan and Explore Technology Enhancements (2024 Q3-Q4)
+## 2. Develop Curation Plan and explore technology enhancements (2024 Q3-Q4)
 
-#### Pilot Workgroup
+### Pilot Workgroup
 
 - [x] Determine staging environment for sharing datasets
-
 - [x] Select a broader range of sample data.
-
 - [x] Add sample data to staging area.
-
 - [ ] {++Determine minimum metadata requirements.++}
-
 - [ ] {++Analyze and test new GBL Admin features for data management.++}
-
-- [ ] Integrate new sample data into the pilot
-
+- [ ] Integrate new sample data into the pilot.
+- [ ] Determine batch upload needs.
 - [ ] Sunset the pilot workgroup.
 
 
-#### Technology Enhancement and Integration
+### Technology
 
-- [x] Set up staging area (Box)
+- [x] Set up staging area (Box).
+- [ ] Implement new GBL Admin features as needed for data management. (i.e. fixity checks, administrative metadata views).
+- [ ] Begin planning for how to incoportate batch ingest functionality in GBL Admin.
+- [ ] Redesign the Geoportal interface to improve discovery and access for the Geodata Collection on the development branch.
 
-- [ ] Implement GBL Admin features identifed as needed for data management. (i.e. fixity checks, administrative metadata views)
-
-- [ ] Begin planning for enhancing GBL Admin to feature batch uploads and processing.
-
-- [ ] Redesign Geoportal Dev branch interface to improve discovery and access for the Geodata Collection.
-
-
-#### Curation Plan Development
-
-- [ ] {++Identify and the types of geospatial data to be included in the collection.++}
-
-- [ ] Define curation criteria, including data selection, acquisition, and quality control.
-
-#### Recruitment and Staffing
+### Recruitment and staffing
 
 - [ ] {++Continue process for interviewing for new position++}
 - [ ] Finalize the hiring process and onboard new hire
 
-#### Communication Plan Development
+### Curation Plan development
 
-- [ ] Identify key stakeholders.
+- [ ] {++Identify the themes of geospatial data to be included in the collection.++}
+- [ ] Define curation criteria, including data selection, acquisition, and quality control.
+- [ ] Update the GeoBTAA Metadata Application Profile as needed.
 
-- [ ] Develop communication strategies (frequency, channels, and content).
-
-- [ ] Prepare communication templates and materials.
-
-#### Documentation and Process
+### Documentation
 
 - [ ] {++Document the setup and configuration processes for S3 accounts and asset management tools.++}
-
 - [ ] Document pilot testing procedures and decisions.
+- [ ] Document and publish the curation plan.
 
-- [ ] Document the curation plan: Create detailed documentation outlining the curation strategy, procedures, and responsibilities.
 
+## 3. Begin active curation and communication (2025 Q1-Q2)
 
-### 3. Begin Active Curation and Implement Enhancements (2025 Q1-Q2)
+### Communication
 
-#### Active Curation Process
+- [ ] Identify key stakeholders.
+- [ ] Develop communication strategies (frequency, channels, and content).
+- [ ] Prepare communication templates and materials.
+
+### Technology
+
+- [ ] Transition the updated Geoportal interface from the development branch to the live environment.
+- [ ] Implement batch ingest functionality in GBL Admin.
+
+### Active curation process
 
 - [ ] Establish curation cycles.
-
 - [ ] Implement data quality checks and validation processes.
+- [ ] Ingest and publish assets as identified in Communication and Curation Plans.
 
-#### Technology Deployment and Enhancement
 
-- [ ] Publish Geoportal design enhancements to the production site. (Transition the updated Geoportal interface from the development branch to the live environment.)
+## 4. Outreach and evaluation (2025 Q3-Q4)
 
-- [ ] Conduct final testing of the enhanced GBL Admin.
+### Outreach
 
-#### Monitoring and Evaluation
-
-- [ ] Set up monitoring tools for the new systems.
-
-- [ ] Evaluate the effectiveness of the curation process, identifying areas for improvement or adjustment.
-
-### 4. Documentation & Outreach (2025 Q3-Q4)
-
-#### Outreach and Communication
-
-- [ ] Create a detailed outreach plan for engaging with the community, including conferences, webinars, and workshops to showcase the project.
-
+- [ ] Create an outreach schedule for engaging with the community, including presentations at conferences.
+- [ ] Conduct educational sessions on data curation as webinars or workshops.
 - [ ] Design and distribute outreach materials to highlight the project's features and benefits.
 
-#### Assessment and Feedback
+### Assessment and Feedback
 
-- [ ] Conduct program evaluation: Assess the project's impact on users and stakeholders, evaluating how well the curation plan and new systems are meeting the established goals.
+- [ ] Assess the project's impact on users and stakeholders.
+- [ ] Evaluate how well the curation plan functions.
 
-- [ ] Gather and analyze user feedback: Use surveys, interviews, and usage data to understand user experiences, satisfaction, and areas for improvement.
+### Monitoring and Evaluation
 
-#### Continuous Improvement
+- [ ] Set up monitoring tools for the new systems.
+- [ ] Evaluate the effectiveness of the curation process, identifying areas for improvement or adjustment.
+
+### Continuous Improvement
 
 - [ ] Establish mechanisms for regularly updating the project based on stakeholder feedback and evolving requirements.
-
 - [ ] Plan for next phases of project expansion.
