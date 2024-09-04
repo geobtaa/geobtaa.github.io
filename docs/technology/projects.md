@@ -4,7 +4,7 @@
 
 <div class="grid cards" markdown>
 
--   ### BTAA Geoportal
+-   #### BTAA Geoportal
 
     ---
 
@@ -16,7 +16,7 @@
     
 	[:octicons-arrow-right-24: Read more about the Geoportal's key features and testimonials](geoportal.md).
 
--  ### GBL Admin
+-  #### GBL Admin
 
     ---
         
@@ -29,7 +29,7 @@
 	[:octicons-arrow-right-24: Watch a demo video](https://www.youtube.com/watch?v=lWjcr-Ow228).
 
 
--  ### GeoBTAA Metadata Handbook
+-  #### GeoBTAA Metadata Handbook
 
     ---
         
@@ -42,7 +42,7 @@
 	[:octicons-arrow-right-24: Clone the Harvesting Guide](https://github.com/geobtaa/harvesting-guide).
 	
 	
--  ### Geodata Collection
+-  #### Geodata Collection
 
     ---
         
@@ -60,7 +60,7 @@
 
 <div class="grid cards" markdown>
 
--  ### GeoBlacklight
+-  #### GeoBlacklight
 
     ---
     
@@ -72,7 +72,7 @@
     
 	[:octicons-arrow-right-24: View the open-source code](https://github.com/geoblacklight/geoblacklight).
     
--  ### OpenGeoMetadata
+-  #### OpenGeoMetadata
     
     ---
     

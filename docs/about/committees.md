@@ -7,7 +7,7 @@
 
 <div class="grid cards" markdown>
 
--    ### Knowledge Committee
+-    #### Knowledge Committee
 
     *Enhancing our professional community*
     
@@ -22,7 +22,7 @@
     * Amanda Tickner (Co-Chair)
     * Wenjie Wang
 
--    ### Coordination Committee
+-    #### Coordination Committee
 
     *Organizing our program*
 
@@ -34,7 +34,7 @@
     * Karen Majewicz
     * Rotating members of other committees
 
--    ### Community Engagement Committee
+-    #### Community Engagement Committee
 
     *Connecting with the public*
     
@@ -51,7 +51,7 @@
     * Rob Shepard
     * Kathleen Weessies
 
--    ### TECHnology Committee
+-    #### TECHnology Committee
 
     *Building the Geoportal*
     
