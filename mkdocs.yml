@@ -21,7 +21,7 @@ theme:
             - navigation.tabs
             - navigation.tabs.sticky
             - navigation.sections
-#             - navigation.expand
+            - navigation.expand
 #             - navigation.path
 #             - navigation.prune
             - navigation.indexes
@@ -161,11 +161,12 @@ nav:
 # - Home: 'index.md'
 
 - About:
+      - 'Overview': 'about/about-us.md'
       - 'Who we are': 'about/participants.md'
       - 'Committees': 'about/committees.md'
       - 'Working Groups': 'about/working-groups.md'
-      - 'Guiding Principles': 'about/btaa-gin.md'
       - 'History': 'about/history.md'
+      - 'Guiding Principles': 'about/btaa-gin.md'
       - 'Contact us': 'https://geo.btaa.org/feedback'
       - 'Program Updates': 
             - 'updates/index.md'
