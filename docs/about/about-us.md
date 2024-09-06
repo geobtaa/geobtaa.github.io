@@ -6,7 +6,7 @@
 
 ## Our work
 
-We focus on two key areas: **technical infrastructure** and **social infrastructure**, both of which contribute to supporting the geospatial research community and building a collaborative environment.
+We focus on two key areas: **technical infrastructure** and **social infrastructure**, both of which contribute to supporting the geospatial research community and providing a collaborative environment.
 
 ### Technical Infrastructure:
 
