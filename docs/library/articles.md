@@ -1,6 +1,8 @@
 !!! info ""
 
 	These scholarly articles describe collaborations and projects across the BTAA-GIN.
+	
+:octicons-book-24: Tickner, A., McElfresh, L. K., Mattke, R., & Majewicz, K. (2024). Sustaining a Spatial Collaboration: Leveraging Social Infrastructure to Support Technological Advancement in Geospatial Data Discovery. Journal of Map & Geography Libraries, 20(1), 25–38. https://doi.org/10.1080/15420353.2024.2388576
 
 :octicons-book-24: Laura Kane McElfresh (2023) Creator Name Standardization Using Faceted Vocabularies in the BTAA Geoportal, Cataloging & Classification Quarterly, DOI: 10.1080/01639374.2023.2200430
 

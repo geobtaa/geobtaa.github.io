@@ -19,7 +19,7 @@ Committees periodically charge short term Working Groups to complete specific pr
 
 !!! warning "Documentation in progress"
 
-	We are working on adding past activities and final report links. In the meantime, browse our [Document Library](../../library) to find reports or [contact us](https://geo.btaa.org/feedback) for more information.
+	We are working on adding past activities and final report links. In the meantime, browse our [Document Library](../../library/articles) to find reports or [contact us](https://geo.btaa.org/feedback) for more information.
 
 * Geodata Archive Working Group
 * Original Content Working Group
