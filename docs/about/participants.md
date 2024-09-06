@@ -1,7 +1,5 @@
 ## Who we are
 
-We are a collaboration of library-affiliated staff from Big Ten Academic Alliance universities. The BTAA-GIN program is part of the [Big Ten Academic Alliance Library Initiatives](https://btaa.org/library/Libraries).
-
 ## Participating Institutions
 
 <iframe width="100%" height="864" frameborder="0" src="https://ui-libraries.github.io/btaa-gin-members"></iframe>
@@ -26,11 +24,13 @@ We are a collaboration of library-affiliated staff from Big Ten Academic Allianc
 
 ##  Team Members
 
-Our Team Members form the core of BTAA-GIN, each contributing a different set of skills and insights. Their collective expertise spans a range of disciplines: from the information-focused skills of geospatial science, data management, and metadata to the cultural realm of map cataloging and cartographic history. They also bring critical perspectives on social justice and web accessibility, alongside technical skills in software development, web accessibility, and interface usability. 
+Our Team Members form the core of BTAA-GIN, each contributing unique skills and perspectives. Their collective expertise covers a wide range of areas, including geospatial science, data management, and metadata, as well as map cataloging and cartographic history. They also contribute valuable insights into social justice and web accessibility, alongside technical skills in software development and user-friendly interface design.
 
 {{ read_csv('../tables/teamMembers-2023.csv') }}
 
 ## University of Minnesota Operations Staff
+
+The University of Minnesota serves as the administrative and technical hub of the BTAA-GIN.
 
 * Cody Hanson- IT Director - Administrative Lead
 * Ryan Mattke - Project Lead

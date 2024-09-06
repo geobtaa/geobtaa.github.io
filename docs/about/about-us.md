@@ -1,5 +1,8 @@
 # About the BTAA Geospatial Information Network (BTAA-GIN)
-The Big Ten Academic Alliance Geospatial Information Network (BTAA-GIN) is a collaboration of library-affiliated staff from the Big Ten Academic Alliance universities. We support geospatial research, foster connections among library professionals, and advance the development of open-source geospatial tools and resources.
+
+!!! abstract "Overview"
+
+	The Big Ten Academic Alliance Geospatial Information Network (BTAA-GIN) is a collaboration of library-affiliated staff from the Big Ten Academic Alliance universities. We support geospatial research, foster connections among library professionals, and advance the development of open-source geospatial tools and resources.
 
 ## Our work
 
