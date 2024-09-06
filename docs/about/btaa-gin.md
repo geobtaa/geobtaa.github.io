@@ -1,10 +1,13 @@
 #  BTAA-GIN Guiding Principles
 
+!!! success "Mission Statement"
+
+	The mission of the Big Ten Academic Alliance Geospatial Information Network is to support the geospatial research community by making resources easier to find, and to foster connections among geospatial library professionals through collaboration.
+
 ## Our Mission
 
-* To support the geospatial research community by making resources easier to find and to foster connections among geospatial library professionals through our collaboration.
-    * Our program aims to support the geospatial research community by building and maintaining a collective open-source spatial data infrastructure featuring metadata optimized for spatial discovery platforms.
-    * We foster connections among geospatial library professionals, the Big Ten Academic Alliance, and the BIG Collection by sharing expertise and utilizing collective resources while cultivating a culture of deep collaboration and interdependence.
+* Our program aims to support the geospatial research community by building and maintaining a collective open-source spatial data infrastructure featuring metadata optimized for spatial discovery platforms.
+* We foster connections among geospatial library professionals, the Big Ten Academic Alliance, and the BIG Collection by sharing expertise and utilizing collective resources while cultivating a culture of deep collaboration and interdependence.
 
 ## Our Values
 
