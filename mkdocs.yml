@@ -71,6 +71,7 @@ plugins:
             post_date_format: medium
             post_url_date_format: yyyy
             archive_date_format: yyyy
+            post_excerpt_separator: <!-- more -->
 
       # - pdf-export:
       #       verbose: true

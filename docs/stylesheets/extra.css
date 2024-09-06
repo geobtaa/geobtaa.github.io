@@ -454,21 +454,29 @@ th, td {
 
 /* Blog customizations */
 
+.md-post-link {
+  display: block;
+  text-decoration: none; /* Remove the underline */
+  color: inherit; /* Inherit the color to prevent link color change */
+}
+
 .md-post--excerpt {
-  background-color: #f9f9f9; /* Slightly off-white to distinguish from page */
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15); /* Stronger shadow */
-  padding: 20px; /* Padding inside the div */
-  margin: 20px 0; /* Increased margin between snippets */
-  border-radius: 8px; /* Slightly more rounded corners */
-  border: 1px solid #ddd; /* Subtle border to define snippet edges */
+  background-color: #f9f9f9;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  margin: 20px 0;
+  border-radius: 8px;
+  border: 1px solid #ddd;
   width: 80%;
-  transition: box-shadow 0.3s ease, transform 0.3s ease; /* Adds hover effect */
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .md-post--excerpt:hover {
-  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
-  transform: translateY(-4px); /* Slight lift on hover */
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px);
+  cursor: pointer; /* Show a pointer to indicate it's clickable */
 }
+
 	
    .md-post--excerpt .md-post__content img {
 	  width: 200px;
@@ -483,7 +491,7 @@ th, td {
 to remove the redundant subheader link in the snippet view
  */
 .md-post__content h3 a {
-  pointer-events: none; /* Disables the link */
+  /* pointer-events: none;  *//* Disables the link */
   text-decoration: none; /* Removes the underline */
   color: inherit; /* Keeps the text color consistent */
 }
