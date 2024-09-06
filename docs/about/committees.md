@@ -1,8 +1,27 @@
-# BTAA-GIN Committees
+# Committees
+
+## Executive Committee
+
+Our Executive Committee represents the strategic and financial interests of participating institutions through executive oversight of the project.
+
+**Members**
+
+* Lisa German- Dean of Libraries & University Librarian, University of Minnesota - Chair
+* Faye Chadwell - Dean of Libraries and Scholarly Communications, Pennsylvania State University
+* Claire Stewart - Dean of Libraries and University Librarian, University of Illinois
+* Cody Hanson (ex-officio)- IT Director, University of Minnesota Libraries
+* Maurice York (ex-officio)- Director of Library Initiatives, Big Ten Academic Alliance
+
+---
+
 
 ## Program Committees
 
-![](../images/matrix-committees.png){ width=200 align=left } Our program committees work independently and collaborate on overlapping issues.
+<figure markdown="span">
+  ![Program Committees Donut](../images/matrix-committees.png)
+  <figcaption>Our 4 program committees work independently and collaborate on overlapping issues.</figcaption>
+</figure>
+
 
 
 <div class="grid cards" markdown>
@@ -72,16 +91,9 @@
 
 ---
 
-## Executive Committee
+!!! tip "Latest activities"
 
-Represents the strategic and financial interests of participating institutions through executive oversight of the project
+	Browse our [monthly project updates](../updates) to find about about recent activites.
 
-**Members**
-
-* Lisa German- Dean of Libraries & University Librarian, University of Minnesota - Chair
-* Faye Chadwell - Dean of Libraries and Scholarly Communications, Pennsylvania State University
-* Claire Stewart - Dean of Libraries and University Librarian, University of Illinois
-* Cody Hanson (ex-officio)- IT Director, University of Minnesota Libraries
-* Maurice York (ex-officio)- Director of Library Initiatives, Big Ten Academic Alliance
 
 
