@@ -4,9 +4,9 @@
 	
 :octicons-book-24: Tickner, A., McElfresh, L. K., Mattke, R., & Majewicz, K. (2024). Sustaining a Spatial Collaboration: Leveraging Social Infrastructure to Support Technological Advancement in Geospatial Data Discovery. Journal of Map & Geography Libraries, 20(1), 25–38. https://doi.org/10.1080/15420353.2024.2388576
 
-:octicons-book-24: Laura Kane McElfresh (2023) Creator Name Standardization Using Faceted Vocabularies in the BTAA Geoportal, Cataloging & Classification Quarterly, DOI: 10.1080/01639374.2023.2200430
+:octicons-book-24: McElfresh, l. (2023) Creator Name Standardization Using Faceted Vocabularies in the BTAA Geoportal, Cataloging & Classification Quarterly, https://doi.org/10.1080/01639374.2023.2200430. Preprint edition: https://conservancy.umn.edu/items/e423cdf3-2094-4aeb-b033-eb13d7ca510d
 
-:octicons-book-24: Majewicz, K., Martindale, J., & Kernik, M. (2022). Open Geospatial Data: A comparison of data cultures in local government, IASSIST Quarterly 46(1). (75% contribution) Available at: https://doi.org/10.29173/iq1013
+:octicons-book-24: Majewicz, K., Martindale, J., & Kernik, M. (2022). Open Geospatial Data: A comparison of data cultures in local government, IASSIST Quarterly 46(1). Available at: https://doi.org/10.29173/iq1013
 
 :octicons-book-24: Battista, A., Majewicz, K., Balogh, S., & Hardy, D. (2018). Consortial Geospatial Data Collection: Toward Standards and Processes for Shared GeoBlacklight Metadata. Journal of Library Metadata, 1-18. DOI: https://doi.org/10.1080/19386389.2018.1443414
 
