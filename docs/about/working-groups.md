@@ -12,7 +12,7 @@ Committees periodically charge short term Working Groups to complete specific pr
 
 !!! tip "Latest activities"
 
-	Browse our [monthly project updates](../updates) to find about about recent activites.
+	Browse our [monthly project updates](../../updates) to find about about recent activites.
 
 
 ## Sunsetted Working Groups

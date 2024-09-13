@@ -93,7 +93,7 @@ Our Executive Committee represents the strategic and financial interests of part
 
 !!! tip "Latest activities"
 
-	Browse our [monthly project updates](../updates) to find about about recent activites.
+	Browse our [monthly project updates](../../updates) to find about about recent activites.
 
 
 
