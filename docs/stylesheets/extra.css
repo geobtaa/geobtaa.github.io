@@ -110,17 +110,125 @@ a:hover {
 /*   -----FOOTER---------- */
   
 
-  .md-footer {
-  padding-left: 2rem;
-  padding-right: 2rem;
+/* Footer Container */
+#footer-app {
+    background-color: #0a4b7b;
+    color: #fff; /* White text color */
+    padding: 40px 10px;
 }
 
-
-
-.md-social__link svg {
-  max-height: 2rem;
+#footer-app a {
+    color: #fff; /* Light blue color for links */
+    text-decoration: none;
 }
 
+#footer-app a:hover {
+    text-decoration: underline; /* Underline links on hover */
+}
+
+#footer-title img {
+    display: block;
+    margin: 0 auto 20px auto; /* Center logo and add space below */
+}
+
+/* Footer Section Headings */
+#footer-app h3, #footer-app h4 {
+    color: #fff; /* White headings */
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+#footer-app h3 {
+    font-size: 20px; /* Adjust as needed */
+}
+
+#footer-app h4 {
+    font-size: 18px; /* Adjust for smaller headings */
+}
+
+/* Footer Lists */
+#footer-app ul {
+    padding: 0;
+    list-style-type: none;
+}
+
+#footer-app ul li {
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+/* Responsive Footer Layout */
+@media (min-width: 768px) {
+    #footer-app .container-fluid {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    #footer-app .col-lg-6 {
+        flex: 1;
+        padding: 0 20px;
+    }
+}
+
+/* For 2-column Member Libraries */
+#footer-app ul[style*="column-count: 2;"] {
+    column-gap: 30px;
+    margin: 0;
+}
+
+/* Ensure footer stays at the bottom */
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+#footer-app {
+    margin-top: auto; /* Push footer to the bottom */
+}
+
+/* Flexbox for Two Columns */
+#footer-app .container-fluid {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+#footer-left-column, #footer-right-column {
+    flex: 1; /* Ensures both columns take equal space */
+    padding: 0 20px;
+}
+
+#footer-app h3, #footer-app h4 {
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+#footer-app ul {
+    padding: 0;
+    list-style-type: none;
+}
+
+#footer-app ul li {
+    margin-bottom: 8px;
+}
+
+/* Two-column layout for the member libraries */
+#footer-right-column ul[style*="column-count: 2;"] {
+    column-gap: 30px;
+    margin: 0;
+}
+
+/* Responsive for Mobile Devices */
+@media (max-width: 768px) {
+    #footer-app .container-fluid {
+        flex-direction: column;
+    }
+}
   
 
 /* ------------ TOP MENU STYLES ------------------- */
