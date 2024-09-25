@@ -169,12 +169,6 @@ nav:
       - 'History': 'about/history.md'
       - 'Guiding Principles': 'about/btaa-gin.md'
       - 'Contact us': 'https://geo.btaa.org/feedback'
-      - 'Policies':
-        - 'Privacy Statement': 'policies/privacy.md'
-        - 'Harmful Language Statement': 'policies/harmful-language.md'
-        - 'Terms of Service and Disclaimer': 'policies/tos-disclaimer.md'
-        - 'Accessibility': 'policies/accessibility.md'
-        - 'Collection Development': 'policies/collection-development.md'
       - 'Program Updates': 
             - 'updates/index.md'
       
@@ -186,31 +180,31 @@ nav:
       - 'About the BTAA Geoportal': 'technology/geoportal.md'
       - 'Geodata Collection': 'technology/geodata-collection.md'
 
-# - User Resources:
-- Research Guides:
-        - 'guides/index.md'
-        - 'BTAA Geoportal Search strategies': 'guides/search-strategies.md'
-        - 'Understanding metadata': 'guides/understanding-metadata.md'
-        - 'Citing geospatial data':  'guides/cite-data.md'
-        - 'Licensed data' : 'guides/licensed-data.md'
-        - 'U.S. Census data' : 'guides/census.md'
-        - 'Fire insurance maps'  : 'guides/fire-insurance.md'   
-        - 'Public Land Survey System (PLSS) Plats' : 'guides/plss.md'
-
-- Tutorials:
-        - 'tutorials/index.md'
-        - '1. Types of Geospatial Information': 'tutorials/01_types-of-geospatial-information.md'
-        - '2. Find Maps': 'tutorials/02_find-maps.md'
-        - '3. Find Geospatial Data': 'tutorials/03_find-geospatial-data.md'
-        - '4. Evaluate Geospatial Information': 'tutorials/04_evaluate-geospatial-information.md'
-        - '5. Web Services': 'tutorials/05_web-services.md'
-        - '6. Link Tabular Data': 'tutorials/06_link-tabular-data.md'
-        - '7. Georeference': 'tutorials/07_georeference.md'
-        - '8. Digitize': 'tutorials/08_digitize.md'
-        - '9. Create Elevation Surface Models': 'tutorials/09_create-elevation-surface-models.md'
-        - '10. Zonal Stats Tool': 'tutorials/10_zonal-stats-tool.md'
-        - '11. Story Maps': 'tutorials/11_story-maps.md'
-      
+- User Resources:
+    - Research Guides:
+            - 'guides/index.md'
+            - 'BTAA Geoportal Search strategies': 'guides/search-strategies.md'
+            - 'Understanding metadata': 'guides/understanding-metadata.md'
+            - 'Citing geospatial data':  'guides/cite-data.md'
+            - 'Licensed data' : 'guides/licensed-data.md'
+            - 'U.S. Census data' : 'guides/census.md'
+            - 'Fire insurance maps'  : 'guides/fire-insurance.md'   
+            - 'Public Land Survey System (PLSS) Plats' : 'guides/plss.md'
+    
+    - Tutorials:
+            - 'tutorials/index.md'
+            - '1. Types of Geospatial Information': 'tutorials/01_types-of-geospatial-information.md'
+            - '2. Find Maps': 'tutorials/02_find-maps.md'
+            - '3. Find Geospatial Data': 'tutorials/03_find-geospatial-data.md'
+            - '4. Evaluate Geospatial Information': 'tutorials/04_evaluate-geospatial-information.md'
+            - '5. Web Services': 'tutorials/05_web-services.md'
+            - '6. Link Tabular Data': 'tutorials/06_link-tabular-data.md'
+            - '7. Georeference': 'tutorials/07_georeference.md'
+            - '8. Digitize': 'tutorials/08_digitize.md'
+            - '9. Create Elevation Surface Models': 'tutorials/09_create-elevation-surface-models.md'
+            - '10. Zonal Stats Tool': 'tutorials/10_zonal-stats-tool.md'
+            - '11. Story Maps': 'tutorials/11_story-maps.md'
+          
 
 - Document Library:
       # - Browse:
@@ -253,7 +247,7 @@ nav:
               - 2021: 'conference/2021.md'
               - 2020: 'conference/2020.md'
               
-- News ↗: 'https://geobtaa.blogspot.com'
+- Collection Stories: 'https://geobtaa.blogspot.com'
 
       
 
