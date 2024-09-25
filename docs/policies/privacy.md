@@ -12,13 +12,13 @@ We do not collect personal data such as names, email addresses, or contact infor
 We collect non-personal information about your use of the BTAA-GIN websites, including but not limited to:
 
 - the Internet Protocol (IP) address and the name of the Internet domain used to access the Internet,
-- the IP address or URL of the web site from which a user directly linked to this web site,
-- the date and time a user accessed this web site,
-- the pages visited on this web site,
-- the browser and operating system used to access this web site, and
+- the IP address or URL of the website from which a user directly linked to this website,
+- the date and time a user accessed this website,
+- the pages visited on this website,
+- the browser and operating system used to access this website, and
 - the search terms used on our search engines.
 
-The BTAA-GIN uses this non-personal information to help manage the web site and improve service. This data is collected using Matomo, an open-source web analytics tool, for both the BTAA Geoportal and the BTAA-GIN website. Matomo respects user privacy, and the data is anonymized and not shared with third parties unless required by law.
+The BTAA-GIN uses this non-personal information to help manage the website and improve service. This data is collected using Matomo, an open-source web analytics tool, for both the BTAA Geoportal and the BTAA-GIN website. Matomo respects user privacy, and the data is anonymized and not shared with third parties unless required by law.
 
 ### Cookies
 We use cookies to collect usage data and improve your experience on the BTAA-GIN websites. Cookies are small text files stored on your device. The types of cookies we use include:
