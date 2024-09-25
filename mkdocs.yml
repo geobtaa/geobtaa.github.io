@@ -172,7 +172,7 @@ nav:
       - 'Policies':
         - 'Privacy Statement': 'policies/privacy.md'
         - 'Harmful Language Statement': 'policies/harmful-language.md'
-        - 'Terms of Service and Disclaimer': 'policies/tos-disclaimers.md'
+        - 'Terms of Service and Disclaimer': 'policies/tos-disclaimer.md'
         - 'Accessibility': 'policies/accessibility.md'
         - 'Collection Development': 'policies/collection-development.md'
       - 'Program Updates': 
