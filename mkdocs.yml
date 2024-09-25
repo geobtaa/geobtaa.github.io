@@ -49,7 +49,7 @@ plugins:
       - search
       - open-in-new-tab
 #       - optimize
-      - git-revision-date-localized
+      # - git-revision-date-localized
       - glightbox:
             touchNavigation: true
             loop: false
@@ -169,6 +169,12 @@ nav:
       - 'History': 'about/history.md'
       - 'Guiding Principles': 'about/btaa-gin.md'
       - 'Contact us': 'https://geo.btaa.org/feedback'
+      - 'Policies':
+        - 'Privacy Statement': 'policies/privacy.md'
+        - 'Harmful Language Statement': 'policies/harmful-language.md'
+        - 'Terms of Service and Disclaimer': 'policies/tos-disclaimers.md'
+        - 'Accessibility': 'policies/accessibility.md'
+        - 'Collection Development': 'policies/collection-development.md'
       - 'Program Updates': 
             - 'updates/index.md'
       
@@ -217,7 +223,6 @@ nav:
             - 'Best Practices for ArcGIS Hubs': 'library/best-practices-open-data-portals.md'
             - 'BTAA GIS Conference 2023 Wrap-Up Report': 'library/conference-report-2023.md'
             - 'CIC Geospatial Data Discovery Project Charter (2015)': 'library/cic-charter.md'
-            - 'Collection Development Policy': 'library/collection-development-policy.md'
             - 'Continuation Proposal 2021': 'library/continuation_2021.md'
             - 'Continuation Proposal 2019': 'library/continuation_2019.md'
             - 'Continuation Proposal 2017': 'library/continuation_2017.md'
@@ -226,7 +231,6 @@ nav:
             - 'Diverse Collections Report': 'library/diverse-collections.md'
             - 'Geodata Collection Strategic Plan': 'library/geodata-collection-strategic-plan.md'
             - 'Geodata Collection Implementation Plan': 'library/implementation-plan.md'
-            - 'Harmful Language Statement': 'library/harmful-language.md'
             - 'Impact Report 2020': 'library/impactReport_2020-05.md'
             - 'Land acknowledgement Action Plan' : 'library/actionPlan.md' 
             - 'Licensed Data Implementation': 'library/licensed-data-implementation.md'
