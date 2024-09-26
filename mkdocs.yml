@@ -171,83 +171,84 @@ nav:
       - 'Contact us': 'https://geo.btaa.org/feedback'
       - 'Program Updates': 
             - 'updates/index.md'
-      
-
-                 
-
+            
+- Community:
+    
+    - Map Gallery: 'conference/map-gallery.md'
+    - GIS Conference:
+        - 'index' : 'conference/index.md'
+    - Past Conferences:
+        - 2023: 'conference/2023.md'
+        - 2022: 'conference/2022.md'   
+        - 2021: 'conference/2021.md'
+        - 2020: 'conference/2020.md'
+    - Collection Stories: 'https://geobtaa.blogspot.com'
+                      
 - Technology: 
       - 'Technology projects': 'technology/projects.md'
       - 'About the BTAA Geoportal': 'technology/geoportal.md'
       - 'Geodata Collection': 'technology/geodata-collection.md'
+      - 'Metadata': '/metadata'
 
 - User Resources:
     - Research Guides:
-            - 'guides/index.md'
-            - 'BTAA Geoportal Search strategies': 'guides/search-strategies.md'
-            - 'Understanding metadata': 'guides/understanding-metadata.md'
-            - 'Citing geospatial data':  'guides/cite-data.md'
-            - 'Licensed data' : 'guides/licensed-data.md'
-            - 'U.S. Census data' : 'guides/census.md'
-            - 'Fire insurance maps'  : 'guides/fire-insurance.md'   
-            - 'Public Land Survey System (PLSS) Plats' : 'guides/plss.md'
+        - 'guides/index.md'
+        - 'BTAA Geoportal Search strategies': 'guides/search-strategies.md'
+        - 'Understanding metadata': 'guides/understanding-metadata.md'
+        - 'Citing geospatial data':  'guides/cite-data.md'
+        - 'Licensed data' : 'guides/licensed-data.md'
+        - 'U.S. Census data' : 'guides/census.md'
+        - 'Fire insurance maps'  : 'guides/fire-insurance.md'   
+        - 'Public Land Survey System (PLSS) Plats' : 'guides/plss.md'
     
     - Tutorials:
-            - 'tutorials/index.md'
-            - '1. Types of Geospatial Information': 'tutorials/01_types-of-geospatial-information.md'
-            - '2. Find Maps': 'tutorials/02_find-maps.md'
-            - '3. Find Geospatial Data': 'tutorials/03_find-geospatial-data.md'
-            - '4. Evaluate Geospatial Information': 'tutorials/04_evaluate-geospatial-information.md'
-            - '5. Web Services': 'tutorials/05_web-services.md'
-            - '6. Link Tabular Data': 'tutorials/06_link-tabular-data.md'
-            - '7. Georeference': 'tutorials/07_georeference.md'
-            - '8. Digitize': 'tutorials/08_digitize.md'
-            - '9. Create Elevation Surface Models': 'tutorials/09_create-elevation-surface-models.md'
-            - '10. Zonal Stats Tool': 'tutorials/10_zonal-stats-tool.md'
-            - '11. Story Maps': 'tutorials/11_story-maps.md'
-          
-
-- Document Library:
-      # - Browse:
-      #       - 'By topic': 'library/topics.md'
-      #       - 'By date': 'library/dates.md'
-      - 'Journal Articles': 'library/articles.md'
-      # - 'Presentations': 'library/presentations.md'      
-      - All Documents:
-            - 'Analytics Working Group Report': 'library/analytics-working-group-report.md'
-            - 'Best Practices for ArcGIS Hubs': 'library/best-practices-open-data-portals.md'
-            - 'BTAA GIS Conference 2023 Wrap-Up Report': 'library/conference-report-2023.md'
-            - 'CIC Geospatial Data Discovery Project Charter (2015)': 'library/cic-charter.md'
-            - 'Continuation Proposal 2021': 'library/continuation_2021.md'
-            - 'Continuation Proposal 2019': 'library/continuation_2019.md'
-            - 'Continuation Proposal 2017': 'library/continuation_2017.md'
-            - 'Curation Priorities': 'library/curation-priorities.md'
-            - 'Digital Dark Age': 'library/digital-dark-age'
-            - 'Diverse Collections Report': 'library/diverse-collections.md'
-            - 'Geodata Collection Strategic Plan': 'library/geodata-collection-strategic-plan.md'
-            - 'Geodata Collection Implementation Plan': 'library/implementation-plan.md'
-            - 'Impact Report 2020': 'library/impactReport_2020-05.md'
-            - 'Land acknowledgement Action Plan' : 'library/actionPlan.md' 
-            - 'Licensed Data Implementation': 'library/licensed-data-implementation.md'
-            - 'Original Content Guidelines': 'library/original-content.md'
-            - 'Proposal for a Geospatial Data Discovery Project Across the CIC (2015)': 'library/cic-proposal.md'
-            - 'Rates of Change for Open Data': 'library/rates-of-change.md'
-            - 'A Spatial Data Infrastructure (SDI) for the BTAA': 'library/btaa-sdi-2019.md'
-            - 'Staff Time for Ephemeral Data': 'library/ephemeral-costs.md'
-            - 'Team Member Role Description': 'library/team-member-role.md'
-            - 'User Personas': 'library/user-personas.md'
-            
+        - 'tutorials/index.md'
+        - '1. Types of Geospatial Information': 'tutorials/01_types-of-geospatial-information.md'
+        - '2. Find Maps': 'tutorials/02_find-maps.md'
+        - '3. Find Geospatial Data': 'tutorials/03_find-geospatial-data.md'
+        - '4. Evaluate Geospatial Information': 'tutorials/04_evaluate-geospatial-information.md'
+        - '5. Web Services': 'tutorials/05_web-services.md'
+        - '6. Link Tabular Data': 'tutorials/06_link-tabular-data.md'
+        - '7. Georeference': 'tutorials/07_georeference.md'
+        - '8. Digitize': 'tutorials/08_digitize.md'
+        - '9. Create Elevation Surface Models': 'tutorials/09_create-elevation-surface-models.md'
+        - '10. Zonal Stats Tool': 'tutorials/10_zonal-stats-tool.md'
+        - '11. Story Maps': 'tutorials/11_story-maps.md'
+    
+- Research:
+    
+    - Document Library:
+          - 'Journal Articles': 'library/articles.md'
+          - 'Presentations': 'library/presentations.md'      
+          - All Documents:
+                - 'Analytics Working Group Report': 'library/analytics-working-group-report.md'
+                - 'Best Practices for ArcGIS Hubs': 'library/best-practices-open-data-portals.md'
+                - 'BTAA GIS Conference 2023 Wrap-Up Report': 'library/conference-report-2023.md'
+                - 'CIC Geospatial Data Discovery Project Charter (2015)': 'library/cic-charter.md'
+                - 'Continuation Proposal 2021': 'library/continuation_2021.md'
+                - 'Continuation Proposal 2019': 'library/continuation_2019.md'
+                - 'Continuation Proposal 2017': 'library/continuation_2017.md'
+                - 'Curation Priorities': 'library/curation-priorities.md'
+                - 'Digital Dark Age': 'library/digital-dark-age'
+                - 'Diverse Collections Report': 'library/diverse-collections.md'
+                - 'Geodata Collection Strategic Plan': 'library/geodata-collection-strategic-plan.md'
+                - 'Geodata Collection Implementation Plan': 'library/implementation-plan.md'
+                - 'Impact Report 2020': 'library/impactReport_2020-05.md'
+                - 'Land acknowledgement Action Plan' : 'library/actionPlan.md' 
+                - 'Licensed Data Implementation': 'library/licensed-data-implementation.md'
+                - 'Original Content Guidelines': 'library/original-content.md'
+                - 'Proposal for a Geospatial Data Discovery Project Across the CIC (2015)': 'library/cic-proposal.md'
+                - 'Rates of Change for Open Data': 'library/rates-of-change.md'
+                - 'A Spatial Data Infrastructure (SDI) for the BTAA': 'library/btaa-sdi-2019.md'
+                - 'Staff Time for Ephemeral Data': 'library/ephemeral-costs.md'
+                - 'Team Member Role Description': 'library/team-member-role.md'
+                - 'User Personas': 'library/user-personas.md'
+                
             
    
-- GIS Conference:
-      - 'index' : 'conference/index.md'
-      - Map Gallery: 'conference/map-gallery.md'
-      - Past Conferences:
-              - 2023: 'conference/2023.md'
-              - 2022: 'conference/2022.md'   
-              - 2021: 'conference/2021.md'
-              - 2020: 'conference/2020.md'
+
               
-- Collection Stories: 'https://geobtaa.blogspot.com'
+
 
       
 
