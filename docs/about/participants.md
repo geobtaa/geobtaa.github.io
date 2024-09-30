@@ -26,7 +26,7 @@
 
 Our Team Members form the core of BTAA-GIN, each contributing unique skills and perspectives. Their collective expertise covers a wide range of areas, including geospatial science, data management, and metadata, as well as map cataloging and cartographic history. They also contribute valuable insights into social justice and web accessibility, alongside technical skills in software development and user-friendly interface design.
 
-{{ read_csv('../tables/teamMembers-2023.csv') }}
+{{ read_csv('../tables/teamMembers-2024.csv') }}
 
 ## University of Minnesota Operations Staff
 
