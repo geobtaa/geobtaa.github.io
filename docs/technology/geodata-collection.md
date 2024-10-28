@@ -55,32 +55,33 @@ During Year 1, we focus on exploring the potential for a Geodata Collection. Thi
 - [ ] {++Determine minimum metadata requirements.++}
 - [ ] {++Add pilot datasets to GBL Admin.++}
 - [ ] {++Augment the GeoBTAA Metadata Application Profile as needed.++}
-- [ ] {++Determine Download package contents.++} - [ ] Sunset the pilot workgroup.
+- [ ] {++Determine Download package contents.++} 
+- [ ] Sunset the pilot workgroup.
 
 
 #### Technology
 
 - [x] Set up staging area (Box).
-- [ ] :octicons-milestone-16: [Separate references into Distribution table](https://github.com/geobtaa/geoblacklight_admin/milestone/2)  Modify GBL Admin to store assets and external links in a separate table. 
+- [ ] {++:octicons-milestone-16: [Separate references into Distribution table](https://github.com/geobtaa/geoblacklight_admin/milestone/2)  Modify GBL Admin to store assets and external links in a separate table.++}
+- [ ] {++:octicons-milestone-16: [Redesign the item view page](https://github.com/geobtaa/geoportal/milestone/24)  Incorporate tabs for metadata, data dictionaries, and download options into item page view.++}
 - [ ] :octicons-milestone-16: [Create a Download Package](https://github.com/geobtaa/geoblacklight_admin/milestone/3)
-- [ ] Implement data quality checks and validation processes.
 
 #### Recruitment and staffing
 
-- [ ] {++Continue process for interviewing for new position++}
-- [ ] Finalize the hiring process and onboard new hire
+- [x] Continue process for interviewing for new position
+- [x] Finalize the hiring process and onboard new hire
 
 #### Curation Plan development
 
 - [ ] {++Identify the themes of geospatial data to be included in the collection.++}
-- [ ] Describe the proposed dataset workflow and metadata assets to be created
+- [ ] {++Describe the proposed dataset workflow and metadata assets to be created.++}
 - [ ] Define curation criteria, including data selection, acquisition, and quality control.
 
 
 #### Documentation
 
 - [ ] {++Document the setup and configuration processes for S3 accounts and asset management tools.++}
-- [ ] Document pilot testing procedures and decisions.
+- [ ] {++Document pilot testing procedures and decisions.++}
 - [ ] Document the curation plan
 
 
