@@ -18,7 +18,7 @@
 1. University of Minnesota
 1. University of Nebraska-Lincoln
 1. University of Wisconsin-­Madison
-2. Northwestern University
+1. Northwestern University
 
 ---
 
@@ -32,10 +32,14 @@ Our Team Members form the core of BTAA-GIN, each contributing unique skills and 
 
 The University of Minnesota serves as the administrative and technical hub of the BTAA-GIN.
 
-* Cody Hanson- IT Director - Administrative Lead
-* Ryan Mattke - Project Lead
-* Karen Majewicz - Geospatial Product Manager
+### Core Staff
+* Ryan Mattke - Program Director
+* Colleen Wilson - Associate Director: Program & Outreach Coordination
+* Karen Majewicz - Associate Director: Technology & Data Curation
 * Eric Larson - Lead Application Developer
+
+### IT and Web Development Support
+* Cody Hanson- IT Director - Administrative Lead
 * Michael Berkowski - Web Developer
 * Mark Engelmann - Web Analytics
 
@@ -51,10 +55,7 @@ The University of Minnesota serves as the administrative and technical hub of th
 * John Butler, Associate University Librarian for Data & Technology - University of Minnesota (sponsor 2015-2021)
 * Kirsten Clark, Director, Access and Information Services - University of Minnesota (sponsor 2019-2021)
 * Claire Stewart, Associate University Librarian for Research & Learning - University of Minnesota (sponsor 2015-201
- 
-Executive Committee:
-
-* Barbara Dewey- Dean of University Libraries & Scholarly Communications, Penn State (2020)
+ * Barbara Dewey- Dean of University Libraries & Scholarly Communications, Penn State (2020)
 
 
 ### University of Minnesota Staff Alumni
