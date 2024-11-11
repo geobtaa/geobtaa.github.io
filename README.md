@@ -80,7 +80,7 @@ This command will install all the necessary modules for the mkdocs platform and 
 
 2. Make a new branch
 
-3. Change into the opengeometadata.github.io directory and type:
+3. Change into the directory and type:
 
 `mkdocs serve`
 
