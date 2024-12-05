@@ -16,16 +16,16 @@ We focus on two key areas: **technical infrastructure** and **social infrastruct
 
 !!! note ""
 
-	Read more about our technical infrastructure on our [Technology Projects page.](../technology/projects)
+	Read more about our technical infrastructure on our [Technology Projects page.](../../technology/projects)
 
 ### Social Infrastructure:
 
 * **Collaboration**: We create opportunities for geospatial library professionals to collaborate, share knowledge, and exchange best practices.
-* **[Annual GIS Conference](../conference)**: Our annual virtual conference brings together students, emerging professionals, and seasoned workers to present their research and foster networking in the geospatial information science community.
-* **[Reference Guides](../guides) & [Educational Resources](../tutorials)**: We develop and provide resources related to geospatial research and GIS to support academic and professional growth.
+* **[Annual GIS Conference](../../conference)**: Our annual virtual conference brings together students, emerging professionals, and seasoned workers to present their research and foster networking in the geospatial information science community.
+* **[Reference Guides](../../guides) & [Educational Resources](../../tutorials)**: We develop and provide resources related to geospatial research and GIS to support academic and professional growth.
 
 ### Looking Ahead
-As of 2024, we are currently embarking on a [new initiative to collect public geospatial data](../technology/geodata-collection/), particularly focusing on historical resources that are currently at risk of being lost.
+As of 2024, we are currently embarking on a [new initiative to collect public geospatial data](../../technology/geodata-collection/), particularly focusing on historical resources that are currently at risk of being lost.
 
 ## Our Connection to the BTAA
 BTAA-GIN is part of the broader [Big Ten Academic Alliance Library Initiatives](https://btaa.org/library/Libraries), which brings together the collective expertise and resources of Big Ten libraries to support the academic missions of member institutions.
