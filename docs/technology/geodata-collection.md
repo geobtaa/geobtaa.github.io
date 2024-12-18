@@ -51,10 +51,10 @@ During Year 1, we focus on exploring the potential for a Geodata Collection. Thi
 - [x] Determine staging environment for sharing datasets
 - [x] Select a broader range of pilot datasets.
 - [x] Download pilot datasets to staging area
-- [ ] {++Test new GBL Admin features for data management.++}
-- [ ] {++Determine minimum metadata requirements.++}
+- [x] Test new GBL Admin features for data management.
+- [x] Determine minimum metadata requirements.
+- [x] Augment the GeoBTAA Metadata Application Profile as needed.
 - [ ] {++Add pilot datasets to GBL Admin.++}
-- [ ] {++Augment the GeoBTAA Metadata Application Profile as needed.++}
 - [ ] {++Determine Download package contents.++} 
 - [ ] Sunset the pilot workgroup.
 
@@ -62,27 +62,22 @@ During Year 1, we focus on exploring the potential for a Geodata Collection. Thi
 #### Technology
 
 - [x] Set up staging area (Box).
-- [ ] {++:octicons-milestone-16: [Separate references into Distribution table](https://github.com/geobtaa/geoblacklight_admin/milestone/2)  Modify GBL Admin to store assets and external links in a separate table.++}
-- [ ] {++:octicons-milestone-16: [Redesign the item view page](https://github.com/geobtaa/geoportal/milestone/24)  Incorporate tabs for metadata, data dictionaries, and download options into item page view.++}
-- [ ] :octicons-milestone-16: [Create a Download Package](https://github.com/geobtaa/geoblacklight_admin/milestone/3)
+- [x] :octicons-milestone-16: [Separate references into Distribution table](https://github.com/geobtaa/geoblacklight_admin/milestone/2)  Modify GBL Admin to store assets and external links in a separate table.
+- [x] :octicons-milestone-16: [ncorporate data dictionaries](https://github.com/geobtaa/geoblacklight_admin/milestone/4) Users need the documentation found in data dictionaries and codebooks. Instead of storing these as static documents, we can store them as related tables in our database.
+
 
 #### Recruitment and staffing
 
 - [x] Continue process for interviewing for new position
 - [x] Finalize the hiring process and onboard new hire
 
-#### Curation Plan development
-
-- [ ] {++Identify the themes of geospatial data to be included in the collection.++}
-- [ ] {++Describe the proposed dataset workflow and metadata assets to be created.++}
-- [ ] Define curation criteria, including data selection, acquisition, and quality control.
 
 
 #### Documentation
 
 - [ ] {++Document the setup and configuration processes for S3 accounts and asset management tools.++}
 - [ ] {++Document pilot testing procedures and decisions.++}
-- [ ] Document the curation plan
+
 
 
 ## Year 2 (2025): Trial Phase
@@ -90,6 +85,13 @@ During Year 1, we focus on exploring the potential for a Geodata Collection. Thi
 Year 2 marks the transition to a Trial phase, where we begin collaborating with select data providers to curate datasets. This phase emphasizes building relationships, refining curation techniques, and enhancing the overall structure of our Geodata Collection.
 
 ### 3. Begin Data Curation Pilot and establish communication (2025 Q1-Q2)
+
+#### Curation Plan development
+
+- [ ] {++Identify the themes of geospatial data to be included in the collection.++}
+- [ ] Propose a dataset exchange workflow between data providers and the BTAA-GIN.
+- [ ] Define curation criteria, including data selection, acquisition, and quality control.
+- [ ] Document the curation plan
 
 #### Data Curation Trial
 
@@ -99,15 +101,18 @@ Year 2 marks the transition to a Trial phase, where we begin collaborating with 
 
 #### Technology
 
+- [ ] :octicons-milestone-16: [Redesign the item view page](https://github.com/geobtaa/geoportal/milestone/24)  Incorporate tabs for metadata, data dictionaries, and download options into item page view.
+- [ ] :octicons-milestone-16: [Create a Download Package](https://github.com/geobtaa/geoblacklight_admin/milestone/3) 
 - [ ] Transition the updated Geoportal interface from the development branch to the live environment.
 - [ ] Implement batch ingest functionality in GBL Admin.
-- [ ] Redesign the Geoportal interface to improve discovery and access for the Geodata Collection on the development branch.
 
 #### Communication
 
 - [ ] Identify key stakeholders.
 - [ ] Develop communication strategies (frequency, channels, and content).
 - [ ] Prepare communication templates and materials.
+
+
 
 
 ### 4. Outreach and Active Data Curation (2025 Q3-Q4)
