@@ -1,24 +1,30 @@
-## Who we are
+# Who we are
 
 ## Participating Institutions
 
-<iframe width="100%" height="864" frameborder="0" src="https://ui-libraries.github.io/btaa-gin-members"></iframe>
+
+
+<iframe width="100%" height="864" frameborder="0" src="https://ui-libraries.github.io/btaa-gin-new-members"></iframe>
+
 
 1. Indiana University Bloomington
-1. Michigan State University
-1. Ohio State University
-1. Pennsylvania State University
-1. Purdue University
-1. Rutgers University-New Brunswick
-1. University of Chicago
-1. University of Illinois at Urbana­-Champaign
-1. University of Iowa
-1. University of Maryland
-1. University of Michigan
-1. University of Minnesota
-1. University of Nebraska-Lincoln
-1. University of Wisconsin-­Madison
-1. Northwestern University
+2. Michigan State University
+3. Ohio State University
+4. Pennsylvania State University
+5. Purdue University
+6. Rutgers University-New Brunswick
+7. University of Chicago
+8. University of Illinois at Urbana­Champaign
+9. University of Iowa
+10. University of Maryland
+11. University of Michigan
+12. University of Minnesota
+13. University of Nebraska-Lincoln
+14. University of Wisconsin-­Madison
+15. Northwestern University
+16. University of Southern California
+17. University of Oregon
+18. University of Washington
 
 ---
 
@@ -26,7 +32,7 @@
 
 Our Team Members form the core of BTAA-GIN, each contributing unique skills and perspectives. Their collective expertise covers a wide range of areas, including geospatial science, data management, and metadata, as well as map cataloging and cartographic history. They also contribute valuable insights into social justice and web accessibility, alongside technical skills in software development and user-friendly interface design.
 
-{{ read_csv('../tables/teamMembers-2024.csv') }}
+{{ read_csv('../tables/teamMembers-2025.csv') }}
 
 ## University of Minnesota Operations Staff
 
