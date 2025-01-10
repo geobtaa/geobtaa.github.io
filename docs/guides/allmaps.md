@@ -26,10 +26,7 @@ Anyone can contribute to our collection of georeferenced map overlays.
 > - View and delete pairs of GCPs by clicking the list icon in the lower right corner.  
 > - Place at least 3-5 pairs of GCPs. More is better. 
 > - Try to distribute GCPs somewhat evenly throughout the image.
-7. After a sufficient number of points have been placed, click **Results**, then click **View current image.** Check to make sure the overlay looks reasonably accurate. If needed, use the back button and click **Georeference** to return to the editor and make changes.
-
-
-## Improve a Georeferenced Map
+7. After a sufficient number of points have been placed, click **Results**, then click **View current image.** Check to make sure the overlay looks reasonably accurate. If needed, use the back button and click **Georeference** to return to the editor and make changes. If the results aren't satisfactory, *delete all GCPs* so the scanned map is no longer georeferenced.
 
 
 

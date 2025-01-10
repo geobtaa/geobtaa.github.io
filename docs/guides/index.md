@@ -17,6 +17,8 @@ Our Research Guides provide help on using the BTAA Geoportal as well as general 
 
 [**Licensed data**](licensed-data.md): Most of the resources in the BTAA Geoportal are free and open, but we also include an index of licensed databases commonly accessed by researchers affiliated with a BTAA university.  The Licensed Data research guide explains how to interpret those records and access the data.
 
+[**Allmaps Plugin**](allmaps.md): This page describes the Geoportal's Allmaps Plugin and gives instructions for using this tool to create a georeferenced map overlay in the browser.
+
 ## Topical Guides
 
 [**U.S. Census Data**](census.md): Census data is available from many different sources, formats, and geographies. This guide describes the pros and cons of several sources as well as what types are available in the BTAA Geoportal.
