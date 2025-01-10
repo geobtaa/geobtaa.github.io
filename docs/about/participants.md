@@ -42,6 +42,7 @@ The University of Minnesota serves as the administrative and technical hub of th
 * Colleen Wilson - Associate Director: Program & Outreach Coordination
 * Karen Majewicz - Associate Director: Technology & Data Curation
 * Eric Larson - Lead Application Developer
+* Cleo Young - Geospatial Metadata Technician
 
 ### IT and Web Development Support
 * Cody Hanson- IT Director - Administrative Lead
