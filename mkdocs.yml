@@ -178,7 +178,7 @@ nav:
 - Technology: 
       - 'Technology projects': 'technology/projects.md'
       - 'About the BTAA Geoportal': 'technology/geoportal.md'
-      - 'Geodata Collection': 'technology/geodata-collection.md'
+      - 'Geodata Collection Roadmap': 'technology/geodata-collection.md'
 
 - User Resources:
     - Research Guides:
