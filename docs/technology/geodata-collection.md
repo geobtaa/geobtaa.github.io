@@ -17,7 +17,7 @@ The BTAA-GIN Program has launched a new initiative to collect, store, and distri
 
 ## :simple-blueprint: Phase 0: Blueprints
 
-The Blueprints Phase represents the culmination a lengthy period of time (beginning in 2015) that we put into researching geodata archiving. The research resulted in multiple scholarly articles[^1], reports[^2], and nascent proposals[^3].  Finally, in 2023, we submitted the [BTAA-GIN Geodata Collection Strategic Plan](../../library/geodata-collection-strategic-plan/), which was approved by the BTAA-GIN Executive Committee.
+The Blueprints Phase represents the culmination of a lengthy period of time (beginning in 2015) that we put into researching geodata archiving. The research resulted in multiple scholarly articles[^1], reports[^2], and nascent proposals[^3].  Finally, in 2023, we submitted the [BTAA-GIN Geodata Collection Strategic Plan](../../library/geodata-collection-strategic-plan/), which was approved by the BTAA-GIN Executive Committee.
 
 [^1]: See Dyke, K. R., Mattke, R., Kne, L., & Rounds, S. (2016). Placing Data in the Land of 10,000 Lakes: Navigating the History and Future of Geospatial Data Production, Stewardship, and Archiving in Minnesota. Journal of Map & Geography Libraries, 12(1), 52–72. https://doi.org/10.1080/15420353.2015.1073655; Majewicz, K., J. Martindale, M. Kernik, and R. Mattke. 2024. Ephemeral geodata: An impending digital dark age. Journal of Map & Geography Libraries 20 (2):88–113. https://doi:10.1080/15420353.2024.2398542.
 [^2]: See the reports of the Minnesota Geospatial Advisory Committee's [Archiving Workgroup](https://www.mngeo.state.mn.us/workgroup/archiving/index.html)
@@ -26,7 +26,7 @@ The Blueprints Phase represents the culmination a lengthy period of time (beginn
 
 ## :material-bulldozer: Phase 1: Groundwork
 
-During the Groundwork Phase, we focus on exploring the potential for a Geodata Collection and conducting a pilot. This phase involves experimenting with a variety of datasets to test workflows, metadata, tools, and data curation strategies. The goal is to establish a **Proof of Concept** and refine our methods before scaling up.
+During the Groundwork Phase, we focus on exploring the potential for a Geodata Collection and conducting a pilot. This phase involves experimenting with a variety of datasets to test workflows, metadata, tools, and data curation strategies. The goal is to establish a **Proof of Concept**.
 
 ### 1A. Setup (Q1-Q2 2024)
 
@@ -40,7 +40,7 @@ Set up storage, basic ingest, and a pilot workgroup.
 #### Recruitment and staffing
 
 - [x] Assess current team capabilities and identify gaps in skill or resources.
-- [x] Draft job description Program and Outreach Coordinator.
+- [x] Draft job description for a Program and Outreach Coordinator.
 - [x] Advertise the position.
 
 #### Technology
@@ -61,7 +61,7 @@ Set up storage, basic ingest, and a pilot workgroup.
 
 ### 1B. Pilot (Q3 2024-Q1 2025)
 
-Build the pilot collection, explore technology enhancements, and document results.
+Build the pilot collection, explore technology enhancements, and document the results.
 
 #### Working Group Activities
 
@@ -81,8 +81,8 @@ Build the pilot collection, explore technology enhancements, and document result
 #### Technology
 
 - [x] Set up a staging area (Box).
-- [x] :octicons-milestone-16: [Separate references into Distribution table](https://github.com/geobtaa/geoblacklight_admin/milestone/2)  Modify GBL Admin to store assets and external links in a separate table.
-- [ ] {++:octicons-milestone-16: [Incorporate data dictionaries](https://github.com/geobtaa/geoblacklight_admin/milestone/4) Users need the documentation found in data dictionaries and codebooks. Instead of storing these as static documents, we can store them as related tables in our database.++}
+- [x] :octicons-milestone-16: [Separate references into Distribution table](https://github.com/geobtaa/geoblacklight_admin/milestone/2)
+- [ ] {++:octicons-milestone-16: [Incorporate data dictionaries](https://github.com/geobtaa/geoblacklight_admin/milestone/4)++}
 
 
 #### Recruitment and staffing
@@ -94,13 +94,14 @@ Build the pilot collection, explore technology enhancements, and document result
 #### Documentation
 
 - [ ] {++Document the setup and configuration processes for S3 accounts and asset management tools.++}
-- [ ] {++Document pilot testing procedures and decisions.++}
+- [ ] {++Produce a final report of the working group activities.++}
+- [ ] {++Produce a report documenting the pilot collection and technology enhancements.++}
 
 
 
 ## :material-dock-bottom: Phase 2: Foundation
 
-During the Foundation Phase, we begin collaborating with select data providers to curate datasets. This phase emphasizes building relationships, refining curation techniques, and establishing the first official collections. This work informs the development of key protocols and processes that will serve as the foundation for the project moving forward.
+During the Foundation Phase, we begin collaborating with select data providers. This phase emphasizes building relationships, refining curation techniques, and establishing the first official collections. This work informs the development of key protocols and processes that will serve as the foundation for the project moving forward.
 
 ### 2A. Partner (Q1-Q3 2025)
 
@@ -124,7 +125,6 @@ Communicate our newly developed capabilities and seek out data provider partners
 - [ ] :octicons-milestone-16: [Redesign the item view page](https://github.com/geobtaa/geoportal/milestone/24)  Incorporate tabs for metadata, data dictionaries, and download options into item page view.
 - [ ] :octicons-milestone-16: [Create a Download Package](https://github.com/geobtaa/geoblacklight_admin/milestone/3) 
 - [ ] Transition the updated Geoportal interface from the development branch to the live environment.
-- [ ] Implement batch ingest functionality in GBL Admin.
 
 
 ### 2A. Trial (Q3 2025-Q1 2026)
