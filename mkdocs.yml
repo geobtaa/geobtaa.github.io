@@ -190,6 +190,7 @@ nav:
             - 'U.S. Census data' : 'guides/census.md'
             - 'Fire insurance maps'  : 'guides/fire-insurance.md'   
             - 'Public Land Survey System (PLSS) Plats' : 'guides/plss.md'
+            - 'Allmaps Plugin' : 'guides/allmaps.md'
     
     - Tutorials:
             - 'tutorials/index.md'
