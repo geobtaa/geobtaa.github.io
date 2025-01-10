@@ -4,27 +4,26 @@
 
 
 
-<iframe width="100%" height="864" frameborder="0" src="https://ui-libraries.github.io/btaa-gin-new-members"></iframe>
+<iframe width="100%" height="864" frameborder="0" src="https://gin.btaa.org/btaa-gin-new-members"></iframe>
 
 
 1. Indiana University Bloomington
 2. Michigan State University
-3. Ohio State University
-4. Pennsylvania State University
-5. Purdue University
-6. Rutgers University-New Brunswick
-7. University of Chicago
-8. University of Illinois at Urbana­Champaign
-9. University of Iowa
-10. University of Maryland
-11. University of Michigan
-12. University of Minnesota
-13. University of Nebraska-Lincoln
-14. University of Wisconsin-­Madison
-15. Northwestern University
-16. University of Southern California
-17. University of Oregon
-18. University of Washington
+3. Northwestern University
+4. Ohio State University
+5. Pennsylvania State University
+6. Purdue University
+7. Rutgers University-New Brunswick
+8. University of Chicago
+9. University of Illinois at Urbana­Champaign
+10. University of Iowa
+11. University of Maryland
+12. University of Michigan
+13. University of Minnesota
+14. University of Nebraska-Lincoln
+15. University of Oregon
+16. University of Washington
+17. University of Wisconsin-­Madison
 
 ---
 
