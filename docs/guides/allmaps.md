@@ -8,14 +8,14 @@ Georeferencing is the process of using ground control points to match a digital 
 
 The BTAA-GIN Geoportal has an integrated Allmaps plugin that enables users to easily georeference compatible maps and view them as overlays on a basemap without leaving the browser. To view images that have been or could be georeferenced with this tool, expand the **Georeferenced via Allmaps Plugin** filter in the left sidebar of a [Geoportal search](https://geo.btaa.org/?search_field=all_fields&q=).
 
-Important: Resources that include a downloadable georeferenced GeoTIFF file are distinct from images that are georeferenced within the Allmaps online viewer. Currently, resources with downloadable georeferenced files can be found under the filter simply named **Georeferenced**. Downloadable georeferenced TIFFs are not currently available through Allmaps.  
+Important: Georeferenced browser overlays created with Allmaps are currently not available for download as GeoTIFFs, although this functionality may be available at some point in the future. Resources that include downloadable georeferenced GeoTIFF files can be found under a separate filter simply named **Georeferenced**. Although both GeoTIFFs and Allmaps overlays use ground control points to georeference a map, the Allmaps overlays are only suitable for display, while GeoTIFFs can be downloaded and used for GIS analysis.
 
 ## Georeference a Map with Allmaps
 
 Anyone can contribute to our collection of georeferenced map overlays.
 
 1. Visit the [BTAA Geoportal](https://geo.btaa.org/), leave the search bar blank or enter keywords of your choice, and click the **Search** button.
-2. Scroll down and expand the **Georeferenced via Allmaps Plugin** filter. Click on **False** to view all maps that are compatible with Allmaps but have not yet been georeferenced. 
+2. Scroll down and expand the **Georeferenced via Allmaps Plugin** filter. Click on **False** to view all maps that are compatible with Allmaps (have a IIIF manifest) but have not yet been georeferenced. 
 3. Choose a map from the results and visit its resource page. Note that you will need to be able to identify at least some geographic features in the image in order to create a useful overlay. 
 4. Click **Georeference this item** under **Georeferencing** in the right sidebar. The Allmaps Editor will open in a new browser tab.
 5. Click **Georeference** in the menu near the top of the page. A basemap will open to the right of your chosen image. 
@@ -28,5 +28,17 @@ Anyone can contribute to our collection of georeferenced map overlays.
 > - Try to distribute GCPs somewhat evenly throughout the image.
 7. After a sufficient number of points have been placed, click **Results**, then click **View current image.** Check to make sure the overlay looks reasonably accurate. If needed, use the back button and click **Georeference** to return to the editor and make changes. If the results aren't satisfactory, *delete all GCPs* so the scanned map is no longer georeferenced.
 
+## View a Georeferenced Map
 
+1. To view the overlay without leaving the resource page of a georeferenced scanned map, click the **Georeferenced Map** tab next to the **Item Viewer** tab beneath the title of the page. 
+2. To open the Allmaps Viewer in a new tab, click **View this georeferenced item** beneath the **Georeferencing** heading in the right sidebar of the resource page. 
+
+## Edit a Previously Georeferenced Map
+
+1. Open the resource page of a georeferenced scanned map. Click the blue **Web services** button in the right sidebar and copy the IIIF URL in the pop-up window that opens. 
+2. Open the Allmaps Editor at [editor.allmaps.org] (https://editor.allmaps.org/#/) and paste the IIIF URL into the input box, then click **Load**.
+
+## Other Resources
+
+[https://www.leventhalmap.org/projects/digital-projects/georeferencing/](Leventhal Map Library's Allmaps Georeferencing Instructions)
 
