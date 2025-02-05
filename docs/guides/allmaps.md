@@ -35,8 +35,10 @@ Anyone can contribute to our collection of georeferenced map overlays.
 
 ## Edit a Previously Georeferenced Map
 
-1. Open the resource page of a georeferenced scanned map. Click the blue **Web services** button in the right sidebar and copy the IIIF URL in the pop-up window that opens. 
-2. Open the Allmaps Editor at [editor.allmaps.org] (https://editor.allmaps.org/#/) and paste the IIIF URL into the input box, then click **Load**.
+1. Open the resource page of a georeferenced scanned map. 
+2. Under the **Item Viewer** tab, click three lines (hamburger) icon to expand the sidebar to the left of the map display. 
+3. Scroll to the bottom of this sidebar and copy the URL labeled **IIIF manifest**.
+4. Open the Allmaps Editor at [editor.allmaps.org] (https://editor.allmaps.org/#/) and paste the IIIF manifest URL into the input box, then click **Load**. Click the **Georeference** tab.
 
 ## Other Resources
 
