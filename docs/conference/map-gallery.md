@@ -1,12 +1,11 @@
 # Map Gallery
 
-[:map:  Visit our conference map gallery.  :octicons-link-external-24:](https://gin.btaa.org/Map-Gallery-Update/){ .md-button }
-
 ## Guidelines for submission 
 
-!!! info inline end " "
+!!! info "Submit to the Map Gallery"
 
-	Submit to the Map Gallery [Submission Form](link: https://forms.gle/v6QHb8qiTdbLCVvi7) 
+	[Submission Form](link: https://forms.gle/v6QHb8qiTdbLCVvi7) 
+	
 	Deadline: March 24, 2025, at 5 PM CST
 	
 The annual BTAA GIS Conference provides an opportunity to showcase your creativity using GIS tools and techniques. You can submit either a static map (.jpg ) or interactive map (i.e, story map, dashboard). We welcome all sorts of maps or apps regardless of any software platform you used to create/design them. Guidelines and format for the submission are given below:
@@ -45,3 +44,5 @@ Prizes: All the entries/authors will be honored with a letter of recognition
 
 Map Gallery Coordinator:
 * Jay Bowen, University of Iowa
+
+[:map:  Visit our conference map gallery.  :octicons-link-external-24:](https://gin.btaa.org/Map-Gallery-Update/){ .md-button }
