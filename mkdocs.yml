@@ -243,7 +243,8 @@ nav:
             
    
 - GIS Conference:
-      - 'index' : 'conference/index.md'
+      - 2025: 'conference/2025.md'
+      - About : 'conference/about.md'
       - Map Gallery: 'conference/map-gallery.md'
       - Past Conferences:
               - 2023: 'conference/2023.md'
