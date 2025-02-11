@@ -37,7 +37,7 @@ hide:
             <p class="description">Learn about our collaborative software projects, metadata workflows, and events.</p>
             <div class="call-to-action">
                 <a href="technology/projects">Technology Projects</a> |
-                <a href="conference">GIS Conference</a>
+                <a href="conference/2025">GIS Conference</a>
             </div>
         </div>
         
