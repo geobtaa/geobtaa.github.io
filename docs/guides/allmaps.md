@@ -30,17 +30,18 @@ Anyone can contribute to our collection of georeferenced map overlays.
 
 ## View a Georeferenced Map
 
-1. To view the overlay without leaving the resource page of a georeferenced scanned map, click the **Georeferenced Map** tab next to the **Item Viewer** tab beneath the title of the page. 
-2. To open the Allmaps Viewer in a new tab, click **View this georeferenced item** beneath the **Georeferencing** heading in the right sidebar of the resource page. 
+- To view a map overlay without leaving the resource page of a georeferenced scanned map, click the **Georeferenced Map** tab next to the **Item Viewer** tab beneath the title of the page. 
+- To open the Allmaps Viewer in a new tab, click **View this georeferenced item** beneath the **Georeferencing** heading in the right sidebar of the resource page. 
+- To view all recently georeferenced maps, visit [latest.allmaps.org](https://latest.allmaps.org/).
 
 ## Edit a Previously Georeferenced Map
 
 1. Open the resource page of a georeferenced scanned map. 
 2. Under the **Item Viewer** tab, click three lines (hamburger) icon to expand the sidebar to the left of the map display. 
 3. Scroll to the bottom of this sidebar and copy the URL labeled **IIIF manifest**.
-4. Open the Allmaps Editor at [editor.allmaps.org] (https://editor.allmaps.org/#/) and paste the IIIF manifest URL into the input box, then click **Load**. Click the **Georeference** tab.
+4. Open the Allmaps Editor at [editor.allmaps.org](https://editor.allmaps.org/#/) and paste the IIIF manifest URL into the input box, then click **Load**. Click the **Georeference** tab.
 
 ## Other Resources
 
-[https://www.leventhalmap.org/projects/digital-projects/georeferencing/](Leventhal Map Library's Allmaps Georeferencing Instructions)
+[Leventhal Map Library's Allmaps Georeferencing Instructions]((https://www.leventhalmap.org/projects/digital-projects/georeferencing/))
 
