@@ -33,6 +33,10 @@ theme:
     
 plugins:
       - privacy
+      - social:
+            cards_layout_options:
+                background_color: "#0088CE"
+                color: "#FFFFFF"
       - tags:
             tags_compare_reverse: true
             tags_slugify: !!python/object/apply:pymdownx.slugs.slugify
