@@ -38,6 +38,11 @@ a:hover {
 
 /* Headers */
 
+h1, h2, h3, h4, h5, h6,
+        .h1, .h2, .h3, .h4, .h5, .h6 {
+          font-family: "Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
 .md-typeset h1 {
       color: #000;
 }
@@ -251,6 +256,7 @@ body {
       font-size: 1.8em;
       text-decoration: none !important;
       transition: color 0.3s ease; 
+      font-family: "Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 .md-tabs__link:hover {

@@ -1,7 +1,8 @@
 site_name: Geospatial Information Network
 site_author: Big Ten Academic Alliance Geospatial Information Network
+site_description: Supporting the geospatial research community and fostering connections among geospatial library professionals.
 site_url: https://gin.btaa.org
-copyright : "&copy; 2016-2024 Big Ten Academic Alliance Geospatial Information Network"
+copyright : "&copy; 2016-2025 Big Ten Academic Alliance Geospatial Information Network"
 
 theme: 
       name: material
@@ -11,7 +12,7 @@ theme:
       highlightjs: true
       logo: images/gin-white.png
       font:
-            text: Libre Franklin
+            text: Lora
       custom_dir: overrides
       features:
             - navigation.instant
@@ -35,8 +36,9 @@ plugins:
       - privacy
       - social:
             cards_layout_options:
-                background_color: "#0088CE"
+                background_color: "#003C5B"
                 color: "#FFFFFF"
+                
       - tags:
             tags_compare_reverse: true
             tags_slugify: !!python/object/apply:pymdownx.slugs.slugify
