@@ -57,6 +57,8 @@ Since this site is written with Markdown files, the minimum requirement to contr
 
 To get started, follow the steps below.  It may also be helpful to visit the Material for [MkDocs Getting Started page](https://squidfunk.github.io/mkdocs-material/getting-started/) and for reference.
 
+You will need **pip** and **homebrew** to install all of the plugins and dependencies.
+
 ### Install Material for MkDocs
 
 1. Open the Terminal and type the following:
@@ -73,6 +75,10 @@ This command will install all the necessary modules for the mkdocs platform and 
 `pip install mkdocs-open-in-new-tab`
 
 `pip install mkdocs-glightbox`
+
+`pip install "mkdocs-material[imaging]"`
+
+`brew install cairo freetype libffi libjpeg libpng zlib`
 
 ### Edit the website
 
