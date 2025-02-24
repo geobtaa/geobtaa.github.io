@@ -1,23 +1,25 @@
 # BTAA-GIN Geodata Collection Strategic Roadmap
 
-The BTAA-GIN Program has launched a new initiative to collect, store, and distribute open geodata. 
+The BTAA-GIN Program has launched an initiative to collect, store, and distribute open geodata. This page tracks our progress. **It is updated frequently as our work evolves.**
 
-!!! info "Plan documents"
+!!! abstract "Plan documents"
 
 	*  [Geodata Collection Strategic Plan](../../library/geodata-collection-strategic-plan/)
 	*  [Geodata Collection Implementation Plan](../../library/implementation-plan/)
 
-*This page tracks our progress. It is updated frequently as our work evolves.*
+
+!!! info "Roadmap Key"
+
+	~~**Phase Completed**~~
+	 
+	- [x] Task Done
+	- [ ] {++Task in progress++}
+	- [ ] Task not started
+
+
 
 {++We are currently in [Phase 3: Foundation](#phase-3-foundation).++}
 
-## Roadmap Key
-
-~~**Phase Completed**~~
- 
-- [x] Task Done
-- [ ] {++Task in progress++}
-- [ ] Task not started
 
 ## ~~:white_check_mark: :simple-blueprint: Phase 1: Blueprints~~
 
