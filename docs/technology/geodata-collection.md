@@ -9,13 +9,17 @@ The BTAA-GIN Program has launched a new initiative to collect, store, and distri
 
 *This page tracks our progress. It is updated frequently as our work evolves.*
 
+{++We are currently in [Phase 3: Foundation](#phase-3-foundation).++}
+
 ## Roadmap Key
 
-- [x] Done
-- [ ] {++In progress++}
-- [ ] Not started
+~~**Phase Completed**~~
+ 
+- [x] Task Done
+- [ ] {++Task in progress++}
+- [ ] Task not started
 
-## :simple-blueprint: Phase 0: Blueprints
+## ~~:white_check_mark: :simple-blueprint: Phase 1: Blueprints~~
 
 The Blueprints Phase represents the culmination of a lengthy period of time (beginning in 2015) that we put into researching geodata archiving. The research resulted in multiple scholarly articles[^1], reports[^2], and nascent proposals[^3].  Finally, in 2023, we submitted the [BTAA-GIN Geodata Collection Strategic Plan](../../library/geodata-collection-strategic-plan/), which was approved by the BTAA-GIN Executive Committee.
 
@@ -24,11 +28,11 @@ The Blueprints Phase represents the culmination of a lengthy period of time (beg
 [^3]: See the partially realized proposal from 2019, [A Spatial Data Infrastructure (SDI) for the BTAA](../../library/btaa-sdi-2019/)
 
 
-## :material-bulldozer: Phase 1: Groundwork
+## ~~:white_check_mark: :material-bulldozer: Phase 2: Groundwork~~
 
 During the Groundwork Phase, we focus on exploring the potential for a Geodata Collection and conducting a pilot. This phase involves experimenting with a variety of datasets to test workflows, metadata, tools, and data curation strategies. The goal is to establish a **Proof of Concept**.
 
-### 1A. Setup (Q1-Q2 2024)
+### 2A. Setup (Q1-Q2 2024)
 
 Set up storage, basic ingest, and a pilot workgroup.
 
@@ -59,7 +63,7 @@ Set up storage, basic ingest, and a pilot workgroup.
 - [x] Create and publish a Geodata Collection Implementation Plan that expands on the Strategic Plan.
 
 
-### 1B. Pilot (Q3 2024-Q1 2025)
+### 2B. Pilot (Q3 2024-Q1 2025)
 
 Build the pilot collection, explore technology enhancements, and document the results.
 
@@ -82,7 +86,7 @@ Build the pilot collection, explore technology enhancements, and document the re
 
 - [x] Set up a staging area (Box).
 - [x] :octicons-milestone-16: [Separate references into Distribution table](https://github.com/geobtaa/geoblacklight_admin/milestone/2)
-- [ ] {++:octicons-milestone-16: [Incorporate data dictionaries](https://github.com/geobtaa/geoblacklight_admin/milestone/4)++}
+- [x] :octicons-milestone-16: [Incorporate data dictionaries](https://github.com/geobtaa/geoblacklight_admin/milestone/4)
 
 
 #### Recruitment and staffing
@@ -93,24 +97,24 @@ Build the pilot collection, explore technology enhancements, and document the re
 
 #### Documentation
 
-- [ ] {++Document the setup and configuration processes for S3 accounts and asset management tools.++}
-- [ ] {++Produce a final report of the working group activities.++}
-- [ ] {++Produce a report documenting the pilot collection and technology enhancements.++}
+- [x] Document the setup and configuration processes for asset management tools.
+- [x] Produce a final report of the working group activities.
+- [x] Produce a report documenting the pilot collection and technology enhancements.
 
 
 
-## :material-dock-bottom: Phase 2: Foundation
+## :material-dock-bottom: Phase 3: Foundation
 
 During the Foundation Phase, we begin collaborating with select data providers. This phase emphasizes building relationships, refining curation techniques, and establishing the first official collections. This work informs the development of key protocols and processes that will serve as the foundation for the project moving forward.
 
-### 2A. Partner (Q1-Q3 2025)
+### 3A. Partnerships & Technology (Q1-Q3 2025)
 
 Communicate our newly developed capabilities and seek out data provider partnerships for our first collections.
 
 #### Working Group Activities
 
-- [ ] Sunset the pilot workgroup.
-- [ ] Convene a data provider pilot working group. (name TBD)
+- [x] Sunset the pilot workgroup.
+- [ ] {++Convene a data provider pilot working group. (name TBD)++}
 - [ ] Propose a dataset exchange workflow between data providers and the BTAA-GIN.
 - [ ] Determine data provider agreements
 - [ ] Outline a Curation Plan that includes initial scope, workflows, and criteria.
@@ -120,14 +124,14 @@ Communicate our newly developed capabilities and seek out data provider partners
 - [ ] Present results of Groundwork Phase to key stakeholders
 - [ ] Establish partnership with at least two data providers
 
-#### Technology
+#### Geoportal Enhancements
 
 - [ ] :octicons-milestone-16: [Redesign the item view page](https://github.com/geobtaa/geoportal/milestone/24)  Incorporate tabs for metadata, data dictionaries, and download options into item page view.
 - [ ] :octicons-milestone-16: [Create a Download Package](https://github.com/geobtaa/geoblacklight_admin/milestone/3) 
 - [ ] Transition the updated Geoportal interface from the development branch to the live environment.
 
 
-### 2A. Trial (Q3 2025-Q1 2026)
+### 3A. Collection & Curation Plan (Q3 2025-Q1 2026)
 
 Work iteratively with our data providers to collect, document, and publish prior versions of their datasets.
 
@@ -149,31 +153,25 @@ Work iteratively with our data providers to collect, document, and publish prior
 
 - [ ] Publish a Curation Plan, Version 1 to document scope, metadata, and workflows.
 
-## :window: Phase 3: Framework
+## :window: Phase 4: Framework
 
 In the Framework Phase, we will build up our collections with more data providers. This will require broader communication and more outreach. We will also be relying on more streamlined workflows by this phase. This phase will include gathering feedback from stakeholders, refining workflows, and assessing the long-term sustainability of the collection. Additionally, we will increase our outreach efforts, promoting the collection to a broader audience and building partnerships to ensure its growth and visibility in the geospatial and library communities.
 
-### 3A. Outreach (Q1-Q4 2026)
 
-#### Outreach & communication
+### 4A. Expand (Q1–Q4 2026)
 
-- [ ] Develop communication strategies (frequency, channels, and content).
-- [ ] Prepare communication templates and materials.
-- [ ] Create an outreach schedule for engaging with the community, including presentations at conferences.
-- [ ] Conduct educational sessions on data curation as webinars or workshops.
-- [ ] Design and distribute outreach materials to highlight the project's features and benefits.
+- [ ] Expand partnerships and collections.
+- [ ] Incorporate additional and multipart formats
 
-### 3B. Curate (Q1-Q4 2026)
+### 4B. Curate (Q1–Q4 2026)
 
-#### Active curation process
-
-- [ ] Identify additional data providers.
-- [ ] Establish regular curation cycles.
-- [ ] Ingest additional collections from multiple data providers.
-- [ ] Publish a Curation Plan, Version 2 that includes batch functionality and broadened scope.
+- [ ] Establish regular cycles for collection.
+- [ ] Implement additional batch processing techniques
+- [ ] Publish Curation Plan Version 2.
 
 
-## Phase 4: Evaluate & Refine (2027)
+
+## Phase 5: Outreach & Evaluation (2027)
 
 - [ ] Gather feedback from a wide variety of stakeholders.
 - [ ] Assess the project's impact on users and stakeholders.
