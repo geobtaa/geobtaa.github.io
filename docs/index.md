@@ -23,16 +23,6 @@ hide:
 
     <div class="grid-container-home">
 
-    
-        <div class="section three-in-row">
-            <h2 class="grid-title">Join Us for the Big Ten GIS Conference 2025!</h2>
-            <p class="description">We invite proposals for presentations, lightning talks, and map gallery submissions for the <strong>Big Ten GIS Conference 2025</strong>, a free virtual event on April 11, 2025. Open to students, educators, researchers, and professionals from all institutions.</p>
-            <div class="call-to-action">
-                <a href="conference/2025">Call for Proposals</a> |
-                <a href="conference/map-gallery">Call for Maps</a>
-            </div>
-    	</div>
-    
         <div class="section three-in-row">
             <h2 class="grid-title">Find and Use Geospatial Resources</h2>
             <p class="description">Learn how to find and use geospatial resources with our Tutorials and Research Guides.</p>
@@ -59,7 +49,16 @@ hide:
                 <a href="about/history">History</a>
             </div>
         </div>
-        
+    
+        <div class="section three-in-row">
+            <h2 class="grid-title">Join Us for the Big Ten GIS Conference 2025!</h2>
+            <p class="description">We invite proposals for presentations, lightning talks, and map gallery submissions for the <strong>Big Ten GIS Conference 2025</strong>, a free virtual event on April 11, 2025. Open to students, educators, researchers, and professionals from all institutions.</p>
+            <div class="call-to-action">
+                <a href="conference/2025">Call for Proposals</a> |
+                <a href="conference/map-gallery">Call for Maps</a>
+            </div>
+    	</div>
+            
     </div>
  
   
