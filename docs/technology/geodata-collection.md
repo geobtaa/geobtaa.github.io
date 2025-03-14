@@ -128,7 +128,7 @@ Communicate our newly developed capabilities and seek out data provider partners
 
 #### Geoportal Enhancements
 
-- [ ] :octicons-milestone-16: [Redesign the item view page](https://github.com/geobtaa/geoportal/milestone/24)  Incorporate tabs for metadata, data dictionaries, and download options into item page view.
+- [x] :octicons-milestone-16: [Redesign the item view page](https://github.com/geobtaa/geoportal/milestone/24)  Incorporate tabs for metadata, data dictionaries, and download options into item page view.
 - [ ] :octicons-milestone-16: [Create a Download Package](https://github.com/geobtaa/geoblacklight_admin/milestone/3) 
 - [ ] Transition the updated Geoportal interface from the development branch to the live environment.
 
