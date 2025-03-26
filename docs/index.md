@@ -51,11 +51,11 @@ hide:
         </div>
     
         <div class="section three-in-row">
-            <h2 class="grid-title">Join Us for the Big Ten GIS Conference 2025!</h2>
-            <p class="description">Join us for this free virtual event on <strong>April 11, 2025</strong>, bringing together students, educators, researchers, and professionals to explore the latest in GIS and geospatial research. Registration is now open!</p>
+            <h2 class="grid-title">Big Ten GIS Conference 2025 – Registration Open!</h2>
+            <p class="description">Join is for this free virtual event on <strong>April 11, 2025</strong>, connecting students, educators, researchers, and professionals across the Big Ten and beyond. Discover new GIS tools, research, and collaborations shaping the future of geospatial work.</p>
             <div class="call-to-action">
-                <a href="conference/2025">Register Now</a> |
-                <a href="conference/map-gallery">Call for Map Submissions</a>  (deadline: March 24, 2025)
+                <a href="https://btaa.zoom.us/webinar/register/WN_0JvevQx5RMO_N3BKXhToIw#/registration">Register Now</a> |
+                <a href="conference/2025/">Full Agenda</a>
             </div>
     	</div>
             
