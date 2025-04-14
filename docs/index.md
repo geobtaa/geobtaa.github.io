@@ -52,7 +52,7 @@ hide:
     
       <div class="section three-in-row">
         <h2 class="grid-title">Big Ten GIS Conference 2025 – Thank You for Joining Us</h2>
-        <p class="description">Thank you to everyone who participated in the **Big Ten GIS Conference on April 11, 2025**. Over 200 people joined us for a day of engaging presentations, research highlights, and meaningful discussion. The event showcased the innovation and collaboration shaping the future of GIS across the Big Ten and beyond.</p>
+        <p class="description">Thank you to everyone who participated in the conference on April 11, 2025. Over 200 people joined us for a day of engaging presentations, research highlights, and meaningful discussion. The event showcased the innovation and collaboration shaping the future of GIS across the Big Ten and beyond.</p>
         <p class="description">Stay tuned for video recordings, resources, and next steps soon.</p>
 
  <!--       <div class="call-to-action">
