@@ -15,7 +15,7 @@
 6. Purdue University
 7. Rutgers University-New Brunswick
 8. University of Chicago
-9. University of Illinois at Urbana­Champaign
+9. University of Illinois at Urbana-­Champaign
 10. University of Iowa
 11. University of Maryland
 12. University of Michigan
@@ -61,7 +61,7 @@ The University of Minnesota serves as the administrative and technical hub of th
 * John Butler, Associate University Librarian for Data & Technology - University of Minnesota (sponsor 2015-2021)
 * Kirsten Clark, Director, Access and Information Services - University of Minnesota (sponsor 2019-2021)
 * Claire Stewart, Associate University Librarian for Research & Learning - University of Minnesota (sponsor 2015-201
- * Barbara Dewey- Dean of University Libraries & Scholarly Communications, Penn State (2020)
+* Barbara Dewey, Dean of University Libraries & Scholarly Communications - Penn State (2020)
 
 
 ### University of Minnesota Staff Alumni
