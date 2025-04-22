@@ -52,10 +52,10 @@ hide:
     
       <div class="section three-in-row">
         <h2 class="grid-title">Big Ten GIS Conference 2025 –  – Recordings Now Available</h2>
-        <p class="description">Thank you to everyone who joined us on April 11 for the 5th **Big Ten GIS Conference**. Over 200 people came together virtually for a day of engaging presentations, research highlights, and meaningful discussion. The event showcased the innovation and collaboration shaping the future of GIS across the Big Ten and beyond.</p>
+        <p class="description">Thank you to everyone who joined us on April 11 for the 5th <strong>Big Ten GIS Conference</strong>. Over 200 people came together virtually for a day of engaging presentations, research highlights, and meaningful discussion. The event showcased the innovation and collaboration shaping the future of GIS across the Big Ten and beyond.</p>
         <p class="description">Missed a session or want to revisit one? Full video recordings, the Map Gallery, and the complete agenda are now available.</p>
  	    <div class="call-to-action">
-            <a href="conference/2025/">Watch the recordings</a> |
+            <a href="conference/2025/">Watch the Recordings</a> |
             <a href="conference/2025/#conference-full-agenda">Full Agenda</a>
         </div> 
 	</div>
