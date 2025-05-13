@@ -43,10 +43,10 @@ hide:
         
         <div class="section three-in-row">
             <h2 class="grid-title"> Stay Informed & Support Our Vision</h2>
-            <p class="description">Project updates, program guidelines, history, and milestones.</p>
+            <p class="description">Explore project updates, program goals, and our history. Subscribe to <em>Coordinates</em> for quarterly highlights from across the network.</p>
             <div class="call-to-action">
                 <a href="about/participants">About</a> |
-                <a href="about/history">History</a>
+                <a href="https://mailchi.mp/d146395039e5/coordinates-from-btaa-gin-signup-page">Subscribe to <em>Coordinates</em></a>
             </div>
         </div>
     
