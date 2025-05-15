@@ -13,17 +13,16 @@ Issued: May 1, 2026
 The fifth annual Big Ten GIS Conference, hosted virtually on April 11, 2025, set new records for participation and engagement. Organized by the Big Ten Academic Alliance Geospatial Information Network (BTAA-GIN), the event tripled registrations from 2023 and brought together students, faculty, researchers, librarians, and professionals to share innovative work and build cross-institutional connections.
 
 ## Wins at a Glance
-
-!!! abstract  "By the Numbers"
     
-    *   664 registrants from 230+ institutions; presentation submissions more than doubled
-    *   220+ peak attendees and 262 unique participants throughout the day
-    *   37% student attendance, followed by state and local government professionals
-    *   40% from GIN member universities, with strong turnout from Michigan, Purdue, Ohio State, Minnesota, Wisconsin, Washington, and Pennsylvania State
-    *   Opening remarks by Maurice York (BTAA) highlighted the value of Big Ten collaboration and BTAA-GIN infrastructure
-    *   Keynote by Dr. Emily Fairfax (UMN) on climate resilience received high praise
-    *   Three sessions and lightning talk block delivered strong and diverse presentations
-    *   BTAA-GIN resources, including the Geoportal, were promoted throughout the event
+* 664 registrants from 230+ institutions; presentation submissions more than doubled
+* 220+ peak attendees and 262 unique participants throughout the day
+* 37% student attendance, followed by state and local government professionals
+* 40% from GIN member universities, with strong turnout from Michigan, Purdue, Ohio State, Minnesota, Wisconsin, Washington, and Pennsylvania State
+* Opening remarks by Maurice York (BTAA) highlighted the value of Big Ten collaboration and BTAA-GIN infrastructure
+* Keynote by Dr. Emily Fairfax (UMN) on climate resilience received high praise
+* Workshop by Matt Forrest offered practical insights into emerging geospatial technologies
+* Three sessions and lightning talk block delivered strong and diverse presentations
+* BTAA-GIN resources, including the Geoportal, were promoted throughout the event
 
 ## 2025 Improvements
 
