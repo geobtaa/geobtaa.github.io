@@ -6,7 +6,7 @@ tags:
 
 # Big Ten GIS Conference 2025 Wrap-Up Report
 
-Issued: May 1, 2026
+Issued: May 1, 2025
 
 ## Executive Summary
 
@@ -39,6 +39,7 @@ The fifth annual Big Ten GIS Conference, hosted virtually on April 11, 2025, set
 ## Looking Ahead
 
 The 2026 conference is scheduled for April, providing a full year of lead time. Earlier outreach—particularly to faculty—will help boost student and campus-wide participation.
+
 The strong growth and success of this year’s event reflect the momentum of the BTAA-GIN network and its ongoing value and influence in advancing geospatial research, shared infrastructure, and collaboration across the Big Ten and beyond.
 
 ## 2025 Conference Planning Group
