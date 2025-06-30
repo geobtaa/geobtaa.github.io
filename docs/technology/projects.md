@@ -41,16 +41,33 @@
     
 	[:octicons-arrow-right-24: Clone the Harvesting Guide](https://github.com/geobtaa/harvesting-guide).
 	
+</div>
+
+## Current Initiatives
+
+<div class="grid cards" markdown>
 	
 -  #### Geodata Collection
 
     ---
         
-    ![](../library/images/aws-architecture.png)
+    ![](../images/geodata-collection.png)
 	
-    This initiative involves expanding our technology stack for collection and storage of open geospatial data. 
+    The BTAA-GIN has launched an initiative to collect, store, and distribute open geodata. 
 
     [:octicons-arrow-right-24: Read more about the initiative](geodata-collection.md)
+    
+    
+    
+-  #### Strategic Technology Plan (2025-6)
+
+    ---
+        
+    ![](../images/strategic-tech-plan.png)
+	
+    This initiative involves upgrading, modernizing, and modularizing our technology stack. 
+
+    [:octicons-arrow-right-24: Read more about the initiative](strategic-tech-plan-2025.md)
     
 
 </div>

@@ -174,6 +174,7 @@ nav:
       - 'Working Groups': 'about/working-groups.md'
       - 'History': 'about/history.md'
       - 'Guiding Principles': 'about/btaa-gin.md'
+      - 'Technical Values': 'about/technical-values.md'
       - 'Contact us': 'https://geo.btaa.org/feedback'
       - 'Program Updates': 
             - 'updates/index.md'
@@ -184,6 +185,7 @@ nav:
 - Technology: 
       - 'Technology projects': 'technology/projects.md'
       - 'About the BTAA Geoportal': 'technology/geoportal.md'
+      - 'Strategic Technology Plan 2025-6': 'technology/strategic-tech-plan-2025.md'
       - 'Geodata Collection Roadmap': 'technology/geodata-collection.md'
 
 - User Resources:
