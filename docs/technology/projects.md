@@ -67,7 +67,7 @@
 	
     This initiative involves upgrading, modernizing, and modularizing our technology stack. 
 
-    [:octicons-arrow-right-24: Read more about the initiative](strategic-tech-plan-2025.md)
+    [:octicons-arrow-right-24: Read more about the initiative](tech-plan-2025.md)
     
 
 </div>
