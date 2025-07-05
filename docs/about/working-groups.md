@@ -4,8 +4,7 @@ Committees periodically charge short term Working Groups to complete specific pr
 
 Browse our [Document Library](../../library/articles) to find past working group reports.
 
-
-## Active Working Groups 
+## Active Working Groups
 
 * FAST Subject Headings Workgroup
 * Service Models Workgroup
@@ -13,7 +12,6 @@ Browse our [Document Library](../../library/articles) to find past working group
 !!! tip "Latest activities"
 
 	Browse our [monthly project updates](../../updates) to find about about recent activites.
-
 
 ## Timeline of Working Groups
 
@@ -77,7 +75,6 @@ style="font-weight:normal">2025</span></th>
     <td class="tg-0lax"><span style="font-weight:normal">Q2</span></td>
     <td class="tg-0lax"><span style="font-weight:normal">Q3</span></td>
     <td class="tg-0lax"><span style="font-weight:normal">Q4</span></td>
-    
 
   </tr>
   <tr>
@@ -378,16 +375,14 @@ style="font-weight:normal">2025</span></th>
   <tr>
     <td class="tg-0lax"><span style="font-weight:normal">Geospatial Data Citation</span></td>
     <td class="tg-0lax">TBD</td>
-    
+
   </tr>
   
    <tr>
     <td class="tg-0lax"><span style="font-weight:normal">Scalable Approaches</span></td>
     <td class="tg-0lax">TBD</td>
-    
+
   </tr>
- 
 
 </tbody>
 </table></div>
-

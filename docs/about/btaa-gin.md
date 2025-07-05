@@ -1,4 +1,4 @@
-#  BTAA-GIN Guiding Principles
+# BTAA-GIN Guiding Principles
 
 ## Our Mission
 
@@ -25,7 +25,6 @@
 * Invest in open-source technology and communities.
 * Share metadata best practices and schema development.
 * Champion initiatives to preserve and archive digital geospatial assets.
-
 
 ## Our Vision
 

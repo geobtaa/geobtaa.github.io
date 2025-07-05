@@ -2,10 +2,7 @@
 
 ## Participating Institutions
 
-
-
 <iframe width="100%" height="864" frameborder="0" src="https://gin.btaa.org/btaa-gin-new-members"></iframe>
-
 
 1. Indiana University Bloomington
 2. Michigan State University
@@ -27,7 +24,7 @@
 
 ---
 
-##  Team Members
+## Team Members
 
 Our Team Members form the core of BTAA-GIN, each contributing unique skills and perspectives. Their collective expertise covers a wide range of areas, including geospatial science, data management, and metadata, as well as map cataloging and cartographic history. They also contribute valuable insights into social justice and web accessibility, alongside technical skills in software development and user-friendly interface design.
 
@@ -38,6 +35,7 @@ Our Team Members form the core of BTAA-GIN, each contributing unique skills and 
 The University of Minnesota serves as the administrative and technical hub of the BTAA-GIN.
 
 ### Core Staff
+
 * Ryan Mattke - Program Director
 * Colleen Wilson - Associate Director: Program & Outreach Coordination
 * Karen Majewicz - Associate Director: Technology & Data Curation
@@ -45,15 +43,14 @@ The University of Minnesota serves as the administrative and technical hub of th
 * Cleo Young - Geospatial Metadata Technician
 
 ### IT and Web Development Support
+
 * Cody Hanson- IT Director - Administrative Lead
 * Michael Berkowski - Web Developer
 * Mark Engelmann - Web Analytics
 
-
 ## Alumni
 
 ### Project Sponsor Alumni
-
 
 * Wendy Lougee, University Librarian and McKnight Presidential Professor - University of Minnesota  (2015-2020)
 * James Hilton, University Librarian and Dean of Libraries - University of Michigan
@@ -63,13 +60,11 @@ The University of Minnesota serves as the administrative and technical hub of th
 * Claire Stewart, Associate University Librarian for Research & Learning - University of Minnesota (sponsor 2015-201
 * Barbara Dewey, Dean of University Libraries & Scholarly Communications - Penn State (2020)
 
-
 ### University of Minnesota Staff Alumni
 
 * Kevin Dyke - Spatial Curator and Geoportal developer
 * Michael Johnson - Web Analytics
-* Paul Bramscher - Linux Systems Administrator and Software Administrator 
-
+* Paul Bramscher - Linux Systems Administrator and Software Administrator
 
 ### Graduate Research Assistant Alumni
 

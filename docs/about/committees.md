@@ -4,7 +4,7 @@
 
 Our Executive Committee represents the strategic and financial interests of participating institutions through executive oversight of the project.
 
-**Members**
+### Members
 
 * Lisa German- Dean of Libraries & University Librarian, University of Minnesota - Chair
 * Faye Chadwell - Dean of Libraries and Scholarly Communications, Pennsylvania State University
@@ -14,15 +14,12 @@ Our Executive Committee represents the strategic and financial interests of part
 
 ---
 
-
 ## Program Committees
 
 <figure markdown="span">
   ![Program Committees Donut](../images/matrix-committees.png)
   <figcaption>Our 4 program committees work independently and collaborate on overlapping issues.</figcaption>
 </figure>
-
-
 
 <div class="grid cards" markdown>
 
@@ -91,7 +88,4 @@ Our Executive Committee represents the strategic and financial interests of part
 
 !!! tip "Latest activities"
 
-	Browse our [monthly project updates](../../updates) to find about about recent activites.
-
-
-
+    Browse our [monthly project updates](../../updates) to find about about recent activites.
