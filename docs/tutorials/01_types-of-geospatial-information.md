@@ -24,7 +24,7 @@ Geographic Information Systems (GIS) can use several different types of data. Th
 
 ## Geospatial Information Types
 
-- Most GIS data is stored in one of the following data models:
+- Most GIS data, but not all, is stored in one of the following data models:
     - Vector
     - Raster
     - Tabular
@@ -40,7 +40,7 @@ Geographic Information Systems (GIS) can use several different types of data. Th
 * The 3 basic geometry types for vector data are:
 	* **Points** - XY coordinates (examples: cities, schools, incident locations)
 	* **Lines** - connecting the points in a set order (example: roads, streams)
-	* **Polygons** - a set of points in a particular order and close it (the 1st and last point are the same) (examples: a state, county, or census block)
+	* **Polygons** - a set of points connected in a particular order and closed, the 1st and last point are the same (examples: a state, county, or census block)
 
 * Most GIS applications do not allow mixed geometry type
 In a single layer
@@ -129,21 +129,21 @@ In a single layer
 
 Tables with geospatial information can be used for mapping purposes in GIS.
 
-  * Tables with information that can be joined with an existing map 
+  * Tables with spatial information that can be joined with an existing map 
 
   * Tables with XY coordinate information
 
   * Tables with address information
 
-  * Geocoding
+  * Geocoded data
 
 ### Scanned Maps
 
 A scanned map stored as an image file.
 
-    * Georeferenced scanned map: has a linked file that stores spatial information so that it can be overlayed with other digital maps in GIS. Usually stored as GeoTIFF.
+  * Georeferenced scanned map: has a linked file that stores spatial information so that it can be overlayed with other digital maps in GIS. Usually stored as GeoTIFF.
 
-    * Un-georeferenced scanned map: The presence of coordinates in the record’s metadata does not make the map georeferenced. Can be saved as TIFF or JPG, etc.
+  * Un-georeferenced scanned map: The presence of coordinates in the record’s metadata does not make the map georeferenced. Can be saved as TIFF or JPG, etc.
 
 <figure markdown>
 
@@ -211,4 +211,4 @@ Find an example for each of following type of data from [BTAA Geoportal](https:/
 
 
 -------------
-*Tutorial content edited by BTAA-GIN 2023*
+*Tutorial content edited by BTAA-GIN 2025*
