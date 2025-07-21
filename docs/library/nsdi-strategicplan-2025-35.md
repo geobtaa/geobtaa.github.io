@@ -5,7 +5,7 @@
 	As the BTAA Geospatial Information Network (GIN) continues to grow and evolve—particularly through our Geoportal infrastructure rebuild—it’s important to reflect on how our regional efforts align with national geospatial priorities. The newly released NSDI Strategic Plan (2025–2035) outlines a collaborative vision for a connected and interoperable geospatial ecosystem. Its emphasis on inclusive governance, modernized infrastructure, and workforce development resonates strongly with BTAA-GIN’s mission and ongoing initiatives. I've summarized the plan’s key themes as part of my role on the National Geospatial Advisory Committee. We’re sharing that summary here to help raise awareness and foster engagement across our academic libraries and professional communities. We invite you to review this summary and explore the complete plan at the FGDC site. – Ryan Mattke
 
 
-The [[NSDI Strategic Plan (2025–2035)](https://www.fgdc.gov/nsdi-plan/NSDI2035) outlines a national vision for a connected geospatial ecosystem that supports decision-making and innovation across government, industry, academia, and nonprofits. It aims to improve how geospatial data is collected, managed, and used to address challenges from local to global scales.
+The [NSDI Strategic Plan (2025–2035)](https://www.fgdc.gov/nsdi-plan/NSDI2035) outlines a national vision for a connected geospatial ecosystem that supports decision-making and innovation across government, industry, academia, and nonprofits. It aims to improve how geospatial data is collected, managed, and used to address challenges from local to global scales.
 The plan is built around three goals:
 * **Governance**: Ensure inclusive participation, clear policies, and sustainable funding.
 * **Data and Technology**: Modernize infrastructure, adopt advanced technologies like AI, and improve data quality and accessibility.
@@ -17,13 +17,13 @@ The **National Spatial Data Infrastructure (NSDI)**, as defined by the [Geospati
 
 Looking ahead, the NSDI must adapt to address pressing national challenges—such as climate change, public health, and infrastructure—by delivering timely, integrated, and AI-ready geospatial data. The 2025–2035 strategic plan envisions a shift from siloed systems to an interoperable geospatial ecosystem that supports real-time decision-making. This transformation will require strong partnerships, technological innovation, public engagement, and alignment with related federal policies and strategies.
 
-## Vision
+### Vision
 The overarching vision for the NSDI is that, by 2035, the NSDI will be a seamlessly interconnected national geospatial ecosystem.
 
-## Mission
+### Mission
 The mission of the NSDI through 2035 is to deliver highly responsive, timely, dependable, and interoperable geospatial data, applications, and services that provide knowledge on demand and actionable insights to inform decisions; address local, regional, national, and global challenges; and benefit all people
 
-### Goals and Objectives
+## Goals and Objectives
 #### Goal 1 – Governance: Implement National Governance 
 **Goal 1** focuses on establishing a strong, inclusive national governance framework for the NSDI. It aims to increase participation and accountability across all sectors—Federal, State, Tribal, local governments, and the private sector—by creating clear structures, policies, and processes for managing geospatial data. This includes setting national priorities, defining standards, and improving how data is collected, shared, and used.
 
@@ -52,14 +52,14 @@ Key objectives:
 * Objective 3.3: Communication and Engagement
 Together, these efforts aim to create a geospatially literate society and a workforce capable of driving innovation and addressing complex challenges through the NSDI.
 
-## Core Values
+### Core Values
 The NSDI is built on a set of core values that ensure its effectiveness, sustainability, and societal benefit. Central to these values is the principle of “build once, use many times,” promoting efficient, cost-effective data creation that serves multiple purposes. The FAIR principles—findability, accessibility, interoperability, and reusability—ensure that geospatial data is easy to locate, widely accessible, compatible across systems, and preserved for future use. Additional values include Dependability, Quality, Collaboration, Innovation, Transparency, Sustainability, User-centric design, Data security, and Data sovereignty. Check out the full list on the [FGDC NSDI Strategic Plan site](https://www.fgdc.gov/nsdi-plan/).
 
-## Outlook and Trends 
+### Outlook and Trends 
 As the NSDI Strategic Plan is implemented over the next decade, it must remain adaptable to evolving technologies and shifting priorities. Check out the full list of outlooks and trends on the [FGDC NSDI Strategic Plan site](https://www.fgdc.gov/nsdi-plan/).
 
-## 2035 Use Cases
-By 2035, a fully developed and sustainable NSDI will support a wide range of applications across land, water, and space, serving diverse sectors and disciplines. Check out the full list of use cases on the FGDC NSDI Strategic Plan site.
+### 2035 Use Cases
+By 2035, a fully developed and sustainable NSDI will support a wide range of applications across land, water, and space, serving diverse sectors and disciplines. Check out the full list of use cases on the [FGDC NSDI Strategic Plan site](https://www.fgdc.gov/nsdi-plan/).
 
 ## Next Steps 
 To achieve the ambitious goals of the NSDI Strategic Plan, it is essential for all sectors—Federal, State, Tribal, local governments, private industry, academia, and nonprofits—to actively contribute their unique strengths and expertise. The success of the NSDI depends on broad, coordinated participation, as the Nation’s security and economic well-being are increasingly tied to effective geospatial data use and innovation. This strategic plan serves as a guiding framework for all stakeholders to develop and monitor their contributions, ensuring a unified and measurable path toward realizing the NSDI vision.
