@@ -52,6 +52,7 @@ Our Executive Committee represents the strategic and financial interests of part
 
     * Ryan Mattke (Chair)
     * Karen Majewicz
+    * Colleen Wilson
     * Rotating members of other committees
 
 -    #### Community Engagement Committee
