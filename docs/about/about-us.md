@@ -26,7 +26,7 @@ We focus on two key areas: **technical infrastructure** and **social infrastruct
 
 ### Looking Ahead
 
-As of 2024, we are currently embarking on a [new initiative to collect public geospatial data](../../technology/geodata-collection/), particularly focusing on historical resources that are currently at risk of being lost.
+We are currently embarking on a [new initiative to collect public geospatial data](../../technology/geodata-collection/), particularly focusing on historical resources that are currently at risk of being lost.
 
 ## Our Connection to the BTAA
 
