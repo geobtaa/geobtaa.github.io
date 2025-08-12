@@ -89,6 +89,7 @@ Build the pilot collection, explore technology enhancements, and document the re
 - [x] Set up a staging area (Box).
 - [x] :octicons-milestone-16: [Separate references into Distribution table](https://github.com/geobtaa/geoblacklight_admin/milestone/2)
 - [x] :octicons-milestone-16: [Incorporate data dictionaries](https://github.com/geobtaa/geoblacklight_admin/milestone/4)
+- [x] Transition the updated Geoportal interface from the development branch to the live environment.
 
 
 #### Recruitment and staffing
@@ -116,21 +117,20 @@ Communicate our newly developed capabilities and seek out data provider partners
 #### Working Group Activities
 
 - [x] Sunset the pilot workgroup.
-- [ ] {++Convene a data provider pilot working group. (name TBD)++}
+- [x] Convene a data provider pilot working group.
+- [ ] {++Outline a Curation Plan that includes initial scope, workflows, and criteria.++}
+- [ ] Determine data provider agreements.
 - [ ] Propose a dataset exchange workflow between data providers and the BTAA-GIN.
-- [ ] Determine data provider agreements
-- [ ] Outline a Curation Plan that includes initial scope, workflows, and criteria.
 
 #### Coordination and Outreach
 
-- [ ] Present results of Groundwork Phase to key stakeholders
-- [ ] Establish partnership with at least two data providers
+- [ ] {++Present initial plan to Program Team for feedback.++}
+- [ ] {++Establish partnership with first data provider++}
 
 #### Geoportal Enhancements
 
 - [x] :octicons-milestone-16: [Redesign the item view page](https://github.com/geobtaa/geoportal/milestone/24)  Incorporate tabs for metadata, data dictionaries, and download options into item page view.
 - [ ] :octicons-milestone-16: [Create a Download Package](https://github.com/geobtaa/geoblacklight_admin/milestone/3) 
-- [ ] Transition the updated Geoportal interface from the development branch to the live environment.
 
 
 ### 3A. Collection & Curation Plan (Q3 2025-Q1 2026)
@@ -141,6 +141,7 @@ Work iteratively with our data providers to collect, document, and publish prior
 
 - [ ] Evaluate the data provider communications.
 - [ ] Review the initial collections
+- [ ] Establish partnership with second data provider.
 
 #### Curation Tests
 

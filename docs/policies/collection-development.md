@@ -15,7 +15,7 @@ The BTAA Geospatial Information Network is a collaborative project to enhance di
 
  
 
-The project supports the creation and aggregation of discovery-focused metadata describing geospatial resources from participating institutions and public sources across the Big Ten region and makes those resources discoverable via an open source portal. For more information and a list of participating BTAA institutions, [please visit our project site](https://sites.google.com/umn.edu/btaa-gdp/home).
+The project supports the creation and aggregation of discovery-focused metadata describing geospatial resources from participating institutions and public sources across the Big Ten region and makes those resources discoverable via an open source portal. 
 
 
 ## Summary of Collection Scope
