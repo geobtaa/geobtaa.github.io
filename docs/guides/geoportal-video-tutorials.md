@@ -1,8 +1,8 @@
-# BTAA Geoportal Video Tutorials (Applied Examples)
+# BTAA Geoportal Video Tutorials 
 
 ## Step-by-Step Video Walkthroughs
 
-These videos show the search strategies above in action, applied to real datasets. Follow along to see how to combine keywords, filters, and map searches to find exactly what you need.
+These videos show common BTAA Geoportal search strategies applied to real datasets. Follow along to see how to combine keywords, filters, and map searches to find exactly what you need.
 
 ### Video 1 – Introduction to the BTAA Geoportal
 
@@ -22,7 +22,7 @@ An overview of the BTAA-GIN, who we serve, and how the Geoportal connects geospa
   </div>
 </div>
 
-### Video 2 – Searching for Historical Redlining Data
+### Video 2 – Searching for Vector Datasets
 
 Learn to locate vector datasets showing 1930s–1940s redlining maps for Pennsylvania cities, using keywords, facets, and the map filter.
 
@@ -41,7 +41,7 @@ Learn to locate vector datasets showing 1930s–1940s redlining maps for Pennsyl
 </div>
 
 
-### Video 3 – Finding Historic Campus Maps
+### Video 3 – Finding Historic Maps
 
 Find digitized historic campus maps from Big Ten universities using keyword searches, filters, and the map interface.
 
@@ -78,21 +78,5 @@ Search for Iowa’s 2009 land cover dataset derived from LiDAR returns, using bo
   </div>
 </div>
 
-📌 Tip: with the Introduction and move through each tutorial in order for the best results.
 
-
-
-
-## Map search
-
-### Option 1: Browse for records using a geographic extent
-
-The interactive world map on the homepage supports map-based searches for specific places. One way to conduct a map-based search is to locate all items within a geographic extent. A user can pan the map with the mouse and zoom with the controls in the upper left corner. When the desired area is in view, click the blue Search here button at the lower left. Items that are within the geographic extent will display in the search results. Only part of an item needs to be in the geographic extent to appear in the search results. 
-
-![](images/help-zoom.gif)
-
-### Option 2: Drill down using the cluster and marker icons
-
-A second option for map-based searching is to click on the icons that appear on the map as you pan and zoom. Blue marker icons show the center point of a single item record. Cluster icons represent many item records. Click or zoom in on clusters to display blue markers corresponding to specific items. Click on a single blue marker icon, and then click the link in the popup to display that specific item record. 
-
-![](images/help-cluster.gif)
+### Check out our [YouTube Channel @GeoBTAA](https://www.youtube.com/@geobtaa1585)
