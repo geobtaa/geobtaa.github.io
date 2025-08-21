@@ -192,6 +192,7 @@ nav:
     - Research Guides:
             - 'guides/index.md'
             - 'BTAA Geoportal Search strategies': 'guides/search-strategies.md'
+            - 'BTAA Geoportal Video tutorials': 'guides/geoportal-video-tutorials.md'
             - 'Understanding metadata': 'guides/understanding-metadata.md'
             - 'Citing geospatial data':  'guides/cite-data.md'
             - 'Licensed data' : 'guides/licensed-data.md'
