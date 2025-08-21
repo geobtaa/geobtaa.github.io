@@ -9,7 +9,9 @@ Our Research Guides provide help on using the BTAA Geoportal as well as general 
 
 ## Using the BTAA Geoportal
 
-[**BTAA Geoportal search strategies**](search-strategies.md): Start here to learn how to search for resources in the [BTAA Geoportal](https://geo.btaa.org)
+[**BTAA Geoportal search strategies**](search-strategies.md): Start here to learn how to search for resources in the [BTAA Geoportal](https://geo.btaa.org) (text + screenshots)
+
+[**BTAA Geoportal video tutorials**](geoportal-video-tutorials.md): Step-by-step examples that apply [BTAA Geoportal](https://geo.btaa.org) search strategies to real datasets
 
 [**Understanding metadata**](understanding-metadata.md): This brief video tutorial defines what geospatial metadata is and how Geoportal users can locate and interact with it.
 
