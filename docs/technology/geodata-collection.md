@@ -118,14 +118,14 @@ Communicate our newly developed capabilities and seek out data provider partners
 
 - [x] Sunset the pilot workgroup.
 - [x] Convene a data provider pilot working group.
-- [ ] {++Outline a Curation Plan that includes initial scope, workflows, and criteria.++}
-- [ ] Determine data provider agreements.
-- [ ] Propose a dataset exchange workflow between data providers and the BTAA-GIN.
+- [x] Outline a Curation Plan that includes initial scope, workflows, and criteria.
+- [ ] {++Determine data provider agreements.++}
+- [ ] {++Propose a dataset exchange workflow between data providers and the BTAA-GIN.++}
 
 #### Coordination and Outreach
 
-- [ ] {++Present initial plan to Program Team for feedback.++}
-- [ ] {++Establish partnership with first data provider++}
+- [x] Present initial plan to Program Team for feedback.
+- [x] Establish partnership with first data provider
 
 #### Geoportal Enhancements
 
@@ -141,7 +141,7 @@ Work iteratively with our data providers to collect, document, and publish prior
 
 - [ ] Evaluate the data provider communications.
 - [ ] Review the initial collections
-- [ ] Establish partnership with second data provider.
+- [ ] {++Establish partnership with second data provider.++}
 
 #### Curation Tests
 
