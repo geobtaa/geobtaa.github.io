@@ -87,7 +87,7 @@ Several CIC institutions already have active members on the OGP Developers Group
 
 ## CIC Context and Collaboration
 
-Scholars across academia increasingly demand access to geospatial data to facilitate their research. The 2012 CIC CLI conference ([Finding Our Way: Collaborative Strategies for Developing Geospatial Services](http://www.cic.net/calendar/conferences/library/2012/home)) focused on this demand. A group of CIC geospatial librarians has been working on how to best provide our users access to geospatial data. 
+Scholars across academia increasingly demand access to geospatial data to facilitate their research. The 2012 CIC CLI conference ([Finding Our Way: Collaborative Strategies for Developing Geospatial Services](https://web.archive.org/web/20151229001326/http://www.cic.net/calendar/conferences/library/2012/sponsors)) focused on this demand. A group of CIC geospatial librarians has been working on how to best provide our users access to geospatial data. 
 
 Currently, most CIC libraries employ GIS specialists or librarians.[^3] Including the University of Minnesota, nine CIC institutions have expressed interest in OGP. By collaborating, we can more effectively combine our efforts and expertise for the benefit of the consortium. Based on expressed interest and responses to a readiness survey, proposed participant institutions include: University of Illinois, University of Iowa, University of Maryland, University of Michigan, Michigan State University, University of Minnesota, Pennsylvania State University, Purdue University, and University of Wisconsin-Madison.
 
