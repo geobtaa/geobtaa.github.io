@@ -1,0 +1,3506 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Supporting the geospatial research community and fostering connections among geospatial library professionals.">
+      
+      
+        <meta name="author" content="Big Ten Academic Alliance Geospatial Information Network">
+      
+      
+        <link rel="canonical" href="https://gin.btaa.org/technology/tech-plan-2025/">
+      
+      
+        <link rel="prev" href="../geoportal/">
+      
+      
+        <link rel="next" href="../geodata-collection/">
+      
+      
+      <link rel="icon" href="../../images/btaa-geodata.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>Technology Plan 2025-26 - BTAA Geospatial Information Network</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="../../assets/external/fonts.googleapis.com/css.6cb02142.css">
+        <style>:root{--md-text-font:"Lora";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  <script>
+  /* Add custom analytics integration here, e.g. */
+  var property = "" 
+  
+    var _paq = window._paq = window._paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://apps.lib.umn.edu/matomo/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '48']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+
+  /* Wait for page to load and application to mount */
+  document.addEventListener("DOMContentLoaded", function() {
+    location$.subscribe(function(url) {
+      /* Add custom page event tracking here */ 
+    })
+  })
+</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+      
+        <meta property="og:type" content="website">
+      
+        <meta property="og:title" content="Technology Plan 2025-26 - BTAA Geospatial Information Network">
+      
+        <meta property="og:description" content="Supporting the geospatial research community and fostering connections among geospatial library professionals.">
+      
+        <meta property="og:image" content="https://gin.btaa.org/assets/images/social/technology/tech-plan-2025.png">
+      
+        <meta property="og:image:type" content="image/png">
+      
+        <meta property="og:image:width" content="1200">
+      
+        <meta property="og:image:height" content="630">
+      
+        <meta property="og:url" content="https://gin.btaa.org/technology/tech-plan-2025/">
+      
+        <meta name="twitter:card" content="summary_large_image">
+      
+        <meta name="twitter:title" content="Technology Plan 2025-26 - BTAA Geospatial Information Network">
+      
+        <meta name="twitter:description" content="Supporting the geospatial research community and fostering connections among geospatial library professionals.">
+      
+        <meta name="twitter:image" content="https://gin.btaa.org/assets/images/social/technology/tech-plan-2025.png">
+      
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#introduction" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="BTAA Geospatial Information Network" class="md-header__button md-logo" aria-label="BTAA Geospatial Information Network" data-md-component="logo">
+      
+  <img src="../../images/gin-white.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BTAA Geospatial Information Network
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Technology Plan 2025-26
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/about-us/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../projects/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Technology
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guides/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  User Resources
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../library/articles/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Document Library
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../conference/2025/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  GIS Conference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://geobtaa.blogspot.com" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Collection Stories
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="BTAA Geospatial Information Network" class="md-nav__button md-logo" aria-label="BTAA Geospatial Information Network" data-md-component="logo">
+      
+  <img src="../../images/gin-white.png" alt="logo">
+
+    </a>
+    BTAA Geospatial Information Network
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1">
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/about-us/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/participants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Who we are
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/committees/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Committees
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/working-groups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Working Groups
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    History
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/btaa-gin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Guiding Principles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/technical-values/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Technical Values
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://geo.btaa.org/feedback" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contact us
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1_9">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../updates/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Program Updates
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1_9" id="__nav_1_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_9">
+            <span class="md-nav__icon md-icon"></span>
+            Program Updates
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1_9_2">
+        
+          
+          <label class="md-nav__link" for="__nav_1_9_2" id="__nav_1_9_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Archive
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_1_9_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_9_2">
+            <span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/archive/2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2025
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/archive/2024/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2024
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/archive/2023/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2023
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/archive/2022/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2022
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/archive/2020/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2020
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Technology
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Technology
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../projects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Technology projects
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../geoportal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About the BTAA Geoportal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Technology Plan 2025-26
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Technology Plan 2025-26
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technology-assessment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technology Assessment
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technology Assessment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#current-technology-stack-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current Technology Stack Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-architecture-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current Architecture Framework
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#critical-assessment-of-geoblacklight" class="md-nav__link">
+    <span class="md-ellipsis">
+      Critical Assessment of GeoBlacklight
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommendations-for-the-future-technology-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommendations for the future technology stack
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vision" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vision
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Vision">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#statement" class="md-nav__link">
+    <span class="md-ellipsis">
+      Statement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#core-technology-needs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Technology Needs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-technology-stack-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      New Technology Stack Diagram
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#priority-projects-for-technology-2025-2026" class="md-nav__link">
+    <span class="md-ellipsis">
+      Priority Projects for Technology 2025-2026
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Priority Projects for Technology 2025-2026">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#p1-develop-a-metadata-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      P1. Develop a Metadata API
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#p2-build-a-new-frontend-for-the-btaa-geoportal" class="md-nav__link">
+    <span class="md-ellipsis">
+      P2. Build a new frontend for the BTAA Geoportal
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#p3-address-the-evolving-needs-of-the-btaa-gin-geodata-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      P3. Address the evolving needs of the BTAA-GIN Geodata Collection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#p4-foster-the-geo-libraries-community" class="md-nav__link">
+    <span class="md-ellipsis">
+      P4. Foster the Geo-Libraries Community
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      Roadmap
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../geodata-collection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Geodata Collection Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Resources
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            User Resources
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_1">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Research Guides
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Research Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/search-strategies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    BTAA Geoportal Search strategies
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/geoportal-video-tutorials/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    BTAA Geoportal Video tutorials
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/understanding-metadata/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Understanding metadata
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/cite-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Citing geospatial data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/licensed-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Licensed data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/census/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    U.S. Census data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/fire-insurance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fire insurance maps
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/plss/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Public Land Survey System (PLSS) Plats
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/allmaps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Allmaps Plugin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_2">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../tutorials/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_types-of-geospatial-information/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    1. Types of Geospatial Information
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_find-maps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2. Find Maps
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_find-geospatial-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    3. Find Geospatial Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_evaluate-geospatial-information/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    4. Evaluate Geospatial Information
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_web-services/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    5. Web Services
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_link-tabular-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6. Link Tabular Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_georeference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7. Georeference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_digitize/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    8. Digitize
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/09_create-elevation-surface-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    9. Create Elevation Surface Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/10_zonal-stats-tool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    10. Zonal Stats Tool
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/11_story-maps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    11. Story Maps
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Document Library
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Document Library
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/articles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Journal Articles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2">
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    All Documents
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            All Documents
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/analytics-working-group-report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Analytics Working Group Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/arcgis-online-pilot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ArcGIS Web Services Pilot Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/best-practices-open-data-portals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Best Practices for ArcGIS Hubs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/conference-report-2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Big Ten GIS Conference 2025 Wrap-Up Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/conference-report-2023/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    BTAA GIS Conference 2023 Wrap-Up Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/cic-charter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CIC Geospatial Data Discovery Project Charter (2015)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/continuation_2021/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Continuation Proposal 2021
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/continuation_2019/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Continuation Proposal 2019
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/continuation_2017/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Continuation Proposal 2017
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/curation-priorities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Curation Priorities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/digital-dark-age" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Digital Dark Age
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/diverse-collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Diverse Collections Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/geodata-collection-goundwork-report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Geodata Collection Groundwork Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/geodata-collection-strategic-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Geodata Collection Strategic Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/implementation-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Geodata Collection Implementation Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/impactReport_2020-05/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Impact Report 2020
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/actionPlan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Land acknowledgement Action Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/land-acknowledgement-working-group-report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Land Acknowledgement Working Group Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/licensed-data-implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Licensed Data Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/nsdi-strategicplan2035/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    NSDI Strategic Plan 2025-2035
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/original-content/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Original Content Guidelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/cic-proposal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Proposal for a Geospatial Data Discovery Project Across the CIC (2015)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/rates-of-change/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rates of Change for Open Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/btaa-sdi-2019/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    A Spatial Data Infrastructure (SDI) for the BTAA
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/ephemeral-costs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Staff Time for Ephemeral Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/team-member-role/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Team Member Role Description
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/user-personas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Personas
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/webServicesReport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Web Services Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    GIS Conference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            GIS Conference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2025
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/map-gallery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Map Gallery
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5_3">
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Past Conferences
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            Past Conferences
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/2023/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2023
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/2022/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2022
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/2021/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2021
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/2020/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2020
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://geobtaa.blogspot.com" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Collection Stories
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+  <h1>Technology Plan 2025-26</h1>
+
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Anchor link to this section for reference">¶</a></h2>
+<p>As our program grows, so do our technological needs. The Big Ten itself has expanded, welcoming four new institutional partners in the past year. As we incorporate new geospatial resources from Washington, Oregon, and California into the BTAA Geoportal, our collection (already over 100,000 records) will continue to increase. At the same time, the BTAA-GIN Geodata Collection has introduced new demands for asset storage and metadata management. </p>
+<p>To keep pace, we have taken a step back to assess what is working, what needs improvement, and how we can continue to build and maintain a resilient, future-compatible technology framework. To guide this process, we articulated a set of <a href="../../about/technical-values/"><strong>Technical Values</strong></a> that embrace resilience, growth, community, and interoperability. </p>
+<p>With these principles in mind, we turned to identifying our core technology requirements, approaching the task as if we were starting from the ground up. At the top of our list is stable storage for both metadata and datasets that remains reliable regardless of changes to platforms or applications. In addition, we identified two essential tools: an administrative workflow system and a public-facing discovery interface. Our current technology stack meets these needs.</p>
+<p>What we lack, however, is a dedicated <strong>metadata service</strong> that operates independently of any single application. Our current technology stack functions as a silo, requiring all access and use to flow through the Geoportal. We envision a shared registry of geospatial metadata records that welcomes contributions from multiple stakeholders and supports broad reuse. Transitioning from a traditional catalog to a metadata service will allow us to repurpose and redistribute our records across a wider range of systems and uses. By making the metadata available through an <strong><abbr title="Application Programming Interface">API</abbr></strong> as easily parsable web services, any BTAA institutional service will be able to access, display, and build upon our shared collection.</p>
+<p>With this model in mind, we then evaluated our chosen <strong>discovery platform</strong>, GeoBlacklight. It has long been the cornerstone of our technology stack, but the version we use is aging, and the next major release introduces major changes that would require a time-consuming rebuild. Until now, few alternatives have offered comparable features. However, a new metadata <abbr title="Application Programming Interface">API</abbr> opens the door to a simpler, more adaptable Geoportal built on top of this service.  Given our evolving needs, especially around metadata lifecycle management and file storage, we asked ourselves: should we reinvest in GeoBlacklight, or is there a better path forward?</p>
+<p>Drawing on our Technical Values, core requirements, and current technology assessment, we created a <strong>Vision</strong> that emphasizes modularity, interoperability, and prioritizing data over specific software solutions. Many existing tools, including our metadata editor and Amazon S3 storage, will stay in place. New components, including a metadata <abbr title="Application Programming Interface">API</abbr> and a lightweight front-end application, will strengthen our ability to manage and serve geospatial information.</p>
+<p>This transition creates exciting <strong>opportunities</strong>. A modular architecture allows us to update or refine individual components without disrupting the entire system. Adopting modern, widely supported frameworks lowers barriers and encourages a broader range of contributors to participate. An <abbr title="Application Programming Interface">API</abbr>-driven approach makes metadata more accessible, supporting not just our Geoportal but other repositories and services across the BTAA and beyond. However, we also recognize potential <strong>risks</strong>. Departing from the established GeoBlacklight code base may reduce synergy with a community that has developed specialized geospatial features, and we will need to recreate or adapt these functionalities in our new framework. </p>
+<p>Ultimately, we believe this shift will provide <strong>increased stability</strong>, because it addresses two of our biggest, interrelated, vulnerabilities: our reliance on a single developer’s specialized skill set and tying all of our resources to a single piece of open-source software. By adopting a modular, widely-used technology stack, we broaden our pool of potential collaborators and decouple our data from the inherent ephemerality of software. Moreover, this approach makes building lightweight discovery systems more accessible for any institution. As we evolve, we remain committed to promoting collaboration beyond GeoBlacklight by fostering a more inclusive, technology-agnostic “Geo-Libraries” <strong>community</strong>.</p>
+<p>This Strategic Technology Plan outlines our next steps, focusing on four priority projects that balance ongoing work with needed upgrades. Our roadmap centers on the 2025-26 fiscal year, setting the stage for a gradual evolution of our infrastructure. Testing and proof-of-concept development will begin in <strong>Q3 2025</strong>, with full production rollout expected by <strong>mid-2026</strong>.</p>
+<h2 id="technology-assessment">Technology Assessment<a class="headerlink" href="#technology-assessment" title="Anchor link to this section for reference">¶</a></h2>
+<p>This section provides an overview of our current technology stack (as of February 2025), our architecture framework, a critical assessment of GeoBlacklight, and recommendations for future tools.</p>
+<h3 id="current-technology-stack-overview">Current Technology Stack Overview<a class="headerlink" href="#current-technology-stack-overview" title="Anchor link to this section for reference">¶</a></h3>
+<h4 id="1-software-applications">1. Software Applications<a class="headerlink" href="#1-software-applications" title="Anchor link to this section for reference">¶</a></h4>
+<ul>
+<li><strong>BTAA Geoportal</strong>: A custom web application built on GeoBlacklight, an open-source GIS discovery and indexing framework that utilizes Blacklight (a discovery framework using Ruby on Rails and Solr for indexing).  </li>
+<li><strong><abbr title="The backend administrative tool for GeoBlacklight">GBL Admin</abbr> Toolkit:</strong> A custom-built metadata management tool, developed with Kithe and Ruby on Rails.</li>
+</ul>
+<h4 id="2-infrastructure-hosting">2. Infrastructure &amp; Hosting<a class="headerlink" href="#2-infrastructure-hosting" title="Anchor link to this section for reference">¶</a></h4>
+<ul>
+<li>Applications are hosted on AWS.  </li>
+<li>Assets such as data, derivatives, and metadata are stored in Amazon S3.  </li>
+<li>All development work is maintained in public GitHub repositories.</li>
+</ul>
+<h4 id="3-data-management-storage">3. Data Management &amp; Storage<a class="headerlink" href="#3-data-management-storage" title="Anchor link to this section for reference">¶</a></h4>
+<ul>
+<li>The BTAA Geoportal primarily functions as an index of materials hosted at member libraries and has not historically stored any resources.  </li>
+<li>A Geodata Collection pilot was recently completed to begin collecting assets, now stored in S3.</li>
+</ul>
+<h4 id="4-analytics-performance-monitoring">4. Analytics &amp; Performance Monitoring<a class="headerlink" href="#4-analytics-performance-monitoring" title="Anchor link to this section for reference">¶</a></h4>
+<ul>
+<li>Matomo tracks user statistics and behavior.  </li>
+<li>Tableau dashboard displays Matomo analytics.  </li>
+<li>Google Search Console provides insights into search terms directing users to the site.  </li>
+<li>AppSignal monitors site performance and alerts on slowdowns or heavy traffic.</li>
+</ul>
+<h4 id="5-support-tools">5. Support tools<a class="headerlink" href="#5-support-tools" title="Anchor link to this section for reference">¶</a></h4>
+<ul>
+<li>Jupyter Notebooks for batch metadata harvesting and data processing  </li>
+<li>GitHub Pages for documentation  </li>
+<li>GitHub Projects for project management</li>
+</ul>
+<h3 id="current-architecture-framework">Current Architecture Framework<a class="headerlink" href="#current-architecture-framework" title="Anchor link to this section for reference">¶</a></h3>
+<p>Our current technology architecture is designed as a closed system. Our management tool (<abbr title="The backend administrative tool for GeoBlacklight">GBL Admin</abbr>) pushes to Amazon S3 for data storage, a PostGRES database for metadata, and Solr for indexing. <abbr title="The backend administrative tool for GeoBlacklight">GBL Admin</abbr> and the BTAA Geoportal share the same Solr instance. The architecture reflects the requirements of our chosen frontend application, GeoBlacklight, which requires a flat metadata schema served via Solr.</p>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-desc-position="top"><img alt="" src="../../images/current-tech-stack.png"></a></p>
+<p><em>Current architecture framework for the BTAA Geoportal</em></p>
+<h3 id="critical-assessment-of-geoblacklight">Critical Assessment of GeoBlacklight<a class="headerlink" href="#critical-assessment-of-geoblacklight" title="Anchor link to this section for reference">¶</a></h3>
+<h4 id="why-did-we-choose-geoblacklight-in-2015">Why did we choose GeoBlacklight in 2015?<a class="headerlink" href="#why-did-we-choose-geoblacklight-in-2015" title="Anchor link to this section for reference">¶</a></h4>
+<ul>
+<li>
+<p>GeoBlacklight was the best option available for academic/library applications.</p>
+</li>
+<li>
+<p>Ruby on Rails was the dominant framework for library web development teams.</p>
+</li>
+<li>
+<p>GeoBlacklight was part of the Blacklight ecosystem, promising stability.</p>
+</li>
+<li>
+<p>It had a small but engaged developer community, supported through Geo4LibCamp.</p>
+</li>
+<li>
+<p>The GeoBlacklight schema provided an easy-to-adopt geospatial metadata profile.</p>
+</li>
+</ul>
+<h4 id="what-has-changed-since-2015">What has changed since 2015?<a class="headerlink" href="#what-has-changed-since-2015" title="Anchor link to this section for reference">¶</a></h4>
+<ul>
+<li>
+<p>Our project requirements have evolved: we now need workflow tools, file storage, geodata collection management, metadata enrichment, and gazetteer-based concordances for linked data. GeoBlacklight’s limited scope (discovery-side only) does not provide these essential features.</p>
+</li>
+<li>
+<p>Many institutions have adopted GeoBlacklight over the years. There are over a dozen listed on the GeoBlacklight website. However, many institutions also struggled with the platform and were never able to implement it. Several of those who succeeded ended up abandoning it, as they could not keep up with security patches and new developments.</p>
+</li>
+<li>
+<p>Several key GeoBlacklight developers have moved on, and community contributions have slowed significantly.</p>
+</li>
+<li>
+<p>Ruby on Rails framework adoption is declining, raising longer-term staffing and maintainability concerns.</p>
+</li>
+<li>
+<p>New frameworks provide better options for faster development cycles, higher uptime/availability, and easier scalability.</p>
+</li>
+<li>
+<p>The <abbr title="Metadata schema for GeoBlacklight">OpenGeoMetadata</abbr> Aardvark metadata profile has proven to be more accessible, community engaging, and enduring than the GeoBlacklight software stack.</p>
+</li>
+</ul>
+<h4 id="geoblacklights-strengths">GeoBlacklight’s strengths<a class="headerlink" href="#geoblacklights-strengths" title="Anchor link to this section for reference">¶</a></h4>
+<ul>
+<li>
+<p>It offers stronger <strong>geo-focused discovery features</strong> than many general-purpose digital library platforms, including several filters, location-based searching, and uniform place names.</p>
+</li>
+<li>
+<p>It includes <strong>previews</strong> for many specialized geospatial and image web services.</p>
+</li>
+<li>
+<p>It uses a <strong>standardized metadata</strong> application profile, enabling interoperability across institutions.</p>
+</li>
+<li>
+<p>A dedicated <strong>community</strong> has grown over the past decade to guide progress and provide support.</p>
+</li>
+<li>
+<p>Users praise its clean and simple interface <strong>design</strong> and find it easy to use.</p>
+</li>
+</ul>
+<h4 id="geoblacklights-weaknesses">GeoBlacklight’s weaknesses<a class="headerlink" href="#geoblacklights-weaknesses" title="Anchor link to this section for reference">¶</a></h4>
+<ul>
+<li>
+<p>Few maintainers:  with only a few active contributors, new development has slowed to largely maintenance releases. </p>
+</li>
+<li>
+<p>Less common code framework:  most members of the GIS community are more comfortable working with Python/Javascript than with Ruby on Rails</p>
+</li>
+<li>
+<p>Poor developer ergonomics:  the development and maintenance of Rails Engines, like GeoBlacklight, is inherently slow. Most changes to the codebase require deleting and regenerating a local copy of the full application stack, which can be extremely time intensive.</p>
+</li>
+<li>
+<p>No built-in metadata workflow tools:  makes GeoBlacklight adoption and setup harder.</p>
+</li>
+<li>
+<p>Monolith architecture:  the software’s design is not modular, which makes custom changes difficult. Relying entirely on flattened metadata structure in Apache Solr for data storage makes relational-database enrichment challenging.</p>
+</li>
+<li>
+<p>Flat metadata schema:  GeoBlacklight uses the non-relational Apache Solr search engine for indexing and storing data, which prohibits object enrichment via associated SQL joins in a relational-database environment.</p>
+</li>
+<li>
+<p>Performance concerns:  with increased AI bot traffic, it has become challenging to meet production response time expectations. This is not solely an issue for (Geo)Blacklight-based apps, but the GBL stack was never inherently performant from the outset.</p>
+</li>
+<li>
+<p>Upstream Blacklight technology decisions create significant challenges for GeoBlacklight applications downstream:  with limited insight and zero optionality, technology decisions cascade into GeoBlacklight from above. Examples:</p>
+</li>
+<li>
+<p>Despite many Blacklight v7 dependent GeoBlacklight applications in production, there will be no Blacklight v7 release with Rails v8 support.</p>
+</li>
+<li>
+<p>Adopting ViewComponents introduced a paradigm that makes upgrading and migrating local customizations from GBLv4 to GBLv5 significantly harder.</p>
+</li>
+<li>
+<p>The Blacklight development team changed their preferred Rails front-end technology stack to ImportMaps and broke GeoBlacklight’s continuous integration tests for several weeks.</p>
+</li>
+</ul>
+<h5 id="frameworks-that-will-need-upgrades-soon">Frameworks that will need upgrades soon<a class="headerlink" href="#frameworks-that-will-need-upgrades-soon" title="Anchor link to this section for reference">¶</a></h5>
+<p>Software that reaches "end of life" no longer gets official updates or security patches. This leaves older systems open to security threats and missing new features.</p>
+<p>GeoBlacklight 4.4.2 (our current version) relies on several frameworks that are nearing end of life :</p>
+<ul>
+<li>
+<p>Blacklight v7: no official support for Ruby on Rails 8</p>
+</li>
+<li>
+<p>Ruby on Rails 7.2: security support on ends on August 2026</p>
+</li>
+<li>
+<p>Older ES5 JavaScript, which works in current browsers but is out-of-date</p>
+</li>
+<li>
+<p>jQuery, which most modern frameworks do not require</p>
+</li>
+<li>
+<p>Bootstrap 4, which ended support in 2023</p>
+</li>
+</ul>
+<h5 id="future-changes">Future Changes<a class="headerlink" href="#future-changes" title="Anchor link to this section for reference">¶</a></h5>
+<p>The GeoBlacklight Community recently introduced GeoBlacklight v5.0 that does use modern frameworks. However, upgrading the BTAA Geoportal to GeoBlacklight 5.0 would require extensive time and skill. We anticipate that this would take, at minimum, 8 weeks of work spread out over 4 months. We do not currently have a strategy in place to upgrade.</p>
+<h3 id="recommendations-for-the-future-technology-stack">Recommendations for the future technology stack<a class="headerlink" href="#recommendations-for-the-future-technology-stack" title="Anchor link to this section for reference">¶</a></h3>
+<h4 id="plan-for-long-term-stability">Plan for long-term stability<a class="headerlink" href="#plan-for-long-term-stability" title="Anchor link to this section for reference">¶</a></h4>
+<p>Without significant upgrades, the current GeoBlacklight platform risks falling short of our long-term performance and reliability needs.</p>
+<h4 id="modernize-our-approach">Modernize our approach<a class="headerlink" href="#modernize-our-approach" title="Anchor link to this section for reference">¶</a></h4>
+<p>Instead of spending months upgrading to GeoBlacklight version 5, we should use that time to implement a new decoupled application architecture that allows the BTAA Geoportal to prosper outside the constraints of GeoBlacklight. The new system will handle traffic better, keep security up to date, and adapt well to future needs. A simpler, more flexible platform will help the Geoportal stay fast, cost-effective, and ready for growth. The tools we choose should be well-documented, widely used, and supported by large, active open-source communities.</p>
+<h4 id="proposed-transition">Proposed transition<a class="headerlink" href="#proposed-transition" title="Anchor link to this section for reference">¶</a></h4>
+<ol>
+<li>
+<p>Shift to GIS community-familiar technologies like Python-based tooling and PostgreSQL/PostGIS. </p>
+</li>
+<li>
+<p>Transition to industry-standard web frameworks like FastAPI and React. </p>
+</li>
+<li>
+<p>Separate the backend <abbr title="Application Programming Interface">API</abbr> from the frontend discovery interface to modularize development and deployment. </p>
+</li>
+</ol>
+<h2 id="vision">Vision<a class="headerlink" href="#vision" title="Anchor link to this section for reference">¶</a></h2>
+<h3 id="statement">Statement<a class="headerlink" href="#statement" title="Anchor link to this section for reference">¶</a></h3>
+<p>We envision a technology approach that supports long-term geospatial information collection and sharing. Because we value durability, we will store metadata in a relational database while hosting datasets in secure cloud storage. We will adopt a modular technology stack that fosters resilience and growth, so each component can be updated or replaced as usage grows and needs evolve. We will share metadata through an open <abbr title="Application Programming Interface">API</abbr> to ensure it remains accessible even if the underlying management and discovery tools change. Finally, to encourage adoption and contributions from the geospatial community, we will choose widely used tools that are likely to align with their existing skills.</p>
+<h3 id="core-technology-needs">Core Technology Needs<a class="headerlink" href="#core-technology-needs" title="Anchor link to this section for reference">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Component</th>
+<th style="text-align: left;">Technology</th>
+<th style="text-align: left;">Purpose</th>
+<th style="text-align: left;">Changes to current stack</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Asset storage</td>
+<td style="text-align: left;">Amazon S3</td>
+<td style="text-align: left;">Store datasets</td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;">Metadata database</td>
+<td style="text-align: left;">PostgreSQL</td>
+<td style="text-align: left;">Store metadata</td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;">Management tool</td>
+<td style="text-align: left;"><abbr title="The backend administrative tool for GeoBlacklight">GBL Admin</abbr></td>
+<td style="text-align: left;">Administrative workflow tool</td>
+<td style="text-align: left;">-</td>
+</tr>
+<tr>
+<td style="text-align: left;">Metadata <abbr title="Application Programming Interface">API</abbr></td>
+<td style="text-align: left;">FastAPI (Python)</td>
+<td style="text-align: left;">Serve metadata to discovery application(s)</td>
+<td style="text-align: left;">NEW: We will expose our metadata as APIs, which multiple schemas and filters available</td>
+</tr>
+<tr>
+<td style="text-align: left;">Discovery application</td>
+<td style="text-align: left;">React (Javascript)</td>
+<td style="text-align: left;">Frontend user interface</td>
+<td style="text-align: left;">CHANGED: The <abbr title="Application Programming Interface">API</abbr> will allow us to adopt a more lightweight and modern platform.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="new-technology-stack-diagram">New Technology Stack Diagram<a class="headerlink" href="#new-technology-stack-diagram" title="Anchor link to this section for reference">¶</a></h3>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Tech Stack" data-desc-position="top"><img alt="Tech Stack" src="../../images/strategic-tech-plan.png"></a></p>
+<h2 id="priority-projects-for-technology-2025-2026">Priority Projects for Technology 2025-2026<a class="headerlink" href="#priority-projects-for-technology-2025-2026" title="Anchor link to this section for reference">¶</a></h2>
+<h3 id="p1-develop-a-metadata-api">P1. Develop a Metadata <abbr title="Application Programming Interface">API</abbr><a class="headerlink" href="#p1-develop-a-metadata-api" title="Anchor link to this section for reference">¶</a></h3>
+<p>Design and implement a metadata <abbr title="Application Programming Interface">API</abbr> using the FastAPI framework. The <abbr title="Application Programming Interface">API</abbr> will serve as a central access point for sharing metadata records. It will support integration with a variety of frontend applications and provide filtered metadata outputs for reuse. We will document its schema and endpoints to facilitate community adoption.</p>
+<h3 id="p2-build-a-new-frontend-for-the-btaa-geoportal">P2. Build a new frontend for the BTAA Geoportal<a class="headerlink" href="#p2-build-a-new-frontend-for-the-btaa-geoportal" title="Anchor link to this section for reference">¶</a></h3>
+<p>Create a lightweight discovery interface using the React framework. This new frontend will consume metadata from the <abbr title="Application Programming Interface">API</abbr> and decouple the interface from the current GeoBlacklight system. We will reuse existing GeoBlacklight JavaScript components where feasible, while simplifying the architecture to improve performance and maintenance needs.</p>
+<h3 id="p3-address-the-evolving-needs-of-the-btaa-gin-geodata-collection">P3. Address the evolving needs of the BTAA-GIN Geodata Collection<a class="headerlink" href="#p3-address-the-evolving-needs-of-the-btaa-gin-geodata-collection" title="Anchor link to this section for reference">¶</a></h3>
+<p>As we transition into <strong>Phase 3: Foundation</strong> of the <strong>Geodata Collection Strategic Plan</strong>, we remain dedicated to addressing the evolving needs of the collection. This involves iteratively developing based on workgroup recommendations, conducting user testing, and adapting to emerging priorities.</p>
+<h3 id="p4-foster-the-geo-libraries-community">P4. Foster the Geo-Libraries Community<a class="headerlink" href="#p4-foster-the-geo-libraries-community" title="Anchor link to this section for reference">¶</a></h3>
+<p>For over five years, we have served as de facto leaders of the GeoBlacklight community, guiding its development and supporting adopters. However, as the community grapples with the evolving direction of the Blacklight framework, we recognize the need for a broader approach. Our commitment to open-source collaboration remains strong, with a new focus on fostering the Geo-Libraries Community, a space for geospatial professionals in libraries to engage with metadata standards, GIS tools, and discovery frameworks beyond a single software platform.</p>
+<h2 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Anchor link to this section for reference">¶</a></h2>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-desc-position="top"><img alt="" src="../../images/tech-roadmap-2025.png"></a></p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        
+<section id="footer-app" aria-label="Application Footer">
+    <div class="container-fluid">
+            
+            <div class="col-xs-12 col-lg-6" id="footer-left-column">
+                <h3 class="mt-3">About &amp; Help</h3>
+                <ul class="list-unstyled">
+                    <li><a href="https://gin.btaa.org/about/about-us/">About Us</a></li>
+                    <li><a href="https://gin.btaa.org/updates">Program Updates</a></li>
+                    <li><a href="https://geo.btaa.org/feedback">Contact Us</a></li> 
+                    <li><a href="https://mailchi.mp/d146395039e5/coordinates-from-btaa-gin-signup-page">Get Our Newsletter</a></li>
+                    <li><a href="https://gin.btaa.org/guides/">Help Guides</a></li>
+                    <li><a href="https://gin.btaa.org/tutorials">Tutorials</a></li>
+                    <li><a href="https://btaa.org/">Big Ten Academic Alliance</a></li>
+                </ul>
+
+                <h3 class="mt-3">Policies</h3>
+                <ul class="list-unstyled">
+                    <li><a href="https://gin.btaa.org/policies/harmful-language/">Harmful Language Statement</a></li>
+                    <li><a href="https://btaa.org/privacy">Privacy Statement</a></li>
+                    <li><a href="https://gin.btaa.org/policies/collection-development/">Collection Development Policy</a></li>      
+                </ul>
+
+            </div>
+
+            <div class="col-xs-12 col-lg-6" id="footer-right-column">
+                <h3 class="mt-3">Member Libraries</h3>
+                <ul class="list-unstyled" style="column-count: 2;">
+                    <li><a href="https://www.lib.uchicago.edu/">University of Chicago</a></li>
+                    <li><a href="https://www.library.illinois.edu/">University of Illinois</a></li>
+                    <li><a href="https://libraries.indiana.edu/">Indiana University</a></li>
+                    <li><a href="https://www.lib.uiowa.edu/">University of Iowa</a></li>
+                    <li><a href="https://www.lib.umd.edu/">University of Maryland</a></li>
+                    <li><a href="https://www.lib.umich.edu/">University of Michigan</a></li>
+                    <li><a href="https://lib.msu.edu/">Michigan State University</a></li>
+                    <li><a href="https://www.lib.umn.edu/">University of Minnesota</a></li>
+                    <li><a href="https://libraries.unl.edu/">University of Nebraska-Lincoln</a></li>
+                    <li><a href="https://www.library.northwestern.edu/">Northwestern University</a></li>
+                    <li><a href="https://library.osu.edu/">The Ohio State University</a></li>
+                    <li><a href="https://library.uoregon.edu/">University of Oregon</a></li>
+                    <li><a href="https://libraries.psu.edu/">Pennsylvania State University</a></li>
+                    <li><a href="https://www.lib.purdue.edu/">Purdue University</a></li>
+                    <li><a href="https://www.libraries.rutgers.edu/">Rutgers University</a></li>
+                    <li><a href="https://lib.uw.edu/">University of Washington</a></li>
+                    <li><a href="https://www.library.wisc.edu/">University of Wisconsin-Madison</a></li>
+                </ul>
+            </div>
+        </div>
+    </section></div>
+
+
+
+
+
+      
+    
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.sections", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": {"2012": "2012", "2015": "2015", "2016": "2016", "2017": "2017", "2018": "2018", "2019": "2019", "2020": "2020", "2021": "2021", "2022": "2022", "2023": "2023", "2024": "2024", "2025": "2025", "best practices": "practices", "charters": "charters", "library": "libr", "program guidelines": "guidelines", "proposals": "proposals", "reports": "reports"}, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../../assets/external/unpkg.com/tablesort@5.3.0/dist/tablesort.min.js"></script>
+      
+        <script src="../../javascripts/tablesort.js"></script>
+      
+        <script src="../../js/open_in_new_tab.js"></script>
+      
+    
+  
+<script id="init-glightbox">document.querySelectorAll('.glightbox').forEach(function(element) {
+    try {
+        var img = element.querySelector('img');
+        if (img && img.src) {
+            element.setAttribute('href', img.src);
+        } else {
+            console.log('No img element with src attribute found');
+        }
+    } catch (error) {
+        console.log('Error:', error);
+    }
+});
+const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

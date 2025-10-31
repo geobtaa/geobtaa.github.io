@@ -1,0 +1,3546 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Supporting the geospatial research community and fostering connections among geospatial library professionals.">
+      
+      
+        <meta name="author" content="Big Ten Academic Alliance Geospatial Information Network">
+      
+      
+        <link rel="canonical" href="https://gin.btaa.org/tutorials/10_zonal-stats-tool/">
+      
+      
+        <link rel="prev" href="../09_create-elevation-surface-models/">
+      
+      
+        <link rel="next" href="../11_story-maps/">
+      
+      
+      <link rel="icon" href="../../images/btaa-geodata.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>Build a Zonal Stats Tool with Python and Jupyter Notebook - BTAA Geospatial Information Network</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="../../assets/external/fonts.googleapis.com/css.6cb02142.css">
+        <style>:root{--md-text-font:"Lora";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  <script>
+  /* Add custom analytics integration here, e.g. */
+  var property = "" 
+  
+    var _paq = window._paq = window._paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://apps.lib.umn.edu/matomo/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '48']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+
+  /* Wait for page to load and application to mount */
+  document.addEventListener("DOMContentLoaded", function() {
+    location$.subscribe(function(url) {
+      /* Add custom page event tracking here */ 
+    })
+  })
+</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+      
+        <meta property="og:type" content="website">
+      
+        <meta property="og:title" content="Build a Zonal Stats Tool with Python and Jupyter Notebook - BTAA Geospatial Information Network">
+      
+        <meta property="og:description" content="Supporting the geospatial research community and fostering connections among geospatial library professionals.">
+      
+        <meta property="og:image" content="https://gin.btaa.org/assets/images/social/tutorials/10_zonal-stats-tool.png">
+      
+        <meta property="og:image:type" content="image/png">
+      
+        <meta property="og:image:width" content="1200">
+      
+        <meta property="og:image:height" content="630">
+      
+        <meta property="og:url" content="https://gin.btaa.org/tutorials/10_zonal-stats-tool/">
+      
+        <meta name="twitter:card" content="summary_large_image">
+      
+        <meta name="twitter:title" content="Build a Zonal Stats Tool with Python and Jupyter Notebook - BTAA Geospatial Information Network">
+      
+        <meta name="twitter:description" content="Supporting the geospatial research community and fostering connections among geospatial library professionals.">
+      
+        <meta name="twitter:image" content="https://gin.btaa.org/assets/images/social/tutorials/10_zonal-stats-tool.png">
+      
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#introduction" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="BTAA Geospatial Information Network" class="md-header__button md-logo" aria-label="BTAA Geospatial Information Network" data-md-component="logo">
+      
+  <img src="../../images/gin-white.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BTAA Geospatial Information Network
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Build a Zonal Stats Tool with Python and Jupyter Notebook
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/about-us/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../technology/projects/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Technology
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../guides/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  User Resources
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../library/articles/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Document Library
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../conference/2025/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  GIS Conference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://geobtaa.blogspot.com" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Collection Stories
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="BTAA Geospatial Information Network" class="md-nav__button md-logo" aria-label="BTAA Geospatial Information Network" data-md-component="logo">
+      
+  <img src="../../images/gin-white.png" alt="logo">
+
+    </a>
+    BTAA Geospatial Information Network
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1">
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/about-us/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/participants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Who we are
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/committees/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Committees
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/working-groups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Working Groups
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    History
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/btaa-gin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Guiding Principles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/technical-values/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Technical Values
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://geo.btaa.org/feedback" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contact us
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1_9">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../updates/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Program Updates
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1_9" id="__nav_1_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_9">
+            <span class="md-nav__icon md-icon"></span>
+            Program Updates
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1_9_2">
+        
+          
+          <label class="md-nav__link" for="__nav_1_9_2" id="__nav_1_9_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Archive
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_1_9_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_9_2">
+            <span class="md-nav__icon md-icon"></span>
+            Archive
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/archive/2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2025
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/archive/2024/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2024
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/archive/2023/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2023
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/archive/2022/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2022
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../updates/archive/2020/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2020
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Technology
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Technology
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technology/projects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Technology projects
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technology/geoportal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About the BTAA Geoportal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technology/tech-plan-2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Technology Plan 2025-26
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technology/geodata-collection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Geodata Collection Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Resources
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            User Resources
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_1">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Research Guides
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_1" id="__nav_3_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Research Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/search-strategies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    BTAA Geoportal Search strategies
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/geoportal-video-tutorials/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    BTAA Geoportal Video tutorials
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/understanding-metadata/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Understanding metadata
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/cite-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Citing geospatial data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/licensed-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Licensed data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/census/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    U.S. Census data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/fire-insurance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fire insurance maps
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/plss/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Public Land Survey System (PLSS) Plats
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/allmaps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Allmaps Plugin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_2" id="__nav_3_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_types-of-geospatial-information/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    1. Types of Geospatial Information
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02_find-maps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2. Find Maps
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03_find-geospatial-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    3. Find Geospatial Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_evaluate-geospatial-information/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    4. Evaluate Geospatial Information
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_web-services/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    5. Web Services
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_link-tabular-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    6. Link Tabular Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_georeference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    7. Georeference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_digitize/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    8. Digitize
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_create-elevation-surface-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    9. Create Elevation Surface Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    10. Zonal Stats Tool
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    10. Zonal Stats Tool
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learning-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      Learning Objectives
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prepare-directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prepare Directory Structure
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gather-and-prepare-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gather and Prepare Data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#download-necessary-programs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Download Necessary Programs
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run-the-python-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run the Python Code
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#explanation-of-the-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      Explanation of the Code
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_story-maps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    11. Story Maps
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Document Library
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Document Library
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/articles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Journal Articles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2">
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    All Documents
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            All Documents
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/analytics-working-group-report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Analytics Working Group Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/arcgis-online-pilot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ArcGIS Web Services Pilot Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/best-practices-open-data-portals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Best Practices for ArcGIS Hubs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/conference-report-2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Big Ten GIS Conference 2025 Wrap-Up Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/conference-report-2023/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    BTAA GIS Conference 2023 Wrap-Up Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/cic-charter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CIC Geospatial Data Discovery Project Charter (2015)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/continuation_2021/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Continuation Proposal 2021
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/continuation_2019/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Continuation Proposal 2019
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/continuation_2017/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Continuation Proposal 2017
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/curation-priorities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Curation Priorities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/digital-dark-age" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Digital Dark Age
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/diverse-collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Diverse Collections Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/geodata-collection-goundwork-report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Geodata Collection Groundwork Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/geodata-collection-strategic-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Geodata Collection Strategic Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/implementation-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Geodata Collection Implementation Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/impactReport_2020-05/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Impact Report 2020
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/actionPlan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Land acknowledgement Action Plan
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/land-acknowledgement-working-group-report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Land Acknowledgement Working Group Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/licensed-data-implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Licensed Data Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/nsdi-strategicplan2035/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    NSDI Strategic Plan 2025-2035
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/original-content/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Original Content Guidelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/cic-proposal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Proposal for a Geospatial Data Discovery Project Across the CIC (2015)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/rates-of-change/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rates of Change for Open Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/btaa-sdi-2019/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    A Spatial Data Infrastructure (SDI) for the BTAA
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/ephemeral-costs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Staff Time for Ephemeral Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/team-member-role/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Team Member Role Description
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/user-personas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Personas
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../library/webServicesReport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Web Services Report
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    GIS Conference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            GIS Conference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/2025/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2025
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/map-gallery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Map Gallery
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5_3">
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Past Conferences
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            Past Conferences
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/2023/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2023
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/2022/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2022
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/2021/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2021
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conference/2020/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    2020
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://geobtaa.blogspot.com" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Collection Stories
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+  <h1>10. Zonal Stats Tool</h1>
+
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 21a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2zm1-8h8.5L11 16.5l1.42 1.42L18.34 12l-5.92-5.92L11 7.5l3.5 3.5H6z"></path></svg></span> Purpose: To show users how to create an open-source GUI tool     to calculate coverage.</p>
+<p><img alt="⏲" class="twemoji" src="../../assets/external/cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/23f2.svg" title=":timer:"> Estimated time to complete: 40-50 minutes</p>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M224 248a120 120 0 1 0 0-240 120 120 0 1 0 0 240m-29.7 56C95.8 304 16 383.8 16 482.3c0 16.4 13.3 29.7 29.7 29.7h356.6c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3z"></path></svg></span> Prepared by: Jay Bowen, Geographic Information Specialist, University of Iowa (<a href="mailto:jay-bowen@uiowa.edu">jay-bowen@uiowa.edu</a>). </p>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m11.89 10.34-1.34.7c-.14-.3-.31-.51-.52-.63s-.41-.18-.58-.18c-.9 0-1.34.59-1.34 1.77 0 .54.11.97.34 1.29.22.32.55.48 1 .48.58 0 .99-.27 1.23-.86l1.23.63c-.26.49-.62.87-1.09 1.15q-.69.42-1.53.42c-.9 0-1.62-.27-2.17-.82C6.58 13.74 6.3 13 6.3 12c0-.95.28-1.7.83-2.26q.84-.84 2.1-.84c1.24-.01 2.13.48 2.66 1.44m5.77 0-1.32.7c-.14-.3-.34-.51-.53-.63q-.315-.18-.6-.18c-.89 0-1.34.59-1.34 1.77 0 .54.13.97.34 1.29.23.32.56.48 1 .48.59 0 1-.27 1.24-.86l1.25.63c-.28.49-.65.87-1.11 1.15-.47.28-.97.42-1.52.42-.9 0-1.63-.27-2.17-.82S12.09 13 12.09 12c0-.95.28-1.7.83-2.26S14.17 8.9 15 8.9c1.26-.01 2.14.48 2.66 1.44M12 3.5a8.5 8.5 0 0 1 8.5 8.5 8.5 8.5 0 0 1-8.5 8.5A8.5 8.5 0 0 1 3.5 12 8.5 8.5 0 0 1 12 3.5M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"></path></svg></span> These slides and the accompanying activities are licensed under a <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International</a> license.</p>
+</div>
+<hr>
+<details class="note">
+<summary>Note for Instructors</summary>
+<p>This tutorial is intended for both MacOS and Windows GIS users with a cursory understanding of how to use python scripts, regardless of whether they are graduate, undergraduate, or faculty/staff users. These users may wish to create easy to use free-standing analytical tools that they can run without desktop GIS software, but are unsure of how to write a script to create GUI-driven tools. </p>
+<p>This tutorial is meant to show users how to create an open-source GUI tool that accepts a raster file and a polygon shapefile as inputs and calculates the coverage of a given range of raster classes within the shapefile polygon. </p>
+<p>The tutorial was designed for self-guided independent learning.</p>
+</details>
+<hr>
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Anchor link to this section for reference">¶</a></h2>
+<p>You may need to know the percentage of a specific area devoted to a type of land cover, also known as a zonal statistic. For example,  you may work for a city government office charged with researching climate change mitigation strategies. You know that more trees are associated with a reduction of extreme heat. You might wish to calculate how much of the land in your city is covered by tree canopy to compare this to a desired benchmark.</p>
+<p>Usually, people calculate this by turning to the ArcGIS tool suite, or by running ArcPy in the ArcGIS Python Window. However, ArcGIS can be expensive and out of reach for many users. Moreover, apart from ArcGIS Online, the software depends on Windows, limiting its use. This tutorial will show users how to derive zonal statistics without ArcGIS tools or ArcPy scripting. </p>
+<p>In this example, you will begin with a land cover raster for the State of Iowa and a shapefile of Iowa City. The tutorial will walk through the installation and use of open-source Python packages in Jupyter Notebook and Anaconda-Navigator to calculate the percentage of Iowa City covered by tree canopy (represented by classes 3, 4, 5, and 6 in the raster data). </p>
+<details class="note">
+<summary>Note</summary>
+<p><strong>This code is not meant to be run in IDLE or the ArcGIS Python Window.</strong></p>
+</details>
+<h2 id="learning-objectives">Learning Objectives<a class="headerlink" href="#learning-objectives" title="Anchor link to this section for reference">¶</a></h2>
+<p>Students will:</p>
+<ol>
+<li>
+<p>Use basic Terminal or Command Prompt scripts</p>
+</li>
+<li>
+<p>Learn how to install and import Python packages, such as tkinter, gdal, and rasterstats.</p>
+</li>
+<li>
+<p>Implement these packages with Python scripting using Jupyter Notebook in Anaconda-Navigator to calculate zonal statistics for a range of raster classes within an area of interest defined by a shapefile polygon (% of Iowa City covered by tree canopy).</p>
+</li>
+</ol>
+<p><strong>Don’t have time to download and install Anaconda-Navigator and Jupyter Notebook?</strong></p>
+<ul>
+<li>
+<p>That's fine! You can run the entire tutorial in <a href="https://notebooks.gesis.org/binder/v2/gh/ui-libraries/Zonal_Statistics_Tool_JupyterNotebook/HEAD">this Binder site for Jupyter Notebook</a>. Just follow the embedded link and click on the "ZonalStatistics_withWidgets.ipynb" file.</p>
+</li>
+<li>
+<p>If you decide to use the Binder tutorial, you may close out of this presentation.</p>
+</li>
+</ul>
+<details class="note">
+<summary>Note</summary>
+<p>The Binder tutorial replaces the tkinter GUI with ipywidgets in order to handle user inputs within Binder over the web.</p>
+</details>
+<h2 id="prepare-directory-structure">Prepare Directory Structure<a class="headerlink" href="#prepare-directory-structure" title="Anchor link to this section for reference">¶</a></h2>
+<ul>
+<li>
+<p>Open Terminal on Mac, or Command Prompt on Windows.</p>
+</li>
+<li>
+<p>If you are using Windows Command Prompt on an institutional or office PC and it defaults to a drive other than the C drive and your user name (such as H:&gt;), input the following to point it to the correct place on the C drive (replace "johnsmith" with your own user name) and press enter:</p>
+</li>
+</ul>
+<div class="highlight"><pre><span></span><code>    cd /d C:\Users\johnsmith
+</code></pre></div>
+<ul>
+<li>In Mac Terminal,&nbsp; input the following and leave Terminal open:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>mkdir Desktop/zonal_statistics &amp;&amp; mkdir Desktop/zonal_statistics/data &amp;&amp; curl https://raw.githubusercontent.com/jebowe3/zonalstats_jupyternotebook/main/ZonalStatistics.ipynb -L -o Desktop/zonal_statistics/ZonalStatistics.ipynb
+</code></pre></div>
+<ul>
+<li>In Windows Command Prompt, type the following and leave Command Prompt open:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>mkdir Desktop\zonal_statistics &amp;&amp; mkdir Desktop\zonal_statistics\data &amp;&amp; curl https://raw.githubusercontent.com/jebowe3/zonalstats_jupyternotebook/main/ZonalStatistics.ipynb -L -o Desktop/zonal_statistics/ZonalStatistics.ipynb
+</code></pre></div>
+<ul>
+<li>This will create a folder on your desktop called "zonal_statistics" and another folder called "data" within the desktop "zonal_statistics" folder. It will also download the Jupyter Notebook .ipynb file with all of the python code.</li>
+</ul>
+<figure>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Media Options" data-desc-position="top"><img alt="Media Options" src="../images/directory-structure.png"></a></p><figcaption>Directory Structure</figcaption><p></p>
+</figure>
+<h2 id="gather-and-prepare-data">Gather and Prepare Data<a class="headerlink" href="#gather-and-prepare-data" title="Anchor link to this section for reference">¶</a></h2>
+<ul>
+<li>
+<p>Open the <a href="https://geo.btaa.org/">BTAA Geoportal</a></p>
+</li>
+<li>
+<p>In the search bar, type "High Resolution Land Cover of Iowa in 2009 Counties: Iowa"</p>
+</li>
+<li>
+<p>Choose and open the <a href="https://geo.btaa.org/catalog/2265abfa-0513-4a83-87a7-38304384d736">result</a> and click the "Original Raster Dataset" button at the right side of the page</p>
+</li>
+</ul>
+<figure>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Media Options" data-desc-position="top"><img alt="Media Options" src="../images/high-res-lc.png"></a></p><figcaption>Original Raster Dataset</figcaption><p></p>
+</figure>
+<ul>
+<li>
+<p>From the list of counties, choose "Johnson"</p>
+</li>
+<li>
+<p>Download, unzip, and save the folder inside the "Desktop/zonal_statistics/data" folder you just created</p>
+</li>
+</ul>
+<figure>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Media Options" data-desc-position="top"><img alt="Media Options" src="../images/johnson-zip.png"></a></p><figcaption>Download, Unzip, &amp; Save</figcaption><p></p>
+</figure>
+<ul>
+<li>Return to Terminal or Command Prompt and type the following code to download the Iowa City boundary files to your data folder:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>curl https://github.com/jebowe3/zonalstats_jupyternotebook/raw/main/IowaCity_Shapefile.zip -L -o Desktop/zonal_statistics/data/Iowa_City_Poly.zip
+</code></pre></div>
+<ul>
+<li>Unzip this folder so that you have access to the shapefile within it</li>
+</ul>
+<figure>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Media Options" data-desc-position="top"><img alt="Media Options" src="../images/unzipped-folder.png"></a></p><figcaption>Unzip Iowa_City_Poly.zip</figcaption><p></p>
+</figure>
+<h2 id="download-necessary-programs">Download Necessary Programs<a class="headerlink" href="#download-necessary-programs" title="Anchor link to this section for reference">¶</a></h2>
+<ul>
+<li>
+<p>Download the latest edition of Anaconda-Navigator</p>
+</li>
+<li>
+<p><a href="https://www.anaconda.com/products/individual#macos">MacOS</a></p>
+</li>
+<li>
+<p><a href="https://www.anaconda.com/products/individual#windows">Windows</a></p>
+</li>
+<li>
+<p>Open Anaconda-Navigator and select "Environments"</p>
+</li>
+<li>
+<p>Click the "Create" button and name the new environment "giscience"</p>
+</li>
+<li>
+<p>Create this environment with a Python package</p>
+</li>
+</ul>
+<details class="note">
+<summary>Note</summary>
+<p>We tested this tutorial with Python 3.8 and Python 3.7.16. Newer Python packages may not work with the code presented here.</p>
+</details>
+<figure>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Media Options" data-desc-position="top"><img alt="Media Options" src="../images/anaconda-nav.png"></a></p><figcaption>Create an Environment in Anaconda</figcaption><p></p>
+</figure>
+<ul>
+<li>
+<p>In Anaconda, return to "Home"</p>
+</li>
+<li>
+<p>Make sure the header reads "Applications on giscience"</p>
+</li>
+<li>
+<p>Find Jupyter Notebook and click "Install"</p>
+</li>
+<li>
+<p>After installation, click "Launch"</p>
+</li>
+</ul>
+<figure>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Media Options" data-desc-position="top"><img alt="Media Options" src="../images/launch-jupyter.png"></a></p><figcaption>Launch Jupyter Notebook</figcaption><p></p>
+</figure>
+<ul>
+<li>
+<p>Inside Jupyter Notebook, navigate to "Desktop/zonal_statistics"</p>
+</li>
+<li>
+<p>Click on the "ZonalStatistics.ipynb" file</p>
+</li>
+</ul>
+<figure>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Media Options" data-desc-position="top"><img alt="Media Options" src="../images/ipynb-file.png"></a></p><figcaption>Open ZonalStatistics.ipynb</figcaption><p></p>
+</figure>
+<ul>
+<li>
+<p>You have already downloaded the sample data, so skip the first cell</p>
+</li>
+<li>
+<p>Run the cell under "Install Required Packages" to ensure that you have all of the necessary Python modules to run the code</p>
+</li>
+</ul>
+<figure>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Media Options" data-desc-position="top"><img alt="Media Options" src="../images/install-packages.png"></a></p><figcaption>Install Required Packages</figcaption><p></p>
+</figure>
+<ul>
+<li>Now, test the modules by running the cell under "Import Modules"</li>
+</ul>
+<h2 id="run-the-python-code">Run the Python Code<a class="headerlink" href="#run-the-python-code" title="Anchor link to this section for reference">¶</a></h2>
+<ul>
+<li>
+<p>Now, follow through the steps in the Jupyter Notebook file, reading the descriptions and commented out code along the way for a better sense of what is happening</p>
+</li>
+<li>
+<p>A GUI input form will open, but it may be hidden behind your browser window. Follow the instructions, providing the City.shp and HRLC_2009_52 files you downloaded for the two browseable file inputs</p>
+</li>
+<li>
+<p>Here, City.shp is the Iowa City boundary, HRLC_2009_52 is the land cover of Johnson County. The land cover classes corresponding to tree canopy are 3 - 6, inclusive...</p>
+</li>
+</ul>
+<figure>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Media Options" data-desc-position="top"><img alt="Media Options" src="../images/input-form.png"></a></p><figcaption>GUI Input Form</figcaption><p></p>
+</figure>
+<h2 id="explanation-of-the-code">Explanation of the Code<a class="headerlink" href="#explanation-of-the-code" title="Anchor link to this section for reference">¶</a></h2>
+<ul>
+<li>If you look inside the metadata xml file that comes with the land cover raster, you will see which classes correspond to which land covers. In this exercise, we are isolating tree coverage (values 3 to 6).</li>
+</ul>
+<figure>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Media Options" data-desc-position="top"><img alt="Media Options" src="../images/lc-classes.png"></a></p><figcaption>Land Cover Metadata</figcaption><p></p>
+</figure>
+<ul>
+<li>Now, while we wait for the code to run, let's take a more detailed look at what it is doing...</li>
+</ul>
+<div class="highlight"><pre><span></span><code>import os
+import tkinter as tk
+from tkinter.filedialog import askdirectory
+from tkinter.filedialog import askopenfilename
+import tkinter.messagebox
+from osgeo import gdal
+from osgeo import ogr, osr
+import numpy as np
+from numpy import zeros
+from numpy import logical_and
+import rasterio as rio
+from rasterstats import zonal_stats
+</code></pre></div>
+<p>The script above imports the packages that Python will need to make the tool run. The os module allows the script to interact with the operating system. Tkinter is a GUI package that allows you to build a dialog box / input form for the tool. The osgeo package offers open source libraries, like gdal and ogr, for working with geospatial data. The numpy library allows for mathematical computations, while rasterio and rasterstats allow you easy manipulation and analysis of raster data.</p>
+<p>Also, you should notice how these lines of code interact with the code below to link the defined inputs to the GUI widgets. Notice that you have some control over the placement and appearance of these elements within the GUI. You can also edit the text.</p>
+<div class="highlight"><pre><span></span><code>    ##  GUI Widgets
+    ##  G-1. Shapefile Selection
+    ##  1-Label
+    label_1 = tk.Label(self, text="Select the shapefile for your area of interest")
+    label_1.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky="W")
+
+    ##  1-Entry Box
+    var_1 = tk.StringVar()
+    entry_1 = tk.Entry(self, textvariable=var_1)
+    entry_1.grid(row=0, column=2, padx=5, pady=5, ipadx=100, sticky="W")
+
+    ##  1-Button
+    button_1 = tk.Button(self, text="Browse", command=BrowseFile_1)
+    button_1.grid(row=0, column=3, padx=5, pady=5, sticky="E")
+</code></pre></div>
+<p>Let’s look at what happens after you click “OK”. The code below defines the form inputs with some more memorable names. It also ensures that the raster class inputs are parsed as numeric values, rather than as strings.</p>
+<div class="highlight"><pre><span></span><code>    ##  Set input variables
+    input_zone_polygon = var_1.get()
+    input_value_raster = var_2.get()
+    low_class_str = var_3.get()
+    high_class_str = var_4.get()
+
+    ## Convert numeric strings to integers
+    low_class_int = int(low_class_str)
+    high_class_int = int(high_class_str)
+</code></pre></div>
+<p>A few lines below, you will see some code that defines the path to the raster file. Beneath this, is some code that isolates the file extension. Following this is a conditional test to isolate and define the driver, which we can use to create the new reclassified raster.</p>
+<div class="highlight"><pre><span></span><code>    ## Get the directory path of the input raster
+    ras_dir_path = os.path.dirname(input_value_raster)
+
+
+    ## Get the file extension of the raster file
+    file_ext = os.path.splitext(input_value_raster)[1]
+
+    if file_ext == '.tif':
+         drive = 'GTiff'
+    elif file_ext == '.img':
+         drive = 'HFA'
+
+    #Define the gdal driver with the drive variable from the conditional test
+    driver = gdal.GetDriverByName(drive)
+</code></pre></div>
+<p>The code below takes the input raster file and reassigns a binary classification based on the range the user defines in the dialog box. If the classes are higher or lower than the input range, these will be redefined as 0. If the classes match the desired range, they will be redefined as 1. Then, the code creates a new file called “raster2” in the same directory as the input raster and sets the projection.</p>
+<div class="highlight"><pre><span></span><code>    file = gdal.Open(input_value_raster)
+    band = file.GetRasterBand(1)
+
+
+    # reclassification
+    classification_values = [0,low_class_int,high_class_int + 1]
+    classification_output_values = [0,1,0]
+
+    block_sizes = band.GetBlockSize()
+    x_block_size = block_sizes[0]
+    y_block_size = block_sizes[1]
+
+    xsize = band.XSize
+    ysize = band.YSize
+
+    max_value = band.GetMaximum()
+    min_value = band.GetMinimum()
+
+    if max_value == None or min_value == None:
+         stats = band.GetStatistics(0, 1)
+         max_value = stats[1]
+         min_value = stats[0]
+
+    # create new file
+    file2 = driver.Create( ras_dir_path + '/raster2' + file_ext, xsize , ysize , 1, gdal.GDT_Byte)
+
+    # spatial ref system
+    file2.SetGeoTransform(file.GetGeoTransform())
+    file2.SetProjection(file.GetProjection())
+</code></pre></div>
+<p>The following block of code assigns the newly defined classes to each pixel in the “raster2” file by reading the input pixel values as an array and assigning new values based on a translation of classification breaks from the input “classification_values” [0, 3, 7] to the output “classification_output_values” [0, 1, 0]. Thus, any value less than 3 or greater than or equal to 7 is reclassified as 0, while anything greater than or equal to 3 and less than 7 is reclassified as 1.</p>
+<div class="highlight"><pre><span></span><code>print('Reassigning raster values...please wait...')
+for i in range(0, ysize, y_block_size):
+     if i + y_block_size &lt; ysize:
+          rows = y_block_size
+     else:
+          rows = ysize - i
+     for j in range(0, xsize, x_block_size):
+          if j + x_block_size &lt; xsize:
+               cols = x_block_size
+          else:
+               cols = xsize - j
+
+          data = band.ReadAsArray(j, i, cols, rows)
+          r = zeros((rows, cols), np.uint8)
+
+          for k in range(len(classification_values) - 1):
+               if classification_values[k] &lt;= max_value and (classification_values[k + 1] &gt; min_value ):
+                    r = r + classification_output_values[k] * logical_and(data &gt;= classification_values[k], data &lt; classification_values[k + 1])
+          if classification_values[k + 1] &lt; max_value:
+               r = r + classification_output_values[k+1] * (data &gt;= classification_values[k + 1])
+
+          file2.GetRasterBand(1).WriteArray(r,j,i)
+
+file2 = None 
+</code></pre></div>
+<p>Next, the script identifies the projection of the input shapefile and reprojects the “raster2” file to match the projection of the shapefile. The reprojected raster is then saved as “raster2_reproject” in the same directory as the input raster. This process is important because both the polygon and raster need to be in matching projections for the computation of zonal statistics.</p>
+<div class="highlight"><pre><span></span><code># Get the EPSG code of the input shapefile
+shp_driver = ogr.GetDriverByName('ESRI Shapefile')
+dataset = shp_driver.Open(input_zone_polygon)
+layer = dataset.GetLayer()
+spatialRef = layer.GetSpatialRef()
+shp_epsg = spatialRef.GetAttrValue("GEOGCS|AUTHORITY", 1)
+
+# Reproject the raster
+input_raster = gdal.Open(ras_dir_path + '/raster2' + file_ext)
+output_raster = ras_dir_path + '/raster2_reproject' + file_ext
+
+warp = gdal.Warp(output_raster,input_raster,dstSRS='EPSG:'+str(shp_epsg))
+warp = None
+</code></pre></div>
+<p>The following lines perform the zonal stats analysis and display the percent coverage of the input polygon by the selected raster classes, along with some supporting statistics in a message window that appears on the user’s screen after the analysis is complete.</p>
+<div class="highlight"><pre><span></span><code>zs = zonal_stats(input_zone_polygon,output_raster,stats=['min', 'max', 'mean', 'count', 'sum'])
+
+## Hide the tkinter root box
+root = tk.Tk()
+root.withdraw()
+
+## Define each zonal stat
+min = [x['min'] for x in zs]
+max = [x['max'] for x in zs]
+mean = [x['mean'] for x in zs]
+count = [x['count'] for x in zs]
+sum = [x['sum'] for x in zs]
+
+## Build the messagebox content
+lines = ["AOI covered by selected raster classes: " + str(round(mean[0]*100,2))+"%", "minimum: " + str(min[0]), "maximum: " + str(max[0]), "count: " + str(count[0]), "sum: " + str(sum[0])]
+
+## Display the messagebox content in separate lines
+tk.messagebox.showinfo("Zonal Statistics Summary", "\n".join(lines))
+</code></pre></div>
+<figure>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Media Options" data-desc-position="top"><img alt="Media Options" src="../images/progress-output.png"></a></p><figcaption>Progress Notes</figcaption><p></p>
+</figure>
+<p>After processing finishes, it will produce a text box providing information about how much of the polygon is covered by the selected range of classes.</p>
+<figure>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Media Options" data-desc-position="top"><img alt="Media Options" src="../images/zonal-stats-summary.png"></a></p><figcaption>Zonal Statistics Summary</figcaption><p></p>
+</figure>
+<p>The tool will also output a reprojected raster file (raster2_reproject) that isolates your selected raster class range.</p>
+<p>In the screenshot, you can see the results, isolating the tree canopy classes from the input raster.</p>
+<figure>
+<p><a class="glightbox" data-type="image" data-width="100%" data-height="100%" data-title="Media Options" data-desc-position="top"><img alt="Media Options" src="../images/ic-tree-canopy.png"></a></p><figcaption>Iowa City Tree Canopy Raster</figcaption><p></p>
+</figure>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        
+<section id="footer-app" aria-label="Application Footer">
+    <div class="container-fluid">
+            
+            <div class="col-xs-12 col-lg-6" id="footer-left-column">
+                <h3 class="mt-3">About &amp; Help</h3>
+                <ul class="list-unstyled">
+                    <li><a href="https://gin.btaa.org/about/about-us/">About Us</a></li>
+                    <li><a href="https://gin.btaa.org/updates">Program Updates</a></li>
+                    <li><a href="https://geo.btaa.org/feedback">Contact Us</a></li> 
+                    <li><a href="https://mailchi.mp/d146395039e5/coordinates-from-btaa-gin-signup-page">Get Our Newsletter</a></li>
+                    <li><a href="https://gin.btaa.org/guides/">Help Guides</a></li>
+                    <li><a href="https://gin.btaa.org/tutorials">Tutorials</a></li>
+                    <li><a href="https://btaa.org/">Big Ten Academic Alliance</a></li>
+                </ul>
+
+                <h3 class="mt-3">Policies</h3>
+                <ul class="list-unstyled">
+                    <li><a href="https://gin.btaa.org/policies/harmful-language/">Harmful Language Statement</a></li>
+                    <li><a href="https://btaa.org/privacy">Privacy Statement</a></li>
+                    <li><a href="https://gin.btaa.org/policies/collection-development/">Collection Development Policy</a></li>      
+                </ul>
+
+            </div>
+
+            <div class="col-xs-12 col-lg-6" id="footer-right-column">
+                <h3 class="mt-3">Member Libraries</h3>
+                <ul class="list-unstyled" style="column-count: 2;">
+                    <li><a href="https://www.lib.uchicago.edu/">University of Chicago</a></li>
+                    <li><a href="https://www.library.illinois.edu/">University of Illinois</a></li>
+                    <li><a href="https://libraries.indiana.edu/">Indiana University</a></li>
+                    <li><a href="https://www.lib.uiowa.edu/">University of Iowa</a></li>
+                    <li><a href="https://www.lib.umd.edu/">University of Maryland</a></li>
+                    <li><a href="https://www.lib.umich.edu/">University of Michigan</a></li>
+                    <li><a href="https://lib.msu.edu/">Michigan State University</a></li>
+                    <li><a href="https://www.lib.umn.edu/">University of Minnesota</a></li>
+                    <li><a href="https://libraries.unl.edu/">University of Nebraska-Lincoln</a></li>
+                    <li><a href="https://www.library.northwestern.edu/">Northwestern University</a></li>
+                    <li><a href="https://library.osu.edu/">The Ohio State University</a></li>
+                    <li><a href="https://library.uoregon.edu/">University of Oregon</a></li>
+                    <li><a href="https://libraries.psu.edu/">Pennsylvania State University</a></li>
+                    <li><a href="https://www.lib.purdue.edu/">Purdue University</a></li>
+                    <li><a href="https://www.libraries.rutgers.edu/">Rutgers University</a></li>
+                    <li><a href="https://lib.uw.edu/">University of Washington</a></li>
+                    <li><a href="https://www.library.wisc.edu/">University of Wisconsin-Madison</a></li>
+                </ul>
+            </div>
+        </div>
+    </section></div>
+
+
+
+
+
+      
+    
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.sections", "toc.follow", "toc.integrate"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": {"2012": "2012", "2015": "2015", "2016": "2016", "2017": "2017", "2018": "2018", "2019": "2019", "2020": "2020", "2021": "2021", "2022": "2022", "2023": "2023", "2024": "2024", "2025": "2025", "best practices": "practices", "charters": "charters", "library": "libr", "program guidelines": "guidelines", "proposals": "proposals", "reports": "reports"}, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="../../assets/external/unpkg.com/tablesort@5.3.0/dist/tablesort.min.js"></script>
+      
+        <script src="../../javascripts/tablesort.js"></script>
+      
+        <script src="../../js/open_in_new_tab.js"></script>
+      
+    
+  
+<script id="init-glightbox">document.querySelectorAll('.glightbox').forEach(function(element) {
+    try {
+        var img = element.querySelector('img');
+        if (img && img.src) {
+            element.setAttribute('href', img.src);
+        } else {
+            console.log('No img element with src attribute found');
+        }
+    } catch (error) {
+        console.log('Error:', error);
+    }
+});
+const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
