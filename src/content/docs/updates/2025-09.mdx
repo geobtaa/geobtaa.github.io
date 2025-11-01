@@ -1,0 +1,191 @@
+---
+title: September 2025 Program Update
+
+date: 2025-10-06
+excerpt: We have launched a new series of video tutorials demonstrating common BTAA Geoportal search strategies
+authors:
+    - name: BTAA-GIN Staff
+tags:
+  - Program Updates
+cover:
+  alt: Geoportal tutorials
+  image: "@images/geoportal-videos.png"
+
+---
+import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
+import ChipList from 'src/components/ChipList.astro';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import { ShowcaseYouTube } from 'starlight-showcases'
+
+<div class="monthly-highlight">
+
+## BTAA Geoportal Video Tutorials: Step-by-Step Search Walkthroughs
+
+To make the BTAA Geoportal even easier to use, we've launched a new series of [video tutorials](/guides/geoportal-video-tutorials) demonstrating common BTAA Geoportal search strategies applied to real datasets. These short walkthroughs show practical techniques for combining keywords, filters, and map-based searches to quickly locate the data you need.
+
+**Watch the full series on [our YouTube Channel: @GeoBTAA](https://www.youtube.com/watch?v=RbFjvVNI4-M&list=PLNMgmHMZCEbc-QJZP12rKa1YtFjgD-7Vh)**
+
+<ShowcaseYouTube
+  entries={[
+    {
+      href: 'https://youtu.be/RbFjvVNI4-M?si=sHq7CciKXbnToyXh',
+      title: '1. Introduction to the BTAA Geoportal',
+      description: 'An overview of the BTAA-GIN, who we serve, and how the Geoportal connects geospatial resources across Big Ten universities.',
+    },
+    {
+      href: 'https://youtu.be/dIfs1v4gLl0?si=TlGu3gjKR8wf9HTI',
+      title: '2. Searching for Vector Datasets',
+      description: 'Learn to locate vector datasets showing 1930s-1940s redlining maps for Pennsylvania cities, using keywords, facets, and the map filter.',
+    },
+    {
+      href: 'https://youtu.be/SxBLSkRxRlk?si=jAwHA5AfMkvE3mCG',
+      title: '3. Finding Historic Maps',
+      description: 'Find digitized historic campus maps from Big Ten universities using keyword searches, filters, and the map interface.',
+    },
+    {
+      href: 'https://youtu.be/ztU2OjxM06o?si=zUGlhjvncfEHo1O0',
+      title: '4. Finding Land Cover Data from LiDAR',
+      description: 'Search for Iowa’s 2009 land cover dataset derived from LiDAR returns, using both keyword and facet search methods.',
+    },
+  ]}
+/>
+
+The tutorial series includes:
+- Intro to the Geoportal:  What it is and how to get started
+- Vector Dataset Search:  Finding redlining maps for Pennsylvania cities
+- Historic Map Search:  Exploring digitized campus maps from Big Ten universities
+- LiDAR Land Cover Search:  Using Iowa's 2009 dataset as an example
+ 
+Designed for researchers, students, and librarians alike, these tutorials help users navigate the Geoportal more effectively and discover datasets with confidence.
+
+</div>
+
+## Program Activities
+
+### Committees
+
+<CardGrid>
+  <Card title="TECHnology">
+    - Held kickoff meeting in September
+    - Lead developer gave presentation on new technology stack goals and progress
+  </Card>
+
+  <Card title="Community Engagement">
+    - Held open discussion of charter language, outreach priorities, and content strategies (Collection Blog; LibGuides best practices)
+    - Next: Plan to review charter and goals for the coming year
+  </Card>
+
+  <Card title="Knowledge">
+    Discussed indexing geospatial data from open-access ETDs in the Geoportal
+  </Card>
+
+  <Card title="Coordination">
+    Did not meet
+  </Card>
+</CardGrid>
+
+### Workgroups
+
+<Card>
+
+
+#### Geodata Collection Workgroup
+
+* Held a successful meeting with Minneapolis, who agreed to serve as our first data provider partner.
+
+#### Service Model Collaboration Workgroup
+
+* Shared highlights at the Program Team meeting that sparked a group conversation about opportunities and next steps
+
+#### Geospatial Data Citation Workgroup
+
+* Developed a prototype for a data citation tool hosted on the GIN website
+* Discussed key elements of a data citations and reviewed best practices from other guides
+
+	
+</Card>
+
+
+## BTAA Geoportal 
+
+### Analytics Statistics
+
+<TwoThirdsLayout>
+  <div slot="left">
+  ![Unique visitors by month](@images/2025-09-monthly-users.png)
+  *Geoportal visitors*
+  </div>
+
+  <div slot="right">
+  <div class="compact-list">
+    * Visitors: 9,189
+    * Visits: 10,703
+    * Downloads: 536
+    * Visits with download: 5.01%
+    * Outlinks: 2,247
+    * Visits with outlink: 20.99%
+    * Num. searches: 1,204
+    * Search keywords: 454
+    * Pageviews: 24,510
+  </div>
+  </div>
+</TwoThirdsLayout>
+
+
+:::tip[More stats]
+See full statistics on our [Analytics Dashboard](https://tableau.umn.edu/t/UL/views/BTAAGeoportalusageMatomo/Monthlycharts?%3Aembed=y&%3AisGuestRedirectFromVizportal=y)
+:::
+
+
+<div class="grid cards" markdown>
+
+#### Top internal search keywords
+<ChipList class="not-content">
+
+	- Sanborn
+	- relief
+	- Middle East
+	- pennsylvania
+	- cairo
+	- trail
+	- baltimore county
+	- allegheny county
+	- Tacoma
+	- Egypt
+</ChipList>
+
+</div>
+
+
+### Collections
+
+<p class="records-total">Total records as of October 1, 2025: 116,953</p>
+
+### Harvesting Activities
+
+| Title | Records added | Records retired |
+|:--|--:|--:|
+| 2025-09-02 Scan ArcGIS Hubs | 219 | 31 |
+| 2025-09-09 Scan ArcGIS Hubs | 45 | 61 |
+| 2025-09-16 Scan ArcGIS Hubs | 49 | 73 |
+| Reharvest Mapping Inequality | 314 | 538 |
+| Reharvest Newberry Library | 0 | 0 |
+| Datasets (USA and international | 8012 | 2 |
+| **Total** | **8639** | **705** |
+
+
+### Web Development
+
+#### GeoBTAA API development in progress
+- established a test suite (pytest)
+- enhanced documentation (https://gin.btaa.org/ld/)
+- Developing spatial facets
+
+#### React user interface development in progress
+- Added links and web services previews
+- established test suite vitest)
+- new admin view of test fixture records
+
+:::tip[More development details]
+[Read the most recent development report for more details](https://docs.google.com/document/d/1drJsQhDEa5bTuNh3a4MvhGRimahqAP5DzpzQ5z0JCTg/edit?usp=sharing)
+:::

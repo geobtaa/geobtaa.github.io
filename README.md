@@ -1,128 +1,63 @@
-# BTAA-GIN Program Website
+# Starlight Starter Kit: Basics
 
-## About
-
-This site contains information about the BTAA-GIN program and a library of public facing documents.
-
-### Written in: [Markdown language](https://daringfireball.net/projects/markdown/)
-
-[Markdown](https://daringfireball.net/projects/markdown/) is a lightweight and easy-to-use language for text documents.
-Most text editors support it and translates easily to other formats, such as HTML or PDF or EPUB.
-
-### Generated with: [MkDocs framework ](https://www.mkdocs.org)
-
-[MkDocs](https://www.mkdocs.org) is a static site generator platform that allows users to create and maintain documentation websites. It takes Markdown files and uses the [Python-Markdown library](https://python-markdown.github.io) to convert the documents to HTML.
-
-### Styled with: [Material for MkDocs theme](https://squidfunk.github.io/mkdocs-material/)
-
-[Material](https://squidfunk.github.io/mkdocs-material/) is the most actively developed theme available for MkDocs (as of 2023) and features flexible navigation and many plugins to extend what we can do with Markdown. It is called "Material" because it is based on Google's Material Design guidelines, a web accessibility and screen responsiveness.
+[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
 
 
-### Published with: [GitHub Pages](https://pages.github.com)
+## 🚀 Project Structure
 
-[GitHub Pages](https://pages.github.com) is a free static site hosting service offered by GitHub. It is often used to host documentation sites, personal portfolios, and project websites.
-
-
-## GitHub Repository organization:
-
-### Main branch
-
-This is the working branch containing the content for the site using Markdown.
-
-* **readme.md**: the file you are reading right now
-* **mkdocs.yml**: the configuration file that identifies the theme, the extensions, and the navigation
-* **docs** folder
-	*  Markdown documents: The content for the site. These can all live in the same directory and are organized in the public navigation menu in the nav section of **mkdocs.yml**.
-	*  	`/images` : JPGs, PNGs, and other image files
-	*   `/javascripts/tablesort.js`: the javascript function that allows users to sort tables online
-	*   `/stylesheets/extra.css` : a CSS file that can define colors, fonts, and other customizations for the site
-	*   `/tables` : CSV files for any general information to be displayed as tables
-
-
-### gh-pages branch
-
-This is the published branch containing the HTML code for the site. (We do **not** edit this branch directly).
-
-* `index.html`: an HTML file containing the information in the `index.md` file in your Main branch
-* The rest of your markdown content pages with be in separate directories. The directory name is the name of the markdown file and it contains an HTML file called `index.html`
-* `/images`, `/javascripts`, and `/stylesheets` : same as the Main branch
-* `/assets` : contains **subdirectories** for `/images`, `/javascripts`, and `/stylesheets`.  These subdirectories contain the favicon and compiled code.
-* `.nojekyll` : The existence of this file tells GitHub that the site is not using Jekyll. [Related GitHub blog post](https://github.blog/2009-12-29-bypassing-jekyll-on-github-pages/).
-
-
-## Updating the  website
-
-Since this site is written with Markdown files, the minimum requirement to contribute is to just edit or submit new Markdown files.  However, MkDocs is relatively simple to install and run locally. This allows you to preview changes locally before submitting them.  
-
-
-To get started, follow the steps below.  It may also be helpful to visit the Material for [MkDocs Getting Started page](https://squidfunk.github.io/mkdocs-material/getting-started/) and for reference.
-
-You will need **pip** and **homebrew** to install all of the plugins and dependencies.
-
-### Install Material for MkDocs
-
-1. Open the Terminal and type the following:
-
-`pip install mkdocs-material`
-
-This command will install all the necessary modules for the mkdocs platform and the Material theme together.
-
-
-2. Install the plugins
-
-`pip install mkdocs-table-reader-plugin`
-
-`pip install mkdocs-open-in-new-tab`
-
-`pip install mkdocs-glightbox`
-
-`pip install "mkdocs-material[imaging]"`
-
-`brew install cairo freetype libffi libjpeg libpng zlib`
-
-### Edit the website
-
-1. Clone or fork the geobtaa.github.io repository
-
-2. Make a new branch
-
-3. Change into the directory and type:
-
-`mkdocs serve`
-
-This will start a local server so you can preview the site as you build it. You will see text in the Terminal that looks something like this:
+Inside of your Astro + Starlight project, you'll see the following folders and files:
 
 ```
-INFO     -  Documentation built in 4.15 seconds
-
-INFO     -  [14:43:24] Watching paths for changes: 'docs', 'mkdocs.yml'
-
-INFO     -  [14:43:24] Serving on http://127.0.0.1:8000/
-
-INFO     -  [14:43:31] Browser connected: http://127.0.0.1:8000/
+.
+├── public/
+├── src/
+│   ├── assets/
+│   ├── content/
+│   │   └── docs/
+│   └── content.config.ts
+├── astro.config.ts
+├── navigation.config.ts
+├── package.json
+└── tsconfig.json
 ```
-4. In a browser, open the locally hosted site at http://127.0.0.1:8000/ (or whatever your Terminal shows)
 
-5. Edit the markdown files and preview them in your browser.
+Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
 
-6. When you are ready to publish the changes, commit them locally using GitHub Desktop or a Terminal command.
+Images can be added to `src/assets/` and embedded in Markdown with a relative link.
 
-7. Publish the branch and open a pull request to the Main branch.
+Static assets, like favicons, can be placed in the `public/` directory.
 
+## 🧞 Commands
 
-### Workflow steps overview
+All commands are run from the root of the project, from a terminal:
 
-Contributor:
+| Command                   | Action                                           |
+| :------------------------ | :----------------------------------------------- |
+| `npm install`             | Installs dependencies                            |
+| `npm run dev`             | Starts local dev server at `localhost:4321`      |
+| `npm run build`           | Build your production site to `./dist/`          |
+| `npm run preview`         | Preview your build locally, before deploying     |
+| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
+| `npm run astro -- --help` | Get help using the Astro CLI                     |
 
-1. Clone or update your local instance of the geobtaa.github.io repository
-2. Make a new branch and switch to it
-3. Edit the Markdown files
-4. Preview the site locally using `mkdocs serve`
-5. Commit your changes
-6. Publish your branch
-7. Open a Pull Request to the main branch
+## 🔄 Updating Navigation
 
-Publisher:
+All primary navigation (desktop tabs, mobile drawer, and sidebar groupings) is defined in one place:
 
-1. Accept Pull Request and merge changes to the main branch
-2. GitHub Actions will automatically push the changes to the gh-pages branch
+- `navigation.config.ts` — each entry in `NAV_GROUPS` describes a top-level section (`id`, `label`, `landing` page, and the sidebar items that belong to the group). Update this file when you add or remove a section.
+- `astro.config.ts` consumes `NAV_GROUPS` to build Starlight’s sidebar automatically; no manual edits needed here unless you change config structure.
+- UI components (`src/components/HeaderWithCompactSearch.astro` and `src/components/SidebarWithFilters.astro`) import the same data, so they reflect changes instantly.
+
+Typical update flow:
+
+1. Add your new docs pages under `src/content/docs/…`.
+2. Edit `navigation.config.ts`:
+   - Add or update a `NAV_GROUPS` entry.
+   - Use `kind: 'autogenerate'` to point at a docs directory, or `kind: 'group'` / `kind: 'link'` for manual lists.
+3. Run `npm run astro -- check` and `npm run dev` to verify the header tabs, mobile drawer, and sidebar all show the new structure.
+
+Need a quick reference? Leave a comment near your new `NAV_GROUPS` entry noting the related content directory.
+
+## 👀 Want to learn more?
+
+Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).

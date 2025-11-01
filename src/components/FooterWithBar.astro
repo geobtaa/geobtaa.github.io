@@ -1,0 +1,109 @@
+---
+import Default from '@astrojs/starlight/components/Footer.astro';
+---
+
+<!-- Keep the built-in LastUpdated / Prev–Next / Edit link -->
+<div class="btaa-footer__default">
+  <Default><slot /></Default>
+</div>
+
+<!-- Your full-width blue footer bar -->
+<section class="btaa-footer" aria-label="BTAA-GIN Footer">
+  <div class="btaa-footer__inner">
+    <div class="btaa-footer__col">
+      <h3>Contacts</h3>
+      <ul>
+        <li><a href="https://geo.btaa.org/feedback">Share feedback</a></li>
+        <li><a href="https://mailchi.mp/d146395039e5/coordinates-from-btaa-gin-signup-page">Get Our Newsletter</a></li>
+      </ul>
+
+      <h3>Policies</h3>
+      <ul>
+        <li><a href="/policies/harmful-language/">Harmful Language Statement</a></li>
+        <li><a href="https://btaa.org/privacy">Privacy Statement</a></li>
+        <li><a href="/policies/collection-development/">Collection Development Policy</a></li>
+      </ul>
+    </div>
+
+    <div class="btaa-footer__col">
+      <h3>Member Libraries & Partners</h3>
+      <ul class="btaa-footer__cols-2">
+        <li><a href="https://www.lib.uchicago.edu/">University of Chicago</a></li>
+        <li><a href="https://www.library.illinois.edu/">University of Illinois</a></li>
+        <li><a href="https://libraries.indiana.edu/">Indiana University</a></li>
+        <li><a href="https://www.lib.uiowa.edu/">University of Iowa</a></li>
+        <li><a href="https://www.lib.umd.edu/">University of Maryland</a></li>
+        <li><a href="https://www.lib.umich.edu/">University of Michigan</a></li>
+        <li><a href="https://lib.msu.edu/">Michigan State University</a></li>
+        <li><a href="https://www.lib.umn.edu/">University of Minnesota</a></li>
+        <li><a href="https://libraries.unl.edu/">University of Nebraska-Lincoln</a></li>
+        <li><a href="https://www.library.northwestern.edu/">Northwestern University</a></li>
+        <li><a href="https://library.osu.edu/">The Ohio State University</a></li>
+        <li><a href="https://library.uoregon.edu/">University of Oregon</a></li>
+        <li><a href="https://libraries.psu.edu/">Pennsylvania State University</a></li>
+        <li><a href="https://www.lib.purdue.edu/">Purdue University</a></li>
+        <li><a href="https://www.libraries.rutgers.edu/">Rutgers University</a></li>
+        <li><a href="https://lib.uw.edu/">University of Washington</a></li>
+        <li><a href="https://www.library.wisc.edu/">University of Wisconsin-Madison</a></li>
+        <li><a href="https://btaa.org/">Big Ten Academic Alliance</a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  :global(.content-panel:has(.btaa-footer)) {
+    padding-inline: 0;
+  }
+
+  :global(.content-panel:has(.btaa-footer) > .sl-container) {
+    max-width: none;
+    width: 100%;
+    margin-inline: 0;
+  }
+
+  .btaa-footer__default {
+    margin-inline: auto;
+    padding-inline: var(--sl-content-pad-x);
+    max-width: min(var(--sl-content-width, 72rem), 100%);
+  }
+
+  .btaa-footer {
+    background: var(--btaa-dark-blue);
+    color: #fff;
+    font-size: .75em;
+    width: 100vw;
+    max-width: 100vw;
+    margin-inline-start: calc(-1 * var(--sl-content-inline-start, 0px));
+    padding: 1.5rem 0;
+    overflow: hidden;
+    position: relative;
+    isolation: isolate;
+    z-index: calc(var(--sl-z-index-navbar, 10) + 1);
+  }
+  .btaa-footer a { color: #fff; text-decoration: none; }
+  .btaa-footer a:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .btaa-footer h3 { margin: 0 0 .5rem; font-size: 1.1rem; color:#fff !important }
+  .btaa-footer ul { list-style: none; margin: 0 0 1rem; padding: 0; }
+  .btaa-footer__inner {
+    margin: 0 auto;
+    padding: 0 clamp(1rem, 3vw, 1.75rem);
+    max-width: min(var(--sl-content-width, 72rem), 100%);
+    display: grid;
+    gap: 1.5rem;
+  }
+  @media (min-width: 900px) {
+    .btaa-footer__inner { grid-template-columns: 1fr 1fr; }
+  }
+  .btaa-footer__cols-2 {
+    column-count: 1;
+    column-gap: 1.5rem;
+  }
+  @media (min-width: 640px) {
+    .btaa-footer__cols-2 { column-count: 2; }
+  }
+  @media (min-width: 1024px) {
+    .btaa-footer__cols-2 { column-count: 3; }
+  }
+  .btaa-footer__cols-2 li { break-inside: avoid; }
+</style>

@@ -1,0 +1,136 @@
+---
+title: December 2023 Program Update
+
+excerpt: Our Program Website Has a New Home! We migrated of our program website from Google Sites to a static site hosted on GitHub.
+authors:
+    - name: BTAA-GIN Staff
+tags:
+  - Program Updates
+date: 2024-01-08
+
+---
+import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
+import ChipList from 'src/components/ChipList.astro';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import Table from '/src/components/Table.astro';
+
+<div class="monthly-highlight">
+
+## Monthly Highlight: Our Program Website Has a New Home!
+
+We migrated of our program website from Google Sites to a static site hosted on GitHub. This move brings several key benefits:
+
+**Enhanced Accessibility & Stability**: Our content is now more accessible, presented in user-friendly HTML, authored in versatile Markdown, moving beyond the restrictions of Google Docs and Slides.
+
+**Future-Proofing**: With Markdown and HTML's universal compatibility, we're poised for easy transitions to new templates or platforms. We have transitioned to a custom BTAA subdomain, stepping away from the UMN-branded Google Site address, which will ensure persistent links.
+
+**Creative Control**: We now have greater flexibility in site design, leveraging custom CSS and Javascript, a feature limited in Google Sites.
+
+</div>
+
+## Program Activities
+
+### Committees
+
+See the updated Committees page for new mission statements.
+
+
+
+<CardGrid>
+<Card title="TECHnology">
+* Completed mission statement and charter
+* Reviewed status of international Humanitarian Data Exchange portal
+* Worked on harmful language statement and identified the need to update our policies for accessibility, privacy, and usage.
+</Card>
+<Card title="Community Engagement">
+* Devoted December meeting to discussing the BTAA Conference
+* Strongly considering moving the conference to early spring
+* Identified potential communication responsibilities for new hire, including maintaining contact management databases, email lists, and helping to organize future conferences.
+</Card>
+<Card title="Knowledge">
+* Developing a survey to identify research priorities as BTAA institutions
+* Reviewed the Journal of Geography and Map Libraries call for proposals related to geoportals and archiving
+</Card>
+<Card title="Coordination">
+Kickoff meeting planned for January 17, 2024
+</Card>
+</CardGrid>
+
+### Workgroups
+
+We issued a charter for the Geodata Pilot Collection Workgroup and currently have 5 members. The group will begin meeting in January 2024
+
+### Program Management
+
+* Northwestern University joined the BTAA-GIN and will begin attending meetings in January 
+* Our newest Team Member, Rob Shepard, returned to the program after accepting a position at the University of Chicago. Rob will serve on the Community Engagement Committee
+* Our graduate student Research Assistant registered for an independent study course to research, create, and document [OpenIndexMaps](https://openindexmaps.org) for the BTAA Geoportal.
+
+----
+
+## BTAA Geoportal 
+
+<TwoThirdsLayout>
+<div slot="left">
+![Unique visitors by month](@images/2023-12-monthly-users.png)
+*Geoportal visitors*
+</div>
+<div slot="right">
+<div class="compact-list">
+
+* Visitors:	3,600
+* Visits:	4,111
+* Downloads:	339
+* Visits with download:	8.25%
+* Outlinks:	805
+* Visits with outlink:	19.58%
+* Num. searches:	907
+* Search keywords:	312
+* Pageviews:	10,984
+</div>
+</div>
+</TwoThirdsLayout>
+
+
+:::tip[More stats]
+See full statistics on our [Analytics Dashboard](https://tableau.umn.edu/t/UL/views/BTAAGeoportalusageMatomo/Monthlycharts?%3Aembed=y&%3AisGuestRedirectFromVizportal=y)
+:::
+
+
+### Collections
+
+<p class="records-total">Total records as of December 31, 2023: 67,695</p>
+
+![Total records chart](@images/records-2024-01.png)
+
+### December Harvesting Activities
+
+<Table
+  src="src/tables/harvests_2023-12.csv"
+    columns={[
+    { key: "Task",   width: "50%", filter: "text",  wrap: "nowrap",  render: "markdown" },
+    { key: "Records added",  width: "25%", filter: "text"},
+    { key: "Records retired",   width: "25%", filter: "text" },
+  ]}
+/>
+
+
+### Development
+
+We focused on workflow improvements in December to enable the following tasks:
+
+* Find and share a persistent link to items by their batch import or update ID
+* Use a facet to select items by last accessioned date to identify records that need to be retired
+
+
+:::tip[More development details]
+Read the full December [Development Tasks](https://docs.google.com/document/d/1_88hjPWwM-uBZoPVBaW6OiIIsq3UTtREFL3RdmdMMnU/edit?usp=sharing) report for more details.
+:::
+
+## Next Steps
+
+The next steps on our program roadmap include the following tasks:
+
+- **Governance**:  Develop a priority projects matrix
+- **Public documentation**: Teach the Team Members how to write in Markdown and contribute to our new website.
+- **Asset management**: Create a Technology Roadmap that includes Geoportal maintenance as well as the new features required by our Geodata Collection Strategic Plan.

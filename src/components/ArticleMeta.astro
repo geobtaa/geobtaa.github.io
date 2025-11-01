@@ -1,0 +1,150 @@
+---
+interface Props {
+  authors?: Array<string | undefined>;
+  date?: Date | null;
+  tags?: string[];
+  location?: 'top' | 'bottom';
+  year?: number | string;
+}
+
+const {
+  authors = [],
+  date,
+  tags = [],
+  location = 'top',
+  year,
+} = Astro.props as Props;
+
+const normalizedAuthors = authors
+  .map((name) => (typeof name === 'string' ? name.trim() : ''))
+  .filter((name) => name.length > 0);
+
+const published =
+  date instanceof Date && !Number.isNaN(date.valueOf()) ? date : undefined;
+
+const normalizedYear =
+  typeof year === 'number'
+    ? Number.isFinite(year) ? String(year) : undefined
+    : typeof year === 'string'
+      ? year.trim() || undefined
+      : undefined;
+
+const formattedDate = published
+  ? new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(published)
+  : '';
+---
+
+{(normalizedAuthors.length > 0 || published || tags.length > 0) && (
+  <section class={`article-meta article-meta--${location}`}>
+    {(normalizedAuthors.length > 0 || published || normalizedYear) && (
+      <div class="article-meta__row">
+        {normalizedAuthors.length > 0 && (
+          <span class="article-meta__authors">
+            <span class="article-meta__label">By:</span> {normalizedAuthors.join(', ')}
+          </span>
+        )}
+
+        {published && (
+          <time class="article-meta__date" datetime={published.toISOString()}>
+            {formattedDate}
+          </time>
+        )}
+
+        {normalizedYear && (
+          <span class="article-meta__year">
+            <span class="article-meta__label">Created: </span> {normalizedYear}
+          </span>
+        )}
+      </div>
+    )}
+
+    {tags.length > 0 && (
+      <ul class="article-meta__tags not-content">
+        {tags.map((tag) => (
+          <li>{tag}</li>
+        ))}
+      </ul>
+    )}
+  </section>
+)}
+
+<style>
+  .article-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--sl-color-text);
+    font-size: 0.9rem;
+  }
+
+  .article-meta__row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+
+  .article-meta__authors {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    color: var(--sl-color-text);
+    font-weight: 600;
+  }
+
+  .article-meta__label {
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--sl-color-text);
+  }
+
+  .article-meta__date {
+    font-size: 0.9rem;
+    color: var(--sl-color-text);
+  }
+
+  .article-meta__year {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    color: var(--sl-color-text);
+    font-weight: 600;
+  }
+
+  .article-meta__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0;
+    margin: 0;
+    align-self: flex-start;
+    justify-content: flex-start;
+    list-style: none;
+  }
+
+  .article-meta__tags li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.2rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--sl-color-hairline);
+    background: color-mix(in srgb, var(--sl-color-bg-soft) 75%, transparent);
+    color: var(--sl-color-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .article-meta--bottom {
+    margin-top: 2.5rem;
+    border-top: 1px solid var(--sl-color-hairline);
+    padding-top: 1.5rem;
+  }
+</style>

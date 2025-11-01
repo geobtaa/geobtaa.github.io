@@ -1,0 +1,66 @@
+---
+// src/components/CsvTable.astro
+import { promises as fs } from 'fs';
+import path from 'path';
+import Papa from 'papaparse';
+
+// Define the component's props. It expects a `src` attribute.
+export interface Props {
+  src: string;
+}
+
+const { src } = Astro.props;
+
+// Construct the absolute path to the CSV file.
+const csvPath = path.resolve(process.cwd(), src);
+
+let headers: string[] = [];
+let rows: string[][] = [];
+
+try {
+  // Read the CSV file content at build time.
+  const csvContent = await fs.readFile(csvPath, 'utf-8');
+
+  // Use PapaParse to correctly handle complex CSVs, including quoted cells.
+  const parseResult = Papa.parse(csvContent, {
+    header: true, // Treat the first row as headers
+    skipEmptyLines: true,
+  });
+
+  if (parseResult.meta.fields) {
+    headers = parseResult.meta.fields;
+  }
+
+  if (parseResult.data && headers.length > 0) {
+    // PapaParse returns an array of objects when header:true.
+    // We need to convert it back to an array of arrays (string[][])
+    // to match the existing rendering logic.
+    rows = (parseResult.data as Record<string, string>[]).map(rowObject => 
+      headers.map(header => rowObject[header] || '')
+    );
+  }
+
+} catch (error) {
+  console.error(`Error reading or parsing CSV file at ${csvPath}:`, error);
+  // You can render an error message if the file isn't found in production
+}
+---
+
+{rows.length > 0 && (
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          {headers.map(header => <th>{header}</th>)}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(row => (
+          <tr>
+            {row.map(cell => <td>{cell}</td>)}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}

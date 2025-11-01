@@ -1,0 +1,368 @@
+---
+import config from 'virtual:starlight/user-config';
+
+import LanguageSelect from 'virtual:starlight/components/LanguageSelect';
+import Search from 'virtual:starlight/components/Search';
+import SiteTitle from 'virtual:starlight/components/SiteTitle';
+import SocialIcons from 'virtual:starlight/components/SocialIcons';
+import ThemeSelect from './ThemeSelect.astro';
+import Matomo from './Matomo.astro';
+import {
+  PRIMARY_NAV_OPTIONS,
+  deriveGroupFromPath,
+} from '../../navigation.config';
+
+const shouldRenderSearch =
+  config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro';
+
+const navOptions = PRIMARY_NAV_OPTIONS;
+
+const activeNavGroup = deriveGroupFromPath(Astro.url.pathname);
+---
+<Matomo />
+<div class="header">
+  <div class="title-group">
+    <div class="title-wrapper sl-flex">
+      <SiteTitle />
+    </div>
+    <nav class="top-nav top-nav--header sl-hidden md:sl-flex" aria-label="Primary navigation">
+      {
+        navOptions.map(({ label, group, target }) => (
+          <a
+            class="top-nav__item"
+            href={target}
+            data-nav-group={group}
+            data-active={activeNavGroup === group ? 'true' : undefined}
+            aria-current={activeNavGroup === group ? 'page' : undefined}
+          >
+            {label}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+  <div class="header-actions sl-flex print:hidden">
+    {shouldRenderSearch && (
+      <div class="search-container">
+        <Search class="compact-search" />
+      </div>
+    )}
+    <div class="sl-hidden md:sl-flex right-group">
+      <div class="sl-flex social-icons">
+        <SocialIcons />
+      </div>
+      <ThemeSelect />
+      <LanguageSelect />
+    </div>
+  </div>
+</div>
+
+<style>
+  @layer starlight.core {
+    /* Header layout container */
+    .header {
+      display: flex;
+      gap: var(--sl-nav-gap);
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: nowrap;
+      height: 100%;
+    }
+
+    /* Site title + nav wrapper */
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      min-width: 0;
+    }
+
+    /* Ensure long titles clip gracefully */
+    .title-wrapper {
+      overflow: clip;
+      padding: 0.25rem;
+      margin: -0.25rem;
+      min-width: 0;
+    }
+
+    /* Search/language/utility button wrapper */
+    .header-actions {
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* Maintain proportional search width on small viewports */
+    .search-container {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    /* Social icons + theme/lang switches */
+    .right-group,
+    .social-icons {
+      gap: 1rem;
+      align-items: center;
+    }
+
+    /* Divider between social icons and theme switch */
+    .social-icons::after {
+      content: '';
+      height: 2rem;
+      border-inline-end: 1px solid var(--sl-color-gray-5);
+    }
+
+    @media (min-width: 50rem) {
+      :global(:root[data-has-sidebar]) {
+        --__sidebar-pad: calc(2 * var(--sl-nav-pad-x));
+      }
+      :global(:root:not([data-has-toc])) {
+        --__toc-width: 0rem;
+      }
+      .header {
+        --__sidebar-width: max(0rem, var(--sl-content-inline-start, 0rem) - var(--sl-nav-pad-x));
+        --__main-column-fr: calc(
+          (
+              100% + var(--__sidebar-pad, 0rem) - var(--__toc-width, var(--sl-sidebar-width)) -
+                (2 * var(--__toc-width, var(--sl-nav-pad-x))) - var(--sl-content-inline-start, 0rem) -
+                var(--sl-content-width)
+            ) / 2
+        );
+        display: grid;
+        grid-template-columns:
+          minmax(
+            calc(var(--__sidebar-width) + max(0rem, var(--__main-column-fr) - var(--sl-nav-gap))),
+            auto
+          )
+          1fr
+          auto;
+        align-content: center;
+      }
+
+      .title-group {
+        gap: 1.75rem;
+      }
+
+      .header-actions {
+        justify-content: flex-end;
+        gap: 1rem;
+      }
+
+      .search-container {
+        flex: 0 0 auto;
+        width: min(10rem, 100%);
+      }
+    }
+  }
+
+  /* Top navigation shared styles */
+  :global(.top-nav) {
+    align-items: center;
+    column-gap: 1.5rem;
+    row-gap: 0.35rem;
+    margin: 0;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: flex-start;
+    --top-nav-item-color: var(--sl-color-text);
+    --top-nav-item-active: var(--sl-color-text-accent);
+    --top-nav-indicator: var(--sl-color-text-accent);
+  }
+
+  /* Individual top-level nav links */
+  :global(.top-nav__item) {
+    border: 0;
+    background: none;
+    text-decoration: none;
+    padding: 0.4rem 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-family-nav);
+    font-size: 1.1rem;
+    font-weight: 500;
+    /* letter-spacing: 0.025em; */
+    color: var(--top-nav-item-color);
+    cursor: pointer;
+    position: relative;
+    line-height: 1.1;
+    text-shadow: 0 1px 2px rgba(0, 38, 55, 0.35);
+    transition: color 150ms ease, transform 150ms ease, letter-spacing 150ms ease;
+  }
+
+  /* Compact adjustments on medium screens */
+  @media (max-width: 70rem) {
+    :global(.top-nav) {
+      column-gap: 1.15rem;
+    }
+
+    :global(.top-nav__item) {
+      padding: 0.35rem 0.25rem;
+      font-size: 1.1rem;
+    }
+  }
+
+  /* Reduce gap further on tablet breakpoints */
+  @media (max-width: 62rem) {
+    :global(.top-nav) {
+      column-gap: 0.85rem;
+    }
+  }
+
+  /* Active link underline indicator */
+  :global(.top-nav__item)::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0.35rem;
+    bottom: -0.1rem;
+    height: 2px;
+    border-radius: 999px;
+    background: transparent;
+    transition: background-color 150ms ease, opacity 150ms ease;
+    opacity: 0;
+  }
+
+  /* Hover/focus states */
+  :global(.top-nav__item:hover),
+  :global(.top-nav__item:focus-visible) {
+    color: var(--top-nav-item-active);
+    /* font-weight: 700; */
+
+  }
+
+  :global(.top-nav__item:focus-visible) {
+    outline: 2px solid color-mix(in srgb, var(--top-nav-item-active) 60%, transparent);
+    outline-offset: 4px;
+  }
+
+  /* Active link typography treatment */
+  :global(.top-nav__item[data-active='true']) {
+    color: var(--top-nav-item-active);
+  }
+
+  :global(.top-nav__item[data-active='true'])::after {
+    background: var(--top-nav-indicator);
+    opacity: 1;
+  }
+
+  /* Header theme overrides */
+  :global(.top-nav--header) {
+    --top-nav-item-color: var(--sl-color-white);
+    --top-nav-item-active: var(--sl-color-white);
+    --top-nav-indicator: var(--sl-color-white);
+  }
+
+  @media (min-width: 50rem) {
+    :global(.top-nav--header) {
+      margin-inline-start: var(--sl-nav-pad-x, 0.75rem);
+    }
+  }
+
+  /* Ensure header nav stays white regardless of theme */
+  :global(:root[data-theme='light'] .top-nav--header),
+  :global(:root[data-theme='dark'] .top-nav--header) {
+    --top-nav-item-color: #ffffff;
+    --top-nav-item-active: #ffffff;
+    --top-nav-indicator: #ffffff;
+  }
+
+  :global(.top-nav--drawer) {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.65rem var(--sl-nav-pad-x);
+    margin-top: 0.75rem;
+    margin-bottom: 1.75rem;
+    border-top: 1px solid color-mix(in srgb, var(--sl-color-hairline) 50%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--sl-color-hairline) 40%, transparent);
+    background: var(--sl-color-bg);
+    --top-nav-item-color: var(--sl-color-text);
+    --top-nav-item-active: var(--sl-color-text-accent);
+    --top-nav-indicator: var(--sl-color-text-accent);
+  }
+
+  /* Drawer variant for mobile navigation */
+  :global(.top-nav--drawer .top-nav__item) {
+    flex: 1 1 calc(33.333% - 0.75rem);
+    font-size: 1rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--sl-color-hairline) 55%, transparent);
+    background: color-mix(in srgb, var(--top-nav-item-active) 10%, transparent);
+  }
+
+  /* Active state inside drawer */
+  :global(.top-nav--drawer .top-nav__item[data-active='true']) {
+    background: color-mix(in srgb, var(--top-nav-item-active) 20%, transparent);
+  }
+
+  :global(:root[data-theme='dark'] .top-nav--drawer) {
+    background: var(--sl-color-bg-nav);
+    border-top-color: color-mix(in srgb, var(--sl-color-hairline) 40%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--sl-color-hairline) 30%, transparent);
+  }
+</style>
+
+<script type="module" is:inline>
+  if (typeof window !== 'undefined' && !window.__BTAA_FIX_IFRAME_HEIGHT__) {
+    window.__BTAA_FIX_IFRAME_HEIGHT__ = true;
+
+    const applyPlaylistHeight = (iframe) => {
+      if (!iframe || iframe.dataset.playlistHeightApplied === 'true') return;
+
+      const rawHeight = iframe.getAttribute('height');
+      if (!rawHeight) return;
+
+      const trimmed = rawHeight.trim();
+      if (!trimmed) return;
+
+      const needsPx = /^\d+(?:\.\d+)?$/.test(trimmed);
+      const heightValue = needsPx ? `${trimmed}px` : trimmed;
+
+      iframe.style.height = heightValue;
+      iframe.dataset.playlistHeightApplied = 'true';
+    };
+
+    const updateAllPlaylistHeights = () => {
+      const container = document.querySelector('.sl-markdown-content');
+      if (!container) {
+        return;
+      }
+
+      container
+        .querySelectorAll('iframe[height]')
+        .forEach((iframe) => applyPlaylistHeight(iframe));
+    };
+
+    const init = () => {
+      updateAllPlaylistHeights();
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init, { once: true });
+    } else {
+      init();
+    }
+
+    window.addEventListener('astro:page-load', updateAllPlaylistHeights);
+
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type !== 'childList') continue;
+        mutation.addedNodes.forEach((node) => {
+          if (!(node instanceof HTMLElement)) return;
+          if (node.matches('iframe[height]')) {
+            applyPlaylistHeight(node);
+            return;
+          }
+
+          node
+            .querySelectorAll?.('iframe[height]')
+            .forEach((iframe) => applyPlaylistHeight(iframe));
+        });
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+</script>

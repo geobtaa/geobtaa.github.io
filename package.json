@@ -1,0 +1,53 @@
+{
+  "name": "btaa-gin-website",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "optimize-gallery": "node optimize-gallery.mjs"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/markdoc": "^0.15.5",
+    "@astrojs/starlight": "^0.35.2",
+    "@astrojs/starlight-markdoc": "^0.5.0",
+    "@iconify-json/mdi": "^1.2.3",
+    "accessible-astro-components": "^5.0.1",
+    "astro": "5.14.4",
+    "astro-embed": "^0.9.0",
+    "astro-icon": "^1.1.5",
+    "astro-leaflet": "^1.8.1",
+    "astro-swiper": "^1.1.0",
+    "d3-dsv": "^3.0.1",
+    "leaflet": "^1.9.4",
+    "leaflet.markercluster": "^1.5.3",
+    "papaparse": "^5.5.3",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "reveal.js": "^5.2.1",
+    "sharp": "^0.34.2",
+    "starlight-auto-sidebar": "^0.1.3",
+    "starlight-fullview-mode": "^0.2.3",
+    "starlight-image-zoom": "^0.13.1",
+    "starlight-links-validator": "^0.17.2",
+    "starlight-plugin-icons": "^1.1.3",
+    "starlight-showcases": "^0.3.0",
+    "starlight-sidebar-topics": "^0.6.2",
+    "starlight-theme-rapide": "^0.5.1",
+    "starlight-videos": "^0.3.0",
+    "starlight-view-modes": "^0.11.0",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@astrojs/react": "^4.3.1",
+    "@squoosh/cli": "^0.7.1",
+    "@types/papaparse": "^5.3.16",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "prettier": "^3.6.2"
+  }
+}

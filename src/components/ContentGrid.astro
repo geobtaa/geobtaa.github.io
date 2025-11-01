@@ -1,0 +1,214 @@
+---
+type Item = {
+  url: string;
+  category: 'post' | 'update';
+  title: string;
+  excerpt?: string;
+  tags: string[];
+  authors: string[];
+  published?: Date;
+  year?: number;
+  cover?: {
+    image: string;
+    alt?: string;
+  };
+};
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props as Props;
+
+const formatter = new Intl.DateTimeFormat('en-US', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
+
+const labelForCategory = (category: Item['category']) =>
+  category === 'update' ? 'Program Update' : 'Collection Highlight';
+
+const hasItems = items.length > 0;
+---
+
+<div class="grid" data-blog-grid>
+  {items.map((item, index) => (
+    <a
+      class="grid-card"
+      href={item.url}
+      data-blog-card
+      data-tags={JSON.stringify(item.tags)}
+      data-authors={JSON.stringify(item.authors)}
+      data-year={item.year ? String(item.year) : ''}
+      data-date={item.published ? String(item.published.getTime()) : ''}
+      data-category={item.category}
+      data-index={String(index)}
+    >
+      <header class="grid-card__header">
+        <span class={`grid-card__badge grid-card__badge--${item.category}`}>
+          {labelForCategory(item.category)}
+        </span>
+        {item.cover && (
+          <div class="grid-card__cover">
+            <img src={item.cover.image} alt={item.cover.alt || ''} loading="lazy" decoding="async" />
+          </div>
+        )}
+        <h3 class="grid-card__title">{item.title}</h3>
+        {item.published && (
+          <time class="grid-card__meta" datetime={item.published.toISOString()}>
+            {formatter.format(item.published)}
+          </time>
+        )}
+      </header>
+
+      {item.excerpt && <p class="grid-card__excerpt">{item.excerpt}</p>}
+
+      <footer class="grid-card__footer">
+        {item.authors.length > 0 && (
+          <div class="grid-card__authors">
+            {item.authors.join(', ')}
+          </div>
+        )}
+
+        {/* {item.tags.length > 0 && (
+          <ul class="grid-card__tags not-content">
+            {item.tags.map((tag) => (
+              <li>{tag}</li>
+            ))}
+          </ul>
+        )} */}
+      </footer>
+    </a>
+  ))}
+</div>
+
+<div class="grid__empty" data-blog-empty hidden={hasItems ? true : undefined}>
+  <p>No results match the selected filters. Try clearing one or more filters to broaden your search.</p>
+</div>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .grid__empty {
+    padding: 2rem;
+    text-align: center;
+    border: 1px dashed var(--sl-color-hairline);
+    border-radius: 0.75rem;
+  }
+
+  .grid-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 1rem;
+    background: var(--sl-color-bg);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+    min-height: 100%;
+  }
+
+  .grid-card:hover,
+  .grid-card:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+    border-color: transparent;
+  }
+
+  .grid-card__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .grid-card__badge {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sl-color-text-invert);
+    background: var(--sl-color-primary);
+  }
+
+  .grid-card__badge--update {
+    background: var(--sl-color-accent-high);
+  }
+
+  .grid-card__cover {
+    width: 100%;
+    max-height: 180px;
+    overflow: hidden;
+    border-radius: 0.75rem;
+  }
+
+  .grid-card__cover img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .grid-card__title {
+    margin: 0;
+    font-size: 1.25rem;
+    line-height: 1.3;
+  }
+
+  .grid-card__meta {
+    color: var(--sl-color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  .grid-card__excerpt {
+    margin: 0;
+    color: var(--sl-color-text);
+    line-height: 1.55;
+    flex-grow: 1;
+  }
+
+  .grid-card__footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--sl-color-hairline);
+  }
+
+  .grid-card__authors {
+    font-size: 0.9rem;
+    color: var(--sl-color-text-muted);
+  }
+
+  .grid-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0.35rem;
+    row-gap: 0rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .grid-card__tags li {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.35rem;
+    border-radius: 999px;
+    background: var(--sl-color-bg-soft);
+    font-size: 0.75rem;
+    line-height: .25;
+    color: var(--sl-color-text-muted);
+  }
+</style>

@@ -1,0 +1,7 @@
+Resource,Access,Date availability,Data formats,Margins of Error
+[Census Bureau](#census-bureau),Public,2010-present,"CSV, boundaries separate",yes
+[IPUMS NHGIS](#ipums-nhgis),Public (with an account),1790-present,"CSV, boundaries",yes
+[Social Explorer](#social-explorer),Public/Licensed,1790-present,"CSV, boundaries separate",yes
+[PolicyMap](#policymap),Licensed,2000-present,"CSV, boundaries separate",-
+[SimplyAnalytics](#simplyanalytics),Licensed,1980-present,"CSV, Shapefiles",-
+[Living Atlas](#living-atlas),Licensed,2010-present,web services,yes

@@ -1,0 +1,90 @@
+---
+import FilterPanel from './FilterPanel.astro';
+import type { FilterConfig } from '../utils/filterConfig';
+
+interface Props {
+  config: FilterConfig;
+}
+
+const { config } = Astro.props as Props;
+---
+
+<div class="page-filter not-content">
+  <FilterPanel {...config.props} />
+  <button
+    type="button"
+    class="page-filter__reset"
+    data-filter-reset={config.context}
+  >
+    {config.resetLabel}
+  </button>
+</div>
+
+<style>
+  .page-filter {
+    margin-top: -3.5rem;
+    margin-bottom: clamp(0.35rem, 1vw, 0.75rem);
+    padding-top: clamp(0.1rem, 0.6vw, 0.35rem);
+    padding-bottom: clamp(0.3rem, 0.9vw, 0.55rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: flex-start;
+    column-gap: clamp(0.6rem, 1.6vw, 1rem);
+    row-gap: clamp(0.45rem, 1vw, 0.75rem);
+  }
+
+  :global(.content-panel:has(.page-filter)) {
+    padding-top: clamp(0.35rem, 1vw, 0.6rem);
+  }
+
+  :global(.page-filter > .filter-panel) {
+    grid-column: 1;
+    min-width: 0;
+  }
+
+  .page-filter__reset {
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 999px;
+    background: var(--sl-color-bg-soft);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.35rem 1rem;
+    color: var(--sl-color-link);
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+    flex: 0 0 auto;
+    grid-column: 2;
+    align-self: flex-start;
+    justify-self: end;
+  }
+
+  .page-filter__reset:hover,
+  .page-filter__reset:focus-visible {
+    background: var(--sl-color-bg-soft-hover, var(--sl-color-primary-ghost));
+    border-color: var(--sl-color-primary);
+    color: var(--sl-color-primary);
+    outline: none;
+  }
+
+  @media (max-width: 54rem) {
+    .page-filter {
+      grid-template-columns: 1fr;
+    }
+
+    :global(.page-filter > .filter-panel) {
+      grid-column: 1;
+    }
+
+    .page-filter__reset {
+      justify-self: flex-start;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .page-filter__reset {
+      align-self: stretch;
+      justify-self: stretch;
+      text-align: center;
+    }
+  }
+</style>

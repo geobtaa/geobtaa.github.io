@@ -1,0 +1,21 @@
+---
+title: Workgroups
+description: 'Our current and sunsetted workgroups'
+tableOfContents: false
+sidebar:
+  order: 1
+---
+import Table from '/src/components/Table.astro';
+
+Committees periodically charge short term Working Groups to complete specific projects or tasks.
+
+<Table
+  src="src/tables/workgroups.csv"
+  columns={[
+    { key: "Workgroup",  width: "30%", render: "markdown" },
+    { key: "Dates", width: "10%" },
+    { key: "Summary", width: "40%" },
+    { key: "Leads",   width: "20%" },
+
+  ]}
+/>

@@ -1,0 +1,41 @@
+---
+title: Geoportal Help
+description: These guides provide help on using the BTAA Geoportal.
+tableOfContents: false
+sidebar:
+   hidden: true
+tags:
+- guides
+
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+import { ShowcaseText } from 'starlight-showcases';
+
+These guides provide help on using the BTAA Geoportal.
+
+<ShowcaseText
+  entries={[
+    {
+      title: 'BTAA Geoportal search strategies',
+      href: '../../guides/search-strategies',
+      description: 'Start here to learn how to search for resources in the BTAA Geoportal (text + screenshots)',
+    },
+    {
+      title: 'BTAA Geoportal video tutorials',
+      href: '../../guides/geoportal-video-tutorials',
+      description: 'Step-by-step examples that apply BTAA Geoportal search strategies to real datasets',
+    },
+    {
+      title: 'Allmaps Plugin',
+      href: '../../guides/allmaps',
+      description: 'This page describes the Geoportal Allmaps Plugin and gives instructions for using this tool to create a georeferenced map overlay in the browser.',
+    },
+    {
+      title: 'Citing geospatial data',
+      href: '../../guides/cite-data',
+      description: 'This guide discusses data citation options and how to use the Cite widget in the BTAA Geoportal.',
+    },
+
+  ]}
+/>

@@ -1,0 +1,178 @@
+---
+title: Link Tabular Data to Geospatial Data
+description: This tutorial is designed to help you link tabular data to geospatial data that you may need for a research project.
+authors:
+    name: Wenjie Wang
+    title: University of Nebraska
+date: 2021-05-19
+tableOfContents: false
+sidebar:
+   label: Link tabular data
+tags:
+  - Tutorials
+---
+import { Steps } from '@astrojs/starlight/components';
+
+import Slideshow from '/src/components/Slideshow.astro';
+import CoverSlide from '/src/components/CoverSlide.astro';
+import MetadataBlock from '/src/components/MetadataBlock.astro';
+import OneThirdLayout from '/src/components/OneThirdLayout.astro';
+import QuestionAside from '/src/components/QuestionAside.astro';
+
+<Slideshow>
+
+<CoverSlide>
+  <span slot="title">Link Tabular Data to Geospatial Data</span>
+  <span slot="subtitle">This tutorial is designed to help you link tabular data to geospatial data that you may need for a research project.</span>
+</CoverSlide>
+
+---
+
+## About This Tutorial
+
+<MetadataBlock>
+  <Fragment slot="author">
+    Wenjie Wang, GIS Specialist, University of Illinois at Urbana-Champaign
+  </Fragment>
+  <Fragment slot="time">
+    40-50 minutes
+  </Fragment>
+  <Fragment slot="license">
+    Except where otherwise noted, content in this tutorial is licensed under a <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International license</a>.
+  </Fragment>
+  	This tutorial gives an example to help students understand GIS technology allows people to connect data with geography. GIS can relate unrelated information by using location as the key index variable. Sometimes people don’t fully understand their data until they see how it relates to other things in a geographic context. And GIS can help people understand what belongs where.
+
+	Through this tutorial, student can get familiar with how to link tabular data to geospatial data by using ArcGIS Online. Instructors can add more exercises based on students’ need.
+  
+</MetadataBlock>
+
+---
+
+
+
+## Download Data
+
+The following steps show how to find geospatial data from BTAA geoportal and tabular data from U.S. Census.
+
+<Steps>
+1. Visit the [BTAA Geoportal](https://geo.btaa.org) and search with the keywords `county boundary of Wisconsin`
+
+2. Open the result "County Boundaries [Wisconsin] {2015}"
+
+3. Click the Download button and select "Original Shapefile" to download the data. Save as "WI_Counties_2015.zip". This polygon feature class represents boundaries of the 72 counties in Wisconsin. The data is derived from 1:24,000-scale sources. This feature class was last updated in June 2015.
+    <OneThirdLayout>
+     ![Polygon Feature Class](@images/county-boundaries-wi.png)
+     *Polygon Feature Class for Wisconsin County Boundaries*
+    </OneThirdLayout>
+
+4. Open U.S. Census website [](https://www.census.gov/en.html) and search the keywords `wisconsin counties by population`
+
+5. Open the first result "County Population Totals: 2010-2019" and click Wisconsin to download the table.
+
+    <OneThirdLayout>
+    ![County Population](@images/census-pop.png)*Annual Estimates of the Resident Population for Counties in Wisconsin: April 1, 2010 to July 1, 2019 (CO-EST2019-ANNRES-55), U.S. Census Bureau, Population Division, March 2020*
+    </OneThirdLayout>
+
+</Steps>
+
+---
+
+## Prepare Data
+
+<Steps>
+
+1. Log into ArcGIS Online and create a Web Map
+    <OneThirdLayout>
+    ![Add Layer](@images/add-layer.png)*Adding a Layer in ArcGIS Online*
+    </OneThirdLayout>
+2. Add WI_Counties_2015.zip as a new layer from File
+    <OneThirdLayout>
+    ![Choose File](@images/choose-file.png)*Choosing a File in ArcGIS Online*
+    </OneThirdLayout>
+3. Choose an attribute to show. Here we use “show location only”
+    <OneThirdLayout>
+    ![Choose Attribute](@images/choose-attribute.png)*Choosing an Attribute to Show in ArcGIS Online*
+    </OneThirdLayout>
+4. Click “show table” button to open attribute table and get to know what information was included in the geospatial dataset.
+    <OneThirdLayout>
+    ![Show Table](@images/show-table.png)*Show Table in ArcGIS Online*
+    </OneThirdLayout>
+    <OneThirdLayout>
+    ![Attribute Table](@images/attribute-table.png)*Attribute Table in ArcGIS Online*
+    </OneThirdLayout>
+5. Create a new excel file and name it as "Wisconsin Counties by Population.csv". Copy and paste the county name column and population in 2019 column from U.S. Census spreadsheet into this new excel file. We need to use county name as the common field to link those two tables. Therefore, the name of counties in both table should be the same.
+
+    :::caution
+    Paste the values only and revise the name of counties by using the Replace tool.
+    :::
+
+    <OneThirdLayout>
+    ![Shared Data](@images/shared-data.png)*Shared Attribute Between Two Tables*
+    </OneThirdLayout>
+
+6. Add the “Wisconsin Counties by Population.csv” as a new layer and choose “None, add as table”
+    <OneThirdLayout>
+    ![Add Layer from File](@images/add-layer-from-file.png)*Add Layer from File*
+    </OneThirdLayout>
+    <OneThirdLayout>
+    ![Add CSV](@images/add-csv.png)*Add CSV*
+    </OneThirdLayout>
+</Steps>
+---
+
+## Data Process
+
+The following steps show how to link tabular data to the geospatial data: 
+
+<Steps>
+
+1. Click Analysis and choose Join Features
+    <OneThirdLayout>
+    ![Join Features](@images/join-features.png)*Joining Features*
+    </OneThirdLayout>
+
+2. Choose WI_Counties_2015 as the “Target Layer” and Wisconsin Counties by Population as the “Layer to Join to the Target Layer”.
+
+3. Choose the “COUNTY_Nam” and “County” as the fields to match.
+
+4. Choose a one-to-one join operation and name the result layer as Wisconsin Counties by Population.
+    <OneThirdLayout>
+    ![Join Features Input Form](@images/join-input.png)*Join Features Input Form*
+    </OneThirdLayout>
+
+5. Click the Run Analysis button, and a new layer based on population will be shown.
+    <OneThirdLayout>
+    ![Run Join](@images/run-join.png)*Join Output*
+    </OneThirdLayout>
+
+6. Symbolize the Wisconsin Counties by Population layer by clicking “change style” button
+    <OneThirdLayout>
+    ![Change Style](@images/symbology.png)*Change Layer Style*
+    </OneThirdLayout>
+
+7. Choose the appropriate style to clearly show the population
+    <OneThirdLayout>
+    ![Change Symbology](@images/change-symbology.png)*Reset Choropleth Symbology*
+    </OneThirdLayout>
+
+8. Share or Print the Wisconsin Counties by Population map.
+
+9. For copyright information, refer to the copyright tutorial.
+    <OneThirdLayout>
+    ![Share Print](@images/share-print.png)*Share or Print*
+    </OneThirdLayout>
+    
+</Steps>
+---
+
+## Exercise
+
+<QuestionAside>
+1. What's the advantage of mapping tabular data?
+
+2. Choose a different basemap and use a different symbol to create different thematic map.
+
+3. Download a shapefile data related to students’ research field and link their tabular data to it.
+</QuestionAside>
+
+</Slideshow>

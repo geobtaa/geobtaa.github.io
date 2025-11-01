@@ -1,0 +1,169 @@
+---
+title: July 2024 Program Update
+
+excerpt: The *Journal of Map & Geography Libraries* published an article about the BTAA-GIN, "Social Infrastructure to Support Technological Advancement in Geospatial Data Discovery." 
+authors:
+    - name: BTAA-GIN Staff
+tags:
+  - Program Updates
+date: 2024-08-12
+cover:
+  image: "@images/jmgl.jpeg"
+  alt: JMGL
+  caption: Journal of Map & Geography Libraries*
+---
+import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
+import ChipList from 'src/components/ChipList.astro';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import Table from '/src/components/Table.astro';
+
+
+<div class="monthly-highlight">
+
+## Monthly Highlight: New published article about the BTAA-GIN
+
+The *Journal of Map & Geography Libraries* published an article about the BTAA-GIN, "[Sustaining a Spatial Collaboration: Leveraging Social Infrastructure to Support Technological Advancement in Geospatial Data Discovery](https://doi.org/10.1080/15420353.2024.2388576)." This article, authored by four Team Members, describes the BTAA-GIN, reviews our history to date, and lays out our future plans.  
+
+Full citation: Tickner, A., McElfresh, L. K., Mattke, R., & Majewicz, K. (2024). Sustaining a Spatial Collaboration: Leveraging Social Infrastructure to Support Technological Advancement in Geospatial Data Discovery. Journal of Map & Geography Libraries, 1–1- https://doi.org/10.1080/15420353.2024.2388576
+
+</div>
+
+## Program Activities
+
+### Program Management
+
+* Monitoring the [Priority Projects dashboard](https://github.com/orgs/geobtaa/projects/22) for the 2024-25 program year.
+* Conducting interviews for new Program and Outreach Coordinator position.
+* Announced opening for graduate student research assistant to start in Fall 2024.
+
+
+### Committees and Workgroups
+
+*Note: Most groups did not meet in July due to a planned summer hiatus. Notes below reflect ongoing efforts.*
+
+<CardGrid>
+
+<Card>
+
+#### TECHnology
+
+* Charged a new workgroup to determine using FAST for Subject Terms - kickoff in August
+* Working on Priority Project to Add policies and disclaimers to Geoportal
+
+</Card>
+<Card>
+#### Community Engagement
+
+* Plan to coordinate with Knowledge committee to visit their monthly meeting to discuss these ideas further
+
+</Card>
+<Card>
+#### Knowledge
+
+* Preparing to kickoff new workgroups (Scalable Approaches and Service Models)
+</Card>
+<Card>
+#### Coordination
+
+* Reviewing priority projects, assigned owners, and copied them to a new [GitHub board](https://github.com/orgs/geobtaa/projects/22) for tracking progress
+</Card>
+<Card>
+####  Geodata Pilot Workgroup
+
+* Reviewing GBL Admin upload workflow
+* Reviewing "staging area" options
+</Card>
+
+</CardGrid>
+
+## BTAA Geoportal 
+
+<TwoThirdsLayout>
+<div slot="left">
+![Unique visitors by month](@images/2024-07-monthly-users.png)
+*Geoportal visitors*
+</div>
+<div slot="right">
+<div class="compact-list">
+* Visitors:	4,607
+* Visits: 5,163
+* Downloads:	 222
+* Visits with download:	 4.3%
+* Outlinks: 928
+* Visits with outlink: 17.97%
+* Num. searches: 706
+* Search keywords: 303
+* Pageviews: 12,221
+</div>
+</div>
+</TwoThirdsLayout>
+
+:::tip[More stats]
+See full statistics on our [Analytics Dashboard](https://tableau.umn.edu/t/UL/views/BTAAGeoportalusageMatomo/Monthlycharts?%3Aembed=y&%3AisGuestRedirectFromVizportal=y)
+:::
+
+#### Top internal search keywords
+<ChipList class="not-content">
+
+- Sanborn
+- zoning
+- contour
+- election
+- summit county gis data
+- lake superior
+- landuse
+- housing elections
+- tiledmaplayer
+- vote
+
+</ChipList>
+
+### Collections
+
+<p class="records-total">Total records as of August 1, 2024: 98,013</p>
+
+<figure markdown="span">
+  ![Records July 1 2024](@images/records-2024-08.png)
+  <figcaption>BTAA Geoportal Records from 2016 to July 1, 2024</figcaption>
+</figure>
+
+
+### Harvesting Activities
+
+<Table
+  src="src/tables/harvests_2024-07.csv"
+    columns={[
+    { key: "Task",   width: "50%", filter: "text",  wrap: "nowrap",  render: "markdown" },
+    { key: "Records added",  width: "25%", filter: "text"},
+    { key: "Records retired",   width: "25%", filter: "text" },
+  ]}
+/>
+
+### Development
+
+
+**Geoportal Interface Enhancements:**
+
+* Released update that incorporates thumbnails stored in Amazon S- We anticipate a performance boost as a result.
+
+**GBL Admin Improvements:**
+
+* Enhanced the file ingest interface in GBL Admin interface, including multiple downloads and the ability to specify link type.
+* Now storing thumbnails in S3 for production.
+
+
+:::tip[More development details]
+[Read the most recent development reports for more details](https://docs.google.com/document/d/1HAbVzGrTAWrWrtUz2t04aLuOh3E2moLOoE0jprNX4iE/edit)
+:::
+
+
+## Next Steps
+
+For the 2024-2025 year, our new [Priority Projects board](https://github.com/orgs/geobtaa/projects/22/views/5) will function as our program guide.  Projects with higher priorities will be tackled first, with lower priorities later in the year. Projects that are currently in progress or up next include:
+
+* Compile a list of planned lightning talks for Program Team meetings
+* Create or update policies and disclaimers for the Geoportal
+* Continue the Geodata Pilot
+* Kickoff three new workgroups: implementing FAST subjects;  Scalable Approaches; Service Models
+
+

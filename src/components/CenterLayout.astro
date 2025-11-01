@@ -1,0 +1,38 @@
+<div class="center-layout not-content">
+  <slot />
+</div>
+
+<style>
+  .center-layout {
+    /* Set the maximum width to one-third of its container */
+    max-width: 66%;
+    
+    /* Center the block on the page */
+    margin-left: auto;
+    margin-right: auto;
+    
+    /* Add some vertical spacing */
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* This rule targets any image placed inside the component */
+  .center-layout :global(img) {
+    width: 100%; /* Make the image fill the column */
+    height: auto;
+    border-radius: 0.5rem;
+  }
+
+  /* On smaller screens, make the column take up more space */
+  @media (max-width: 768px) {
+    .center-layout {
+      max-width: 80%; /* Adjust as needed for tablets/mobile */
+    }
+  }
+
+  @media (max-width: 500px) {
+    .center-layout {
+      max-width: 100%; /* Go full-width on small phones */
+    }
+  }
+</style>

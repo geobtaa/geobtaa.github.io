@@ -1,0 +1,33 @@
+<div class="three-column-grid  not-content">
+  
+  <div class="grid-column">
+    <slot name="col1" />
+  </div>
+  <div class="grid-column">
+    <slot name="col2" />
+  </div>
+  <div class="grid-column">
+    <slot name="col3" />
+  </div>
+  
+</div>
+
+<style>
+  .three-column-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  /* Add this new rule */
+  .grid-column > :global(*:first-child) {
+    margin-top: 0;
+  }
+
+  @media (max-width: 768px) {
+    .three-column-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
