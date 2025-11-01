@@ -1,0 +1,49 @@
+<div class="metadata-grid">
+  <div class="meta-item not-content">
+    <strong>Author</strong>
+    <p><slot name="author" /></p>
+  </div>
+  <div class="meta-item not-content">
+    <strong>Time to Complete</strong>
+    <p><slot name="time" /></p>
+  </div>
+  <div class="meta-item not-content">
+    <strong>License</strong>
+    <p><slot name="license" /></p>
+  </div>
+</div>
+
+<details class="instructor-notes">
+  <summary>Note for Instructors</summary>
+  <div class="note-content">
+    <slot />
+  </div>
+</details>
+
+<style>
+  .metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .meta-item p {
+    margin-top: 0.25rem;
+    color: var(--sl-color-gray-3);
+  }
+  .instructor-notes {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background-color: rgba(var(--sl-color-gray-5-rgb), 0.3);
+  }
+  .instructor-notes summary {
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .note-content {
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--sl-color-gray-5);
+  }
+</style>

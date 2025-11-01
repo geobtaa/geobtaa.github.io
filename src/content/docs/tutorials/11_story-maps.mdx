@@ -1,0 +1,201 @@
+---
+title: Story Maps
+description: This tutorial is designed as a brief introduction to the capabilities of ArcGIS Story Maps.
+authors:
+    name: Ryan Mattke
+    title: University of Minnesota
+date: 2021-08-16
+sidebar:
+   label: StoryMaps
+tableOfContents: false
+tags:
+  - Tutorials
+---
+import { Steps } from '@astrojs/starlight/components';
+import { ShowcaseImage } from 'starlight-showcases';
+
+import Slideshow from '/src/components/Slideshow.astro';
+import CoverSlide from '/src/components/CoverSlide.astro';
+import MetadataBlock from '/src/components/MetadataBlock.astro';
+import TwoThirdsLayout from '/src/components/TwoThirdsLayout.astro';
+import CenterLayout from '/src/components/CenterLayout.astro';
+
+
+<Slideshow>
+<CoverSlide>
+  <span slot="title">Story Maps</span>
+  <span slot="subtitle">This tutorial is designed as a brief introduction to the capabilities of ArcGIS Story Maps.</span>
+</CoverSlide>
+
+---
+## About This Tutorial
+
+<MetadataBlock>
+  <Fragment slot="author">
+  Ryan Mattke, Map and Geospatial Information Librarian, University of Minnesota (matt0089@umn.edu)
+  </Fragment>
+  <Fragment slot="time">
+  variable
+  </Fragment>
+  <Fragment slot="license">
+    Except where otherwise noted, content in this tutorial is licensed under a <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International license</a>.
+  </Fragment>
+ 
+</MetadataBlock>
+---
+
+
+## Introduction
+
+<TwoThirdsLayout>
+  <div slot="left">
+  Story Maps are an application within ArcGIS Online which allows you to integrate web maps with text, images, and other multimedia content.
+
+  Story Maps allow you to:
+
+  - Put your web maps in context
+  - Compare web maps and data sets
+  - Experiment!
+
+</div>
+<div slot="right">
+![Explore Stories](@images/explore-stories.png)*[Explore Stories](https://www.esri.com/en-us/arcgis/products/arcgis-storymaps/stories)*
+</div>
+</TwoThirdsLayout>
+---
+
+## Basics
+
+<TwoThirdsLayout>
+  <div slot="left">
+  ![Create Story Map](@images/start-story.png)*Create Story Map*
+  </div>
+  <div slot="right">
+  The first step is to log on to ArcGIS Online, go to your Content section, and click Create then Story Maps.
+  </div>
+</TwoThirdsLayout>
+---
+
+<TwoThirdsLayout>
+  <div slot="left">
+  ![Title and Content](@images/title-content.png)*Adding Title and Content*
+  </div>
+  <div slot="right">
+  - Give your story a title and a subtitle and/or an introduction.
+  
+  - Add cover image or video (upper right).
+  
+  - Click the “+” symbol to add content to the story map.
+  </div>
+</TwoThirdsLayout>
+
+---
+
+<TwoThirdsLayout>
+  <div slot="left">
+  ![Credits](@images/credits.png)*Adding Credits*
+  </div>
+  <div slot="right">
+  Be sure to take advantage of the options (at the bottom/end of the story map) to add credits and content attribution.
+  </div>
+</TwoThirdsLayout>
+
+---
+
+<TwoThirdsLayout>
+  <div slot="right">
+  ![Content Options](@images/content-options.png)*Content Options*
+  </div>
+  <div slot="left">
+  Basic options for content:
+  - Text ‒ Options include heading, subheading, paragraph, large paragraph, bulleted list, numbered list, and quote
+  
+  - Button ‒ To highlight a link with text
+  
+  - Separator ‒ Insert a horizontal line
+  </div>
+</TwoThirdsLayout>
+---
+
+<TwoThirdsLayout>
+  <div slot="left">
+  Media options for content:
+
+  -   Map ‒ Insert a web map or web app from ArcGIS Online
+  
+  -   Image ‒ Upload or link to a jpg, png, gif, or svg file
+  
+  -   Image Gallery ‒ Insert a gallery of up to 12 images
+  
+  -   Video ‒ Upload or link to video content
+  
+  -   Audio ‒ Upload or link to audio content
+  
+  -   Embed ‒ Embed using iframe code or a web url; this could be a website, or even another story map
+  
+  -   Swipe ‒ Compare two web maps or images
+  </div>
+  <div slot="right">
+  ![Media Options](@images/media-options.png)*Media Options*
+  </div>
+</TwoThirdsLayout>
+
+---
+
+## Intermediate
+
+<TwoThirdsLayout>
+  <div slot="left">
+  Once you have the basics down, try something a little more fancy... 
+  Immersive options for content:
+  -   Slideshow ‒ Full screen, media-focused layout
+  
+  -   Sidecar ‒ Stationary text/media panel with a scrolling narrative panel that can include web maps
+  
+  -   Map tour ‒ Showcase a set of locations
+  </div>
+  <div slot="right">
+  ![Immersive Options](@images/immersive.png)*Immersive Options*
+  </div>
+</TwoThirdsLayout>
+
+---
+
+## Explore
+
+[Example Story Map from the Big Ten Academic Alliance Geospatial Data Project](https://storymaps.arcgis.com/stories/4c3e1c4e72764a43914862193574c028) with the following features:
+
+<ShowcaseImage
+  entries={[
+    {
+      thumbnail: import('/src/assets/images/compare-maps.png'),
+      title: 'Compare maps',
+    },
+    {
+      thumbnail: import('/src/assets/images/open-data-status.png'),
+      title: 'Embedded web map',
+    },
+    {
+      thumbnail: import('/src/assets/images/compare-images.png'),
+      title: 'Compare images',
+    },
+  ]}
+/>
+
+---
+
+## Resources
+
+-   [Instruction for Creating Dynamic Digital Narratives](https://storymaps.arcgis.com/stories/d15f1045ffcb4fdea7672d1cafafdc12)
+
+-   [Nine steps to great storytelling](https://storymaps.arcgis.com/stories/429bc4eed5f145109e603c9711a33407)
+
+-   [Five Principles of Effective Storytelling](https://storymaps-classic.arcgis.com/en/five-principles/)
+
+-   [Esri Resources Page](https://www.esri.com/en-us/arcgis/products/arcgis-storymaps/resources)
+
+-   [Visual storytelling: Bring your narrative to life with an effective mix of photos](https://www.esri.com/arcgis-blog/products/story-maps/constituent-engagement/visual-storytelling-bring-your-narrative-to-life-with-an-effective-mix-of-photos/)
+
+-   [How to make an awful story map](https://storymaps.arcgis.com/stories/585db547dd7f4403bb30a3eb13fd55ad)
+
+</Slideshow>

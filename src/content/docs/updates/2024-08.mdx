@@ -1,0 +1,166 @@
+---
+title: August 2024 Program Update
+
+excerpt: This year, the BTAA-GIN has adopted a new Priority Projects model to streamline our work and focus on the most impactful goals.
+authors:
+    - name: BTAA-GIN Staff
+tags:
+  - Program Updates
+date: 2024-09-04
+cover:
+  image: "@images/priority-projects.png"
+  alt: Allmaps
+  caption: Allmaps
+---
+import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
+import ChipList from 'src/components/ChipList.astro';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import Table from '/src/components/Table.astro';
+
+<div class="monthly-highlight">
+
+## Monthly Highlight: Priority Project Matrix
+  
+This year, the BTAA-GIN has adopted a new Priority Projects model to streamline our work and focus on the most impactful goals. We began by collecting 17 project suggestions, which we prioritized using a matrix that considered factors such as project ownership, volunteer availability, DEIA relevance, time commitment, and difficulty. This matrix, inspired by the Minnesota Geospatial Advisory Council's workflows, helped us assess each project's likelihood of success. We then had team members vote on the importance of each project, creating a value score. By multiplying the likelihood of success by the value score, we categorized the projects into five high priority, six medium, and six low priority. Each committee has been assigned multiple projects, with some tasks designated for dedicated workgroups and others for individuals, including the Product Manager and a new hire. 
+
+The projects, along with their priority, owner, and status, are publicly available on our [GitHub project board](https://github.com/orgs/geobtaa/projects/22/views/6).
+
+</div>
+
+
+
+## Program Activities
+
+### Program Management
+
+* Program Team meeting featured Lightning Talk "[Ephemeral Geospatial Data: An Impending Digital Dark Age](https://gin.btaa.org/library/digital-dark-age/#/)" related to a forthcoming article.
+* Conducting interviews for new Program and Outreach Coordinator position.
+* New graduate student research assistant for metadata processing hired and began orientation.
+
+
+### Committees and Workgroups
+
+<CardGrid>
+
+<Card>
+#### TECHnology
+
+* Working on Geoportal footer links
+
+</Card>
+<Card>
+#### Community Engagement
+
+* Published [Important documents filter tool](https://gin.btaa.org/important-docs-locator/)
+* Updated website to announce that next BTAA GIS Conference will be in spring 2025   
+</Card>
+<Card>
+#### Knowledge
+
+* Held meeting with Community Engagement co-chairs to determine shared priorities
+</Card>
+<Card>
+#### Coordination
+
+* Reviewed Geodata Pilot progress and scope
+* Planned Program Team meeting topics
+</Card>
+<Card>
+#### Geodata Pilot Workgroup
+
+	* Implemented a staging area using Box
+	* Added several test datasets to dev Geoportal
+</Card>
+<Card>
+#### FAST for Subject Terms Workgroup
+
+	* Held kickoff meeting
+	* Analyzing the collection of map records for current adherence to a thesaurus.
+	</Card>
+
+</CardGrid>
+
+## BTAA Geoportal 
+
+<TwoThirdsLayout>
+<div slot="left">
+![Unique visitors by month](@images/2024-08-monthly-users.png)
+*Geoportal visitors*
+</div>
+<div slot="right">
+<div class="compact-list">
+
+* Visitors:	8,280
+* Visits: 8,824
+* Downloads:	 160
+* Visits with download:	 1.81%
+* Outlinks: 988
+* Visits with outlink: 11.20%
+* Num. searches: 844
+* Search keywords: 294
+* Pageviews: 31,187
+</div>
+</div>
+</TwoThirdsLayout>
+
+
+:::tip[More stats]
+See full statistics on our [Analytics Dashboard](https://tableau.umn.edu/t/UL/views/BTAAGeoportalusageMatomo/Monthlycharts?%3Aembed=y&%3AisGuestRedirectFromVizportal=y)
+:::
+
+#### Top internal search keywords
+<ChipList class="not-content">
+
+- ganborn
+- geology
+- lake superior
+- university buildings
+- europe map
+- rainbow trout
+- yemen
+- striped bass
+- greece
+- york county, pennsylvania
+
+</ChipList>
+
+### Collections
+
+<p class="records-total">Total records as of September 1, 2024: 98,560</p>
+
+<figure markdown="span">
+  ![Records September 1 2024](@images/records-2024-09.png)
+  <figcaption>BTAA Geoportal Records from 2016 to 
+September 1, 2024</figcaption>
+</figure>
+
+
+### August Harvesting Activities
+
+<Table
+  src="src/tables/harvests_2024-08.csv"
+    columns={[
+    { key: "Task",   width: "50%", filter: "text",  wrap: "nowrap",  render: "markdown" },
+    { key: "Records added",  width: "25%", filter: "text"},
+    { key: "Records retired",   width: "25%", filter: "text" },
+  ]}
+/>
+
+### Development
+
+* Development in August primarily revolved around the GeoBlacklight Summer Community Sprint, which focused on upgrading backend frameworks in anticipation of releasing a new major version (5.0).
+
+* Excessive bot/AI web scraping traffic crashed our development Geoportal and UMN Web Development had to spend extra time to block the crawlers.
+
+---
+
+## Next Steps
+
+Projects that are currently in progress or up next include:
+
+* Create or update policies and disclaimers for the Geoportal
+* Continue the Geodata Pilot
+* Kickoff three new workgroups: implementing FAST subjects;  Scalable Approaches; Service Models
+
+Refer to our [Priority Projects board](https://github.com/orgs/geobtaa/projects/22/views/5) for more details.
+

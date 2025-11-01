@@ -1,0 +1,410 @@
+---
+// Save this file as: src/pages/tools/data-citation.astro
+// This is a standalone Astro page that renders a client-side
+// Data Citation generator (APA / MLA) using vanilla JS.
+// It requires no additional dependencies.
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Data Citation Generator</title>
+    <style>
+      :root {
+        --bg: #0b1b2b;          /* page background */
+        --card: #ffffff;        /* card background */
+        --ink: #13283f;         /* primary text */
+        --ink-muted: #425a74;   /* secondary text */
+        --accent: #1d4ed8;      /* buttons, focus */
+        --accent-ink: #ffffff;  /* button text */
+        --ring: #93c5fd;        /* focus ring */
+        --border: #e5e7eb;      /* card borders */
+      }
+      body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: radial-gradient(1200px 800px at 80% -10%, #17324f, var(--bg)); color: var(--ink); }
+      .wrap { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+      header { color: #fff; padding: 1rem 0 2rem; }
+      header h1 { font-size: clamp(1.5rem, 2.2vw + 1rem, 2.4rem); margin: 0 0 .25rem; letter-spacing: .2px; }
+      header p { margin: 0; color: #e3efff; }
+
+      .grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 1.25rem; }
+      @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+      .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.08); }
+      .card header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); color: var(--ink); }
+      .card header h2 { font-size: 1rem; margin: 0; font-weight: 700; letter-spacing: .2px; }
+      .card .body { padding: 1rem 1.25rem 1.25rem; }
+
+      label { font-size: .9rem; font-weight: 600; color: var(--ink); display: block; margin: .75rem 0 .35rem; }
+      input[type="text"], input[type="url"], input[type="number"], select { width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: .65rem .75rem; font-size: .95rem; color: var(--ink); background: #fff; outline: none; }
+      input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
+
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+      .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .75rem; }
+      .muted { color: var(--ink-muted); font-size: .85rem; }
+
+      .authors { display: flex; flex-direction: column; gap: .5rem; }
+      .author { display: grid; grid-template-columns: 1.1fr 1fr 1fr auto; gap: .5rem; align-items: end; }
+      .author small { color: var(--ink-muted); }
+
+      .toolbar { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+      .btn { appearance: none; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: .55rem .9rem; font-weight: 700; cursor: pointer; font-size: .95rem; }
+      .btn.secondary { background: #fff; color: var(--accent); }
+      .btn.ghost { background: transparent; border-color: var(--border); color: var(--ink); }
+      .btn:focus { outline: none; box-shadow: 0 0 0 3px var(--ring); }
+
+      .output { min-height: 190px; background: #0e243b; color: #e6f1ff; border-radius: 12px; padding: 1rem; font-size: 1rem; line-height: 1.6; position: relative; }
+      .output .fmt { position: absolute; top: .6rem; right: .75rem; font-size: .75rem; color: #9ec3ff; letter-spacing: .3px; }
+      .output .preview { margin-top: 1rem; }
+      .output i { font-style: italic; }
+      .copy-bar { display: flex; gap: .5rem; margin-top: .75rem; }
+
+      .footnote { margin-top: 1rem; font-size: .85rem; color: var(--ink-muted); }
+      .pill { display: inline-block; padding: .15rem .5rem; background: #eef2ff; color: #4338ca; border-radius: 999px; font-size: .75rem; font-weight: 700; letter-spacing: .2px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>Data Citation Generator</h1>
+        <p>Create dataset citations in <span class="pill">APA</span> or <span class="pill">MLA</span>. No data leaves this page.</p>
+      </header>
+
+      <div class="grid">
+        <!-- Input card -->
+        <section class="card" aria-labelledby="input-heading">
+          <header>
+            <h2 id="input-heading">Input</h2>
+          </header>
+          <div class="body">
+            <div class="authors" id="authors">
+              <label>Author(s)</label>
+              <!-- Author rows injected here -->
+            </div>
+            <div class="toolbar" style="margin:.35rem 0 1rem;">
+              <button class="btn secondary" id="addAuthor" type="button">+ Add author</button>
+              <button class="btn ghost" id="clearAuthors" type="button">Clear authors</button>
+            </div>
+
+            <label for="title">Dataset title</label>
+            <input id="title" type="text" placeholder="e.g., Urban Tree Canopy, Minneapolis" />
+
+            <div class="row">
+              <div>
+                <label for="year">Year of publication</label>
+                <input id="year" type="number" inputmode="numeric" placeholder="YYYY" min="1000" max="2999" />
+              </div>
+              <div>
+                <label for="version">Version <span class="muted">(optional)</span></label>
+                <input id="version" type="text" placeholder="e.g., 2.1 or 2025-08" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label for="publisher">Data publisher</label>
+                <input id="publisher" type="text" placeholder="e.g., City of Minneapolis" />
+              </div>
+              <div>
+                <label for="pid">Persistent identifier or URL</label>
+                <input id="pid" type="url" placeholder="https://doi.org/10.xxxx/xxxxx or https://example.org/item" />
+              </div>
+            </div>
+
+            <div style="margin-top:1rem" class="row-3">
+              <div>
+                <label for="style">Citation style</label>
+                <select id="style" aria-label="Citation style">
+                  <option value="apa">APA</option>
+                  <option value="mla">MLA</option>
+                </select>
+              </div>
+              <div>
+                <label for="andSymbol">Final conjunction</label>
+                <select id="andSymbol" aria-label="Conjunction style">
+                  <option value="amp">&amp; (APA default)</option>
+                  <option value="and">and</option>
+                </select>
+              </div>
+              <div style="display:flex; align-items:end; gap:.5rem;">
+                <button class="btn" id="generate" type="button" style="width:100%">Generate</button>
+              </div>
+            </div>
+
+            <p class="footnote">Formatting notes: APA renders authors as <em>Last, F. M.</em> with an <em>&amp;</em> (or “and”) before the final author; title is italicized and marked as a <em>[Data set]</em>. MLA renders authors as <em>Last, First</em> (full given names when supplied), title italicized, version after title, then publisher, year, and DOI/URL.</p>
+          </div>
+        </section>
+
+        <!-- Output card -->
+        <section class="card" aria-labelledby="output-heading">
+          <header>
+            <h2 id="output-heading">Output</h2>
+          </header>
+          <div class="body">
+            <div class="output" role="region" aria-live="polite" aria-atomic="true">
+              <div class="fmt" id="fmtLabel">APA</div>
+              <div class="preview" id="preview">Fill the form and click <strong>Generate</strong>.</div>
+            </div>
+            <div class="copy-bar">
+              <button class="btn secondary" id="copyText" type="button">Copy plain text</button>
+              <button class="btn ghost" id="copyHTML" type="button">Copy HTML</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        // Helpers ————————————————————————————————————————————————————————
+        const authorsEl = document.getElementById('authors');
+        const preview = document.getElementById('preview');
+        const fmtLabel = document.getElementById('fmtLabel');
+        const addAuthorBtn = document.getElementById('addAuthor');
+        const clearAuthorsBtn = document.getElementById('clearAuthors');
+        const generateBtn = document.getElementById('generate');
+        const copyTextBtn = document.getElementById('copyText');
+        const copyHTMLBtn = document.getElementById('copyHTML');
+
+        if (
+          !(authorsEl instanceof HTMLElement) ||
+          !(preview instanceof HTMLElement) ||
+          !(fmtLabel instanceof HTMLElement) ||
+          !(addAuthorBtn instanceof HTMLButtonElement) ||
+          !(clearAuthorsBtn instanceof HTMLButtonElement) ||
+          !(generateBtn instanceof HTMLButtonElement) ||
+          !(copyTextBtn instanceof HTMLButtonElement) ||
+          !(copyHTMLBtn instanceof HTMLButtonElement)
+        ) {
+          console.warn('[data-citation] Required DOM elements missing; aborting setup.');
+          return;
+        }
+
+        type AuthorForm = {
+          first: string;
+          middle: string;
+          last: string;
+        };
+
+        type CitationPayload = {
+          authors: AuthorForm[];
+          title: string;
+          year: string;
+          version: string;
+          publisher: string;
+          pid: string;
+          conj: string;
+        };
+
+        const valueOf = (id: string) =>
+          (document.getElementById(id) as HTMLInputElement | null)?.value ?? '';
+
+        const authorsRoot = authorsEl as HTMLElement;
+        const previewEl = preview as HTMLElement;
+        const fmtLabelEl = fmtLabel as HTMLElement;
+        const addAuthorButton = addAuthorBtn as HTMLButtonElement;
+        const clearAuthorsButton = clearAuthorsBtn as HTMLButtonElement;
+        const generateButton = generateBtn as HTMLButtonElement;
+        const copyTextButton = copyTextBtn as HTMLButtonElement;
+        const copyHTMLButton = copyHTMLBtn as HTMLButtonElement;
+
+        function normalizeDOIorURL(input: string) {
+          if (!input) return '';
+          const s = input.trim();
+          if (s.startsWith('10.')) return 'https://doi.org/' + s; // raw DOI
+          return s; // assume full URL/URI
+        }
+
+        function toInitials(given: string) {
+          // Convert given names to initials: "Ada M. Lovelace" -> "A. M."
+          if (!given) return '';
+          return given
+            .split(/\s+/)
+            .filter(Boolean)
+            .map((part) => part[0].toUpperCase() + '.')
+            .join(' ');
+        }
+
+        function apaAuthor(author: AuthorForm) {
+          const last = (author.last || '').trim();
+          const first = (author.first || '').trim();
+          const middle = (author.middle || '').trim();
+          const initials = [first, middle].filter(Boolean).map(toInitials).join(' ');
+          return last ? `${last}, ${initials}`.trim().replace(/,\s*$/, '') : '';
+        }
+
+        function mlaAuthor(author: AuthorForm) {
+          const last = (author.last || '').trim();
+          const first = (author.first || '').trim();
+          const middle = (author.middle || '').trim();
+          const given = [first, middle].filter(Boolean).join(' ');
+          return last ? `${last}, ${given}`.trim().replace(/,\s*$/, '') : '';
+        }
+
+        function joinAuthors(list: string[], conj: string) {
+          // Oxford comma before final conjunction
+          if (list.length === 0) return '';
+          if (list.length === 1) return list[0];
+          if (list.length === 2) return `${list[0]} ${conj} ${list[1]}`;
+          return list.slice(0, -1).join(', ') + `, ${conj} ` + list[list.length - 1];
+        }
+
+        // Authors UI ————————————————————————————————————————————————————
+        function authorRow(index: number) {
+          const id = `a${index}`;
+          const div = document.createElement('div');
+          div.className = 'author';
+          div.innerHTML = `
+          <div>
+            <label for="${id}-last">Last name</label>
+            <input id="${id}-last" type="text" placeholder="e.g., Smith" />
+          </div>
+          <div>
+            <label for="${id}-first">First</label>
+            <input id="${id}-first" type="text" placeholder="e.g., Alex" />
+          </div>
+          <div>
+            <label for="${id}-middle">Middle <small>(optional)</small></label>
+            <input id="${id}-middle" type="text" placeholder="e.g., M" />
+          </div>
+          <div>
+            <button class="btn ghost" type="button" aria-label="Remove author">Remove</button>
+          </div>`;
+          const removeBtn = div.querySelector<HTMLButtonElement>('button');
+          removeBtn?.addEventListener('click', () => {
+            div.remove();
+          });
+          return div;
+        }
+
+        function getAuthors() {
+          const rows = Array.from(authorsRoot.querySelectorAll<HTMLDivElement>('.author'));
+          return rows
+            .map<AuthorForm>((row) => ({
+              last: row.querySelector<HTMLInputElement>('input[id$="-last"]')?.value ?? '',
+              first: row.querySelector<HTMLInputElement>('input[id$="-first"]')?.value ?? '',
+              middle: row.querySelector<HTMLInputElement>('input[id$="-middle"]')?.value ?? '',
+            }))
+            .filter((author) => author.last || author.first);
+        }
+
+        function ensureAuthor() {
+          if (!authorsRoot.querySelector('.author')) {
+            authorsRoot.appendChild(authorRow(0));
+          }
+        }
+
+        // Initial authors
+        ensureAuthor();
+
+        // Actions ——————————————————————————————————————————————————————
+        addAuthorButton.addEventListener('click', () => {
+          authorsRoot.appendChild(authorRow(authorsRoot.children.length));
+        });
+        clearAuthorsButton.addEventListener('click', () => {
+          authorsRoot.querySelectorAll<HTMLElement>('.author').forEach((el) => el.remove());
+        });
+
+        function sentenceCase(str: string) {
+          // Keep as-is if the user already supplied intentional casing.
+          // Otherwise lowercase words beyond the first; preserve proper nouns by user input.
+          if (!str) return '';
+          const s = str.trim();
+          if (s.toUpperCase() === s || s.toLowerCase() === s) {
+            const [first, ...rest] = s.split(' ');
+            return [
+              first.charAt(0).toUpperCase() + first.slice(1).toLowerCase(),
+              ...rest.map((word) => word.toLowerCase()),
+            ].join(' ');
+          }
+          return s;
+        }
+
+        function buildAPA({ authors, title, year, version, publisher, pid, conj }: CitationPayload) {
+          const names = authors.map(apaAuthor).filter(Boolean);
+          const authorsStr = joinAuthors(names, conj === 'and' ? 'and' : '&');
+          const yr = year ? `(${year}). ` : '';
+          const ver = version ? ` (Version ${version})` : '';
+          const titlePart = title ? `<i>${sentenceCase(title)}</i>${ver} [Data set]. ` : '';
+          const pub = publisher ? `${publisher}. ` : '';
+          const link = pid ? normalizeDOIorURL(pid) : '';
+          return `${authorsStr}${authorsStr ? '. ' : ''}${yr}${titlePart}${pub}${link}`.trim();
+        }
+
+        function buildMLA({ authors, title, year, version, publisher, pid, conj }: CitationPayload) {
+          let names = authors.map(mlaAuthor).filter(Boolean);
+          if (names.length > 2) {
+            // MLA: First author only + et al. for 3+ authors (simple rule)
+            names = [names[0] + ', et al.'];
+          } else if (names.length === 2) {
+            names = [joinAuthors(names, conj === 'and' ? 'and' : 'and')];
+          }
+          const namesStr = names.join('');
+          const ver = version ? `, Version ${version}` : '';
+          const titlePart = title ? `<i>${title}</i>${ver}` : '';
+          const pub = publisher ? `, ${publisher}` : '';
+          const yr = year ? `, ${year}` : '';
+          const link = pid ? `, ${normalizeDOIorURL(pid)}` : '';
+          return `${namesStr}${namesStr ? '. ' : ''}${titlePart}${pub}${yr}${link}.`.replace(/\.?\.$/, '.');
+        }
+
+        function generate() {
+          const payload: CitationPayload = {
+            authors: getAuthors(),
+            title: valueOf('title'),
+            year: valueOf('year'),
+            version: valueOf('version'),
+            publisher: valueOf('publisher'),
+            pid: valueOf('pid'),
+            conj: valueOf('andSymbol'),
+          };
+
+          const style = valueOf('style');
+          fmtLabelEl.textContent = style.toUpperCase();
+          const html = style === 'mla' ? buildMLA(payload) : buildAPA(payload);
+          previewEl.innerHTML = html;
+        }
+
+        generateButton.addEventListener('click', generate);
+
+        // Copy helpers
+        async function copyToClipboard(html: string, asHTML: boolean) {
+          if (asHTML && navigator.clipboard && 'ClipboardItem' in window) {
+            const blobHTML = new Blob([html], { type: 'text/html' });
+            const blobText = new Blob([html.replace(/<[^>]+>/g, '')], { type: 'text/plain' });
+            const item = new ClipboardItem({ 'text/html': blobHTML, 'text/plain': blobText });
+            await navigator.clipboard.write([item]);
+            return;
+          }
+          const temp = document.createElement('textarea');
+          temp.value = html.replace(/<[^>]+>/g, '');
+          document.body.appendChild(temp);
+          temp.select();
+          const legacyDoc = document as unknown as Record<string, unknown>;
+          const exec = legacyDoc['execCommand'] as
+            | ((this: Document, commandId: string) => boolean)
+            | undefined;
+          if (typeof exec === 'function') {
+            exec.call(document, 'copy');
+          }
+          temp.remove();
+        }
+
+        copyTextButton.addEventListener('click', () => {
+          void copyToClipboard(previewEl.innerHTML, false);
+        });
+        copyHTMLButton.addEventListener('click', () => {
+          void copyToClipboard(previewEl.innerHTML, true);
+        });
+
+        // Auto-generate on input change for quick feedback
+        document.addEventListener('input', (event) => {
+          const target = event.target;
+          if (target instanceof Element && target.closest('.card')) {
+            generate();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

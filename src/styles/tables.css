@@ -1,0 +1,134 @@
+/* src/styles/tables.css
+   Unified styles for Table.astro, CsvTable.astro, etc.
+   Uses .table (matches your component) and .table-wrap container.
+*/
+
+/* Container */
+.table-wrap {
+  width: 100%;
+  max-width: 100%;
+  margin-block: 1rem 1.5rem;
+  overflow-x: auto;                    /* only when needed */
+  background: var(--sl-color-bg);
+  border: 0px solid var(--sl-color-hairline);
+  border-radius: 0.5rem;
+}
+
+/* Optional toolbar above filterable tables */
+.table-tools {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.5rem;
+  border-bottom: 1px solid var(--sl-color-hairline);
+  background: var(--sl-color-bg-alt);
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+/* Base table */
+.table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;                 /* enforce wrapping & widths */
+  font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 0.875rem;                 /* ~14px */
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
+
+/* Cells */
+.table th,
+.table td {
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px dotted var(--sl-color-hairline, #ccc);
+  vertical-align: middle;
+  text-align: left; 
+  white-space: normal;                 /* allow wrapping */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.table td a {
+  color: var(--sl-rows-text);
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.table td a:link {
+  text-decoration: none;
+}
+
+.table td a:hover {
+  text-decoration: underline;
+}
+
+/* Sticky header + styled header row */
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--sl-color-bg);
+  z-index: 1;
+  font-weight: 600;
+}
+.table thead .head {
+  background: var(--sl-color-bg-alt);
+}
+
+/* Filter row */
+.table thead .filters th {
+  background: var(--sl-color-bg-alt);
+  border-bottom-color: var(--sl-color-hairline);
+}
+.table thead .filters input {
+  width: 100%;
+  padding: 0.35rem 0.45rem;
+  font: inherit;
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: 0.4rem;
+  background: var(--sl-color-bg);
+}
+
+/* Zebra striping & hover
+.table.striped tbody tr:nth-child(even) { background: var(--sl-color-bg); }
+.table.striped tbody tr:nth-child(odd)  { background: var(--sl-rows); }
+.table tbody tr:hover {
+  background: color-mix(in srgb, var(--sl-color-primary) 10%, var(--sl-color-bg));
+  transition: background-color 0.15s ease;
+} */
+
+/* Helpers for cell behavior */
+.cell { /* default already wraps via base cell rules */ }
+.cell.nowrap { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.cell.clamp-2,
+.cell.clamp-3,
+.cell.clamp-4 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cell.clamp-2 { -webkit-line-clamp: 2; }
+.cell.clamp-3 { -webkit-line-clamp: 3; }
+.cell.clamp-4 { -webkit-line-clamp: 4; }
+
+/* A11y helper */
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+/* Optional: compact modifier for dense data tables */
+.table--compact {
+  font-size: 0.82rem;
+}
+.table--compact th,
+.table--compact td {
+  padding: 0.3rem 0.45rem;
+}
+

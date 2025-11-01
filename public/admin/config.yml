@@ -1,0 +1,246 @@
+backend:
+  name: github
+  repo: geobtaa-archive/geobtaa-archive.github.io
+  branch: main
+  base_url: https://decap-auth.geobtaa.workers.dev
+  auth_endpoint: /auth
+# local_backend: true
+
+site_url: https://geobtaa-archive.github.io
+media_folder: "src/assets/images"
+public_folder: "@images"
+
+collections:
+  - name: "blog"
+    label: "Blog Posts"
+    folder: "src/content/docs/posts"
+    extension: "mdx"
+    format: "frontmatter"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+
+      - label: "Excerpt"
+        name: "excerpt"
+        widget: "text"
+
+      - label: "Authors"
+        name: "authors"
+        widget: "list"
+        fields:
+          - label: "Name"
+            name: "name"
+            widget: "string"
+
+      - label: "Cover"
+        name: "cover"
+        widget: "object"
+        collapsed: false
+        fields:
+          - label: "Cover Image"
+            name: "image"
+            widget: "image"
+            choose_url: true
+          - label: "Alt Text"
+            name: "alt"
+            widget: "string"
+            hint: "Describe the image for people using screen readers."
+          - label: "Caption"
+            name: "caption"
+            widget: "text"
+            required: false
+
+      - label: "Tags"
+        name: "tags"
+        widget: "list"
+
+      - label: "Publication Date"
+        name: "date"
+        widget: "datetime"
+
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
+        
+
+  - name: "updates"
+    label: "Program Updates"
+    extension: "mdx"
+    folder: "src/content/docs/updates"
+    format: "frontmatter"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+
+      - label: "Excerpt"
+        name: "excerpt"
+        widget: "text"
+
+      - label: "Authors"
+        name: "authors"
+        widget: "list"
+        fields:
+          - label: "Name"
+            name: "name"
+            widget: "string"
+
+      - label: "Cover"
+        name: "cover"
+        widget: "object"
+        collapsed: false
+        fields:
+          - label: "Cover Image"
+            name: "image"
+            widget: "image"
+            choose_url: true
+          - label: "Alt Text"
+            name: "alt"
+            widget: "string"
+            hint: "Describe the image for people using screen readers."
+          - label: "Caption"
+            name: "caption"
+            widget: "text"
+            required: false
+
+      - label: "Tags"
+        name: "tags"
+        widget: "list"
+
+      - label: "Publication Date"
+        name: "date"
+        widget: "datetime"
+
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
+        default: |
+          import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
+          import CenterLayout from 'src/components/CenterLayout.astro';
+          import ChipList from 'src/components/ChipList.astro';
+          import { Card, CardGrid } from '@astrojs/starlight/components';
+
+          <div class="monthly-highlight">
+
+          ## Highlight Title
+
+          Introductory paragraph for this month's highlight. Replace this text with a summary of the featured activity.
+
+          <CenterLayout>
+          ![Highlight image](@images/example.png)
+          *Caption describing the highlight image.*
+          </CenterLayout>
+
+          **Key Themes**
+
+          - Theme or takeaway one
+          - Theme or takeaway two
+
+          **Next Steps**
+          Outline the upcoming actions or focus areas related to the highlight.
+
+          </div>
+
+          ## Program Activities
+
+          ### Committees
+
+          <CardGrid>
+            <Card title="TECHnology">
+              - Brief update about technology committee work.
+            </Card>
+
+            <Card title="Community Engagement">
+              - Summary of community engagement efforts.
+            </Card>
+
+            <Card title="Knowledge">
+              Highlights of knowledge committee activities.
+            </Card>
+
+            <Card title="Coordination">
+              - Key coordination actions or planning notes.
+            </Card>
+          </CardGrid>
+
+          ### Workgroups
+
+          <Card>
+
+          #### Workgroup Name
+
+          * Update or milestone item one
+          * Update or milestone item two
+
+          </Card>
+
+          ## BTAA Geoportal
+
+          ### This month by the numbers
+
+          <TwoThirdsLayout>
+            <div slot="left">
+            ![Chart description](@images/monthly-stats.png)
+            *Caption for the monthly stats chart.*
+            </div>
+            <div slot="right">
+            <div class="compact-list">
+            * Visitors: TBD
+            * Visits: TBD
+            * Downloads: TBD
+            * Visits with download: TBD
+            * Outlinks: TBD
+            * Visits with outlink: TBD
+            * Num. searches: TBD
+            * Search keywords: TBD
+            * Pageviews: TBD
+            </div>
+            </div>
+          </TwoThirdsLayout>
+
+          :::tip[More stats]
+          Link to the analytics dashboard or additional reporting.
+          :::
+
+          #### Top Google searches leading to the Geoportal
+          <ChipList class="not-content">
+            - Placeholder search one
+            - Placeholder search two
+            - Placeholder search three
+          </ChipList>
+
+          #### Top internal search keywords
+          <ChipList class="not-content">
+            - Keyword one
+            - Keyword two
+            - Keyword three
+          </ChipList>
+
+          ### Collections
+
+          <p class="records-total">Total records as of [Month Day, Year]: **TBD**</p>
+
+          ### Harvesting Activities
+
+          | [Title] | Records added | Records retired |
+          | :---- | -----: | -----: |
+          | [Example harvest](#) | 0 | 0 |
+          | Total | 0 | 0 |
+
+          ### Web Development
+
+          * Development update one
+          * Development update two
+
+          :::tip[More development details]
+          Link to development report or documentation.
+          :::
+
+          ## Priority Projects Update
+
+          <a href="https://github.com/orgs/geobtaa/projects/22/views/6">Refer to our Priority Projects board.</a>

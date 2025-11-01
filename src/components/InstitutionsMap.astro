@@ -1,0 +1,243 @@
+---
+interface Props {
+  height?: number;
+  dataUrl?: string;   // points
+  statesUrl?: string; // polygons
+}
+const {
+  height = 300,
+  dataUrl = "/member-map-data/btaa-universities.geojson",
+  statesUrl = "/member-map-data/btaa-states.geojson",
+} = Astro.props;
+
+const uid = `institutions-map-${Math.random().toString(36).slice(2)}`;
+---
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+/>
+
+<style>
+  .map-shell { width: 100%; position: relative; }
+  .map-view  { width: 100%; border-radius: 12px; overflow: hidden; }
+
+  /* Numbered DivIcon badge */
+  :global(.uni-badge) {
+    box-sizing: border-box;
+    width: 20px; height: 20px; line-height: 20px;
+    text-align: center; border-radius: 50%;
+    background: #ffffff;
+    opacity: 0.9;
+    font-weight: 600; font-size: 12px; font-family: 'Times New Roman', Times, serif; color: #000;
+    user-select: none; -webkit-user-select: none;
+  }
+  :global(.uni-badge:hover) { background: #005E8E; opacity: 1; color:#ffffff}
+
+  /* Keep site-wide img rules off tiles */
+  :global(.leaflet-container .leaflet-tile),
+  :global(.leaflet-container img.leaflet-tile),
+  :global(.leaflet-container img.leaflet-image-layer) {
+    max-width: none !important; height: auto !important; width: auto !important; display: block;
+  }
+  :global(.leaflet-container .leaflet-tile) { border: 0 !important; box-shadow: none !important; outline: none !important; }
+
+  :global(.leaflet-pane > svg path) { vector-effect: non-scaling-stroke; }
+
+  :global(.acc-zoom) {
+      display: grid;
+      gap: 6px;
+      padding: 6px;
+      background: rgba(255,255,255,.9);
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+  :global(.acc-zoom-btn) {
+    width: 34px; height: 34px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fff;
+    font-size: 18px; line-height: 1;
+    cursor: pointer;
+    }
+  :global(.acc-zoom-btn:focus-visible) {
+    outline: 2px solid #0066ff;
+    outline-offset: 2px;
+    }
+
+
+</style>
+
+<div class="map-shell not-content">
+  <div id={uid} class="map-view" style={`height:${height}px`}></div>
+</div>
+
+<script is:inline define:vars={{ uid, dataUrl, statesUrl }}>
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src; s.async = true;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error(`Failed to load: ${src}`));
+      document.head.appendChild(s);
+    });
+  }
+
+  (async () => {
+    // Load Leaflet
+    const cdns = [
+      "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
+      "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
+    ];
+    let ok = false, lastErr = null;
+    for (const url of cdns) { try { await loadScript(url); ok = true; break; } catch (e) { lastErr = e; } }
+
+    const el = document.getElementById(uid);
+    if (!ok || typeof window.L === "undefined") {
+      if (el) el.innerHTML = `<div style="padding:1rem;border:1px dashed #ccc;border-radius:8px"><strong>Leaflet failed to load.</strong><br>${lastErr ?? "Unknown error"}</div>`;
+      console.error("[map] Leaflet load error:", lastErr);
+      return;
+    }
+    if (!el) return;
+
+    const map = L.map(el, { zoomControl: false, attributionControl: true, preferCanvas: true });
+
+  // Accessible custom zoom control
+  const AccessibleZoom = L.Control.extend({
+    options: { position: 'topleft' },
+    onAdd: function () {
+      const container = L.DomUtil.create('div', 'acc-zoom');
+      container.setAttribute('role', 'group');
+      container.setAttribute('aria-label', 'Map zoom controls');
+
+      const zin = L.DomUtil.create('button', 'acc-zoom-btn', container);
+      zin.type = 'button';
+      zin.title = 'Zoom in';
+      zin.setAttribute('aria-label', 'Zoom in');
+      zin.textContent = '+';
+      zin.addEventListener('click', () => map.zoomIn());
+
+      const zout = L.DomUtil.create('button', 'acc-zoom-btn', container);
+      zout.type = 'button';
+      zout.title = 'Zoom out';
+      zout.setAttribute('aria-label', 'Zoom out');
+      zout.textContent = '–';
+      zout.addEventListener('click', () => map.zoomOut());
+
+      // Prevent map drag/scroll conflicts when interacting with the control
+      L.DomEvent.disableClickPropagation(container);
+      L.DomEvent.disableScrollPropagation(container);
+
+      // Keyboard handling (Enter/Space)
+      const onKey = (fn) => (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); }
+      };
+      zin.addEventListener('keydown', onKey(() => map.zoomIn()));
+      zout.addEventListener('keydown', onKey(() => map.zoomOut()));
+
+      return container;
+    }
+  });
+  map.addControl(new AccessibleZoom());
+
+
+
+    // Create a pane for polygons UNDER markers but ABOVE tiles
+    map.createPane("polys");
+    map.getPane("polys").style.zIndex = 350; // tiles ~200, overlay ~400, markers ~600
+
+    // Basemap
+    L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
+      maxZoom: 6,
+      minZoom: 4,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr/" target="_blank">OpenStreetMap France</a>',
+    }).addTo(map);
+
+    // --- Polygons (BTAA states) ---
+    let statesLayer = null;
+    try {
+      const statesRes = await fetch(statesUrl);
+      if (!statesRes.ok) throw new Error(`Fetch failed ${statesRes.status} for ${statesUrl}`);
+      const statesGeo = await statesRes.json();
+
+      statesLayer = L.geoJSON(statesGeo, {
+        pane: "polys",
+        style: { color: "#0088CE", weight: 1, fillColor: "#0088CE", fillOpacity: 0.75 }
+      }).addTo(map);
+    } catch (e) {
+      console.warn("[map] states layer skipped:", e);
+    }
+
+    // --- Points (numbered DivIcon markers) ---
+    const markers = [];
+    const res = await fetch(dataUrl);
+    if (!res.ok) throw new Error(`Fetch failed ${res.status} for ${dataUrl}`);
+    const geo = await res.json();
+
+    L.geoJSON(geo, {
+      pointToLayer: (feature, latlng) => {
+        const id = (feature?.properties?.id ?? "").toString() || "•";
+        const name = feature?.properties?.name ?? id;
+
+        const icon = L.divIcon({
+          className: "uni-badge",
+          html: id,
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+        });
+
+        const m = L.marker(latlng, { icon });
+        m.bindTooltip(name, { direction: "top", sticky: true });
+        markers.push(m);
+        return m;
+      }
+    }).addTo(map);
+
+// Allow half-step zooms so maxZoom like 6.5 works
+map.options.zoomSnap = 0.5;
+map.options.zoomDelta = 0.5;
+
+// Fit using ONLY the states layer, with a maxZoom cap that differs by screen size
+function fitToStatesWithCap() {
+  if (!statesLayer) {
+    map.setView([44, -100], 5);
+    return;
+  }
+  const b = statesLayer.getBounds();
+  if (!b || !b.isValid()) {
+    map.setView([44, -100], 5);
+    return;
+  }
+
+  const isNarrow = window.matchMedia("(max-width: 640px)").matches;
+  const padding  = isNarrow ? [8, 8] : [24, 24];
+  const maxZoom  = isNarrow ? 5.5 : 6.5;   // 👈 tighten or loosen here
+
+  map.fitBounds(b, { padding, maxZoom });
+}
+
+// call after statesLayer is added:
+fitToStatesWithCap();
+
+// re-apply on resize/orientation
+let t;
+window.addEventListener("resize", () => {
+  clearTimeout(t);
+  t = setTimeout(() => {
+    map.invalidateSize();
+    fitToStatesWithCap();
+  }, 120);
+});
+  })().catch(err => {
+    const el = document.getElementById(uid);
+    if (el) {
+      el.innerHTML = `<div style="padding:1rem;border:1px dashed #ccc;border-radius:8px">
+        <strong>Map failed to render.</strong><br>${String(err)}
+      </div>`;
+    }
+    console.error(err);
+    
+  });
+</script>

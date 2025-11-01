@@ -1,0 +1,36 @@
+---
+const { class: className = '' } = Astro.props;
+const classes = ['chip-list', className].filter(Boolean).join(' ');
+
+const slotContent = await Astro.slots.render('default');
+
+const normalizeContent = (input: unknown) => {
+  if (typeof input !== 'string') {
+    return input;
+  }
+
+  const trimmed = input.trim();
+
+  if (/^<ul[\s>]/.test(trimmed)) {
+    return trimmed
+      .replace(/^<ul[^>]*>/, '')
+      .replace(/<\/ul>\s*$/, '')
+      .trim();
+  }
+
+  if (/^<ol[\s>]/.test(trimmed)) {
+    return trimmed
+      .replace(/^<ol[^>]*>/, '')
+      .replace(/<\/ol>\s*$/, '')
+      .trim();
+  }
+
+  return trimmed;
+};
+
+const normalized = normalizeContent(slotContent);
+---
+
+<ul class={classes}>
+  {typeof normalized === 'string' ? <Fragment set:html={normalized} /> : normalized}
+</ul>

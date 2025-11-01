@@ -1,0 +1,168 @@
+---
+title: Fire Insurance Maps Research Guide
+description: Learn what fire insurance maps are, how to find them in the BTAA Geoportal and beyond, and how to interpret their unique symbols and abbreviations.
+sidebar:
+   order: 6
+   label: Fire insurance maps
+tags:
+- guides
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+import { ShowcaseText } from 'starlight-showcases';
+import Table from '/src/components/Table.astro';
+import TwoThirdsLayout from '/src/components/TwoThirdsLayout.astro';
+import CenterLayout from 'src/components/CenterLayout.astro';
+
+<TwoThirdsLayout>
+<div slot="left">
+
+## What are Fire Insurance Maps?
+
+Fire insurance maps are detailed city plans originally created to evaluate fire risk. They depict building footprints, construction materials, and property uses, along with street layouts and property lines. These maps offer a unique, granular snapshot of urban neighborhoods as they existed in the 19th and 20th centuries.
+
+The Sanborn Map Company produced the majority of fire insurance maps, but other publisher names include Perris, Hexamer, Whipple, Baist, Bromley, or Hopkins.
+
+</div>
+<div slot="right">
+
+![A section of the 1922 Sanborn Fire Insurance map for Bellefonte, PA](@images/fire-001.jpg)
+*<a href="https://geo.btaa.org/catalog/3021452d-cd87-4683-9115-15dcbcee6ddf">Sanborn Fire Insurance map for Bellefonte, PA, 1922, sheet 4.</a>*
+
+</div>
+</TwoThirdsLayout>
+
+---
+
+## Finding Fire Insurance Maps
+
+Because they are a popular research resource, fire insurance maps have been scanned and made available in a variety of ways, some under commercial license provided by a library purchase or subscription. There is no single resource that has all the maps in one location.
+
+This guide provides a suggested path for finding a Sanborn Map.
+
+### 1. Start with the BTAA Geoportal Search
+
+1. Begin your search with the [BTAA Geoportal](https://geo.btaa.org).
+1. In the main search box, enter the name of your town or city.
+1. On the results page, use the filters on the left to select **"Fire insurance maps"** under the **Resource Type** heading.
+
+:::tip[Search Tips]
+* **Can't find a small town?** Try searching for a larger, nearby city. Suburbs and smaller communities were often included in the map volumes of a major city. For example, East Lansing, MI, is found within the Lansing map set.
+* **Large cities** are often mapped across many volumes. Each volume will have an index map on its first page showing which sheets cover which areas.
+:::
+
+
+### 2. Browse BTAA Collections by State
+
+If a general search doesn't yield results, you can browse specific collections. These collections, contributed by BTAA member libraries and partners, are organized by the state they cover.
+
+#### Open Access Collections
+
+These maps are freely available to everyone.
+
+
+<ShowcaseText
+  entries={[
+    {
+      href: 'https://geo.btaa.org/?f%5Bb1g_localCollectionLabel_sm%5D%5B%5D=Sanborn+Fire+Insurance+Maps%3A+Illinois',
+      title: 'Illinois',
+      description: 'This collection from the University of Illinois contains maps that pre-date 1923.',
+    },
+    {
+      href: 'https://geo.btaa.org/?f%5Bdct_isPartOf_sm%5D%5B%5D=01d-05',
+      title: 'Indiana',
+      description: 'This collection from Indiana University contains over 10,000 maps of Indiana cities and towns, dating from the 1880s to 1925.',
+    },
+    {
+      href: 'https://geo.btaa.org/?f%5Bpcdm_memberOf_sm%5D%5B%5D=b35f927e-9051-4d7f-9ca3-ad5b19024e0b&f%5Bschema_provider_s%5D%5B%5D=Princeton',
+      title: 'New Jersey',
+      description: 'This collection from Princeton University covers the state of New Jersey for the period between the 1880s and 1924.',
+    },
+    {
+      href: 'https://geo.btaa.org/catalog/999-0010',
+      title: 'Pennsylvania',
+      description: 'Penn State University has a near-complete collection of Sanborn maps for Pennsylvania. For items not yet in the Geoportal, the full collection can also be accessed directly at the <a href="https://libraries.psu.edu/about/collections/sanborn-fire-insurance-maps">Penn State University Libraries website</a>.',
+    },
+
+  ]}
+/>
+
+
+#### Licensed Collections
+
+These are commercial databases that contain high-quality, detailed scans. Access depends on your university's subscriptions.
+
+<LinkCard title="Find FiMO maps" description="Full-color | 1850s-1960s | Searchable by address, coordinates, or map interface. | Sanborn and other publishers (Requires subscription)" href="https://geo.btaa.org/catalog/999-0010" />
+
+<LinkCard title="Find ProQuest Sanborn maps" description="Black and white | 1867-1970 | Indexed by city and state. (Requires subscription)" href="https://geo.btaa.org/catalog/999-0011" />
+
+
+
+
+#### Comparison of Features by Fire Insurance Maps Source
+
+<Table src="src/tables/fire-insurance-options.csv"
+  columns={[
+{ key: "Feature",  width: "25%", render: "markdown" },
+{ key: "Select Libraries",  width: "25%"},
+{ key: "FiMO",  width: "25%"},
+{ key: "ProQuest",  width: "25%"},
+
+  ]}
+/>
+
+
+### 3. Explore Other Major Collections
+
+Still can't find what you are looking for? If you still haven't found your map, several other institutions maintain large collections.
+
+* **[Library of Congress Sanborn Maps Collection](https://www.loc.gov/collections/sanborn-maps/)** The largest collection of Sanborn maps. Many are digitized and available online. Use their [Sanborn Fire Insurance Maps Online Checklist](http://www.loc.gov/rr/geogmap/sanborn/) to see what they hold, even if it hasn't been scanned yet.
+
+* **[Union List of Sanborn & Other Fire Insurance Maps](https://www.lib.berkeley.edu/EART/sanborn_union_list)** A catalog maintained by UC Berkeley that lists which libraries hold specific maps in their physical collections.
+
+* **[List of Online Sanborn Collections by State](https://guides.library.uwm.edu/c.php?g=824760&p=5887796)** The University of Wisconsin-Milwaukee has compiled this helpful list of digitized collections across the country.
+
+* **Microfilm Collections** Many libraries hold Sanborn maps on microfilm. These are typically black and white and may be available via Interlibrary Loan. Contact your institution's library for assistance.
+
+---
+
+## How to Read Fire Insurance Maps
+
+Each city coverage begins with a graphic index to guide the user to the correct page with each page only covering a few blocks. The original paper maps used color to indicate building materials such as yellow for wood construction and pink for brick. Some newer maps have “paste on” updates or corrections applied to a base map. Note the correction record on the index key page for dates. While Sanborn maps do not show property owner names, they can show business names. For more information, see the Library of Congress’ Introduction to the Sanborn Collection.
+
+### Key to Colors and Symbols
+<CenterLayout>
+
+![A color key for Sanborn maps showing building materials and features](@images/fire-002.jpg)
+*<a href="https://guides.lib.berkeley.edu/ld.php?content_id=56535040">Sanborn Map key, courtesy of UC Berkeley Libraries.</a>*
+
+</CenterLayout>
+
+### Common Abbreviations
+* **[MIT Libraries' List](http://web.mit.edu/thecity/resources/abbreviations_for_sanborn_maps.pdf):** A concise, two-page PDF of common abbreviations.
+* **[UC Berkeley's Extensive List](https://guides.lib.berkeley.edu/ld.php?content_id=51241834):** A comprehensive list for more obscure terms.
+
+### Tutorials
+This excellent tutorial from the Kansas City Public Library gives a quick history of the maps and explains how to use the indexes, keys, and colors.  
+<a href="https://kchistory.org/sites/default/files/UsingSanborns.pdf">How to Use Sanborn Fire Insurance Maps</a>
+
+---
+
+## BTAA Institution Guides
+For more localized help or to find physical maps, consult the research guide from your specific university library.
+
+
+<div class = "compact-list">
+
+* [University of Illinois](https://digital.library.illinois.edu/collections/6ff64b00-072d-0130-c5bb-0019b9e633c5-2)
+* [University of Iowa](https://www.lib.uiowa.edu/maps/sanbornmaps/)
+* [University of Maryland](https://lib.guides.umd.edu/c.php?g=327204&p=2195554)
+* [University of Michigan](https://guides.lib.umich.edu/c.php?g=283053)
+* [Michigan State University](https://libguides.lib.msu.edu/sanborn)
+* [Northwestern University](https://libguides.northwestern.edu/c.php?g=114914&p=747589)
+* [Ohio State University](https://guides.osu.edu/c.php?g=903688&p=6504405)
+* [Pennsylvania State University](https://libraries.psu.edu/about/collections/sanborn-fire-insurance-maps)
+* [Rutgers University](https://www.libraries.rutgers.edu/indexes/sanborn_maps_nj)
+* [University of Wisconsin-Madison](https://www.sco.wisc.edu/maps/historic-sanborn-fire-insurance-maps/)
+
+</div>

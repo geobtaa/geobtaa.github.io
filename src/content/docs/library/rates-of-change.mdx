@@ -1,0 +1,107 @@
+---
+title: Tracking rates of change of Open Data Portals
+description: An informal investigation into the number of datasets that turn over in ArcGIS Open Data Portals
+year: 2023
+tableOfContents: false
+authors:
+   - name: Karen Majewicz
+tags:
+- reports
+---
+
+import Table from '/src/components/Table.astro';
+
+Many of our reports note that most open data is ephemeral and that it regularly disappears or is overwritten.  We informally tracked this rate of change during two periods.
+
+:::warning
+These are internal numbers that are for BTAA-GIN program tracking purposes. They should not be used for research or analysis in other contexts. Contact the data providers to verify this information for other projects. 
+:::
+
+## March 2017 to December 2018
+
+From March 2017 to December 2018, the BTAA GDP Metadata Coordinator tracked the number of items that were deleted and added to 15 ArcGIS Open Data Portals (now calle "Hubs). These were ingested on a monthly basis into the BTAA Geoportal.
+
+:::info
+Cells with a dash "-" indicate that the portal had not been added to our collection yet.
+:::
+
+### Items Deleted by selected ArcGIS Open Data Portals
+
+<Table
+  src="src/tables/deleted-arcgis-change-2018.csv"
+    columns={[
+    { key: "Portal",   width: "20%" },
+    { key: "2017-03",  width: "5%"},
+    { key: "2017-04",   width: "5%"},
+    { key: "2017-07", width: "5%"},
+    { key: "2017-08",  width: "5%"},
+    { key: "2017-09",   width: "5%"},
+    { key: "2017-10", width: "5%"},
+    { key: "2017-11",  width: "5%"},
+    { key: "2017-12",   width: "5%"},
+    { key: "2018-01", width: "5%"},
+    { key: "2018-02", width: "5%"},
+    { key: "2018-03", width: "5%"},
+    { key: "2018-04", width: "5%"},
+	{ key: "2018-05", width: "5%"},
+    { key: "2018-06", width: "5%"},
+    { key: "2018-07", width: "5%"},
+    { key: "2018-11", width: "5%"},
+    { key: "2018-12", width: "5%"},
+    { key: "Sum", width: "5%"},
+  ]}
+/>
+
+### Items Added by selected ArcGIS Open Data Portals
+
+<Table
+  src="src/tables/added-arcgis-change-2018.csv"    
+    columns={[
+    { key: "Portal",   width: "20%" },
+    { key: "2017-03",  width: "5%"},
+    { key: "2017-04",   width: "5%"},
+    { key: "2017-07", width: "5%"},
+    { key: "2017-08",  width: "5%"},
+    { key: "2017-09",   width: "5%"},
+    { key: "2017-10", width: "5%"},
+    { key: "2017-11",  width: "5%"},
+    { key: "2017-12",   width: "5%"},
+    { key: "2018-01", width: "5%"},
+    { key: "2018-02", width: "5%"},
+    { key: "2018-03", width: "5%"},
+    { key: "2018-04", width: "5%"},
+	{ key: "2018-05", width: "5%"},
+    { key: "2018-06", width: "5%"},
+    { key: "2018-07", width: "5%"},
+    { key: "2018-11", width: "5%"},
+    { key: "2018-12", width: "5%"},
+    { key: "Sum", width: "5%"},
+  ]}
+/>
+
+
+
+
+
+
+2017-03	2017-04	2017-07	2017-08	2017-09	2017-10	2017-11	2017-12	2017-01	2018-02	2018-03	2018-04	2018-05	2018-06	2018-07	2018-11	2018-12
+
+## March - September 2023
+
+By 2023, our metadata collections had grown considerably and we again tracked the rate of change for:
+
+* 67 ArcGIS Hubs
+* 1 custom state data portal (PASDA)
+* 3 CKAN data portals (State of Minnesota, OpenDataPhilly, and CMAP (Chicago Metropolitan Agency for Planning) Data Hub
+
+**2599** total datasets were removed from the portals during that time and, presumably, replaced.
+
+| Month       | Number deleted |
+| ----------- | -------------- |
+| March 2023  | 94             |
+| April 2023  | 148            |
+| May 2023    | 92             |
+| June 2023   | 213            |
+| July 2023   | 150            |
+| August 2023 | 780            |
+| September 2023 | 1122 |

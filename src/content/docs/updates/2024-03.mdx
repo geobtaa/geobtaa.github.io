@@ -1,0 +1,137 @@
+---
+title: March 2024 Program Update
+
+excerpt: We had the honor of being invited by Yale University Libraries to present our expertise in GeoBlacklight, OpenGeoMetadata, and the BTAA Geoportal to their Associate University Librarians.
+authors:
+    - name: BTAA-GIN Staff
+tags:
+  - Program Updates
+date: 2024-04-02
+---
+import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
+import ChipList from 'src/components/ChipList.astro';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import Table from '/src/components/Table.astro';
+
+<div class="monthly-highlight">
+
+## Monthly Highlight
+
+We had the honor of being invited by Yale University Libraries to present our expertise in GeoBlacklight, OpenGeoMetadata, and the BTAA Geoportal to their Associate University Librarians. Our overview included development requirements, metadata strategies, collaboration successes, and our recommended priorities. 
+
+<iframe
+  class="slide-embed"
+  src="https://docs.google.com/presentation/d/e/2PACX-1vScmqNGFhuUOYrGMGJv0sx76Fv9i50qppQ8a1mWXBmD8MXhTbQr6hL_Re8aG6gTjbf89LJECZrgBO2G/embed?start=false&loop=false&delayms=3000"
+  allowfullscreen
+  loading="lazy"
+></iframe>
+
+</div>
+
+## Program Activities
+
+### Committees
+
+<CardGrid>
+  <Card title="TECHnology">
+    - Determined six priority projects.
+    - Held a metadata Cleanup Sprint for March 22, 2024.
+  </Card>
+
+  <Card title="Community Engagement">
+    - Scheduled an April sprint to clean up Google Drive
+    - Update blog post schedule
+    - Discussing how to coordinate Program Team lightning talks
+  </Card>
+
+  <Card title="Knowledge">
+    - Analyzed survey results of Team Member research priorities
+    - Drafted charters for two subgroups: Scalable Approaches and Service Models to coordinate the top research priorities
+  </Card>
+
+  <Card title="Coordination">
+    - Revised instructions for Priority Projects submissions to include all Team Members instead of just committee co-chairs.
+    - Made a schedule for upcoming discussion topics, including roadmaps and instituional priorities.
+  </Card>
+</CardGrid>
+
+
+### Workgroups
+
+The Geodata Pilot Collection Workgroup continued researching potential pilot datasets from BTAA member states.
+
+### Program Management
+
+* Issued a call for priority projects from all Team Members
+* Continued including lightning talks during Team Meetings. Ryan presented on his participation in the National Geospatial Advisory Council.
+
+
+## BTAA Geoportal 
+
+<TwoThirdsLayout>
+<div slot="left">
+![Unique visitors by month](@images/2024-03-monthly-users.png)
+*Geoportal visitors*
+</div>
+<div slot="right">
+<div class="compact-list">
+
+* Visitors:	5,233
+* Visits: 5,906
+* Downloads:	 191
+* Visits with download:	 3.23%
+* Outlinks: 1,181	
+* Visits with outlink: 20.00%
+* Num. searches: 1,425
+* Search keywords: 536
+* Pageviews: 14,729
+</div>
+</div>
+</TwoThirdsLayout>
+
+### Top 20 Internal Searches
+
+<Table
+  src="src/tables/searches_2024-03.csv"
+/>
+
+:::tip[More stats]
+See full statistics on our [Analytics Dashboard](https://tableau.umn.edu/t/UL/views/BTAAGeoportalusageMatomo/Monthlycharts?%3Aembed=y&%3AisGuestRedirectFromVizportal=y)
+:::
+
+
+### Collections
+
+<p class="records-total">Total records as of April 1, 2024: 93,648</p>
+
+<figure markdown="span">
+  ![Records April 1 2024](@images/records-2024-04.png)
+  <figcaption>BTAA Geoportal Records from 2016 to April 1, 2024</figcaption>
+</figure>
+
+
+### Harvesting Activities
+
+<Table
+  src="src/tables/harvests_2024-03.csv"
+    columns={[
+    { key: "Task",   width: "50%", filter: "text",  wrap: "nowrap",  render: "markdown" },
+    { key: "Records added",  width: "25%", filter: "text"},
+    { key: "Records retired",   width: "25%", filter: "text" },
+  ]}
+/>
+
+### Development
+
+We did not pursue application development during March 2024.
+
+
+## Next Steps
+
+The next steps on our [Program Roadmap 2023-2024](https://github.com/orgs/geobtaa/projects/10) include the following tasks:
+
+- **Governance**:  Develop a priority projects matrix
+- **Public documentation**: Teach the Team Members how to write in Markdown and contribute to our new website.
+
+**Upcoming highlight**: In April, our graduate student research assistant will be delivering a public presentation about OpenIndexMaps featuring historical maps in the BTAA Geoportal.
+

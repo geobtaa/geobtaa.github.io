@@ -1,0 +1,562 @@
+/* ===========================================================================
+   BTAA-GIN CUSTOM STYLES FOR ASTRO STARLIGHT
+   ========================================================================== */
+
+/* ========== FONT IMPORTS (headings/body) ========== */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600&family=Lora:ital,wght@0,400;0,700;1,400&family=Work+Sans:wght@600;700;900&display=swap');
+
+/* ========== GLOBAL BRAND ========== */
+:root {
+/* Brand palette */
+--btaa-dark-blue: #003C5B;
+--btaa-med-blue:  #005E8E;
+--btaa-blue:      #0088CE;
+--btaa-black:     #000000;
+--btaa-gray:      #939598;
+--btaa-dark-gray: #77797c;
+--btaa-light-gray: #F2F2F2;
+--btaa-light-blue: rgba(0, 137, 206, 0.045);
+--btaa-white:     #FFFFFF;   
+--btaa-green: #6fbf8f;
+--btaa-yellow: #f2e48e;
+--btaa-light-yellow: #fff8d6;
+/* Navigation sizing */
+--sl-nav-height: 5rem;
+--sl-nav-pad-y: 0rem;
+/* --sl-sidebar-width: 17rem;  */
+
+
+/* Brand Fonts */
+--font-family-heading: "Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+--font-family-nav:      Roboto, Helvetica, Arial, sans-serif;
+--font-family-body:    "Lora", "Times New Roman", Times, serif;
+
+/* Headings */
+main h1, main h2, main h3, main h4, main h5, main h6 {
+font-family: var(--font-family-heading);
+}
+
+main h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  border-bottom: 2px solid var(--sl-color-primary);
+  padding-bottom: 0.25rem;
+  margin-top: 1.5rem;
+  color: var(--sl-color-headings);
+}
+
+main h2 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  border-bottom: 2px solid var(--sl-color-primary);
+  padding-bottom: 0.25rem;
+  margin-top: 0rem;
+  color: var(--sl-color-headings);
+}
+
+main h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  color: var(--sl-color-primary);
+  color: var(--sl-color-headings);
+}
+
+main h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 1rem;
+  color: var(--sl-color-text-accent);
+}
+
+
+body {
+font-family: var(--font-family-body);
+font-size: 1rem;
+line-height: 1.5;
+color: var(--sl-color-text);
+background: var(--sl-color-bg);
+}
+
+/* Inline icon helper */
+.sl-markdown-content .inline-icon { display: inline; }
+}
+
+.content-panel:has(#home-content) > .sl-container:first-of-type {
+  max-width: min(var(--home-hero-width, 80rem), 100%);
+  padding-inline: clamp(1.75rem, 6vw, 5rem);
+}
+
+#home-content {
+  position: relative;
+  width: 100%;
+  border-color: var(--div-backgrounds);
+  padding-inline: clamp(1.75rem, 6vw, 5rem);
+  padding-block: clamp(2.5rem, 6vw, 4rem);
+
+}
+
+
+p.title {
+  font-family: var(--font-family-heading);
+  font-size: 1.1rem;
+  font-weight: 100;
+
+}
+
+.sl-markdown-content .sl-anchor-link {
+    padding-left: .2em;
+;
+}
+
+
+/* ========== LIGHT THEME ========== */
+
+:root[data-theme="light"] {
+--sl-color-bg:          var(--btaa-white);
+--sl-color-text:        var(--btaa-black);
+--sl-color-headings: var(--btaa-dark-blue);
+--sl-color-text-muted:  var(--btaa-dark-gray);
+--sl-color-accent-muted: var(--btaa-white);
+--sl-color-accent-low:  rgba(0, 136, 206, 0.20);
+--sl-color-accent:      var(--btaa-med-blue);
+--sl-color-accent-high: var(--btaa-dark-blue);
+--sl-color-hairline:    rgba(0, 60, 91, 0.15);
+--sl-color-bg-nav:      var(--btaa-med-blue);
+--sl-rows: var(--btaa-light-blue);
+--sl-rows-text: var(--btaa-med-blue);
+--div-backgrounds: var(--btaa-gray);
+--btaa-banner: var(--btaa-yellow);
+
+
+
+#starlight__on-this-page--mobile {
+  background-color: var(--btaa-white);
+}
+
+.astro-4yphtoen {
+color: #FFFFFF;
+}
+.astro-eboeziq4 {
+color: #FFFFFF;
+}
+
+.starlight-aside--note {
+  background-color: var(--btaa-light-blue);
+  --sl-color-asides-border: var(--btaa-med-blue);
+  --sl-color-asides-text-accent: var(--btaa-dark-blue);
+}
+
+}
+
+:root[data-theme="light"] .header .social-icons a {
+  color: var(--btaa-white);
+}
+
+:root[data-theme="light"] .header .social-icons a:is(:hover, :focus-visible) {
+  color: var(--btaa-yellow);
+  opacity: 1;
+}
+
+/* ========== DARK THEME ========== */
+:root[data-theme="dark"] {
+/* --sl-color-bg-nav:      var(--btaa-dark-blue); */
+--sl-color-accent-high: var(--btaa-white);
+--sl-color-accent: var(--btaa-white);
+--sl-color-accent-muted: var(--btaa-gray);
+--sl-color-headings: var(--btaa-white);
+--sl-rows-text: var(--btaa-blue);
+--sl-rows: #23262f;
+--sl-social-icons: var(--btaa-white);
+/* --sl-icon-color: var(--btaa-white); */
+--div-backgrounds: var(--btaa-dark-gray);
+--btaa-banner: var(--btaa-green);
+
+.starlight-aside__title {
+color: var(--btaa-white);
+}
+.starlight-aside--note {
+  background-color: var(--btaa-light-blue);
+  --sl-color-asides-border: var(--btaa-gray);
+  --sl-color-asides-text-accent: var(--btaa-dark-blue);
+}
+
+}
+
+
+/* Remove the default bullet from list items containing checkboxes */
+li:has(input[type="checkbox"]) {
+  list-style-type: none; /* no bullet */
+}
+
+.sl-markdown-content ul li,
+.sl-markdown-content ol li {
+  margin-bottom: 1rem;
+}
+
+/* Style the checkbox itself */
+input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  appearance: none;          /* turn off browser default */
+  -webkit-appearance: none;  /* for Safari */
+  border: 2px solid #666;    /* border for unchecked box */
+  border-radius: 3px;        /* optional: rounded corners */
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  cursor: pointer;
+}
+
+/* Checked state */
+input[type="checkbox"]:checked {
+  background-color: #2e7d32;
+  border-color: #2e7d32;
+}
+
+/* Add a white checkmark for the checked state */
+input[type="checkbox"]:checked::after {
+  content: "✔";
+  color: white;
+  font-size: 12px;
+  position: absolute;
+  top: -1px;
+  /* left: 2px; */
+}
+
+  .about-hero{
+    position:relative;
+    background-image: var(--about-bg);
+    background-size: cover; background-position:center;
+    isolation:isolate; text-align:center; color:var(--btaa-white);
+    padding: clamp(2.5rem, 6vw, 4rem) 1rem  clamp(2rem, 4vw, 3rem);
+    border-radius: 5px;
+    overflow:hidden;
+  }
+  .about-hero::before{
+    content:""; position:absolute; inset:0; z-index:-1;
+    background: rgba(0,60,91,.3);
+    box-shadow: inset 0 0 160px rgba(0,0,0,.35);
+  }
+  .about-hero__logo{
+    height: clamp(38px, 7vw, 82px);
+    width:auto; display:inline-block; margin-bottom:.6rem;
+    filter: drop-shadow(0 2px 10px rgba(0,0,0,.35));
+  }
+  .about-hero__tagline{
+    margin:.25rem auto 1rem; max-width:60ch; font-size:2rem; color: rgba(255,255,255,.95);
+  }
+  .about-hero__cta{ display:flex; gap:.75rem; justify-content:center; flex-wrap:wrap; }
+
+  
+  /* Figure (right column image) */
+  .about-figure{ margin:0; }
+  .about-figure img{
+    width:100%; height:auto; display:block; border-radius:5px;
+    box-shadow: 0 10px 30px -20px rgba(0,0,0,.45);
+  } */
+
+  /* Feature cards */
+  .grid{ display:grid; gap:1rem; }
+  .grid--features{ grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin: 1rem 0 1.5rem; }
+  .card{
+    --card-hover-lift: 0px;
+    --card-stagger-offset: 0px;
+    background: var(--sl-color-bg); color: var(--ink);
+    border: 1px solid color-mix(in srgb, var(--btaa-dark-blue) 8%, transparent);
+    border-radius: 5px; padding: 1rem 1rem .9rem;
+    text-decoration:none;
+    box-shadow: 0 1px 0 rgba(0,0,0,.02), 0 12px 28px -22px rgba(0,0,0,0);
+    transform: translateY(calc(var(--card-stagger-offset, 0px) + var(--card-hover-lift, 0px)));
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .card:hover{
+    --card-hover-lift: -2px;
+    border-color: color-mix(in srgb, var(--btaa-blue) 18%, transparent);
+    box-shadow: 0 1px 0 rgba(0,0,0,.03), 0 18px 38px -20px rgba(0,0,0,.4);
+  }
+  /* Preserve CardGrid stagger offset while applying hover lift */
+  .card-grid.stagger > .card:nth-child(2n){
+    --card-stagger-offset: var(--stagger-height);
+  }
+  .card h3{ margin:.1rem 0 .35rem;}
+  .card p{ margin:0 0 .6rem; color: color-mix(in srgb, var(--sl-color-text) 82%, #6b7280); }
+  .card__more{ font-size:.9rem; color: var(--btaa-blue); }
+
+  /* Tweak lists under “Technical/Social” for readability */
+  .about :where(ul){ margin-top:.2rem; }
+  .about :where(li){ margin:.2rem 0; }
+
+/* APA-style publication block for Markdown paragraphs */
+.apa-block {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 1.5rem 0;
+}
+
+.apa-block p {
+  margin: 0 0 0.8rem 0;     /* space between citations */
+  text-indent: -1.5rem;      /* hanging indent effect */
+  padding-left: 1.5rem;
+}
+
+/* Optional: subtle divider between entries */
+.apa-block p:not(:last-child) {
+  border-bottom: 1px dotted var(--sl-color-hairline, #ccc);
+  padding-bottom: 0.5rem;
+}
+
+/* Optional: link styling */
+.apa-block a {
+  color: var(--sl-color-text-accent, #3366cc);
+  text-decoration: none;
+}
+
+.apa-block a:hover {
+  text-decoration: underline;
+}
+
+
+
+/* Accordion styling */
+.collapsible {
+  margin-block: 0.75rem 1.25rem;
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: 0.75rem;
+  background: var(--sl-color-bg);
+}
+
+/* Summary bar */
+.collapsible > summary {
+  cursor: pointer;
+  list-style: none;          /* hide default marker in some browsers */
+  padding: 0.6rem 0.9rem;
+  font-weight: 600;
+  display: flex; align-items: center; gap: .5rem;
+  position: relative;
+}
+
+/* Custom chevron */
+.collapsible > summary::after {
+  content: "▸";
+  margin-left: auto;
+  transition: transform .15s ease;
+}
+.collapsible[open] > summary::after {
+  transform: rotate(90deg);
+}
+
+/* Optional hint */
+.collapsible .hint {
+  font-weight: 400;
+  font-size: 0.85em;
+  color: var(--sl-color-text-secondary);
+}
+
+/* When open, unify with the table container */
+.collapsible[open] .table-wrap {
+  border: 0;                 /* avoid double borders */
+  border-top: 1px solid var(--sl-color-hairline);
+  border-radius: 0 0 0.75rem 0.75rem;
+}
+
+/* Improve focus ring on summary for a11y */
+.collapsible > summary:focus-visible {
+  outline: 2px solid var(--sl-color-primary);
+  outline-offset: 2px;
+}
+
+/* Dark mode tweaks if needed */
+[data-theme="dark"] .collapsible {
+  background: var(--sl-color-bg);
+}
+
+
+/* Default lists remain unchanged */
+
+/* Compact list style for denser layouts */
+.compact-list {
+  font-size: 0.9rem;       /* slightly smaller font */
+  line-height: 1.1;        /* tighter line spacing */
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 1.2em;     /* smaller indentation */
+}
+
+.compact-list li {
+  margin-bottom: 1em;   /* tighter spacing between bullets */
+}
+
+/* Optional: fine-tune nested lists */
+.compact-list ul,
+.compact-list ol {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+.compact-list-extra {
+  font-size: 0.9rem;       /* slightly smaller font */
+  line-height: 1;        /* tighter line spacing */
+  margin-top: 0.75em;
+  margin-bottom: 0.5em;
+  padding-left: 1em;     /* smaller indentation */
+}
+
+.resource-card {
+  background: var(--sl-color-bg-alt);
+  border-left: 4px solid var(--sl-color-accent);
+  padding: 1rem 1.5rem;
+  /* margin: 1.5rem 0; */
+  margin-left: 3rem;
+  margin-bottom: 3rem;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ---------- Chip list ---------- */
+.chip-list {
+  display:flex; flex-wrap:wrap; gap:.75rem;
+  list-style:none; padding-left:0; margin:.6rem 0 0;
+}
+.chip-list > li {
+  border:1px solid var(--sl-color-hairline);
+  border-radius:999px;
+  background: var(--sl-rows);
+  padding:.5rem 3rem;
+  font-size:.9rem;
+
+}
+
+
+.sl-markdown-content iframe.slide-embed {
+  width: min(100%, 960px);
+  aspect-ratio: 16 / 9;
+  /* ensure a reasonable minimum on small screens */
+  min-height: 360px;
+  border: 0;
+}
+
+.sl-markdown-content iframe[height]:not(.slide-embed) {
+  width: min(100%, 960px);
+  max-width: 100%;
+  display: block;
+  border: 0;
+}
+
+
+/* Monthly Highlight */
+
+.monthly-highlight {
+  position: relative;
+  padding: 1.75rem 2rem;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--sl-color-accent-high) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+  box-shadow: 0 12px 32px -18px rgba(0, 0, 0, 0.15);
+  display: grid;
+  gap: 1rem;
+}
+
+.monthly-highlight::before {
+  content: "★ Monthly Highlight";
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--sl-color-accent) 80%, white 20%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.monthly-highlight :where(p, ul, ol) {
+  margin: 0;
+}
+
+.monthly-highlight :where(ul, ol) {
+  padding-left: 1.2rem;
+}
+
+.monthly-highlight :where(h2)::before {
+  content: '';
+  margin-right: 0rem;
+  color: color-mix(in srgb, var(--sl-color-accent) 85%, white 15%);
+}
+
+.records-total {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 999px;
+  font-weight: 650;
+  background: color-mix(in srgb, var(--sl-color-accent-high) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sl-color-accent) 40%, transparent);
+  color: color-mix(in srgb, var(--sl-color-accent) 88%, var(--sl-color-text) 12%);
+  text-align: center;
+  font-size: 1.08rem;
+}
+
+.records-total::before {
+  content: '◎';
+  font-size: 1.1rem;
+}
+
+.records-total strong {
+  font-size: 1.12em;
+}
+
+
+/* Golden Highlight */
+
+.gold-highlight {
+  position: relative;
+  padding: 1.75rem 2rem;
+  border-radius: var(--radius-lg);
+  background: var(--btaa-light-yellow);
+  border: 1px solid #f1d487;
+  box-shadow: 0 12px 32px -18px rgba(0, 0, 0, 0.15);
+  display: grid;
+  gap: 1rem;
+}
+
+.gold-highlight::before {
+  content: '★ Highlight';
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--sl-color-accent) 80%, white 20%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.gold-highlight :where(p, ul, ol) {
+  margin: 0;
+}
+
+.gold-highlight :where(ul, ol) {
+  padding-left: 1.2rem;
+}
+
+.gold-highlight :where(h2)::before {
+  content: '';
+  margin-right: 0rem;
+  color: color-mix(in srgb, var(--sl-color-accent) 85%, white 15%);
+}
+
+
+.sl-banner {
+			--__sl-banner-text: var(--btaa-black);
+			padding: .75rem;
+			background-color: var(--btaa-banner);
+			line-height: var(--sl-line-height-headings);
+			text-align: center;
+			text-wrap: balance;
+			box-shadow: var(--sl-shadow-sm);
+		}

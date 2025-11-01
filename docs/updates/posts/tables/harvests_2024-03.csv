@@ -1,9 +1,0 @@
-Task,Description,Number Added,Number unpublished,Geoportal Link
-[08d-01 Farmlands](https://github.com/geobtaa/metadata/issues/552),New maps from Penn State scanned for our Important Farmlands collection,313,0,https://geo.btaa.org/?f%5Bpcdm_memberOf_sm%5D%5B%5D=2787a9e8-0bef-452e-9e5f-e83042c193b4&f%5Bschema_provider_s%5D%5B%5D=Pennsylvania+State+University
-[01d-05 Sanborn](https://github.com/geobtaa/metadata/issues/555),Individual Sanborn sheets from Indiana University,10085,0,https://geo.btaa.org/?f%5Bb1g_geom_import_id_ssi%5D%5B%5D=120&publication_state=%2A
-[Add "The Missing Link" StoryMap](https://github.com/geobtaa/metadata/issues/563),StoryMap from researcher at University of Maryland,1,0,https://geo.btaa.org/catalog/f11a86e58f134873beba16424190c4c3
-[05a-01 March 2024](https://github.com/geobtaa/metadata/issues/509),Regular MN Geospatial Data Commons harvest,3,2,https://geo.btaa.org/?f%5Bb1g_geom_import_id_ssi%5D%5B%5D=126&publication_state=%2A
-[ArcGIS Hub Harvest 2024-03-05](https://github.com/geobtaa/metadata/issues/562),ArcGIS reharvest,41,243,-
-[ArcGIS Hub Harvest 2024-03-12](https://github.com/geobtaa/metadata/issues/565),ArcGIS reharvest,19,290,-
-[ArcGIS Hub Harvest 2024-03-26](https://github.com/geobtaa/metadata/issues/568),ArcGIS reharvest,61,140,-
-[Update 999-0002 Landscan to Public access rights](https://github.com/geobtaa/metadata/issues/569),Replaced East View's proprietary application for Landscan with Oak Ridge's free and public one,24,19,https://geo.btaa.org/catalog/88-2000

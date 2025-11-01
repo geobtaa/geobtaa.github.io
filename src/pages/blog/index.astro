@@ -1,0 +1,63 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import ContentGrid from '../../components/ContentGrid.astro';
+import PageFilterSection from '../../components/PageFilterSection.astro';
+import { loadBlogContent } from '../../utils/blogContent';
+import { getFilterConfigForPath } from '../../utils/filterConfig';
+
+const blogContent = await loadBlogContent();
+const { items: allItems } = blogContent;
+
+const params = Astro.url.searchParams;
+const sortOrder = params.get('sort') === 'oldest' ? 'oldest' : 'newest';
+
+const sortedItems = [...allItems].sort((a, b) => {
+  const aTime = a.published?.getTime() ?? 0;
+  const bTime = b.published?.getTime() ?? 0;
+  return sortOrder === 'oldest' ? aTime - bTime : bTime - aTime;
+});
+
+const filterConfig = await getFilterConfigForPath(
+  Astro.url.pathname,
+  Astro.url.searchParams,
+  { blogContent },
+);
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'News & Stories',
+    description: 'Browse recent highlights and program updates from the BTAA-GIN.',
+    tableOfContents: false,
+    template: 'splash',
+    prev: false,
+    next: false
+  }}
+>
+  <div class="sl-container">
+    {filterConfig && filterConfig.placement === 'top' && (
+      <PageFilterSection config={filterConfig} />
+    )}
+    <p class="intro">
+      Explore featured stories, collection highlights, and program updates. Use the filters to narrow by tags, authors, or publication year. 
+    </p>
+    <p>
+    Looking for older posts?  <a href = "https://geobtaa.blogspot.com">Visit our Blogspot.</a>
+    </p>
+    <ContentGrid items={sortedItems} />
+  </div>
+</StarlightPage>
+
+<style>
+  .sl-container {
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    gap: 1.1rem;
+  }
+
+  .intro {
+    margin: 0;
+    color: var(--sl-color-text-muted);
+  }
+</style>

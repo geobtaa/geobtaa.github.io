@@ -1,0 +1,43 @@
+---
+import ProviderSnapshotComponent from "../../components/ProviderSnapshot";
+const API_BASE = "https://lib-btaageoapi-dev-app-01.oit.umn.edu/api/v1";
+const SEED = [
+"University of Minnesota",
+"Stanford",
+"Rutgers University-New Brunswick",
+"Texas",
+"University of Illinois Urbana-Champaign",
+"Indiana University",
+"University of Iowa",
+"NYU",
+"GMU",
+"Michigan State University",
+"University of Maryland",
+"University of Michigan",
+"The Ohio State University",
+"Pennsylvania State University",
+"Purdue University",
+"Northwestern University",
+"University of Nebraska-Lincoln",
+"Rutgers University",
+"University of Maryland",
+"University of Chicago",
+"University of California Berkeley",
+"Big Ten Academic Alliance Geospatial Information Network",
+];
+---
+
+<section class="space-y-4">
+<h2 class="text-2xl font-semibold">OpenGeoMetadata: Provider snapshot</h2>
+<p class="opacity-80">Counts by <code>schema_provider_s</code> using a fixed provider list.</p>
+
+<ProviderSnapshotComponent
+client:load
+apiBase={API_BASE}
+seedProviders={SEED}
+concurrent={3}
+showTop={25}
+autoStart={false}
+debug={true}
+/>
+</section>

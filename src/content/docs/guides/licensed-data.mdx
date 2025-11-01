@@ -1,0 +1,81 @@
+---
+title: Licensed Data Guide
+description: The Licensed Data research guide explains how to interpret those records and access the data.
+sidebar:
+   order: 8
+   label: Licensed data
+tags:
+- guides
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+
+Most of the resources in the BTAA Geoportal are free and open, but we also include an index of licensed databases commonly accessed by researchers affiliated with a BTAA university.  The Licensed Data research guide explains how to interpret those records and access the data.
+
+
+## What does “Licensed Data” mean?
+
+Licensed data is data that is authorized for use by an individual university, or by multiple universities in the Big Ten Academic Alliance through a subscription. It is paid for by an institution for affiliates to use, unlike free public use data.
+
+Licensed data records do **not** link directly to datasets you can download like our other public geoportal records do. Download is dependent on the database itself (see database descriptions below for common uses and data format availability).
+
+## How to identify licensed data:
+
+* Under Public/Restricted” on the left bar for filtering, licensed data resources are found by filtering for “Restricted” resources. Browse all licensed data in the portal [here](https://geo.btaa.org/?f%5Bdct_accessRights_s%5D%5B%5D=Restricted&page=1&per_page=20&search_field=all_fields).
+* Under the “Rights” heading on the item record itself, there may be more specific restrictions.
+* If you see the lock icon beside the title, it is a Licensed Resource/Restricted
+
+
+## Type of access 
+
+Some licensed data providers have a free version or limited version of their product where a limited number of datasets are available freely, while other datasets may only be accessible if your institution has paid for a subscription. The geoportal will send you back to your own institution’s library catalog for logging in, as each institution is different. Click the name of your institution in the bottom right of the record to be taken to your institution’s catalog.
+
+## How to get to the data
+
+If you come across a licensed data record in the geoportal, it is an indication that the data exists in that provider’s interface. Our records try to mimic the structure or broader headings of the provider the record comes from. Collections in the geoportal record will most likely be named the same as headings in the licensed data resource, so this is one way to search. Another way is by searching the name of the dataset in the provider’s search bar, if they have one. 
+
+For example with the following Elections dataset via PolicyMap:
+
+
+1. Search by provider category or data folder
+
+    Look down under “Related Items” and see if there is a “Collection”. The name of the Collection will likely be a heading on the site’s interface. For example, Elections: Presidential is in the Demographics collection. That means that this dataset will appear under a Demographics heading on the PolicyMap site.
+
+
+2. Type the name or keyword of the record into the interface’s search bar
+
+    Whatever word you see as the name of the dataset, search in the site interface itself to look for it. Typing “elections” into the PolicyMap site itself will find this dataset in the website and then you can download from there. Some interfaces, like Social Explorer, do not have a search bar.
+
+
+## Licensed databases indexed in the BTAA Geoportal
+
+<LinkCard
+  title="Digital Sanborn Maps (Proquest)"
+  href="https://geo.btaa.org/?f%5Bdct_isPartOf_sm%5D%5B%5D=999-0011"
+  description="Sanborn fire insurance maps provide a variety of information, such as building outline, size and shape, as well as property addresses. Plans often include details on construction materials and building use. Map images are black and white and are dated between 1867 and 1970. Formats include image files."
+/>
+
+<LinkCard
+  title="Fire Insurance Maps online"
+  href="https://geo.btaa.org/?f%5Bdct_isPartOf_sm%5D%5B%5D=999-0010"
+  description="Fire Insurance Maps online (FIMo) is a research portal to find and view color versions of fire insurance Maps, real estate atlases, plat books, and other historical maps showing building structures, building construction details, property ownership, property uses, and other information. The database is searchable by address, by coordinates, or by a clickable map interface. Maps are dated between 1880 and 1955. Formats include image files."
+/>
+
+<LinkCard
+  title="PolicyMap"
+  href="https://geo.btaa.org/?f%5Bdct_isPartOf_sm%5D%5B%5D=999-0003"
+  description="Policymap is an online data and mapping application with a social science focus. The database contains over 15,000 indicators related to housing, crime, mortgages, health, jobs, demographics and education. Data are available at various common geographies (address, block group, census tract, zip code, county, city, state, MSA) as well as unique geographies like school districts and political boundaries. Formats include image files, Spreadsheets (CSV); interactive mapping."
+/>
+
+<LinkCard
+  title="SimplyAnalytics"
+  href="https://geo.btaa.org/?f%5Bdct_isPartOf_sm%5D%5B%5D=999-0004"
+  description="SimplyAnalytics is a web-based mapping tool with a business, marketing, and health focus. The database lets users create interactive maps and reports. Data exportable as shapefiles and tables. Formats include image files; Spreadsheets (Excel, CSV); Shapefiles; interactive mapping."
+/>
+
+<LinkCard
+  title="Social Explorer"
+  href="https://geo.btaa.org/?f%5Bdct_isPartOf_sm%5D%5B%5D=999-0001"
+  description="This interactive website allows users to create maps and reports from selected census statistics and other data such as religion data, U.S. Election data, UK Census 2011 data, and Ireland Religion data. Generate thematic maps for census tracts. It offers table downloads and a selection of shapefile downloads. Formats include Spreadsheets (Excel, CSV); Shapefiles; interactive mapping"
+/>

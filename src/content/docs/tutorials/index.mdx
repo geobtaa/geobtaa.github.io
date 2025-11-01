@@ -1,0 +1,75 @@
+---
+title: Overview of tutorials
+description: The BTAA Geospatial Information Network has created a series of tutorials to showcase the practicality of the BTAA Geoportal for teaching and learning about maps, geospatial data, and GIS techniques.
+tableOfContents: false
+tags:
+- guides
+
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+import { ShowcaseText } from 'starlight-showcases'
+
+The BTAA-GIN has created a series of tutorials to showcase the practicality of the BTAA Geoportal for teaching and learning about maps, geospatial data, and GIS techniques. These tutorials cover activities designed to meet the needs of instructors and students in a wide range of disciplines and levels of competency in geospatial data retrieval, use, and analysis.
+
+<ShowcaseText
+  entries={[
+    {
+      href: '/tutorials/01_types-of-geospatial-information',
+      title: '1. Types of Geospatial Information',
+      description: 'Introduction to the most commonly used types of data in GIS.',
+    },
+    {
+      href: '/tutorials/02_find-maps',
+      title: '2. Find a Map',
+      description: 'How to locate a map for a given topic and use it in a document.',
+    },
+    {
+      href: '/tutorials/03_find-geospatial-data',
+      title: '3. Find Geospatial Data',
+      description: 'How to frame a search strategy and perform a search for geospatial data.',
+    },
+
+    {
+      href: '/tutorials/04_evaluate-geospatial-information',
+      title: '4. Evaluate Geospatial Information',
+      description: 'How to evaluate geospatial data on the BTAA Geoportal for research and coursework',
+    },
+    {
+      href: '/tutorials/05_web-services',
+      title: '5. Use GIS Web Services',
+      description: 'Provides a basic understanding of GIS web services, how to find them using the BTAA Geoportal, and how to use them in GIS tools.',
+    },
+    {
+      href: '/tutorials/06_link-tabular-data',
+      title: '6. Link Tabular Data to Geospatial Data',
+      description: 'Provides step-by-step instructions for downloading and visualizing spreadsheet data in ArcGIS Online by linking tabular data to geospatial data with a key index variable',
+    },
+    {
+      href: '/tutorials/07_georeference',
+      title: '7. Georeference a Map',
+      description: 'Guides ArcMap users through the steps of georeferencing a scanned historic map of Hyde Park, Chicago.',
+    },
+    {
+      href: '/tutorials/08_digitize',
+      title: '8. Digitizing',
+      description: 'How to use ArcGIS Pro to convert data in raster format, such as scanned maps or aerial imagery, into vector data, like points, lines, and polygons.',
+    },
+    {
+      href: '/tutorials/09_create-elevation-surface-models',
+      title: '9. Create Elevation Surface Models Using LiDAR',
+      description: 'Introduces LiDAR datasets and point cloud processing in ArcGIS Pro.',
+    },
+    {
+      href: '/tutorials/10_zonal-stats-tool',
+      title: '10. Build a GIS-Free Open-Source Zonal Stats Tool',
+      description: 'Use Python scripting to make a free-standing zonal statistics tool that is not dependent upon desktop GIS software.',
+    },
+    {
+      href: '/tutorials/11_story-maps',
+      title: '11. Story Maps',
+      description: 'Introduces the process of creating a story map by using ArcGIS Online’s StoryMaps interface.',
+    },
+
+  ]}
+/>

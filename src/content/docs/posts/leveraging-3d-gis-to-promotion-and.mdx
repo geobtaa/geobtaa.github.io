@@ -1,0 +1,112 @@
+---
+title: "Leveraging 3D GIS to promotion and discoveries map collection"
+date: 2025-05-08
+authors:
+  - name: "Jose Anza Garcia"
+  - name: "Milan Budhathoki"
+excerpt: "We are proud and fortunate to possess a map collection featuring over 200,000 items."
+tags: ["GIS techniques", "Maryland", "institution highlight"]
+cover:
+  image: "@images/umd_map.png"
+  alt: ""
+---
+
+import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import CenterLayout from '@components/CenterLayout.astro'
+
+
+
+At the University of Maryland's McKeldin Library, we are proud and fortunate to possess a map collection featuring over 200,000 items. It spans a wide degree of subject categories (topographic, nautical, aeronautical, etc.) and formats (print maps, atlases, raised relief models, etc.). In addition, through the library's designation as a Regional Depository Library by the Federal Depository Library Program, the map collection also holds countless government-produced documents of important historical and cultural value.
+
+
+<CardGrid>
+
+<Card>
+
+A top-down map of the library's 4th floor, which houses the map collection (red square).
+
+![map of library](@images/umd_map.png)
+</Card>
+<Card>
+
+Examples of different storage furniture items: at left, cabinets, and at right, atlas bookcases.
+![Image of drawers](@images/storage_furniture.png)
+</Card>
+</CardGrid>
+
+However, the sheer size and scope of the map collection mean that a comprehensive catalog of all its contents does not exist at this time, making it hard for the library's patrons to find materials without visiting in person. Therefore, the [GIS and Data Service Center](https://www.lib.umd.edu/research/services/gis) at UMD Libraries started exploring tools to promote the extensive cartographic collection housed in McKeldin Library. The team came up with a ArcGIS StoryMap to showcase the maps and atlases, providing patrons an immersive experience to explore the collection.
+
+
+<CenterLayout>
+
+![StoryMap screenshot](@images/umd_storymap.png)
+The StoryMap can be accessed [here](https://storymaps.arcgis.com/collections/12be77b7a7ab4e068cb909b0ba75c6d4).
+
+</CenterLayout>
+
+To further enhance the user experience, the team sought to leverage existing GIS technologies to create an accurate and realistic 3D model of the indoor environment containing the maps and atlases, specifically storage cabinets, bookshelves, walls, and columns. This would be created in such a way that each individual smallest storage space (e.g., drawer) would have a row in the table with its respective attributes (map category and subcategory, geographic subject, cabinet number), allowing the table to be queried to find items of interest. Eventually, this model would be embedded into a web application that the general public could access and use to explore the map collection from anywhere and anytime.
+
+We collected field measurements by hand using a laser measuring tool and then built the scale-accurate model in ArcGIS Pro. The basic method was to extrude features from 2D to 3D using height values in the attribute table to place the objects at their correct height.
+
+<TwoThirdsLayout>
+<div slot="left">
+
+</div>
+<div slot="right">
+
+</div>
+</TwoThirdsLayout>
+
+<TwoThirdsLayout>
+<div slot="right">
+*The process used to create 3D features from scratch using the measurements obtained from the field. Both depict the same feature, but the one on the left has been extruded. All 17 component features (15 drawers, a topper, and a riser) have been extruded based on the heights of the bottom and top of each feature, which was defined in the attribute table.*
+</div>
+<div slot="left">
+![](@images/3d_height.png)
+</div>
+</TwoThirdsLayout>
+
+<TwoThirdsLayout>
+<div slot="left">
+![](@images/att_table.png)
+</div>
+<div slot="right">
+*An example of the attribute table for a single cabinet. The Height field denotes the height of the bottom of the feature, while the Z field denotes the height of the top (all in feet).*
+</div>
+</TwoThirdsLayout>
+
+<TwoThirdsLayout>
+<div slot="right">
+The atlas cases (left) and their 3D representation in the model (right).
+</div>
+<div slot="left">
+![](@images/atlas_cases.png)
+</div>
+</TwoThirdsLayout>
+
+
+The model was then published to ArcGIS Online and the web application was built using the ArcGIS Maps SDK for JavaScript mapping library.
+
+<CardGrid>
+<Card>
+The final web application, with the results from a search of "Maryland" highlighted in yellow.
+![App screenshot](@images/md_search.png)
+</Card>
+<Card>
+
+Example of a geographic location search for the country of Togo.
+![App screenshot](@images/togo_search.png)
+</Card>
+</CardGrid>
+
+We wanted to share this short post about our project to encourage other map libraries out there to explore the possibilities of leveraging GIS technologies to boost the reach of your physical map collections. The massive paradigm shift that has occurred within the past twenty years with the rise of the internet has placed digital geographical data at the forefront, leading to a decrease in interest in and attention paid to physical mediums such as maps. However, we believe that the digital can be used to boost the physical, and this project shows that web-based 3D applications can provide a novel and interactive for both map library exploration and promotion through the power of the internet.
+
+<br/>
+
+Link to the application: [https://mapcollection3d.umd.edu/](https://mapcollection3d.umd.edu/)
+
+Jose Anza Garcia and Milan Budhathoki, [GIS and Data Service Center](https://www.lib.umd.edu/research/services/gis), University of Maryland Libraries
+Please direct any questions or feedback to [gisdata@umd.edu](mailto:gisdata@umd.edu)
+
+

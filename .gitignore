@@ -1,5 +1,31 @@
-site/
-.DS_Store
-.sass-cache
-_site
-.cache
+# Dependencies
+node_modules/
+.pnpm-debug.log*
+
+# Environment variables
+.env
+.env.*.local
+.env.local
+
+# Astro build output
+dist/
+.astro/
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# OS-specific files
+**/.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local fonts (if applicable)
+# For example, if you have a 'public/fonts' directory with local font files that are not part of your Git repository
+# public/fonts/
+
+# Cache files (if applicable)
+# For example, if you use a specific caching mechanism that creates files you don't want to track
+# .cache/

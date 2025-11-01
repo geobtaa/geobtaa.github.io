@@ -1,0 +1,171 @@
+---
+title: July 2025 Program Update
+
+date: 2025-08-01
+excerpt: Introducing Our New Strategic Technology Plan.
+authors:
+    - name: BTAA-GIN Staff
+tags:
+  - Program Updates
+cover:
+  image: "@images/techplan2025.png"
+  alt: Overview diagram of proposed BTAA-GIN technology stack
+  caption: Overview of the proposed BTAA-GIN technology stack.
+---
+import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
+import CenterLayout from 'src/components/CenterLayout.astro';
+import ChipList from 'src/components/ChipList.astro';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<div class="monthly-highlight">
+## Introducing Our New Strategic Technology Plan
+
+As the [BTAA Geoportal](https://geo.btaa.org/) continues to grow, so do the demands on our technology. With the recent expansion of the Big Ten and the addition of new geospatial resources from the West Coast, we saw an opportunity to pursue a more modern and flexible approach to managing our collections. The result is a Strategic Technology Plan for building a stack that is modular, resilient, and future-ready.
+
+<CenterLayout>
+![Headshots](@images/techplan2025.png)
+*Overview of the proposed BTAA-GIN technology stack.*
+</CenterLayout>
+
+The centerpiece of this new approach is a central metadata API that will make it simpler to access and reuse our geospatial records. The API will support multiple discovery portals and access points, and it already powers a QGIS discovery plugin that is in active development.
+
+We are moving away from a single, monolithic geoportal application toward a modular framework built on open-source Python tools. This structure lets us update individual components more easily and empowers us to prioritize data over tools, collaborate across institutions, and build infrastructure that adapts as our needs evolve.
+
+Our [2025-26 roadmap](https://gin.btaa.org/technology/tech-plan-2025) outlines four projects that bring this plan to life. Development is underway with a full rollout targeted for mid-2026, and we look forward to sharing updates along the way.
+
+</div>
+
+## Program Activities
+
+### Committees
+
+<CardGrid>
+  <Card title="Community Engagement">
+    Held a working meeting to review and note updates to the Geoportal tutorials.
+  </Card>
+
+  <Card title="Coordination">
+    The July Coordinating Committee and Program Team meetings were canceled due to vacations.
+  </Card>
+
+  <Card title="Knowledge">
+    Did not meet; all committee work wrapped in June.
+  </Card>
+
+  <Card title="TECHnology">
+    Did not meet; all committee work wrapped in June.
+  </Card>
+</CardGrid>
+
+### Workgroups
+
+<Card>
+#### Geodata Collection Workgroup
+
+- Aligned on the Urban Base Layers initiative, identifying seven foundational city-scale datasets shared across major metro areas in Big Ten states.
+- Confirmed Minneapolis as the first data provider partner to approach, paving the way for collaboration with additional cities.
+
+#### Service Model Collaboration Workgroup
+
+- Continued asynchronous work on the final report to finalize it for the August Program Team meeting.
+
+#### Geospatial Data Citation Workgroup
+
+Did not meet.
+</Card>
+
+
+## BTAA Geoportal
+
+### This Month by the Numbers
+
+<TwoThirdsLayout>
+<div slot="left">
+![Unique visitors by month](@images/2025-07-monthly-users.png)
+*Unique visitors by month.*
+</div>
+
+<div slot="right">
+<div class="compact-list">
+- Visitors: 10,164
+- Visits: 10,995
+- Downloads: 10,758
+- Visits with download: 5.50%
+- Outlinks: 1,975
+- Visits with outlink: 17.96%
+- Num. searches: 1,724
+- Search keywords: 470
+</div>
+</div>
+</TwoThirdsLayout>
+
+
+
+### Top Google searches leading to the Geoportal
+
+<ChipList class="not-content">
+- kuwait sex
+- btaa geoportal
+- sanborn maps
+- oakland county mi parcel search
+- franklin county ohio school district map
+- franklin county line map
+- fire insurance maps california
+- geoportal
+- purdue campus map
+- oakland county parcel viewer
+- nj wetlands map
+</ChipList>
+
+### Top internal keyword searches
+
+<ChipList class="not-content">
+- PLSS
+- Geology
+- Sanborn
+- ArcGIS hubs
+- Address
+- Parks
+- Parcel
+- La Habra
+- Turkey
+- Puerto Rico
+</ChipList>
+
+:::tip[More stats]
+See full statistics on our [Analytics Dashboard](https://tableau.umn.edu/t/UL/views/BTAAGeoportalusageMatomo/Monthlycharts?%3Aembed=y&%3AisGuestRedirectFromVizportal=y)
+:::
+
+---
+
+## Collections
+
+<p class="records-total">Total records as of August 1, 2025: **107,805**</p>
+
+### Harvesting Activities
+
+| Title | Records Added | Records Retired |
+|:--|--:|--:|
+| 2025-07-01 Scan ArcGIS Hubs | 92 | 108 |
+| 2025-07-22 Scan ArcGIS Hubs | 53 | 109 |
+| edu.wisc new WI DOT scanned maps | 42 | 0 |
+| PASDA 08a-01 Q3 2025 | 10 | 0 |
+| Add multiple ArcGIS Hubs for cities | 8 | 0 |
+| Harvest records for new city ArcGIS Hubs | 967 | 0 |
+| MN GeoCommons 05a-01 July 2025 | 2 | 0 |
+| CKAN scan Q3 2025 | 0 | 0 |
+| Socrata Harvest Q3 2025 | 0 | 0 |
+| **Total** | **1,174** | **217** |
+
+
+
+## Web Development
+
+- **Strengthened Geoportal stability and performance.** Implemented a bot mitigation solution using Cloudflare Turnstile and Samvera tools to stabilize uptime during disruptive traffic spikes.
+- **Advanced OpenGeoMetadata API development.** Published a draft specification for a new geospatial API that supports BTAA and broader discovery efforts, laying groundwork for broader adoption.
+- **Explored budget-friendly hosting solutions.** Tested Kamal deployment on a low-cost physical server as a promising option for hosting the GeoData API with minimal overhead.
+
+:::note[More development details]
+[Read the most recent development report for more details](https://docs.google.com/document/d/19sSRPXlRzI-dF-fMAbF44S1NBFgVYX23F-gS6-Ikuqc/edit?usp=sharing)
+:::
+

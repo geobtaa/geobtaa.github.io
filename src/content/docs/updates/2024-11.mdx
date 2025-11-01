@@ -1,0 +1,190 @@
+---
+title: November 2024 Program Update
+
+excerpt: 'The BTAA-GIN Geoportal has reached an impressive milestone: over 100,000 geospatial resources, with a large percentage of this growth happening in the past year alone!'
+authors:
+    - name: BTAA-GIN Staff
+tags:
+  - Program Updates
+date: 2024-12-04
+cover:
+  image: "@images/100000-crop.gif"
+  alt: 100000 Records
+  caption: 100000 Records
+---
+import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
+import ChipList from 'src/components/ChipList.astro';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import Table from '/src/components/Table.astro';
+
+<div class="monthly-highlight">
+
+## Celebrating 100,000 Datasets and Counting
+
+<CardGrid>
+<Card>
+The BTAA-GIN Geoportal has reached an impressive milestone: over 100,000 geospatial resources, with a large percentage of this growth happening in the past year alone!
+</Card>
+<Card>
+![](@images/100000-crop.gif)
+</Card>
+</CardGrid>
+
+Whether you're researching urban planning, environmental change, or historical maps, the Geoportal connects you to data from state and local governments, universities, and beyond. With one powerful interface, you can uncover a vast range of datasets to power your research.
+ 
+[**Explore the possibilities—search the Geoportal today!**](https://geo.btaa.org)
+
+</div>
+
+
+
+## Program Activities
+
+### Committees
+
+<CardGrid>
+  <Card title="TECHnology">
+    - Completed the priority project on adding policies and disclaimers to the Geoportal.
+    - Began reconfiguring meetings to focus on thematic topics, incorporating short member presentations and interactive activities such as the recent session on evaluating landing pages.
+  </Card>
+
+  <Card title="Community Engagement">
+    - Held a separate work session to create a series of short video walkthroughs introducing the Geoportal to new users.
+    - Suggested including the INTERFACE Activities Tracker as a resource in these videos.
+    - New Program & Outreach hire, Colleen Wilson, shared what she's been working on and outlined upcoming plans.
+  </Card>
+
+  <Card title="Knowledge">
+    The GIS Service Model group held a second meeting and is considering conducting a survey to assess the current state of GIS services.
+  </Card>
+
+  <Card title="Coordination">
+    - Oregon has committed to joining us at the start of the new year. An onboarding plan along with a new handbook for new members is in development.
+    - New Program & Outreach hire, Colleen Wilson, was introduced along with her plan to meet with each institution in the next two months to learn how best to leverage and support this collaboration.
+  </Card>
+</CardGrid>
+
+### Workgroups
+
+<Card>
+
+#### Geodata Pilot Workgroup
+
+	* Reviewing new metadata fields and input guidelines  
+	* Recommending formats for data dictionaries  
+	* Began a draft of a final report
+
+#### FAST for Subject Terms Workgroup
+
+	* Continuing to analyze Subject field for maps  
+	* Determining cleanup activities and future workflows for new items
+
+#### Service Model Collaboration Workgroup
+
+	* Developed a tiered GIS service model based on a 2020 survey of BTAA-GIN members  
+	* Planning to create a new survey to explore tiered service models and compensation practices among BTAA-GIN members and beyond, focusing on service definitions, tier structures, and staffing.
+	
+</Card>
+
+
+
+## BTAA Geoportal 
+
+<TwoThirdsLayout>
+<div slot="left">
+![Unique visitors by month](@images/2024-11-monthly-users.png)
+*Geoportal visitors*
+</div>
+<div slot="right">
+<div class="compact-list">
+* Visitors: 6,905  
+* Visits: 7,582  
+* Downloads: 318  
+* Visits with download: 4.19%  
+* Outlinks: 1,468  
+* Visits with outlink: 19.36%  
+* Num. searches: 2,549  
+* Search keywords: 795  
+* Pageviews: 16,593
+</div>
+</div>
+</TwoThirdsLayout>
+
+
+:::tip[More stats]
+See full statistics on our [Analytics Dashboard](https://tableau.umn.edu/t/UL/views/BTAAGeoportalusageMatomo/Monthlycharts?%3Aembed=y&%3AisGuestRedirectFromVizportal=y)
+:::
+
+
+#### Top Google searches leading to the Geoportal
+<ChipList class="not-content">
+	- btaa geoportal	  
+	- ohio school district map  
+	- south bend city limits  
+	- aerial photographs wisconsin  
+	- outagamie county gis  
+	- milwaukee voting wards  
+	- evansville city limits  
+	- school district map ohio  
+	- sanborn maps michigan  
+	- wetlands map nj
+
+</ChipList>
+
+#### Top internal search keywords
+<ChipList class="not-content">
+
+	- wildfire  
+	- ann arbor  
+	- forest  
+	- salmon  
+	- deer  
+	- food  
+	- fish  
+	- fire  
+	- yemen  
+	- sanborn
+
+</ChipList>
+
+
+### Collections
+
+<p class="records-total">Total records as of December 1, 2024: 103,310</p>
+
+<figure markdown="span">
+  ![Records November 1 2024](@images/records-2024-11.png)
+  <figcaption>BTAA Geoportal Records from 2016 to 
+December 1, 2024</figcaption>
+</figure>
+
+
+###  Harvesting Activities
+
+<Table
+  src="src/tables/harvests_2024-11.csv"
+    columns={[
+    { key: "Task",   width: "50%", filter: "text",  wrap: "nowrap",  render: "markdown" },
+    { key: "Records added",  width: "25%", filter: "text"},
+    { key: "Records retired",   width: "25%", filter: "text" },
+  ]}
+/>
+
+
+### Development
+
+* Refactored GBL Admin to separate primary metadata fields from access links.   
+* Exploring adding gazetteer information to the application
+
+:::tip[More development details]
+[Read the most recent development report for more details](https://docs.google.com/document/d/1D\_aZIyZJQNB8DubuYCPUPf-AR2M57sKrxG6c2CTRJxs/edit?tab=t.0)
+:::
+
+## Priority Projects Update
+
+* Closed [Adding Policies and Disclaimers](https://github.com/geobtaa/.github/issues/70)  
+* Began creating [Walkthroughs of the Geoportal](https://github.com/geobtaa/.github/issues/72)  
+
+
+Refer to our [Priority Projects board](https://github.com/orgs/geobtaa/projects/22/views/5) for more details.
+

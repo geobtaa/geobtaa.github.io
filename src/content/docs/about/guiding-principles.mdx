@@ -1,0 +1,187 @@
+---
+title: Guiding principles
+description: 'Our mission, values, and vision'
+sidebar:
+  order: 4
+---
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+import TwoThirdsRLayout from '/src/components/TwoThirdsRLayout.astro';
+import coverUrl from '/src/assets/images/cover.png';
+import logoUrl from '/src/assets/images/btaa-gin-logo.svg';
+
+<section
+  class="about-hero"
+  style={`--about-bg: url(${coverUrl.src});`}
+  aria-labelledby="about-hero-title"
+>
+  <img src={logoUrl} alt="" class="about-hero__logo" decoding="async" loading="eager" />
+  <h1 id="about-hero-title" class="sr-only">About the Big Ten Academic Alliance Geospatial Information Network</h1>
+  <p class="about-hero__tagline">We support the geospatial research community and foster connections among geospatial library professionals.</p>
+</section>
+
+
+## Our Mission
+
+To support the geospatial research community by making resources easier to find and to foster connections among geospatial library professionals through our collaboration.
+
+* Our program aims to support the geospatial research community by building and maintaining a collective open-source spatial data infrastructure featuring metadata optimized for spatial discovery platforms.
+* We foster connections among geospatial library professionals, the Big Ten Academic Alliance, and the BIG Collection by sharing expertise and utilizing collective resources while cultivating a culture of deep collaboration and interdependence.
+
+<hr/>
+
+## Our Vision
+
+To preserve and share at-risk digital geospatial assets by building a complete spatial data infrastructure.
+
+
+<hr/>
+
+## Our Values
+
+### Program Values
+
+*These values guide our overall program decisions and strategic planning.*
+
+<TwoThirdsRLayout>
+<div slot = "left">
+**1. Collaboration & Connection**
+</div>
+<div slot = "right" class="compact-list">
+* Provide a centralized resource discovery platform to connect data creators, providers, and consumers.
+* Provide a collaborative social infrastructure for librarians and geospatial specialists.
+* Create opportunities for engaging in joint research and sharing scholarly outputs.
+</div>
+</TwoThirdsRLayout>
+
+<hr/>
+
+<TwoThirdsRLayout>
+<div slot = "left">
+**2. Diversity, Equity, & Accessibility**
+</div>
+<div slot = "right" class="compact-list">
+* Lower barriers to accessing geospatial data across a wide range of communities.
+* Create educational resources fostering geospatial literacy.
+* Strive to identify resources that represent diversity in topics, geographic regions, time periods, communities, and languages.
+</div>
+</TwoThirdsRLayout>
+<hr/>
+
+<TwoThirdsRLayout>
+<div slot = "left">
+**3. Stewardship & Sustainability**
+</div>
+<div slot = "right" class="compact-list">
+* Invest in open-source technology and communities.
+* Share metadata best practices and schema development.
+* Champion initiatives to preserve and archive digital geospatial assets.
+</div>
+</TwoThirdsRLayout>
+<hr/>
+
+
+### Technical Values
+
+*These statements, established in 2025, inform our choices for software development and technology stacks.*
+
+#### 1. Resilience & Growth
+
+
+<TwoThirdsRLayout>
+<div slot = "left">
+
+**1.1. Durable (Meta)data beyond Ephemeral Applications**
+
+</div>
+<div slot = "right" class="compact-list">
+
+We ensure metadata and data remain accessible and usable for future generations, even as tools and platforms evolve.
+</div>
+</TwoThirdsRLayout>
+
+
+<TwoThirdsRLayout>
+<div slot = "left">
+**1.2. Modularity and Scalability**
+
+</div>
+<div slot = "right" class="compact-list">
+
+We create flexible systems that grow with changing needs.
+
+</div>
+</TwoThirdsRLayout>
+
+<TwoThirdsRLayout>
+<div slot = "left">
+**1.3. Adoption of Sustainable Technologies**
+</div>
+<div slot = "right" class="compact-list">
+We embrace modern, industry-standard tools to ensure our systems remain reliable, maintainable, and adaptable.
+</div>
+</TwoThirdsRLayout>
+
+<hr/>
+
+#### 2. User and Community Focus
+
+
+<TwoThirdsRLayout>
+<div slot = "left">
+**2.1. Community-Centered Design**
+</div>
+<div slot = "right" class="compact-list">
+We design tools based on the needs of researchers, libraries, data providers, and users.
+</div>
+</TwoThirdsRLayout>
+
+
+
+<TwoThirdsRLayout>
+<div slot = "left">
+**2.2. Transparency and Openness**
+</div>
+<div slot = "right" class="compact-list">
+We commit to open standards, open-source tools, and transparent workflows.
+</div>
+</TwoThirdsRLayout>
+
+
+
+<TwoThirdsRLayout>
+<div slot = "left">
+**2.3. Data Integrity**
+</div>
+<div slot = "right" class="compact-list">
+We prioritize trust by documenting the resource provenance, promoting data citations, and following established FAIR metadata principles.
+</div>
+</TwoThirdsRLayout>
+
+<hr/>
+
+
+#### 3. Standards & Interoperability
+
+
+<TwoThirdsRLayout>
+<div slot = "left">
+**3.1. Commitment to Standards**
+</div>
+<div slot = "right" class="compact-list">
+We align with widely adopted standards to ensure our tools and metadata are compatible, easy to adopt, and scalable.
+</div>
+</TwoThirdsRLayout>
+
+
+
+<TwoThirdsRLayout>
+<div slot = "left">
+**3.2. Machine-Readable Metadata**
+</div>
+<div slot = "right" class="compact-list">
+We prioritize metadata structured within a machine-readable catalog format over static document-centered files.
+</div>
+</TwoThirdsRLayout>
+
+

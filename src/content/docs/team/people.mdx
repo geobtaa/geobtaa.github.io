@@ -1,0 +1,68 @@
+---
+title: People
+description: 'The partner institutions and team members'
+tableOfContents: false
+sidebar:
+  order: 3
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import { ShowcaseProfile } from 'starlight-showcases'
+import Table from '/src/components/Table.astro';
+
+
+## Team Members
+
+Our Team Members form the core of BTAA-GIN, each contributing unique skills and perspectives. Their collective expertise covers a wide range of areas, including geospatial science, data management, and metadata, as well as map cataloging and cartographic history. They also contribute valuable insights into social justice and web accessibility, alongside technical skills in software development and user-friendly interface design.
+
+<Table
+  src="src/tables/teamMembers-2025.csv"
+  filters
+  columns={[
+    { key: "Last Name",   width: "10%", filter: "text",  wrap: "nowrap" },
+    { key: "First Name",  width: "10%", filter: "text"},
+    { key: "Title",   width: "40%", filter: "text" },
+    { key: "Affiliation", width: "40%", filter: "datalist" }
+  ]}
+/>
+
+
+## University of Minnesota Operations Staff
+
+The University of Minnesota serves as the administrative and technical hub of the BTAA-GIN.
+
+
+<Table
+  src="src/tables/umn-staff.csv"
+  columns={[
+    { key: "Last Name",   width: "10%", filter: "text",  wrap: "nowrap" },
+    { key: "First Name",  width: "10%", filter: "text"},
+    { key: "Title",   width: "40%", filter: "text" },
+    { key: "BTAA-GIN Role",   width: "40%", filter: "text" },
+  ]}
+/>
+
+
+## Alumni
+
+<details class="collapsible" data-accordion>
+  <summary>
+    Alumni (click to expand)
+    <span class="hint">Press Enter/Space to toggle</span>
+  </summary>
+
+<Table src="src/tables/alumni.csv"
+  columns={[
+    { key: "Last Name",   width: "10%", filter: "text" },
+    { key: "First Name",  width: "10%", filter: "text"},
+    { key: "Title",   width: "40%", filter: "text" },
+    { key: "Affiliation", width: "20%", filter: "datalist" },
+    { key: "BTAA-GIN Role", width: "20%", filter: "datalist" }
+  ]}
+/>
+</details>
+
+
+
+
+

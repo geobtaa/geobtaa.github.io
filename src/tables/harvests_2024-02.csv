@@ -1,0 +1,13 @@
+Task,Description,Records added,Records retired,Geoportal Link
+[15d-01 maps and atlases](https://github.com/geobtaa/metadata/issues/550),New maps from Northwestern U.,251,0,https://geo.btaa.org/?f%5Bdct_isPartOf_sm%5D%5B%5D=15d-01
+[12d-04 Feb 12 2024](https://github.com/geobtaa/metadata/issues/546),Additional datasets from U. Chicago's CAMEL,187,0,https://geo.btaa.org/?f%5Bb1g_geom_import_id_ssi%5D%5B%5D=93&publication_state=%2A
+[12d-05 Catalog layers](https://github.com/geobtaa/metadata/issues/560),New datasets from U. Chicago's Geoda,73,0,https://geo.btaa.org/?f%5Bdct_isPartOf_sm%5D%5B%5D=12d-05
+[05d-01 farmland maps Jan 2024](https://github.com/geobtaa/metadata/issues/543),Important Farmlands maps from UMN UMedia,160,0,https://geo.btaa.org/?f%5Bb1g_geom_import_id_ssi%5D%5B%5D=99
+[2024-02-25 ArcgIS Hub Harvest](https://github.com/geobtaa/metadata/issues/551),ArcGIS reharvest,117,247,https://geo.btaa.org/?search_field=all_fields&q=arcgis+HUB
+[2024-02-17 ArcGIS Hub Harvest](https://github.com/geobtaa/metadata/issues/549),ArcGIS reharvest,76,291,https://geo.btaa.org/?search_field=all_fields&q=arcgis+HUB
+[2024-02-06 ArcGIS Hub Harvest ](https://github.com/geobtaa/metadata/issues/544),ArcGIS reharvest,176,220,https://geo.btaa.org/?search_field=all_fields&q=arcgis+HUB
+[Harvest 08a-01 Q1 2024](https://github.com/geobtaa/metadata/issues/402),Reharvest PASDA,31,0,https://geo.btaa.org/?f%5Bb1g_geom_import_id_ssi%5D%5B%5D=102&publication_state=%2A
+[05a-01 February 2024](https://github.com/geobtaa/metadata/issues/508),Reharvest MN GeoCommons,6,8,https://geo.btaa.org/?f%5Bb1g_geom_import_id_ssi%5D%5B%5D=110&publication_state=%2A
+[Socrata harvest Q1 2024](https://github.com/geobtaa/metadata/issues/518),Socrata reharvest,0,0,https://geo.btaa.org/?f%5Bb1g_geom_import_id_ssi%5D%5B%5D=96&publication_state=%2A
+[04b-24027 Annual review 2024](https://github.com/geobtaa/metadata/issues/521),"Unpublish deprecated Howard County, MD website and datasets",0,186,-
+[08c-01 February 2024](https://github.com/geobtaa/metadata/issues/561),Reharvest OpenDataPhilly,0,0,https://geo.btaa.org/?f%5Bb1g_geom_import_id_ssi%5D%5B%5D=111&publication_state=%2A

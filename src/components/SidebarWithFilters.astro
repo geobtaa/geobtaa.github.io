@@ -1,0 +1,49 @@
+---
+import MobileMenuFooter from '@astrojs/starlight/components/MobileMenuFooter.astro';
+import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro';
+import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro';
+import {
+  deriveGroupFromPath,
+  SIDEBAR_LABEL_GROUPS,
+  PRIMARY_NAV_OPTIONS,
+} from '../../navigation.config';
+
+const { sidebar } = Astro.locals.starlightRoute;
+const pathname = Astro.url.pathname;
+
+const activeNavGroup = deriveGroupFromPath(pathname);
+
+const getEntryGroup = (entry: typeof sidebar[number]): string | undefined => {
+  const mapped = SIDEBAR_LABEL_GROUPS.get(entry.label);
+  if (mapped) return mapped;
+  if (entry.type === 'link' && entry.href.startsWith('/blog')) return 'blog';
+  return undefined;
+};
+
+const filteredSidebar = sidebar.filter((entry) => {
+  const entryGroup = getEntryGroup(entry);
+  if (!entryGroup) return true;
+  return entryGroup === activeNavGroup;
+});
+---
+
+<SidebarPersister>
+  <nav class="top-nav top-nav--drawer sl-flex md:sl-hidden" aria-label="Primary navigation">
+    {PRIMARY_NAV_OPTIONS.map(({ label, group, target }) => (
+      <a
+        class="top-nav__item"
+        href={target}
+        data-nav-group={group}
+        data-active={activeNavGroup === group ? 'true' : undefined}
+        aria-current={activeNavGroup === group ? 'page' : undefined}
+      >
+        {label}
+      </a>
+    ))}
+  </nav>
+  <SidebarSublist sublist={filteredSidebar} />
+</SidebarPersister>
+
+<div class="md:sl-hidden">
+  <MobileMenuFooter />
+</div>

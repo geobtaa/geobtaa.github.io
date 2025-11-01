@@ -1,0 +1,39 @@
+<div class="two-thirds-grid">
+  <div class="main-content">
+    <slot name="left" />
+  </div>
+  <div class="sidebar-content">
+    <slot name="right" />
+  </div>
+</div>
+
+<style>
+  .two-thirds-grid {
+    display: grid;
+    /* Create two columns: the first takes up 2 fractional units, the second 1. */
+    grid-template-columns: 2fr 1fr;
+    /* Add a gap between the columns. */
+    gap: 1.5rem; /* Adjust this value as needed. */
+    align-items: start; /* Aligns items to the top of the grid. */
+  }
+
+  .sidebar-content {
+    /* This ensures images inside this column don't overflow. */
+    width: 100%;
+  }
+
+  .sidebar-content :global(img) {
+    /* Styles the image to fit nicely in the column. */
+    width: 100%;
+    height: auto;
+    border-radius: 0.5rem; /* Adds a slight curve to the image corners. */
+  }
+
+  /* Make the layout responsive on smaller screens. */
+  @media (max-width: 768px) {
+    .two-thirds-grid {
+      /* Stack the columns on top of each other. */
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

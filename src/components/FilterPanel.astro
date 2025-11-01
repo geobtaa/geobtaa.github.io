@@ -1,0 +1,648 @@
+---
+interface Props {
+  tags: string[];
+  authors: string[];
+  years: string[];
+  selectedTags: string[];
+  selectedAuthors: string[];
+  selectedYears: string[];
+  context?: string;
+  query?: string;
+  searchLabel?: string;
+  searchPlaceholder?: string;
+  tagsLabel?: string;
+  authorsEnabled?: boolean;
+}
+
+const props = Astro.props as Props;
+const {
+  tags,
+  authors,
+  years,
+  selectedTags,
+  selectedAuthors,
+  selectedYears,
+  searchLabel,
+} = props;
+
+const authorsEnabled = props.authorsEnabled !== false;
+const tagsLabel = props.tagsLabel ?? 'Tags';
+
+const context = (() => {
+  const base = typeof props.context === 'string' ? props.context.trim().toLowerCase() : 'blog';
+  const cleaned = base.replace(/[^a-z0-9_-]/g, '');
+  return cleaned.length > 0 ? cleaned : 'blog';
+})();
+
+const formId = `${context}-filters`;
+const searchInputId = `${context}-filter-search`;
+const query = typeof props.query === 'string' ? props.query : '';
+const searchPlaceholder = props.searchPlaceholder ?? 'Search…';
+
+const slugifyForId = (value: string | number): string => {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'option';
+};
+
+const buildOptionId = (section: 'tag' | 'author' | 'year', value: string | number, index: number): string => {
+  return `${context}-${section}-${slugifyForId(value)}-${index}`;
+};
+---
+
+<form
+  id={formId}
+  method="get"
+  class="filter-panel"
+  data-filter-context={context}
+  data-filter-authors-enabled={authorsEnabled ? 'true' : 'false'}
+>
+  {searchLabel && (
+    <div class="filter-panel__search">
+      <label class="filter-panel__search-label" for={searchInputId}>
+        {searchLabel}
+      </label>
+      <input
+        type="search"
+        id={searchInputId}
+        name="q"
+        value={query}
+        placeholder={searchPlaceholder}
+        class="filter-panel__search-input"
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </div>
+  )}
+
+{authorsEnabled && authors.length > 0 && (
+  <details class="filter-panel__section" data-filter-section="authors" open={selectedAuthors.length > 0}>
+    <summary class="filter-panel__summary">
+      <span class="filter-panel__summary-label">Authors</span>
+      <span
+        class="filter-panel__summary-count"
+        data-filter-count="authors"
+        hidden={selectedAuthors.length === 0}
+      >
+        {selectedAuthors.length > 0 ? selectedAuthors.length : ''}
+      </span>
+      <span class="filter-panel__summary-caret" aria-hidden="true" />
+    </summary>
+    <div class="filter-panel__options">
+      {authors.map((author, index) => {
+        const inputId = buildOptionId('author', author, index);
+        return (
+          <label class="filter-panel__option" for={inputId}>
+            <input
+              type="checkbox"
+              id={inputId}
+              name="author"
+              value={author}
+              checked={selectedAuthors.includes(author)}
+            />
+            <span>{author}</span>
+          </label>
+        );
+      })}
+    </div>
+  </details>
+)}
+
+{years.length > 0 && (
+  <details class="filter-panel__section" data-filter-section="years" open={selectedYears.length > 0}>
+    <summary class="filter-panel__summary">
+      <span class="filter-panel__summary-label">Years</span>
+      <span
+        class="filter-panel__summary-count"
+        data-filter-count="years"
+        hidden={selectedYears.length === 0}
+      >
+        {selectedYears.length > 0 ? selectedYears.length : ''}
+      </span>
+      <span class="filter-panel__summary-caret" aria-hidden="true" />
+    </summary>
+    <div class="filter-panel__options filter-panel__options--inline">
+      {years.map((year, index) => {
+        const inputId = buildOptionId('year', year, index);
+        const value = String(year);
+        return (
+          <label class="filter-panel__option" for={inputId}>
+            <input
+              type="checkbox"
+              id={inputId}
+              name="year"
+              value={value}
+              checked={selectedYears.includes(value)}
+            />
+            <span>{year}</span>
+          </label>
+        );
+      })}
+    </div>
+  </details>
+)}
+
+{tags.length > 0 && (
+  <details class="filter-panel__section" data-filter-section="tags" open={selectedTags.length > 0}>
+    <summary class="filter-panel__summary">
+      <span class="filter-panel__summary-label">{tagsLabel}</span>
+      <span
+        class="filter-panel__summary-count"
+        data-filter-count="tags"
+        hidden={selectedTags.length === 0}
+      >
+        {selectedTags.length > 0 ? selectedTags.length : ''}
+      </span>
+      <span class="filter-panel__summary-caret" aria-hidden="true" />
+    </summary>
+    <div class="filter-panel__options">
+      {tags.map((tag, index) => {
+        const inputId = buildOptionId('tag', tag, index);
+        return (
+          <label class="filter-panel__option" for={inputId}>
+            <input
+              type="checkbox"
+              id={inputId}
+              name="tag"
+              value={tag}
+              checked={selectedTags.includes(tag)}
+            />
+            <span>{tag}</span>
+          </label>
+        );
+      })}
+    </div>
+  </details>
+)}
+</form>
+
+<script type="module" is:inline>
+  document.addEventListener('DOMContentLoaded', () => {
+    const forms = document.querySelectorAll('form[data-filter-context]');
+    forms.forEach((form) => {
+      if (!(form instanceof HTMLFormElement)) return;
+      if (form.dataset.filterReady === 'true') return;
+
+      const context = form.dataset.filterContext ?? 'blog';
+      const grid = document.querySelector(`[data-${context}-grid]`);
+      const emptyState = document.querySelector(`[data-${context}-empty]`);
+      const authorsEnabled = form.dataset.filterAuthorsEnabled !== 'false';
+
+      if (!grid) {
+        form.addEventListener('submit', (event) => event.preventDefault());
+        return;
+      }
+
+      form.dataset.filterReady = 'true';
+
+      /**
+       * @typedef {{ tags: string[]; authors: string[]; years: string[]; sort: 'newest' | 'oldest'; query: string }} Selection
+       * @typedef {{ element: HTMLElement; tags: string[]; authors: string[]; year: string; dateValue: number; order: number; searchIndex: string }} Card
+       */
+
+      /**
+       * @param {string} value
+       * @returns {string[]}
+      */
+      const safeParseStringArray = (value) => {
+        try {
+          const parsed = JSON.parse(value);
+          if (Array.isArray(parsed)) {
+            return parsed.map((item) => String(item).trim()).filter(Boolean);
+          }
+        } catch {
+          // ignore
+        }
+        return [];
+      };
+
+      form.addEventListener('submit', (event) => event.preventDefault());
+
+      /** @type {HTMLElement[]} */
+      const cardElements = Array.from(grid.querySelectorAll(`[data-${context}-card]`));
+      /** @type {Card[]} */
+      const cards = cardElements.map((element, index) => {
+        const dataset = element.dataset;
+        const rawTags = dataset.tags ?? '[]';
+        const rawAuthors = dataset.authors ?? '[]';
+        const year = dataset.year ?? '';
+        const dateValue = Number(dataset.date ?? '0');
+        const order = Number(dataset.index ?? String(index));
+        const datasetSearch = dataset.search ?? '';
+        const searchIndex =
+          datasetSearch !== ''
+            ? String(datasetSearch).toLowerCase()
+            : (element.textContent ?? '').toLowerCase();
+
+        return {
+          element,
+          tags: safeParseStringArray(rawTags),
+          authors: safeParseStringArray(rawAuthors),
+          year: year ? String(year) : '',
+          dateValue: Number.isNaN(dateValue) ? 0 : dateValue,
+          order: Number.isNaN(order) ? index : order,
+          searchIndex,
+        };
+      });
+
+      /**
+       * @param {Selection} selection
+       */
+      const updateCountBadges = (selection) => {
+        /** @type {Array<[string, number]>} */
+        const entries = [
+          ['tags', selection.tags.length],
+          ['years', selection.years.length],
+        ];
+
+        if (authorsEnabled) {
+          entries.splice(1, 0, ['authors', selection.authors.length]);
+        }
+
+        entries.forEach(([key, count]) => {
+          const badge = form.querySelector(`[data-filter-count="${key}"]`);
+          if (badge instanceof HTMLElement) {
+            badge.textContent = count ? String(count) : '';
+            badge.hidden = count === 0;
+          }
+        });
+      };
+
+      const normaliseQuery = (value) =>
+        typeof value === 'string' ? value.trim().toLowerCase() : '';
+
+      const applySelection = (selection) => {
+        const { tags, authors, years, sort, query } = selection;
+        const sortMultiplier = sort === 'oldest' ? 1 : -1;
+        const queryNeedle = normaliseQuery(query);
+
+        const sortedCards = [...cards].sort((a, b) => {
+          const dateDiff = (a.dateValue - b.dateValue) * sortMultiplier;
+          if (dateDiff !== 0) return dateDiff;
+          return a.order - b.order;
+        });
+
+        sortedCards.forEach(({ element }) => {
+          grid.appendChild(element);
+        });
+
+        let visibleCount = 0;
+
+        cards.forEach((card) => {
+          const tagMatch =
+            tags.length === 0 ||
+            tags.every((tag) => card.tags.includes(tag));
+          const authorMatch =
+            !authorsEnabled ||
+            authors.length === 0 ||
+            authors.every((author) => card.authors.includes(author));
+          const yearMatch =
+            years.length === 0 ||
+            (card.year !== '' && years.includes(card.year));
+          const queryMatch =
+            queryNeedle === '' || (card.searchIndex && card.searchIndex.includes(queryNeedle));
+
+          const isVisible = tagMatch && authorMatch && yearMatch && queryMatch;
+          card.element.style.display = isVisible ? '' : 'none';
+
+          if (isVisible) {
+            visibleCount += 1;
+          }
+        });
+
+        if (emptyState) {
+          emptyState.hidden = visibleCount !== 0;
+        }
+
+        updateCountBadges(selection);
+      };
+
+      /**
+       * @param {URLSearchParams} params
+       * @returns {Selection}
+       */
+      const selectionFromParams = (params) => ({
+        tags: params.getAll('tag').map((value) => value.trim()).filter(Boolean),
+        authors: authorsEnabled
+          ? params.getAll('author').map((value) => value.trim()).filter(Boolean)
+          : [],
+        years: params.getAll('year').map((value) => value.trim()).filter(Boolean),
+        sort: params.get('sort') === 'oldest' ? 'oldest' : 'newest',
+        query: params.get('q')?.trim() ?? '',
+      });
+
+      /**
+       * @param {Selection} selection
+       * @returns {URLSearchParams}
+       */
+      const paramsFromSelection = (selection) => {
+        const params = new URLSearchParams();
+        selection.tags.forEach((value) => params.append('tag', value));
+        if (authorsEnabled) {
+          selection.authors.forEach((value) => params.append('author', value));
+        }
+        selection.years.forEach((value) => params.append('year', value));
+        if (selection.sort === 'oldest') {
+          params.set('sort', 'oldest');
+        } else {
+          params.delete('sort');
+        }
+        if (selection.query.trim()) {
+          params.set('q', selection.query.trim());
+        } else {
+          params.delete('q');
+        }
+        return params;
+      };
+
+      /**
+       * @param {Selection} selection
+       */
+      const populateFormFromSelection = (selection) => {
+        const tagInputs = form.querySelectorAll('input[type="checkbox"][name="tag"]');
+        tagInputs.forEach((input) => {
+          if (input instanceof HTMLInputElement) {
+            input.checked = selection.tags.includes(input.value);
+          }
+        });
+
+        if (authorsEnabled) {
+          const authorInputs = form.querySelectorAll('input[type="checkbox"][name="author"]');
+          authorInputs.forEach((input) => {
+            if (input instanceof HTMLInputElement) {
+              input.checked = selection.authors.includes(input.value);
+            }
+          });
+        }
+
+        const yearInputs = form.querySelectorAll('input[type="checkbox"][name="year"]');
+        yearInputs.forEach((input) => {
+          if (input instanceof HTMLInputElement) {
+            input.checked = selection.years.includes(input.value);
+          }
+        });
+
+        const sortInputs = form.querySelectorAll('input[type="radio"][name="sort"]');
+        sortInputs.forEach((input) => {
+          if (input instanceof HTMLInputElement) {
+            input.checked = input.value === selection.sort;
+          }
+        });
+
+        const searchInput = form.querySelector('input[type="search"][name="q"]');
+        if (searchInput instanceof HTMLInputElement) {
+          searchInput.value = selection.query;
+        }
+      };
+
+      /**
+       * @returns {Selection}
+       */
+      const selectionFromForm = () => {
+        const data = new FormData(form);
+        return {
+          tags: data.getAll('tag').map((value) => String(value).trim()).filter(Boolean),
+          authors: authorsEnabled
+            ? data.getAll('author').map((value) => String(value).trim()).filter(Boolean)
+            : [],
+          years: data.getAll('year').map((value) => String(value).trim()).filter(Boolean),
+          sort: data.get('sort') === 'oldest' ? 'oldest' : 'newest',
+          query: String(data.get('q') ?? '').trim(),
+        };
+      };
+
+      /**
+       * @param {Selection} selection
+       */
+      const updateView = (selection) => {
+        applySelection(selection);
+        const params = paramsFromSelection(selection);
+        const queryString = params.toString();
+        const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
+        window.history.replaceState(null, '', newUrl);
+      };
+
+      const initialise = () => {
+        const initialSelection = selectionFromParams(new URLSearchParams(window.location.search));
+        populateFormFromSelection(initialSelection);
+        updateView(initialSelection);
+      };
+
+      initialise();
+
+      const emitUpdate = () => {
+        const selection = selectionFromForm();
+        updateView(selection);
+      };
+
+      form.addEventListener('change', emitUpdate);
+
+      form.addEventListener('input', (event) => {
+        if (!(event.target instanceof HTMLInputElement)) return;
+        if (event.target.name === 'q') {
+          emitUpdate();
+        }
+      });
+
+      const resetButtons = document.querySelectorAll(`[data-filter-reset="${context}"]`);
+      resetButtons.forEach((button) => {
+        if (!(button instanceof HTMLButtonElement)) return;
+        button.addEventListener('click', () => {
+          form.reset();
+          /** @type {Selection} */
+          const defaultSelection = {
+            tags: [],
+            authors: [],
+            years: [],
+            sort: 'newest',
+            query: '',
+          };
+          populateFormFromSelection(defaultSelection);
+          updateView(defaultSelection);
+        });
+      });
+    });
+  });
+</script>
+
+<style>
+  .filter-panel {
+    display: grid;
+    gap: 0.4rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    padding: clamp(0.35rem, 1.2vw, 0.6rem);
+    border-radius: 0.6rem;
+    background: var(--sl-color-bg);
+  }
+
+  .filter-panel__search {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    grid-column: 1 / -1;
+  }
+
+  .filter-panel__search-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--sl-color-text);
+  }
+
+  .filter-panel__search-input {
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.45rem;
+    border: 1px solid var(--sl-color-hairline);
+    background: var(--sl-color-bg);
+    font: inherit;
+    color: inherit;
+  }
+
+  .filter-panel__search-input:focus-visible {
+    outline: 2px solid var(--sl-color-primary);
+    outline-offset: 2px;
+  }
+
+  .filter-panel__options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.35rem 0.6rem 0.45rem;
+  }
+
+  .filter-panel__options--inline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+    gap: 0.25rem 0.4rem;
+  }
+
+  .filter-panel__section {
+    padding: 0;
+    /* border: 1px solid color-mix(in srgb, var(--sl-color-hairline) 70%, transparent); */
+    border-radius: 0.6rem;
+    background: color-mix(in srgb, var(--sl-color-bg-soft) 70%, var(--sl-color-bg) 30%);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sl-color-bg) 80%, transparent);
+    overflow: hidden;
+  }
+
+  .filter-panel__section + .filter-panel__section {
+    margin-top: 0;
+  }
+
+  .filter-panel__summary {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.6rem 0.35rem;
+    margin: 0;
+    background: rgba(142, 152, 163, 0.14);
+    background: color-mix(in srgb, var(--sl-color-text-muted) 16%, var(--sl-color-bg) 84%);
+    border-bottom: 1px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    list-style: none;
+    transition: background 150ms ease;
+  }
+
+  .filter-panel__summary:hover,
+  .filter-panel__summary:focus-visible {
+    background: rgba(142, 152, 163, 0.18);
+    background: color-mix(in srgb, var(--sl-color-text-muted) 18%, var(--sl-color-bg) 82%);
+    outline: none;
+  }
+
+  .filter-panel__summary-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.82rem;
+    flex: 1 1 auto;
+    text-align: left;
+  }
+
+  .filter-panel__summary-caret {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 150ms ease;
+    flex: 0 0 auto;
+  }
+
+  .filter-panel__summary::-webkit-details-marker,
+  .filter-panel__summary::marker {
+    display: none;
+  }
+
+  .filter-panel__section[open] .filter-panel__summary-caret {
+    transform: rotate(45deg);
+  }
+
+  .filter-panel__summary-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sl-color-bg-soft) 80%, var(--sl-color-primary) 20%);
+    color: var(--sl-color-text-muted);
+    font-size: 0.6rem;
+    font-weight: 600;
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+
+  .filter-panel__section[open] .filter-panel__summary {
+    border-bottom-color: color-mix(in srgb, var(--sl-color-hairline) 80%, transparent);
+    background: rgba(142, 152, 163, 0.18);
+    background: color-mix(in srgb, var(--sl-color-text-muted) 18%, var(--sl-color-bg) 82%);
+  }
+
+  .filter-panel__option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--sl-color-text);
+    cursor: pointer;
+  }
+
+  .filter-panel__option input {
+    accent-color: var(--sl-color-primary);
+  }
+
+  .filter-panel__option span {
+    flex: 1 1 auto;
+  }
+
+  details[data-filter-section='tags'] .filter-panel__options,
+  details[data-filter-section='authors'] .filter-panel__options {
+    max-height: 12rem;
+    overflow: auto;
+    padding-right: 0.25rem;
+  }
+
+  details[data-filter-section='tags'] .filter-panel__options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.25rem 0.45rem;
+  }
+
+  @media (max-width: 48rem) {
+    .filter-panel {
+      grid-template-columns: 1fr;
+      gap: 0.45rem;
+    }
+  }
+
+  @media (max-width: 32rem) {
+    details[data-filter-section='tags'] .filter-panel__options,
+    details[data-filter-section='authors'] .filter-panel__options {
+      max-height: none;
+    }
+  }
+
+</style>

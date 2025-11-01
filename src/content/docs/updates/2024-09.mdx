@@ -1,0 +1,179 @@
+---
+title: September 2024 Program Update
+
+excerpt: 'A new article titled Ephemeral Geodata: An Impending Digital Dark Age, co-authored by four BTAA-GIN Team Members, was recently published in the *Journal of Map & Geography Libraries*.'
+authors:
+    - name: BTAA-GIN Staff
+tags:
+  - Program Updates
+date: 2024-10-01
+cover:
+  image: "@images/filling-the-growing-gap.png"
+  alt: Bar chart of maps and dataset over time
+  caption: Filling the growing gap by collecting annual snapshots. This stepped temporal bar chart shows geospatial resources with the subject “Roads” for BTAA library-held maps, datasets available in data clearinghouses across the BTAA states, and the University of Wisconsin-Madison's Robinson Map Library collections as of April 202- (Illustration from the cited article.
+---
+import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
+import ChipList from 'src/components/ChipList.astro';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import Table from '/src/components/Table.astro';
+
+<div class="monthly-highlight">
+
+## Monthly Highlight: Newly published article about ephemeral data
+
+
+A new article titled "[](https://doi.org/10.1080/15420353.2024.2398542)," co-authored by four BTAA-GIN Team Members, was recently published in the *Journal of Map & Geography Libraries*. The authors explore a long-standing challenge for our program, framing the lack of public geodata archives as a "looming digital dark age." This analysis is based on our experiences managing the BTAA Geoportal and [GeoData@Wisconsin](https://geodata.wisc.edu), as well as our roles as map librarians. This article not only highlights a widespread issue but also provides a compelling rationale for our new initiative, the BTAA-GIN Geodata Collection, which aims to address gaps in the availability and accessibility of geospatial resources.
+
+
+:::note[Citation]
+
+Majewicz, K., Martindale, J., Kernik, M., & Mattke, R. (2024). Ephemeral Geodata: An Impending Digital Dark Age. Journal of Map & Geography Libraries, 1–2- https://doi.org/10.1080/15420353.2024.239854- 
+
+An open access version can be found at https://hdl.handle.net/11299/265741.
+
+:::
+</div>
+
+
+## Program Activities
+
+### Program Management
+
+* We welcomed a new Program Team Member from Purdue University, **Dr. Innocensia Owuor, GIS Specialist and Clinical Assistant Professor**.
+* The September Program Team meeting featured a presentation from East View Geospatial about their Global Census Archive.
+* We completed interviews for the new Program and Outreach Coordinator position.
+
+
+### Committees
+
+<CardGrid>
+  <Card title="TECHnology">
+    - Working on website policies and updating the Geoportal footer links
+    - Created a local gazeteer for counties, states, and nations
+  </Card>
+
+  <Card title="Community Engagement">
+    - Updated blog with new posts
+    - Planning to update the Geoportal help pages next
+  </Card>
+
+  <Card title="Knowledge">
+    Did not meet in September
+  </Card>
+
+  <Card title="Coordination">
+    - Compiling plans for a Map Librarian summit
+    - Planned Program Team meeting topics
+  </Card>
+</CardGrid>
+
+### Workgroups
+
+<Card>
+
+#### Geodata Pilot Workgroup
+
+* Determining what components to add to a Download Package (dataset, metadata, readme, thumbnails, etc.)
+* Added a field for Provenance Statement and Reference System
+
+#### FAST for Subject Terms Workgroup
+
+* Analyzing the map records for current adherence to a thesaurus.
+* Reviewing Keywords field with the aim to organize the values into controlled Subjects
+
+#### Service Model Collaboration Workgroup
+
+* Held kickoff meeting in September
+* Determining objectives	
+	
+</Card>
+
+
+## BTAA Geoportal 
+
+<TwoThirdsLayout>
+<div slot="left">
+![Unique visitors by month](@images/2024-09-monthly-users.png)
+*Geoportal visitors*
+</div>
+<div slot="right">
+<div class="compact-list">
+
+* Visitors:	6,147
+* Visits: 6,698
+* Downloads: 243	 
+* Visits with download: 3.36%	
+* Outlinks: 1,229
+* Visits with outlink: 18.35%
+* Num. searches: 1,962
+* Search keywords: 617
+* Pageviews: 17,206
+</div>
+</div>
+</TwoThirdsLayout>
+
+
+:::tip[More stats]
+See full statistics on our [Analytics Dashboard](https://tableau.umn.edu/t/UL/views/BTAAGeoportalusageMatomo/Monthlycharts?%3Aembed=y&%3AisGuestRedirectFromVizportal=y)
+:::
+
+#### Top internal search keywords
+<ChipList class="not-content">
+
+- salmon
+- wildfire
+- reef
+- climate population
+- cougar
+- sanborn
+- geology
+- PLSS
+- elevation
+- Pennsylvania
+- hurricane
+- Mountain 
+
+</ChipList>
+
+### Collections
+
+<p class="records-total">Total records as of October 1, 2024: 98,897</p>
+
+<figure markdown="span">
+  ![Records October 1 2024](@images/records-2024-10.png)
+  <figcaption>BTAA Geoportal Records from 2016 to 
+October 1, 2024</figcaption>
+</figure>
+
+
+###  Harvesting Activities
+
+<Table
+  src="src/tables/harvests_2024-09.csv"
+    columns={[
+    { key: "Task",   width: "50%", filter: "text",  wrap: "nowrap",  render: "markdown" },
+    { key: "Records added",  width: "25%", filter: "text"},
+    { key: "Records retired",   width: "25%", filter: "text" },
+  ]}
+/>
+
+### Development
+
+* Improved test coverage for GeoBlacklight Admin, identiying redundant or erroneous code
+* Updated header and footer in development site for the TECH Committee to review
+* Cleaned up the font decoration to be clearer while retaining accessibility
+
+
+:::tip[More development details]
+[Read the most recent development reports for more details](https://docs.google.com/document/d/1wnDkQLP2IcLxei_OG-sRcDLdLtZvFW9hd4wmuL1n6fA)
+:::
+
+## Next Steps
+
+Projects and tasks that are up next include:
+
+* Review and publish policies and disclaimers for the Geoportal
+* Kickoff the Scalable Approaches workgroup
+
+Refer to our [Priority Projects board](https://github.com/orgs/geobtaa/projects/22/views/5) for more details.
+

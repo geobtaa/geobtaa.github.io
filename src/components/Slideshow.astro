@@ -1,0 +1,146 @@
+<div class="slideshow-container">
+
+  <div class="slides-nav">
+    <button id="prev-btn">&larr; Previous</button>
+    <span id="slide-counter"></span>
+    <button id="next-btn">Next &rarr;</button>
+  </div>
+
+  <div id="slides-content" class="prose">
+    <slot />
+  </div>
+  
+</div>
+
+<style>
+.slideshow-container {
+  min-height: 500px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+
+  /* This creates the gradient top border */
+  border-top: 2px solid;
+  border-bottom: 1px dotted;
+  border-color: var(--btaa-blue);
+
+}
+
+  #slides-content {
+    flex-grow: 1; 
+  }
+
+  #slides-content > :global(div.slide) {
+    display: none;
+  }
+  #slides-content > :global(div.slide.active) {
+    display: block;
+  }
+
+  .slides-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .slides-nav button {
+    background-color: var(--sl-color-accent-low);
+    color: var(--sl-color-white);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .slides-nav button:hover {
+    background-color: var(--sl-color-accent);
+  }
+
+  .slides-nav button:disabled {
+    background-color: var(--btaa-gray);
+    cursor: not-allowed;
+  }
+
+    /* Clean up table row spacing */
+  #slides-content :global(table) {
+    width: 100%;
+    /* display:flex; */
+  }
+
+  #slides-content :global(th),
+  #slides-content :global(td) {
+    text-align: left;
+    padding: 0.5rem;
+    vertical-align: top;
+    border-bottom: 1px solid var(--sl-color-gray-5);
+  }
+</style>
+
+<script is:inline>
+  function setupSlideshow() {
+    const container = document.getElementById('slides-content');
+    if (!container || container.dataset.processed) {
+      return;
+    }
+    container.dataset.processed = 'true';
+
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const counter = document.getElementById('slide-counter');
+
+    const rawHtml = container.innerHTML;
+    const htmlChunks = rawHtml.split(/<hr\s*\/?>/i);
+
+    const slides = htmlChunks
+      .map(chunk => chunk.trim())
+      .filter(chunk => chunk.length > 0)
+      .map(chunk => {
+        const slide = document.createElement('div');
+        slide.className = 'slide';
+        slide.innerHTML = chunk;
+        return slide;
+      });
+    
+    container.innerHTML = '';
+    slides.forEach(slide => container.appendChild(slide));
+    
+    if (slides.length <= 1) {
+        const nav = document.querySelector('.slides-nav');
+        if (nav) nav.style.display = 'none';
+        if (slides.length > 0) slides[0].classList.add('active');
+        return;
+    }
+    
+    let currentSlideIndex = 0;
+    function showSlide(index) {
+      slides.forEach((slide, i) => {
+        slide.classList.toggle('active', i === index);
+      });
+      if(counter) counter.textContent = `Page ${index + 1} of ${slides.length}`;
+      if(prevBtn) prevBtn.disabled = index === 0;
+      if(nextBtn) nextBtn.disabled = index === slides.length - 1;
+    }
+
+    prevBtn?.addEventListener('click', () => {
+      if (currentSlideIndex > 0) {
+        currentSlideIndex--;
+        showSlide(currentSlideIndex);
+      }
+    });
+
+    nextBtn?.addEventListener('click', () => {
+      if (currentSlideIndex < slides.length - 1) {
+        currentSlideIndex++;
+        showSlide(currentSlideIndex);
+      }
+    });
+
+    showSlide(0);
+  }
+
+  setupSlideshow();
+  document.addEventListener('astro:page-load', setupSlideshow);
+</script>
