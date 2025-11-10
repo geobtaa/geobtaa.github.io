@@ -148,6 +148,12 @@ color: #FFFFFF;
   --sl-color-asides-text-accent: var(--btaa-dark-blue);
 }
 
+.starlight-aside--tip {
+  background-color: var(--btaa-light-blue);
+  --sl-color-asides-border: var(--btaa-med-blue);
+  --sl-color-asides-text-accent: var(--btaa-dark-blue);
+}
+
 }
 
 :root[data-theme="light"] .header .social-icons a {
@@ -509,7 +515,6 @@ input[type="checkbox"]:checked::after {
 .records-total strong {
   font-size: 1.12em;
 }
-
 
 /* Golden Highlight */
 

@@ -11,13 +11,13 @@
     "optimize-gallery": "node optimize-gallery.mjs"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
-    "@astrojs/markdoc": "^0.15.5",
-    "@astrojs/starlight": "^0.35.2",
-    "@astrojs/starlight-markdoc": "^0.5.0",
+    "@astrojs/check": "^0.9.5",
+    "@astrojs/markdoc": "^0.15.8",
+    "@astrojs/starlight": "^0.36.2",
+    "@astrojs/starlight-markdoc": "^0.5.1",
     "@iconify-json/mdi": "^1.2.3",
     "accessible-astro-components": "^5.0.1",
-    "astro": "5.14.4",
+    "astro": "^5.15.4",
     "astro-embed": "^0.9.0",
     "astro-icon": "^1.1.5",
     "astro-leaflet": "^1.8.1",
@@ -38,12 +38,13 @@
     "starlight-showcases": "^0.3.0",
     "starlight-sidebar-topics": "^0.6.2",
     "starlight-theme-rapide": "^0.5.1",
+    "starlight-toc-overview-customizer": "^0.1.1",
     "starlight-videos": "^0.3.0",
     "starlight-view-modes": "^0.11.0",
     "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "@astrojs/react": "^4.3.1",
+    "@astrojs/react": "^4.4.2",
     "@squoosh/cli": "^0.7.1",
     "@types/papaparse": "^5.3.16",
     "@types/react": "^19.1.12",
