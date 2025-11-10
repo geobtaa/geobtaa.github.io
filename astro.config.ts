@@ -80,6 +80,7 @@ export default defineConfig({
         starlightFullViewMode({leftSidebarEnabled: false} ),
         starlightLinksValidator(),
         reverseDateSidebar(),
+        // starlightTocOverviewCustomizer({overviewTitle: "Back to top",})
       ],
       sidebar: starlightSidebar,
     }),
