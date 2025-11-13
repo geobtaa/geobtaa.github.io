@@ -98,12 +98,9 @@ const allMaps = parseResult.data as Map[];
   }
 
   /* --- Modal Styling --- */
-   :global(.modal-backdrop) {
+  :global(.modal-backdrop) {
     position: fixed;
-    top: 0;
-    left: var(--sl-sidebar-width);
-    width: calc(100% - var(--sl-sidebar-width));
-    height: 100%;
+    inset: 0;
     background: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
