@@ -2,7 +2,21 @@ import fs from "fs/promises";
 import path from "path";
 import sharp from "sharp";
 
-const galleryDir = "public/map-gallery";
+const defaultDir = "public/map-gallery";
+const args = process.argv.slice(2);
+let targetDir = defaultDir;
+
+for (let i = 0; i < args.length; i++) {
+  const arg = args[i];
+  if (arg === "--dir" && args[i + 1]) {
+    targetDir = args[i + 1];
+    i++;
+  } else if (arg.startsWith("--dir=")) {
+    targetDir = arg.split("=")[1];
+  }
+}
+
+const galleryDir = targetDir;
 
 async function collectImages(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -47,4 +61,4 @@ for (const file of files) {
   }
 }
 
-console.log("\n✨ Optimization complete! All images converted to .jpg format.");
+console.log("\n✨ Optimization complete! All images converted to .webp format.");
