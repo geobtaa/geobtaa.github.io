@@ -55,6 +55,7 @@ export default defineConfig({
   site: 'https://gin.btaa.org',
   redirects: {
     '/updates/': '/blog/',
+    '/policies/': '/library/',
   },
   integrations: [
     starlight({

@@ -48,12 +48,6 @@ export const NAV_GROUPS = [
       { kind: 'link', label: 'Reports', link: '/library/' },
     ],
   },
-  // {
-  //   id: 'blog',
-  //   label: 'Program updates',
-  //   landing: '/updates/',
-  //   sidebar: [{  kind: 'autogenerate', label: 'Updates', directory: 'updates', collapsed: false },],
-  // },
 
   {
     id: 'resources',
