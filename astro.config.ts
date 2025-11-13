@@ -8,6 +8,7 @@ import icon from 'astro-icon';
 import { NAV_GROUPS, type NavSidebarAutogenerate, type NavSidebarEntry, type NavSidebarGroupItem, type NavSidebarLink } from './navigation.config';
 import type { StarlightUserConfig } from '@astrojs/starlight/types';
 import reverseDateSidebar from './src/plugins/reverseDateSidebar';
+import removeTocOverview from './src/plugins/removeTocOverview';
 
 type SidebarItem = NonNullable<StarlightUserConfig['sidebar']>[number];
 
@@ -80,6 +81,7 @@ export default defineConfig({
         starlightFullViewMode({leftSidebarEnabled: false} ),
         starlightLinksValidator(),
         reverseDateSidebar(),
+        removeTocOverview(),
         // starlightTocOverviewCustomizer({overviewTitle: "Back to top",})
       ],
       sidebar: starlightSidebar,
