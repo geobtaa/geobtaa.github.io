@@ -1,11 +1,11 @@
 ---
 title: Urban Base Layers Curation Plan 
-description: 'Overview of the project to collection foundational geodata layers from major cities.'
+description: 'Overview of the project to collect foundational geodata layers from major cities.'
 year: 2025
 authors:
    - name: Geodata Curation Workgroup
 tags:
-- proposals
+- program guidelines
 ---
 
 import { Card, CardGrid, LinkCard, LinkButton, Steps } from '@astrojs/starlight/components';
@@ -15,15 +15,14 @@ import CenterLayout from '/src/components/CenterLayout.astro';
 
 ## Purpose
 
-This initiative aims to collect foundational geospatial datasets that document the basic structure and function of major cities in the Big Ten Academic Alliance (BTAA) region. The collection will be made up of temporal snapshots that can support research long into the future.
-
+The Urban Base Layers project is a curated collection of foundational geospatial datasets that document the basic structure and function of major metro areas across the Big Ten region. These datasets are essential for research in housing, land use, urban planning, environmental change, and civic infrastructure. Our goal is to ensure these widely used but inconsistently preserved datasets are accessible, well-documented, and available for long-term scholarly use. 
 
 ## The Layers
 
 <TwoThirdsRLayout>
 
 <div slot="left">
-We will collect six foundational geospatial layers:
+We collect six foundational geospatial layers:
 
 <div class="compact-list">
 1. Address points  
@@ -42,7 +41,9 @@ We will collect six foundational geospatial layers:
 
 ## Time Periods
 
-* Primary target: 2025 datasets (to be collected and processed by end of 2025)  
+The collection is made up of temporal snapshots that can support research long into the future.
+
+* Primary target year: 2025 (most current version available)
 * Secondary targets: Earlier versions in approximately five-year increments (2020, 2015, 2010, 2005, 2000)
 * Other years: Included opportunistically, but not prioritized
 
@@ -90,16 +91,6 @@ This list may change or expand in based on data availability and partner interes
 </CenterLayout>
 
 ## Method of Aquisition
-
-Most of these datasets are publicly available through municipal ArcGIS Hubs. However, our preferred approach is to obtain data directly from city data providers whenever possible.
-
-### Challenges with ArcGIS Hub downloads
-
-* Timeouts or failed downloads for large datasets  
-* Exported files often lack embedded metadata  
-* Shapefile field limitations and reprojection may lead to data loss
-  
-### Preferred approach
 
 <Steps>
 1. Work with city GIS staff to obtain original-format datasets and metadata  
