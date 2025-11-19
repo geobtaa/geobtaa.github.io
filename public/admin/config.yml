@@ -64,7 +64,47 @@ collections:
       - label: "Body"
         name: "body"
         widget: "markdown"
-        
+
+
+  - name: "library"
+    label: "Library Docs"
+    folder: "src/content/docs/library"
+    extension: "md"
+    format: "frontmatter"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+
+      - label: "Description"
+        name: "description"
+        widget: "text"
+
+      - label: "Year"
+        name: "year"
+        widget: "number"
+
+      - label: "Tags"
+        name: "tags"
+        widget: "select"
+        multiple: true
+        options:
+          - label: "Reports"
+            value: "reports"
+          - label: "Program Guidelines"
+            value: "program guidelines"
+          - label: "Proposals"
+            value: "proposals"
+          - label: "Best Practices"
+            value: "best practices"
+          - label: "Charters"
+            value: "charters"
+
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
 
   - name: "updates"
     label: "Program Updates"
