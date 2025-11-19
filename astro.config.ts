@@ -67,6 +67,13 @@ export default defineConfig({
         alt: 'BTAA-GIN Logo',
         replacesTitle: true,
       },
+       head: [
+        { tag: 'meta', attrs: { property: 'og:site_name', content: 'BTAA-GIN' } },
+        { tag: 'meta', attrs: { property: 'og:type', content: 'website' } },
+        { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
+        { tag: 'meta', attrs: { property: 'og:image', content: 'https://gin.btaa.org/assets/og/default.png' } },
+        { tag: 'meta', attrs: { name: 'twitter:image', content: 'https://gin.btaa.org/assets/og/default.png' } },
+      ],
       social: [
         { icon: 'email', label: 'Contact', href: 'https://geo.btaa.org/feedback' },
         { icon: 'github', label: 'GitHub', href: 'https://github.com/geobtaa' },
