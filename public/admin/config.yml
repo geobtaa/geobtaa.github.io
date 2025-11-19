@@ -1,12 +1,12 @@
 backend:
   name: github
-  repo: geobtaa-archive/geobtaa-archive.github.io
+  repo: geobtaa/geobtaa.github.io
   branch: main
   base_url: https://decap-auth.geobtaa.workers.dev
   auth_endpoint: /auth
 # local_backend: true
 
-site_url: https://geobtaa-archive.github.io
+site_url: https://gin.btaa.org
 media_folder: "src/assets/images"
 public_folder: "@images"
 
