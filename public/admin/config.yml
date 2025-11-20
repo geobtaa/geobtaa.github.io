@@ -14,7 +14,7 @@ collections:
   - name: "about"
     label: "About"
     folder: "src/content/docs/about"
-    extension: "md"
+    extension: "mdx"
     format: "frontmatter"
     create: true
     slug: "{{slug}}"
@@ -88,7 +88,7 @@ collections:
   - name: "conference"
     label: "Conference"
     folder: "src/content/docs/conference"
-    extension: "md"
+    extension: "mdx"
     format: "frontmatter"
     create: true
     slug: "{{slug}}"
@@ -108,7 +108,7 @@ collections:
   - name: "guides"
     label: "Guides"
     folder: "src/content/docs/guides"
-    extension: "md"
+    extension: "mdx"
     format: "frontmatter"
     create: true
     slug: "{{slug}}"
@@ -128,7 +128,7 @@ collections:
   - name: "library"
     label: "Library Docs"
     folder: "src/content/docs/library"
-    extension: "md"
+    extension: "mdx"
     format: "frontmatter"
     create: true
     slug: "{{slug}}"
@@ -168,7 +168,7 @@ collections:
   - name: "projects"
     label: "Projects"
     folder: "src/content/docs/projects"
-    extension: "md"
+    extension: "mdx"
     format: "frontmatter"
     create: true
     slug: "{{slug}}"
@@ -188,7 +188,7 @@ collections:
   - name: "scholarship"
     label: "Scholarship"
     folder: "src/content/docs/scholarship"
-    extension: "md"
+    extension: "mdx"
     format: "frontmatter"
     create: true
     slug: "{{slug}}"
@@ -208,7 +208,7 @@ collections:
   - name: "team"
     label: "Team"
     folder: "src/content/docs/team"
-    extension: "md"
+    extension: "mdx"
     format: "frontmatter"
     create: true
     slug: "{{slug}}"
