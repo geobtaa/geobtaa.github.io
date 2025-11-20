@@ -11,6 +11,26 @@ media_folder: "src/assets/images"
 public_folder: "@images"
 
 collections:
+  - name: "about"
+    label: "About"
+    folder: "src/content/docs/about"
+    extension: "md"
+    format: "frontmatter"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+
+      - label: "Description"
+        name: "description"
+        widget: "text"
+
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
+
   - name: "blog"
     label: "Blog Posts"
     folder: "src/content/docs/posts"
@@ -65,6 +85,45 @@ collections:
         name: "body"
         widget: "markdown"
 
+  - name: "conference"
+    label: "Conference"
+    folder: "src/content/docs/conference"
+    extension: "md"
+    format: "frontmatter"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+
+      - label: "Description"
+        name: "description"
+        widget: "text"
+
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
+
+  - name: "guides"
+    label: "Guides"
+    folder: "src/content/docs/guides"
+    extension: "md"
+    format: "frontmatter"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+
+      - label: "Description"
+        name: "description"
+        widget: "text"
+
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
 
   - name: "library"
     label: "Library Docs"
@@ -101,6 +160,66 @@ collections:
             value: "best practices"
           - label: "Charters"
             value: "charters"
+
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
+
+  - name: "projects"
+    label: "Projects"
+    folder: "src/content/docs/projects"
+    extension: "md"
+    format: "frontmatter"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+
+      - label: "Description"
+        name: "description"
+        widget: "text"
+
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
+
+  - name: "scholarship"
+    label: "Scholarship"
+    folder: "src/content/docs/scholarship"
+    extension: "md"
+    format: "frontmatter"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+
+      - label: "Description"
+        name: "description"
+        widget: "text"
+
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
+
+  - name: "team"
+    label: "Team"
+    folder: "src/content/docs/team"
+    extension: "md"
+    format: "frontmatter"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+
+      - label: "Description"
+        name: "description"
+        widget: "text"
 
       - label: "Body"
         name: "body"
