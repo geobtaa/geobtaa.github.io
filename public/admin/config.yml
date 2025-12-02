@@ -4,7 +4,7 @@ backend:
   branch: main
   base_url: https://decap-auth.geobtaa.workers.dev
   auth_endpoint: /auth
-# local_backend: true
+  local_backend: true
 
 site_url: https://gin.btaa.org
 media_folder: "src/assets/images"
@@ -26,6 +26,13 @@ collections:
       - label: "Description"
         name: "description"
         widget: "text"
+
+      - label: "Draft"
+        name: "draft"
+        widget: "boolean"
+        required: false
+        default: false
+        hint: "Set to true to save as a draft. Draft content is not published."
 
       - label: "Body"
         name: "body"
@@ -81,6 +88,13 @@ collections:
         name: "date"
         widget: "datetime"
 
+      - label: "Draft"
+        name: "draft"
+        widget: "boolean"
+        required: false
+        default: false
+        hint: "Set to true to save as a draft. Draft content is not published."
+
       - label: "Body"
         name: "body"
         widget: "markdown"
@@ -101,6 +115,13 @@ collections:
         name: "description"
         widget: "text"
 
+      - label: "Draft"
+        name: "draft"
+        widget: "boolean"
+        required: false
+        default: false
+        hint: "Set to true to save as a draft. Draft content is not published."
+
       - label: "Body"
         name: "body"
         widget: "markdown"
@@ -120,6 +141,13 @@ collections:
       - label: "Description"
         name: "description"
         widget: "text"
+
+      - label: "Draft"
+        name: "draft"
+        widget: "boolean"
+        required: false
+        default: false
+        hint: "Set to true to save as a draft. Draft content is not published."
 
       - label: "Body"
         name: "body"
@@ -161,6 +189,13 @@ collections:
           - label: "Charters"
             value: "charters"
 
+      - label: "Draft"
+        name: "draft"
+        widget: "boolean"
+        required: false
+        default: false
+        hint: "Set to true to save as a draft. Draft content is not published."
+
       - label: "Body"
         name: "body"
         widget: "markdown"
@@ -180,6 +215,13 @@ collections:
       - label: "Description"
         name: "description"
         widget: "text"
+
+      - label: "Draft"
+        name: "draft"
+        widget: "boolean"
+        required: false
+        default: false
+        hint: "Set to true to save as a draft. Draft content is not published."
 
       - label: "Body"
         name: "body"
@@ -201,6 +243,13 @@ collections:
         name: "description"
         widget: "text"
 
+      - label: "Draft"
+        name: "draft"
+        widget: "boolean"
+        required: false
+        default: false
+        hint: "Set to true to save as a draft. Draft content is not published."
+
       - label: "Body"
         name: "body"
         widget: "markdown"
@@ -220,6 +269,13 @@ collections:
       - label: "Description"
         name: "description"
         widget: "text"
+
+      - label: "Draft"
+        name: "draft"
+        widget: "boolean"
+        required: false
+        default: false
+        hint: "Set to true to save as a draft. Draft content is not published."
 
       - label: "Body"
         name: "body"
@@ -274,6 +330,13 @@ collections:
       - label: "Publication Date"
         name: "date"
         widget: "datetime"
+
+      - label: "Draft"
+        name: "draft"
+        widget: "boolean"
+        required: false
+        default: false
+        hint: "Set to true to save as a draft. Draft content is not published."
 
       - label: "Body"
         name: "body"
