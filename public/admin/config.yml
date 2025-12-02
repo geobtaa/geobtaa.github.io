@@ -4,7 +4,7 @@ backend:
   branch: main
   base_url: https://decap-auth.geobtaa.workers.dev
   auth_endpoint: /auth
-  local_backend: true
+  squash_merges: true
 
 publish_mode: editorial_workflow
 
