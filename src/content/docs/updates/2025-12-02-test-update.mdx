@@ -1,0 +1,140 @@
+---
+title: Test update
+excerpt: Here is a test
+authors:
+  - name: Karen
+cover:
+  image: "@images/BTAA-GIN-institutions.png"
+  alt: map
+  caption: Map of institutions
+tags:
+  - Program updates
+date: 2025-12-02T11:54:00.000-06:00
+draft: true
+---
+import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
+import CenterLayout from 'src/components/CenterLayout.astro';
+import ChipList from 'src/components/ChipList.astro';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<div class="monthly-highlight">
+
+## Highlight Title
+
+Here is the highlight
+
+<CenterLayout>
+!\[Highlight image](@images/example.png)
+\*Caption describing the highlight image.\*
+</CenterLayout>
+
+**Key Themes**
+
+* Theme or takeaway one
+* Theme or takeaway two
+
+**Next Steps**
+Outline the upcoming actions or focus areas related to the highlight.
+
+</div>
+
+## Program Activities
+
+### Committees
+
+<CardGrid>
+  <Card title="TECHnology">
+    - Brief update about technology committee work.
+  </Card>
+
+  <Card title="Community Engagement">
+    - Summary of community engagement efforts.
+  </Card>
+
+  <Card title="Knowledge">
+    Highlights of knowledge committee activities.
+  </Card>
+
+  <Card title="Coordination">
+    - Key coordination actions or planning notes.
+  </Card>
+</CardGrid>
+
+### Workgroups
+
+<Card>
+
+#### Workgroup Name
+
+* Update or milestone item one
+* Update or milestone item two
+
+</Card>
+
+## BTAA Geoportal
+
+### This month by the numbers
+
+<TwoThirdsLayout>
+  <div slot="left">
+  !\[Chart description](@images/monthly-stats.png)
+  \*Caption for the monthly stats chart.\*
+  </div>
+  <div slot="right">
+  <div class="compact-list">
+  \* Visitors: TBD
+  \* Visits: TBD
+  \* Downloads: TBD
+  \* Visits with download: TBD
+  \* Outlinks: TBD
+  \* Visits with outlink: TBD
+  \* Num. searches: TBD
+  \* Search keywords: TBD
+  * Pageviews: TBD
+  </div>
+  </div>
+</TwoThirdsLayout>
+
+:::tip\[More stats]
+Link to the analytics dashboard or additional reporting.
+:::
+
+#### Top Google searches leading to the Geoportal
+
+<ChipList class="not-content">
+  - Placeholder search one
+  - Placeholder search two
+  - Placeholder search three
+</ChipList>
+
+#### Top internal search keywords
+
+<ChipList class="not-content">
+  - Keyword one
+  - Keyword two
+  - Keyword three
+</ChipList>
+
+### Collections
+
+<p class="records-total">Total records as of \[Month Day, Year]: \*\*TBD\*\*</p>
+
+### Harvesting Activities
+
+| \[Title]             | Records added | Records retired |
+| -------------------- | ------------- | --------------- |
+| [Example harvest](#) | 0             | 0               |
+| Total                | 0             | 0               |
+
+### Web Development
+
+* Development update one
+* Development update two
+
+:::tip\[More development details]
+Link to development report or documentation.
+:::
+
+## Priority Projects Update
+
+<a href="https://github.com/orgs/geobtaa/projects/22/views/6">Refer to our Priority Projects board.</a>
