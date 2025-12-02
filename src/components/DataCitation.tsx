@@ -1,5 +1,30 @@
 import { useMemo, useState } from "react";
 
+const FILE_FORMAT_OPTIONS = [
+  "ArcGRID",
+  "Geodatabase",
+  "GeoJPEG",
+  "GeoJSON",
+  "GeoPackage",
+  "GeoPDF",
+  "GeoTIFF",
+  "JPEG",
+  "KML/KMZ",
+  "LAS/LAZ",
+  "MrSID",
+  "PDF",
+  "PNG",
+  "Shapefile",
+  "SQLite Database",
+  "Spreadsheet",
+  "TIFF",
+  "Web Service",
+  "Tile Package",
+  "NetCDF",
+  "OSM Data",
+  "CAD Files",
+];
+
 // Types
 type Author = {
   type: "person" | "org";
@@ -66,13 +91,15 @@ function buildAPA(payload: {
   version?: string;
   publisher?: string;
   pid?: string;
+  format?: string;
 }) {
   const names = payload.authors.map(apaAuthor).filter(Boolean);
   const authorsStr = joinAuthors(names, "&"); // APA uses "&"
   const yr = payload.year ? `(${payload.year}). ` : "";
   const ver = payload.version ? ` (Version ${payload.version})` : "";
+  const fmt = payload.format?.trim();
   const titlePart = payload.title
-    ? `<i>${sentenceCase(payload.title)}</i>${ver} [Data set]. `
+    ? `<i>${sentenceCase(payload.title)}</i>${ver} [Data set${fmt ? `: ${fmt}` : ""}]. `
     : "";
   const pub = payload.publisher ? `${payload.publisher}. ` : "";
   const link = payload.pid ? normalizeDOIorURL(payload.pid) : "";
@@ -102,6 +129,12 @@ function buildMLA(payload: {
   return `${namesStr}${namesStr ? ". " : ""}${titlePart}${pub}${yr}${link}.`.replace(/\.?\.$/, ".");
 }
 
+function appendFormat(citation: string, format?: string) {
+  if (!format?.trim()) return citation;
+  const stripped = citation.trim().replace(/\.*$/, "");
+  return `${stripped} (${format.trim()})`;
+}
+
 export default function DataCitation() {
   // STATE ---------------------------------------------------------------
   const [authors, setAuthors] = useState<Author[]>([
@@ -112,13 +145,18 @@ export default function DataCitation() {
   const [version, setVersion] = useState("");
   const [publisher, setPublisher] = useState("");
   const [pid, setPid] = useState("");
+  const [fileFormat, setFileFormat] = useState("");
   const [style, setStyle] = useState<"apa" | "mla">("apa");
   const [copied, setCopied] = useState(false);
 
   const html = useMemo(() => {
     const payload = { authors, title, year, version, publisher, pid };
-    return style === "mla" ? buildMLA(payload) : buildAPA(payload);
-  }, [authors, title, year, version, publisher, pid, style]);
+    if (style === "mla") {
+      const base = buildMLA(payload);
+      return appendFormat(base, fileFormat);
+    }
+    return buildAPA({ ...payload, format: fileFormat });
+  }, [authors, title, year, version, publisher, pid, fileFormat, style]);
 
   // ACTIONS -------------------------------------------------------------
   function updateAuthor(idx: number, key: keyof Author, value: string) {
@@ -281,8 +319,8 @@ export default function DataCitation() {
             <div>
               <label>Year of publication</label>
               <input
-                type="number"
-                inputMode="numeric"
+                // type="number"
+                // inputMode="numeric"
                 placeholder="YYYY (Only add the 4-digit year)"
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
@@ -317,6 +355,23 @@ export default function DataCitation() {
                 value={pid}
                 onChange={(e) => setPid(e.target.value)}
               />
+            </div>
+          </div>
+
+          <div className="dcg-row single">
+            <div>
+              <label>File Type/Format</label>
+              <input
+                list="dcg-file-format"
+                placeholder="Select from list or enter a format"
+                value={fileFormat}
+                onChange={(e) => setFileFormat(e.target.value)}
+              />
+              <datalist id="dcg-file-format">
+                {FILE_FORMAT_OPTIONS.map((opt) => (
+                  <option value={opt} key={opt} />
+                ))}
+              </datalist>
             </div>
           </div>
 
