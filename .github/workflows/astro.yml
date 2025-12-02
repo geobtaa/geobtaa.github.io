@@ -8,6 +8,15 @@ on:
   # Runs on pushes targeting the default branch
   push:
     branches: ["main"]
+    paths:
+      - "src/content/**"
+      - "public/**"
+      - "astro.config.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "navigation.config.ts"
+      - ".github/workflows/astro.yml"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -19,10 +28,9 @@ permissions:
   id-token: write
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   BUILD_PATH: "." # default value when not using subfolders
