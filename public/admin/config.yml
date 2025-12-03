@@ -29,12 +29,12 @@ collections:
         name: "description"
         widget: "text"
 
-      - label: "Draft"
+      - label: "Hide from site"
         name: "draft"
         widget: "boolean"
         required: false
         default: false
-        hint: "Set to true to save as a draft. Draft content is saved, but not public."
+        hint: "If checked, this content stays hidden from the public site even when the workflow status is Published."
 
       - label: "Body"
         name: "body"
@@ -90,12 +90,12 @@ collections:
         name: "date"
         widget: "datetime"
 
-      - label: "Draft"
+      - label: "Hide from site"
         name: "draft"
         widget: "boolean"
         required: false
         default: false
-        hint: "Set to true to save as a draft. Draft content is not published."
+        hint: "If checked, this content stays hidden from the public site even when the workflow status is Published."
 
       - label: "Body"
         name: "body"
@@ -117,12 +117,12 @@ collections:
         name: "description"
         widget: "text"
 
-      - label: "Draft"
+      - label: "Hide from site"
         name: "draft"
         widget: "boolean"
         required: false
         default: false
-        hint: "Set to true to save as a draft. Draft content is not published."
+        hint: "If checked, this content stays hidden from the public site even when the workflow status is Published."
 
       - label: "Body"
         name: "body"
@@ -144,12 +144,12 @@ collections:
         name: "description"
         widget: "text"
 
-      - label: "Draft"
+      - label: "Hide from site"
         name: "draft"
         widget: "boolean"
         required: false
         default: false
-        hint: "Set to true to save as a draft. Draft content is not published."
+        hint: "If checked, this content stays hidden from the public site even when the workflow status is Published."
 
       - label: "Body"
         name: "body"
@@ -191,12 +191,12 @@ collections:
           - label: "Charters"
             value: "charters"
 
-      - label: "Draft"
+      - label: "Hide from site"
         name: "draft"
         widget: "boolean"
         required: false
         default: false
-        hint: "Set to true to save as a draft. Draft content is not published."
+        hint: "If checked, this content stays hidden from the public site even when the workflow status is Published."
 
       - label: "Body"
         name: "body"
@@ -218,12 +218,12 @@ collections:
         name: "description"
         widget: "text"
 
-      - label: "Draft"
+      - label: "Hide from site"
         name: "draft"
         widget: "boolean"
         required: false
         default: false
-        hint: "Set to true to save as a draft. Draft content is not published."
+        hint: "If checked, this content stays hidden from the public site even when the workflow status is Published."
 
       - label: "Body"
         name: "body"
@@ -245,12 +245,12 @@ collections:
         name: "description"
         widget: "text"
 
-      - label: "Draft"
+      - label: "Hide from site"
         name: "draft"
         widget: "boolean"
         required: false
         default: false
-        hint: "Set to true to save as a draft. Draft content is not published."
+        hint: "If checked, this content stays hidden from the public site even when the workflow status is Published."
 
       - label: "Body"
         name: "body"
@@ -272,12 +272,12 @@ collections:
         name: "description"
         widget: "text"
 
-      - label: "Draft"
+      - label: "Hide from site"
         name: "draft"
         widget: "boolean"
         required: false
         default: false
-        hint: "Set to true to save as a draft. Draft content is not published."
+        hint: "If checked, this content stays hidden from the public site even when the workflow status is Published."
 
       - label: "Body"
         name: "body"
@@ -306,6 +306,8 @@ collections:
           - label: "Name"
             name: "name"
             widget: "string"
+        default:
+          - "BTAA-GIN Staff"
 
       - label: "Cover"
         name: "cover"
@@ -328,6 +330,8 @@ collections:
       - label: "Tags"
         name: "tags"
         widget: "list"
+        default:
+          - "Program Updates"
 
       - label: "Publication Date"
         name: "date"
