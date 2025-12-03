@@ -337,12 +337,12 @@ collections:
         name: "date"
         widget: "datetime"
 
-      - label: "Draft"
+      - label: "Hide from site"
         name: "draft"
         widget: "boolean"
         required: false
         default: false
-        hint: "Set to true to save as a draft. Draft content is not published."
+        hint: "If checked, this content stays hidden from the public site even when the workflow status is Published."
 
       - label: "Body"
         name: "body"
