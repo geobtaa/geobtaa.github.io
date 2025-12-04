@@ -307,7 +307,7 @@ collections:
             name: "name"
             widget: "string"
         default:
-          - "BTAA-GIN Staff"
+          - name: "BTAA-GIN Staff"
 
       - label: "Cover"
         name: "cover"
