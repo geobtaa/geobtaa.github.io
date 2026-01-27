@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const FILE_FORMAT_OPTIONS = [
   "ArcGRID",
@@ -76,6 +76,14 @@ function mlaAuthor(a: Author) {
   const given = [first, middle].filter(Boolean).join(" ");
   return last ? `${last}, ${given}`.trim().replace(/,\s*$/, "") : "";
 }
+function chicagoAuthor(a: Author) {
+  if (a.type === "org") return (a.org || "").trim();
+  const last = (a.last || "").trim();
+  const first = (a.first || "").trim();
+  const middle = (a.middle || "").trim();
+  const given = [first, middle].filter(Boolean).join(" ");
+  return last ? `${last}, ${given}`.trim().replace(/,\s*$/, "") : "";
+}
 function joinAuthors(list: string[], conjWord: string) {
   if (list.length === 0) return "";
   if (list.length === 1) return list[0];
@@ -88,31 +96,47 @@ function buildAPA(payload: {
   authors: Author[];
   title?: string;
   year?: string;
+  temporalCoverage?: string;
   version?: string;
   publisher?: string;
   pid?: string;
+  dateAccessed?: string;
   format?: string;
 }) {
   const names = payload.authors.map(apaAuthor).filter(Boolean);
   const authorsStr = joinAuthors(names, "&"); // APA uses "&"
-  const yr = payload.year ? `(${payload.year}). ` : "";
-  const ver = payload.version ? ` (Version ${payload.version})` : "";
+  const yearValue = payload.year?.trim() || "n.d.";
+  const yr = `(${yearValue}). `;
+  const coveragePart = payload.temporalCoverage
+    ? `Temporal coverage: ${payload.temporalCoverage}`
+    : "";
+  const versionPart = payload.version ? `Version ${payload.version}` : "";
+  const metaParts = [coveragePart, versionPart].filter(Boolean);
+  const metaSuffix = metaParts.length ? ` (${metaParts.join("; ")})` : "";
   const fmt = payload.format?.trim();
   const titlePart = payload.title
-    ? `<i>${sentenceCase(payload.title)}</i>${ver} [Data set${fmt ? `: ${fmt}` : ""}]. `
+    ? `<i>${sentenceCase(payload.title)}</i>${metaSuffix} [Data set${fmt ? `: ${fmt}` : ""}]. `
     : "";
   const pub = payload.publisher ? `${payload.publisher}. ` : "";
   const link = payload.pid ? normalizeDOIorURL(payload.pid) : "";
-  return `${authorsStr}${authorsStr ? ". " : ""}${yr}${titlePart}${pub}${link}`.trim();
+  const accessed = payload.dateAccessed?.trim();
+  const retrieval = accessed
+    ? link
+      ? `Retrieved ${accessed}, from ${link}`
+      : `Retrieved ${accessed}.`
+    : link;
+  return `${authorsStr}${authorsStr ? ". " : ""}${yr}${titlePart}${pub}${retrieval}`.trim();
 }
 
 function buildMLA(payload: {
   authors: Author[];
   title?: string;
   year?: string;
+  temporalCoverage?: string;
   version?: string;
   publisher?: string;
   pid?: string;
+  dateAccessed?: string;
 }) {
   let names = payload.authors.map(mlaAuthor).filter(Boolean);
   if (names.length > 2) {
@@ -121,18 +145,61 @@ function buildMLA(payload: {
     names = [joinAuthors(names, "and")];
   }
   const namesStr = names.join("");
-  const ver = payload.version ? `, Version ${payload.version}` : "";
-  const titlePart = payload.title ? `<i>${payload.title}</i>${ver}` : "";
+  const coveragePart = payload.temporalCoverage
+    ? `Temporal coverage ${payload.temporalCoverage}`
+    : "";
+  const versionPart = payload.version ? `Version ${payload.version}` : "";
+  const metaParts = [coveragePart, versionPart].filter(Boolean);
+  const metaSuffix = metaParts.length ? `, (${metaParts.join("; ")})` : "";
+  const titlePart = payload.title ? `<i>${payload.title}</i>${metaSuffix}` : "";
   const pub = payload.publisher ? `, ${payload.publisher}` : "";
-  const yr = payload.year ? `, ${payload.year}` : "";
+  const yearValue = payload.year?.trim() || "n.d.";
+  const yr = `, ${yearValue}`;
   const link = payload.pid ? `, ${normalizeDOIorURL(payload.pid)}` : "";
-  return `${namesStr}${namesStr ? ". " : ""}${titlePart}${pub}${yr}${link}.`.replace(/\.?\.$/, ".");
+  const accessed = payload.dateAccessed?.trim();
+  const accessPart = accessed ? `, Accessed ${accessed}` : "";
+  return `${namesStr}${namesStr ? ". " : ""}${titlePart}${pub}${yr}${link}${accessPart}.`.replace(
+    /\.?\.$/,
+    ".",
+  );
 }
 
 function appendFormat(citation: string, format?: string) {
   if (!format?.trim()) return citation;
   const stripped = citation.trim().replace(/\.*$/, "");
   return `${stripped} (${format.trim()})`;
+}
+
+function buildChicago(payload: {
+  authors: Author[];
+  title?: string;
+  year?: string;
+  temporalCoverage?: string;
+  version?: string;
+  publisher?: string;
+  pid?: string;
+  dateAccessed?: string;
+}) {
+  const names = payload.authors.map(chicagoAuthor).filter(Boolean);
+  const authorsStr = joinAuthors(names, "and");
+  const yearValue = payload.year?.trim() || "n.d.";
+  const coveragePart = payload.temporalCoverage
+    ? `Temporal coverage: ${payload.temporalCoverage}`
+    : "";
+  const versionPart = payload.version ? `Version ${payload.version}` : "";
+  const metaParts = [coveragePart, versionPart].filter(Boolean);
+  const metaSuffix = metaParts.length ? ` (${metaParts.join("; ")})` : "";
+  const titlePart = payload.title
+    ? `<i>${payload.title}</i>${metaSuffix} [Data set]. `
+    : "";
+  const pub = payload.publisher ? `${payload.publisher}. ` : "";
+  const link = payload.pid ? normalizeDOIorURL(payload.pid) : "";
+  const accessed = payload.dateAccessed?.trim();
+  const accessPart = accessed ? `Accessed ${accessed}. ` : "";
+  const linkPart = link ? `${link}.` : "";
+  return `${authorsStr}${authorsStr ? ". " : ""}${yearValue}. ${titlePart}${pub}${accessPart}${linkPart}`
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export default function DataCitation() {
@@ -142,21 +209,55 @@ export default function DataCitation() {
   ]);
   const [title, setTitle] = useState("");
   const [year, setYear] = useState("");
+  const [temporalCoverage, setTemporalCoverage] = useState("");
   const [version, setVersion] = useState("");
   const [publisher, setPublisher] = useState("");
   const [pid, setPid] = useState("");
+  const [dateAccessed, setDateAccessed] = useState("");
   const [fileFormat, setFileFormat] = useState("");
-  const [style, setStyle] = useState<"apa" | "mla">("apa");
+  const [formatMenuOpen, setFormatMenuOpen] = useState(false);
+  const [style, setStyle] = useState<"apa" | "mla" | "chicago">("apa");
   const [copied, setCopied] = useState(false);
+  const formatFieldRef = useRef<HTMLDivElement | null>(null);
+
+  const filteredFormatOptions = useMemo(() => {
+    const query = fileFormat.trim().toLowerCase();
+    if (!query) return FILE_FORMAT_OPTIONS;
+    return FILE_FORMAT_OPTIONS.filter((opt) => opt.toLowerCase().includes(query));
+  }, [fileFormat]);
 
   const html = useMemo(() => {
-    const payload = { authors, title, year, version, publisher, pid };
+    const payload = {
+      authors,
+      title,
+      year,
+      temporalCoverage,
+      version,
+      publisher,
+      pid,
+      dateAccessed,
+    };
     if (style === "mla") {
       const base = buildMLA(payload);
       return appendFormat(base, fileFormat);
     }
+    if (style === "chicago") {
+      const base = buildChicago(payload);
+      return appendFormat(base, fileFormat);
+    }
     return buildAPA({ ...payload, format: fileFormat });
-  }, [authors, title, year, version, publisher, pid, fileFormat, style]);
+  }, [
+    authors,
+    title,
+    year,
+    temporalCoverage,
+    version,
+    publisher,
+    pid,
+    dateAccessed,
+    fileFormat,
+    style,
+  ]);
 
   // ACTIONS -------------------------------------------------------------
   function updateAuthor(idx: number, key: keyof Author, value: string) {
@@ -183,6 +284,30 @@ export default function DataCitation() {
   function removeAuthor(idx: number) {
     setAuthors((prev) => prev.filter((_, i) => i !== idx));
   }
+  function clearForm() {
+    setAuthors([{ type: "person", first: "", middle: "", last: "" }]);
+    setTitle("");
+    setYear("");
+    setTemporalCoverage("");
+    setVersion("");
+    setPublisher("");
+    setPid("");
+    setDateAccessed("");
+    setFileFormat("");
+    setFormatMenuOpen(false);
+  }
+
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (!formatFieldRef.current?.contains(target)) {
+        setFormatMenuOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, []);
 
   function copyPlainText() {
     const text = html.replace(/<[^>]+>/g, "");
@@ -216,10 +341,81 @@ export default function DataCitation() {
     <div className="dcg-wrap not-content">
       <div className="dcg-grid">
         <section className="dcg-card">
-          <h3>Input</h3>
+          <div className="dcg-card-header">
+            <h3>Input</h3>
+            <button className="dcg-btn ghost" type="button" onClick={clearForm}>
+              Clear
+            </button>
+          </div>
 
+          <label>Dataset title</label>
+          <input
+            placeholder="e.g., Urban Tree Canopy, Minneapolis"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+
+          <div className="dcg-row">
+            <div>
+              <label>File Type/Format</label>
+              <div className="dcg-combobox" ref={formatFieldRef}>
+                <input
+                  placeholder="Select from list or enter a format"
+                  value={fileFormat}
+                  onChange={(e) => {
+                    setFileFormat(e.target.value);
+                    setFormatMenuOpen(true);
+                  }}
+                  onFocus={() => setFormatMenuOpen(true)}
+                  role="combobox"
+                  aria-expanded={formatMenuOpen}
+                  aria-controls="dcg-format-menu"
+                />
+                <button
+                  className="dcg-combo-caret"
+                  type="button"
+                  aria-label="Show format options"
+                  onClick={() => setFormatMenuOpen((open) => !open)}
+                />
+                {formatMenuOpen && (
+                  <div className="dcg-combo-menu" role="listbox" id="dcg-format-menu">
+                    {filteredFormatOptions.length > 0 ? (
+                      filteredFormatOptions.map((opt) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          role="option"
+                          className="dcg-combo-option"
+                          onClick={() => {
+                            setFileFormat(opt);
+                            setFormatMenuOpen(false);
+                          }}
+                        >
+                          {opt}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="dcg-combo-empty">No matches</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div>
+              <label>
+                Version <span className="dcg-muted">(optional)</span>
+              </label>
+              <input
+                placeholder="e.g., 2.1 or 2025-08"
+                value={version}
+                onChange={(e) => setVersion(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <h4 className="dcg-section">Credits</h4>
           <div className="dcg-authors">
-            <label>Author(s)</label>
+            <label>Creator(s)</label>
             {authors.map((a, i) => (
               <div className={`dcg-author ${a.type === "org" ? "org" : "person"}`} key={i}>
                 {/* Type switcher */}
@@ -308,19 +504,22 @@ export default function DataCitation() {
             </div>
           </div>
 
-          <label>Dataset title</label>
-          <input
-            placeholder="e.g., Urban Tree Canopy, Minneapolis"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+          <div className="dcg-row single">
+            <div>
+              <label>Publisher</label>
+              <input
+                placeholder="Organization that made the dataset available"
+                value={publisher}
+                onChange={(e) => setPublisher(e.target.value)}
+              />
+            </div>
+          </div>
 
-          <div className="dcg-row">
+          <h4 className="dcg-section">Dates</h4>
+          <div className="dcg-row-3">
             <div>
               <label>Year of publication</label>
               <input
-                // type="number"
-                // inputMode="numeric"
                 placeholder="YYYY (Only add the 4-digit year)"
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
@@ -328,25 +527,27 @@ export default function DataCitation() {
             </div>
             <div>
               <label>
-                Version <span className="dcg-muted">(optional)</span>
+                Temporal coverage <span className="dcg-muted">(optional)</span>
               </label>
               <input
-                placeholder="e.g., 2.1 or 2025-08"
-                value={version}
-                onChange={(e) => setVersion(e.target.value)}
+                placeholder="e.g., 2010–2020"
+                value={temporalCoverage}
+                onChange={(e) => setTemporalCoverage(e.target.value)}
+              />
+            </div>
+            <div>
+              <label>
+                Date accessed <span className="dcg-muted">(optional)</span>
+              </label>
+              <input
+                placeholder="e.g., January 27, 2026"
+                value={dateAccessed}
+                onChange={(e) => setDateAccessed(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="dcg-row">
-            <div>
-              <label>Data publisher</label>
-              <input
-                placeholder="Organization that made the dataset available"
-                value={publisher}
-                onChange={(e) => setPublisher(e.target.value)}
-              />
-            </div>
+          <div className="dcg-row single">
             <div>
               <label>Persistent identifier or URL</label>
               <input
@@ -358,38 +559,22 @@ export default function DataCitation() {
             </div>
           </div>
 
-          <div className="dcg-row single">
-            <div>
-              <label>File Type/Format</label>
-              <input
-                list="dcg-file-format"
-                placeholder="Select from list or enter a format"
-                value={fileFormat}
-                onChange={(e) => setFileFormat(e.target.value)}
-              />
-              <datalist id="dcg-file-format">
-                {FILE_FORMAT_OPTIONS.map((opt) => (
-                  <option value={opt} key={opt} />
-                ))}
-              </datalist>
-            </div>
-          </div>
+        </section>
 
-          <div className="dcg-row single">
+        <section className="dcg-card">
+          <div className="dcg-row single dcg-style-toggle">
             <div>
               <label>Citation style</label>
               <select
                 value={style}
-                onChange={(e) => setStyle(e.target.value as "apa" | "mla")}
+                onChange={(e) => setStyle(e.target.value as "apa" | "mla" | "chicago")}
               >
                 <option value="apa">APA</option>
                 <option value="mla">MLA</option>
+                <option value="chicago">Chicago</option>
               </select>
             </div>
           </div>
-        </section>
-
-        <section className="dcg-card">
           <h3>
             Output <span className="dcg-fmt">{style.toUpperCase()}</span>
           </h3>
@@ -423,6 +608,8 @@ export default function DataCitation() {
 
         .dcg-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; }
         .dcg-card h3 { margin: 0 0 .75rem; font-size: 1rem; }
+        .dcg-card-header { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin: 0 0 .75rem; }
+        .dcg-card-header h3 { margin: 0; }
 
         .dcg-wrap input,
         .dcg-wrap select {
@@ -441,6 +628,72 @@ export default function DataCitation() {
         .dcg-wrap input:focus,
         .dcg-wrap select:focus { outline: 2px solid color-mix(in oklab, var(--accent) 40%, transparent); outline-offset: 2px; }
 
+        .dcg-combobox { position: relative; }
+        .dcg-combobox input { padding-right: 2.4rem; }
+        .dcg-combo-caret {
+          position: absolute;
+          top: 50%;
+          right: 0.35rem;
+          transform: translateY(-50%);
+          height: 1.9rem;
+          width: 1.9rem;
+          border-radius: 6px;
+          border: 1px solid var(--border);
+          background: var(--sl-color-bg);
+          color: var(--ink);
+          cursor: pointer;
+          padding: 0;
+          display: grid;
+          place-items: center;
+        }
+        .dcg-combo-caret::before {
+          content: "";
+          width: 0;
+          height: 0;
+          border-left: 5px solid transparent;
+          border-right: 5px solid transparent;
+          border-top: 6px solid currentColor;
+        }
+        .dcg-combo-caret:hover { border-color: var(--accent); }
+        .dcg-combo-caret:focus-visible {
+          outline: 2px solid color-mix(in oklab, var(--accent) 40%, transparent);
+          outline-offset: 2px;
+        }
+        .dcg-combo-menu {
+          position: absolute;
+          z-index: 20;
+          top: calc(100% + 4px);
+          left: 0;
+          right: 0;
+          max-height: 220px;
+          overflow: auto;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          background: var(--card);
+          box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+          padding: 0.25rem;
+        }
+        .dcg-combo-option {
+          width: 100%;
+          text-align: left;
+          border: 1px solid transparent;
+          background: transparent;
+          color: var(--ink);
+          border-radius: 6px;
+          padding: 0.45rem 0.55rem;
+          cursor: pointer;
+          font: inherit;
+        }
+        .dcg-combo-option:hover {
+          background: color-mix(in oklab, var(--accent) 10%, transparent);
+          border-color: color-mix(in oklab, var(--accent) 35%, transparent);
+        }
+        .dcg-combo-empty {
+          padding: 0.5rem 0.6rem;
+          color: color-mix(in oklab, var(--ink) 70%, transparent);
+          font-size: 0.9rem;
+        }
+
         .dcg-row, .dcg-row-3 { display: grid; gap: .75rem; align-items: start; }
         .dcg-row   { grid-template-columns: 1fr 1fr; }
         .dcg-row-3 { grid-template-columns: 1fr 1fr 1fr; }
@@ -454,6 +707,11 @@ export default function DataCitation() {
         .dcg-row-3 > div > label { min-height: 1.2em; }
 
         .dcg-muted { font-weight: 400; }
+        .dcg-section {
+          margin: 1.25rem 0 0.5rem;
+          font-size: 0.95rem;
+          font-weight: 700;
+        }
 
         .dcg-authors { display: flex; flex-direction: column; gap: .5rem; }
 
@@ -567,11 +825,13 @@ export default function DataCitation() {
 
         .dcg-btn { appearance: none; border: 1px solid var(--border); background: var(--accent); color: var(--sl-color-text-invert); border-radius: 999px; padding: .5rem .9rem; margin-bottom: 1rem; font-weight: 700; cursor: pointer; transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .02s ease; }
         .dcg-btn.secondary { background: transparent; color: var(--accent); border-color: var(--accent); }
+        .dcg-btn.ghost { background: transparent; color: var(--ink); border-color: var(--border); }
         .dcg-btn:hover { border-color: var(--accent); }
         .dcg-btn:active { transform: translateY(1px); }
         .dcg-btn[disabled] { opacity: .75; cursor: default; }
         .dcg-btn.is-copied { background: color-mix(in oklab, var(--accent) 18%, white); color: var(--accent); border-color: var(--accent); }
         .dcg-btn.secondary:hover { background: color-mix(in oklab, var(--accent) 12%, transparent); }
+        .dcg-card-header .dcg-btn { margin-bottom: 0; padding: .4rem .75rem; font-weight: 600; }
 
         .dcg-output { min-height: 140px; padding: .75rem; border-radius: 8px; border: 1px dashed var(--border); background: color-mix(in oklab, var(--sl-color-bg) 90%, black 10%); color: var(--sl-color-text); }
         .dcg-output i { font-style: italic; }
@@ -580,6 +840,7 @@ export default function DataCitation() {
 
         /* Spacing tweaks for dense fields */
         .dcg-row, .dcg-row-3 { margin-top: 1rem; }
+        .dcg-style-toggle { margin-top: 0; margin-bottom: .75rem; }
 
         /* Neutralize any CardGrid stagger transforms within this tool */
         .dcg-grid > * { transform: none !important; }
