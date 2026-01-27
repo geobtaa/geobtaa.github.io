@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 const FILE_FORMAT_OPTIONS = [
   "ArcGRID",
@@ -24,6 +24,26 @@ const FILE_FORMAT_OPTIONS = [
   "OSM Data",
   "CAD Files",
 ];
+
+const FIELD_HELP = {
+  title:
+    "Provide the complete title of the dataset, including edition or version if applicable, as assigned by the data creator or provider.",
+  creators:
+    "Provide the name of the individual, group, or organization responsible for creating or making the data, noting that the data publisher may be a different entity.",
+  year:
+    "Indicate the year the dataset was published, which may represent a one-time or infrequent release for the cited version of the data.",
+  version:
+    "Version or edition number of the data. If not provided by the data publisher, the publication date or access date should be used instead.",
+  publisher:
+    "Identify the organization or entity responsible for making the dataset available through archiving, publishing, or distribution, which may differ from the original data author/creator(s).",
+  pid:
+    "Provide a static electronic location or persistent identifier (e.g., DOI or URL) used to access the dataset, and include the retrieval date if the link does not point to a specific version.",
+  format:
+    "Specify the format and general resource type of the data, such as physical media, downloadable files, live services, or standardized labels like [dataset] or [data file and documentation].",
+  accessed:
+    "Date the dataset was retrieved. If the Temporal Coverage or Year of Publication is unknown, use this field to provide some temporal context.",
+  temporalCoverage: "Year(s) of dataset.",
+} as const;
 
 // Types
 type Author = {
@@ -76,6 +96,14 @@ function mlaAuthor(a: Author) {
   const given = [first, middle].filter(Boolean).join(" ");
   return last ? `${last}, ${given}`.trim().replace(/,\s*$/, "") : "";
 }
+function chicagoAuthor(a: Author) {
+  if (a.type === "org") return (a.org || "").trim();
+  const last = (a.last || "").trim();
+  const first = (a.first || "").trim();
+  const middle = (a.middle || "").trim();
+  const given = [first, middle].filter(Boolean).join(" ");
+  return last ? `${last}, ${given}`.trim().replace(/,\s*$/, "") : "";
+}
 function joinAuthors(list: string[], conjWord: string) {
   if (list.length === 0) return "";
   if (list.length === 1) return list[0];
@@ -88,31 +116,47 @@ function buildAPA(payload: {
   authors: Author[];
   title?: string;
   year?: string;
+  temporalCoverage?: string;
   version?: string;
   publisher?: string;
   pid?: string;
+  dateAccessed?: string;
   format?: string;
 }) {
   const names = payload.authors.map(apaAuthor).filter(Boolean);
   const authorsStr = joinAuthors(names, "&"); // APA uses "&"
-  const yr = payload.year ? `(${payload.year}). ` : "";
-  const ver = payload.version ? ` (Version ${payload.version})` : "";
+  const yearValue = payload.year?.trim() || "n.d.";
+  const yr = `(${yearValue}). `;
+  const coveragePart = payload.temporalCoverage
+    ? `Temporal coverage: ${payload.temporalCoverage}`
+    : "";
+  const versionPart = payload.version ? `Version ${payload.version}` : "";
+  const metaParts = [coveragePart, versionPart].filter(Boolean);
+  const metaSuffix = metaParts.length ? ` (${metaParts.join("; ")})` : "";
   const fmt = payload.format?.trim();
   const titlePart = payload.title
-    ? `<i>${sentenceCase(payload.title)}</i>${ver} [Data set${fmt ? `: ${fmt}` : ""}]. `
+    ? `<i>${sentenceCase(payload.title)}</i>${metaSuffix} [Data set${fmt ? `: ${fmt}` : ""}]. `
     : "";
   const pub = payload.publisher ? `${payload.publisher}. ` : "";
   const link = payload.pid ? normalizeDOIorURL(payload.pid) : "";
-  return `${authorsStr}${authorsStr ? ". " : ""}${yr}${titlePart}${pub}${link}`.trim();
+  const accessed = payload.dateAccessed?.trim();
+  const retrieval = accessed
+    ? link
+      ? `Retrieved ${accessed}, from ${link}`
+      : `Retrieved ${accessed}.`
+    : link;
+  return `${authorsStr}${authorsStr ? ". " : ""}${yr}${titlePart}${pub}${retrieval}`.trim();
 }
 
 function buildMLA(payload: {
   authors: Author[];
   title?: string;
   year?: string;
+  temporalCoverage?: string;
   version?: string;
   publisher?: string;
   pid?: string;
+  dateAccessed?: string;
 }) {
   let names = payload.authors.map(mlaAuthor).filter(Boolean);
   if (names.length > 2) {
@@ -121,12 +165,23 @@ function buildMLA(payload: {
     names = [joinAuthors(names, "and")];
   }
   const namesStr = names.join("");
-  const ver = payload.version ? `, Version ${payload.version}` : "";
-  const titlePart = payload.title ? `<i>${payload.title}</i>${ver}` : "";
+  const coveragePart = payload.temporalCoverage
+    ? `Temporal coverage ${payload.temporalCoverage}`
+    : "";
+  const versionPart = payload.version ? `Version ${payload.version}` : "";
+  const metaParts = [coveragePart, versionPart].filter(Boolean);
+  const metaSuffix = metaParts.length ? `, (${metaParts.join("; ")})` : "";
+  const titlePart = payload.title ? `<i>${payload.title}</i>${metaSuffix}` : "";
   const pub = payload.publisher ? `, ${payload.publisher}` : "";
-  const yr = payload.year ? `, ${payload.year}` : "";
+  const yearValue = payload.year?.trim() || "n.d.";
+  const yr = `, ${yearValue}`;
   const link = payload.pid ? `, ${normalizeDOIorURL(payload.pid)}` : "";
-  return `${namesStr}${namesStr ? ". " : ""}${titlePart}${pub}${yr}${link}.`.replace(/\.?\.$/, ".");
+  const accessed = payload.dateAccessed?.trim();
+  const accessPart = accessed ? `, Accessed ${accessed}` : "";
+  return `${namesStr}${namesStr ? ". " : ""}${titlePart}${pub}${yr}${link}${accessPart}.`.replace(
+    /\.?\.$/,
+    ".",
+  );
 }
 
 function appendFormat(citation: string, format?: string) {
@@ -135,28 +190,141 @@ function appendFormat(citation: string, format?: string) {
   return `${stripped} (${format.trim()})`;
 }
 
+function FieldHelp({ id, text }: { id: string; text: string }) {
+  const [open, setOpen] = useState(false);
+  const srId = `${id}-sr`;
+  const tipId = `${id}-tip`;
+  return (
+    <span className="dcg-help">
+      <span className="sr-only" id={srId}>
+        {text}
+      </span>
+      <button
+        type="button"
+        className="dcg-help-btn"
+        aria-label="Field help"
+        aria-describedby={srId}
+        aria-expanded={open}
+        aria-controls={tipId}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        onClick={() => setOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") setOpen(false);
+        }}
+      >
+        i
+      </button>
+      {open && (
+        <span role="tooltip" id={tipId} className="dcg-help-tip">
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function buildChicago(payload: {
+  authors: Author[];
+  title?: string;
+  year?: string;
+  temporalCoverage?: string;
+  version?: string;
+  publisher?: string;
+  pid?: string;
+  dateAccessed?: string;
+}) {
+  const names = payload.authors.map(chicagoAuthor).filter(Boolean);
+  const authorsStr = joinAuthors(names, "and");
+  const yearValue = payload.year?.trim() || "n.d.";
+  const coveragePart = payload.temporalCoverage
+    ? `Temporal coverage: ${payload.temporalCoverage}`
+    : "";
+  const versionPart = payload.version ? `Version ${payload.version}` : "";
+  const metaParts = [coveragePart, versionPart].filter(Boolean);
+  const metaSuffix = metaParts.length ? ` (${metaParts.join("; ")})` : "";
+  const titlePart = payload.title
+    ? `<i>${payload.title}</i>${metaSuffix} [Data set]. `
+    : "";
+  const pub = payload.publisher ? `${payload.publisher}. ` : "";
+  const link = payload.pid ? normalizeDOIorURL(payload.pid) : "";
+  const accessed = payload.dateAccessed?.trim();
+  const accessPart = accessed ? `Accessed ${accessed}. ` : "";
+  const linkPart = link ? `${link}.` : "";
+  return `${authorsStr}${authorsStr ? ". " : ""}${yearValue}. ${titlePart}${pub}${accessPart}${linkPart}`
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export default function DataCitation() {
   // STATE ---------------------------------------------------------------
+  const idPrefix = useId();
+  const titleId = `${idPrefix}-title`;
+  const formatId = `${idPrefix}-format`;
+  const versionId = `${idPrefix}-version`;
+  const pidId = `${idPrefix}-pid`;
+  const publisherId = `${idPrefix}-publisher`;
+  const yearId = `${idPrefix}-year`;
+  const temporalCoverageId = `${idPrefix}-temporal-coverage`;
+  const dateAccessedId = `${idPrefix}-date-accessed`;
+  const styleId = `${idPrefix}-style`;
+
   const [authors, setAuthors] = useState<Author[]>([
-    { type: "person", first: "", middle: "", last: "" },
+    { type: "org", org: "" },
   ]);
   const [title, setTitle] = useState("");
   const [year, setYear] = useState("");
+  const [temporalCoverage, setTemporalCoverage] = useState("");
   const [version, setVersion] = useState("");
   const [publisher, setPublisher] = useState("");
   const [pid, setPid] = useState("");
+  const [dateAccessed, setDateAccessed] = useState("");
   const [fileFormat, setFileFormat] = useState("");
-  const [style, setStyle] = useState<"apa" | "mla">("apa");
+  const [formatMenuOpen, setFormatMenuOpen] = useState(false);
+  const [style, setStyle] = useState<"apa" | "mla" | "chicago">("apa");
   const [copied, setCopied] = useState(false);
+  const formatFieldRef = useRef<HTMLDivElement | null>(null);
+
+  const filteredFormatOptions = useMemo(() => {
+    const query = fileFormat.trim().toLowerCase();
+    if (!query) return FILE_FORMAT_OPTIONS;
+    return FILE_FORMAT_OPTIONS.filter((opt) => opt.toLowerCase().includes(query));
+  }, [fileFormat]);
 
   const html = useMemo(() => {
-    const payload = { authors, title, year, version, publisher, pid };
+    const payload = {
+      authors,
+      title,
+      year,
+      temporalCoverage,
+      version,
+      publisher,
+      pid,
+      dateAccessed,
+    };
     if (style === "mla") {
       const base = buildMLA(payload);
       return appendFormat(base, fileFormat);
     }
+    if (style === "chicago") {
+      const base = buildChicago(payload);
+      return appendFormat(base, fileFormat);
+    }
     return buildAPA({ ...payload, format: fileFormat });
-  }, [authors, title, year, version, publisher, pid, fileFormat, style]);
+  }, [
+    authors,
+    title,
+    year,
+    temporalCoverage,
+    version,
+    publisher,
+    pid,
+    dateAccessed,
+    fileFormat,
+    style,
+  ]);
 
   // ACTIONS -------------------------------------------------------------
   function updateAuthor(idx: number, key: keyof Author, value: string) {
@@ -178,11 +346,35 @@ export default function DataCitation() {
     });
   }
   function addAuthor() {
-    setAuthors((prev) => [...prev, { type: "person", first: "", middle: "", last: "" }]);
+    setAuthors((prev) => [...prev, { type: "org", org: "" }]);
   }
   function removeAuthor(idx: number) {
     setAuthors((prev) => prev.filter((_, i) => i !== idx));
   }
+  function clearForm() {
+    setAuthors([{ type: "org", org: "" }]);
+    setTitle("");
+    setYear("");
+    setTemporalCoverage("");
+    setVersion("");
+    setPublisher("");
+    setPid("");
+    setDateAccessed("");
+    setFileFormat("");
+    setFormatMenuOpen(false);
+  }
+
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (!formatFieldRef.current?.contains(target)) {
+        setFormatMenuOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, []);
 
   function copyPlainText() {
     const text = html.replace(/<[^>]+>/g, "");
@@ -216,10 +408,116 @@ export default function DataCitation() {
     <div className="dcg-wrap not-content">
       <div className="dcg-grid">
         <section className="dcg-card">
-          <h3>Input</h3>
+          <div className="dcg-card-header">
+            <h2>Input</h2>
+            <button className="dcg-btn ghost" type="button" onClick={clearForm}>
+              Clear
+            </button>
+          </div>
 
+          <h3 className="dcg-section dcg-section-first">Dataset</h3>
+          <div className="dcg-label-row">
+            <label htmlFor={titleId}>Dataset title</label>
+            <FieldHelp id="help-title" text={FIELD_HELP.title} />
+          </div>
+          <input
+            id={titleId}
+            placeholder="e.g., Urban Tree Canopy, Minneapolis"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+
+          <div className="dcg-row single">
+            <div>
+              <div className="dcg-label-row">
+                <label htmlFor={formatId}>File Type/Format</label>
+                <FieldHelp id="help-format" text={FIELD_HELP.format} />
+              </div>
+              <div className="dcg-combobox" ref={formatFieldRef}>
+                <input
+                  id={formatId}
+                  placeholder="Select from list or enter a format"
+                  value={fileFormat}
+                  onChange={(e) => {
+                    setFileFormat(e.target.value);
+                    setFormatMenuOpen(true);
+                  }}
+                  onFocus={() => setFormatMenuOpen(true)}
+                  role="combobox"
+                  aria-expanded={formatMenuOpen}
+                  aria-controls="dcg-format-menu"
+                />
+                <button
+                  className="dcg-combo-caret"
+                  type="button"
+                  aria-label="Show format options"
+                  onClick={() => setFormatMenuOpen((open) => !open)}
+                />
+                {formatMenuOpen && (
+                  <div className="dcg-combo-menu" role="listbox" id="dcg-format-menu">
+                    {filteredFormatOptions.length > 0 ? (
+                      filteredFormatOptions.map((opt) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          role="option"
+                          className="dcg-combo-option"
+                          onClick={() => {
+                            setFileFormat(opt);
+                            setFormatMenuOpen(false);
+                          }}
+                        >
+                          {opt}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="dcg-combo-empty">No matches</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="dcg-row single">
+            <div>
+              <div className="dcg-label-row">
+                <label htmlFor={versionId}>
+                  Version <span className="dcg-muted">(optional)</span>
+                </label>
+                <FieldHelp id="help-version" text={FIELD_HELP.version} />
+              </div>
+              <input
+                id={versionId}
+                placeholder="e.g., 2.1 or 2025-08"
+                value={version}
+                onChange={(e) => setVersion(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="dcg-row single">
+            <div>
+              <div className="dcg-label-row">
+                <label htmlFor={pidId}>Persistent identifier or URL</label>
+                <FieldHelp id="help-pid" text={FIELD_HELP.pid} />
+              </div>
+              <input
+                id={pidId}
+                type="url"
+                placeholder="https://doi.org/10.xxxx/xxxxx"
+                value={pid}
+                onChange={(e) => setPid(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <h3 className="dcg-section dcg-section-split">Credits</h3>
           <div className="dcg-authors">
-            <label>Author(s)</label>
+            <div className="dcg-label-row">
+              <div className="dcg-field-label">Author(s)/Creator(s)</div>
+              <FieldHelp id="help-creators" text={FIELD_HELP.creators} />
+            </div>
             {authors.map((a, i) => (
               <div className={`dcg-author ${a.type === "org" ? "org" : "person"}`} key={i}>
                 {/* Type switcher */}
@@ -228,19 +526,19 @@ export default function DataCitation() {
                   <div className="dcg-type-toggle" role="group" aria-label={`Author ${i + 1} type`}>
                     <button
                       type="button"
-                      className={"dcg-pill" + (a.type === "person" ? " active" : "")}
-                      aria-pressed={a.type === "person"}
-                      onClick={() => changeType(i, "person")}
-                    >
-                      Person
-                    </button>
-                    <button
-                      type="button"
                       className={"dcg-pill" + (a.type === "org" ? " active" : "")}
                       aria-pressed={a.type === "org"}
                       onClick={() => changeType(i, "org")}
                     >
                       Organization
+                    </button>
+                    <button
+                      type="button"
+                      className={"dcg-pill" + (a.type === "person" ? " active" : "")}
+                      aria-pressed={a.type === "person"}
+                      onClick={() => changeType(i, "person")}
+                    >
+                      Person
                     </button>
                   </div>
                 </div>
@@ -248,11 +546,19 @@ export default function DataCitation() {
                 {a.type === "person" ? (
                   <>
                     <div className="dcg-author-col last">
-                      <label>Last</label>
-                      <input
-                        value={a.last || ""}
-                        onChange={(e) => updateAuthor(i, "last", e.target.value)}
-                      />
+                      {(() => {
+                        const lastId = `${idPrefix}-author-${i}-last`;
+                        return (
+                          <>
+                            <label htmlFor={lastId}>Last</label>
+                            <input
+                              id={lastId}
+                              value={a.last || ""}
+                              onChange={(e) => updateAuthor(i, "last", e.target.value)}
+                            />
+                          </>
+                        );
+                      })()}
                       {authors.length > 1 && (
                         <button
                           className="dcg-remove"
@@ -265,28 +571,52 @@ export default function DataCitation() {
                       )}
                     </div>
                     <div className="dcg-author-col first">
-                      <label>First</label>
-                      <input
-                        value={a.first || ""}
-                        onChange={(e) => updateAuthor(i, "first", e.target.value)}
-                      />
+                      {(() => {
+                        const firstId = `${idPrefix}-author-${i}-first`;
+                        return (
+                          <>
+                            <label htmlFor={firstId}>First</label>
+                            <input
+                              id={firstId}
+                              value={a.first || ""}
+                              onChange={(e) => updateAuthor(i, "first", e.target.value)}
+                            />
+                          </>
+                        );
+                      })()}
                     </div>
                     <div className="dcg-author-col middle">
-                      <label>Middle</label>
-                      <input
-                        value={a.middle || ""}
-                        onChange={(e) => updateAuthor(i, "middle", e.target.value)}
-                      />
+                      {(() => {
+                        const middleId = `${idPrefix}-author-${i}-middle`;
+                        return (
+                          <>
+                            <label htmlFor={middleId}>Middle</label>
+                            <input
+                              id={middleId}
+                              value={a.middle || ""}
+                              onChange={(e) => updateAuthor(i, "middle", e.target.value)}
+                            />
+                          </>
+                        );
+                      })()}
                     </div>
                   </>
                 ) : (
                   <div className="dcg-author-org">
-                    <label>Organization</label>
-                    <input
-                      placeholder="Full name of organization"
-                      value={a.org || ""}
-                      onChange={(e) => updateAuthor(i, "org", e.target.value)}
-                    />
+                    {(() => {
+                      const orgId = `${idPrefix}-author-${i}-org`;
+                      return (
+                        <>
+                          <label htmlFor={orgId}>Organization</label>
+                          <input
+                            id={orgId}
+                            placeholder="Full name of organization"
+                            value={a.org || ""}
+                            onChange={(e) => updateAuthor(i, "org", e.target.value)}
+                          />
+                        </>
+                      );
+                    })()}
                     {authors.length > 1 && (
                       <button
                         className="dcg-remove"
@@ -302,94 +632,97 @@ export default function DataCitation() {
               </div>
             ))}
             <div className="dcg-toolbar">
-              <button className="dcg-btn secondary" type="button" onClick={addAuthor}>
+              <button className="dcg-btn secondary dcg-add-author" type="button" onClick={addAuthor}>
                 + Add author
               </button>
             </div>
           </div>
 
-          <label>Dataset title</label>
-          <input
-            placeholder="e.g., Urban Tree Canopy, Minneapolis"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-
-          <div className="dcg-row">
+          <div className="dcg-row single">
             <div>
-              <label>Year of publication</label>
+              <div className="dcg-label-row">
+                <label htmlFor={publisherId}>Publisher</label>
+                <FieldHelp id="help-publisher" text={FIELD_HELP.publisher} />
+              </div>
               <input
-                // type="number"
-                // inputMode="numeric"
-                placeholder="YYYY (Only add the 4-digit year)"
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-              />
-            </div>
-            <div>
-              <label>
-                Version <span className="dcg-muted">(optional)</span>
-              </label>
-              <input
-                placeholder="e.g., 2.1 or 2025-08"
-                value={version}
-                onChange={(e) => setVersion(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="dcg-row">
-            <div>
-              <label>Data publisher</label>
-              <input
+                id={publisherId}
                 placeholder="Organization that made the dataset available"
                 value={publisher}
                 onChange={(e) => setPublisher(e.target.value)}
               />
             </div>
+          </div>
+
+          <h3 className="dcg-section dcg-section-split">Dates</h3>
+          <div className="dcg-row single">
             <div>
-              <label>Persistent identifier or URL</label>
+              <div className="dcg-label-row">
+                <label htmlFor={yearId}>Year of publication</label>
+                <FieldHelp id="help-year" text={FIELD_HELP.year} />
+              </div>
               <input
-                type="url"
-                placeholder="https://doi.org/10.xxxx/xxxxx"
-                value={pid}
-                onChange={(e) => setPid(e.target.value)}
+                id={yearId}
+                placeholder="YYYY (Only add the 4-digit year)"
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
               />
             </div>
           </div>
 
           <div className="dcg-row single">
             <div>
-              <label>File Type/Format</label>
+              <div className="dcg-label-row">
+                <label htmlFor={temporalCoverageId}>
+                  Temporal coverage <span className="dcg-muted">(optional)</span>
+                </label>
+                <FieldHelp
+                  id="help-temporal-coverage"
+                  text={FIELD_HELP.temporalCoverage}
+                />
+              </div>
               <input
-                list="dcg-file-format"
-                placeholder="Select from list or enter a format"
-                value={fileFormat}
-                onChange={(e) => setFileFormat(e.target.value)}
+                id={temporalCoverageId}
+                placeholder="e.g., 2010–2020"
+                value={temporalCoverage}
+                onChange={(e) => setTemporalCoverage(e.target.value)}
               />
-              <datalist id="dcg-file-format">
-                {FILE_FORMAT_OPTIONS.map((opt) => (
-                  <option value={opt} key={opt} />
-                ))}
-              </datalist>
             </div>
           </div>
 
           <div className="dcg-row single">
             <div>
-              <label>Citation style</label>
-              <select
-                value={style}
-                onChange={(e) => setStyle(e.target.value as "apa" | "mla")}
-              >
-                <option value="apa">APA</option>
-                <option value="mla">MLA</option>
-              </select>
+              <div className="dcg-label-row">
+                <label htmlFor={dateAccessedId}>
+                  Date accessed <span className="dcg-muted">(optional)</span>
+                </label>
+                <FieldHelp id="help-accessed" text={FIELD_HELP.accessed} />
+              </div>
+              <input
+                id={dateAccessedId}
+                placeholder="e.g., January 27, 2026"
+                value={dateAccessed}
+                onChange={(e) => setDateAccessed(e.target.value)}
+              />
             </div>
           </div>
+
         </section>
 
         <section className="dcg-card">
+          <div className="dcg-row single dcg-style-toggle">
+            <div>
+              <label htmlFor={styleId}>Citation style</label>
+              <select
+                id={styleId}
+                value={style}
+                onChange={(e) => setStyle(e.target.value as "apa" | "mla" | "chicago")}
+              >
+                <option value="apa">APA</option>
+                <option value="mla">MLA</option>
+                <option value="chicago">Chicago</option>
+              </select>
+            </div>
+          </div>
           <h3>
             Output <span className="dcg-fmt">{style.toUpperCase()}</span>
           </h3>
@@ -422,7 +755,11 @@ export default function DataCitation() {
         @media (max-width: 960px) { .dcg-grid { grid-template-columns: 1fr; } }
 
         .dcg-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; }
+        .dcg-card h2,
         .dcg-card h3 { margin: 0 0 .75rem; font-size: 1rem; }
+        .dcg-card-header { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin: 0 0 .75rem; }
+        .dcg-card-header h2,
+        .dcg-card-header h3 { margin: 0; }
 
         .dcg-wrap input,
         .dcg-wrap select {
@@ -441,6 +778,108 @@ export default function DataCitation() {
         .dcg-wrap input:focus,
         .dcg-wrap select:focus { outline: 2px solid color-mix(in oklab, var(--accent) 40%, transparent); outline-offset: 2px; }
 
+        .dcg-combobox { position: relative; }
+        .dcg-combobox input { padding-right: 2.4rem; }
+        .dcg-combo-caret {
+          position: absolute;
+          top: 50%;
+          right: 0.35rem;
+          transform: translateY(-50%);
+          height: 1.9rem;
+          width: 1.9rem;
+          border-radius: 6px;
+          border: 1px solid var(--border);
+          background: var(--sl-color-bg);
+          color: var(--ink);
+          cursor: pointer;
+          padding: 0;
+          display: grid;
+          place-items: center;
+        }
+        .dcg-combo-caret::before {
+          content: "";
+          width: 0;
+          height: 0;
+          border-left: 5px solid transparent;
+          border-right: 5px solid transparent;
+          border-top: 6px solid currentColor;
+        }
+        .dcg-combo-caret:hover { border-color: var(--accent); }
+        .dcg-combo-caret:focus-visible {
+          outline: 2px solid color-mix(in oklab, var(--accent) 40%, transparent);
+          outline-offset: 2px;
+        }
+        .dcg-combo-menu {
+          position: absolute;
+          z-index: 20;
+          top: calc(100% + 4px);
+          left: 0;
+          right: 0;
+          max-height: 220px;
+          overflow: auto;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          background: var(--card);
+          box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+          padding: 0.25rem;
+        }
+        .dcg-combo-option {
+          width: 100%;
+          text-align: left;
+          border: 1px solid transparent;
+          background: transparent;
+          color: var(--ink);
+          border-radius: 6px;
+          padding: 0.45rem 0.55rem;
+          cursor: pointer;
+          font: inherit;
+        }
+        .dcg-combo-option:hover {
+          background: color-mix(in oklab, var(--accent) 10%, transparent);
+          border-color: color-mix(in oklab, var(--accent) 35%, transparent);
+        }
+        .dcg-combo-empty {
+          padding: 0.5rem 0.6rem;
+          color: color-mix(in oklab, var(--ink) 70%, transparent);
+          font-size: 0.9rem;
+        }
+
+        .dcg-help { position: relative; display: inline-flex; align-items: center; }
+        .dcg-help-btn {
+          height: 1.15rem;
+          width: 1.15rem;
+          border-radius: 999px;
+          border: 1px solid var(--border);
+          background: var(--sl-color-bg);
+          color: var(--ink);
+          font-size: 0.75rem;
+          line-height: 1;
+          padding: 0;
+          display: grid;
+          place-items: center;
+          cursor: help;
+        }
+        .dcg-help-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .dcg-help-btn:focus-visible {
+          outline: 2px solid color-mix(in oklab, var(--accent) 40%, transparent);
+          outline-offset: 2px;
+        }
+        .dcg-help-tip {
+          position: absolute;
+          z-index: 30;
+          top: calc(100% + 6px);
+          left: 0;
+          width: min(320px, 70vw);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          background: var(--card);
+          color: var(--ink);
+          padding: 0.55rem 0.65rem;
+          box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+          font-size: 0.9rem;
+          line-height: 1.35;
+        }
+
         .dcg-row, .dcg-row-3 { display: grid; gap: .75rem; align-items: start; }
         .dcg-row   { grid-template-columns: 1fr 1fr; }
         .dcg-row-3 { grid-template-columns: 1fr 1fr 1fr; }
@@ -449,11 +888,34 @@ export default function DataCitation() {
         .dcg-row > div,
         .dcg-row-3 > div { display: grid; grid-template-rows: auto auto; row-gap: .35rem; align-items: start; align-self: start; }
 
-        .dcg-wrap label { margin: 0 !important; font-weight: 600; font-size: .9rem; display: block; line-height: 1.2; }
+        .dcg-wrap label,
+        .dcg-field-label {
+          margin: 0 !important;
+          font-weight: 600;
+          font-size: .9rem;
+          display: block;
+          line-height: 1.2;
+        }
         .dcg-row > div > label,
-        .dcg-row-3 > div > label { min-height: 1.2em; }
+        .dcg-row-3 > div > label,
+        .dcg-row > div > .dcg-field-label,
+        .dcg-row-3 > div > .dcg-field-label { min-height: 1.2em; }
 
         .dcg-muted { font-weight: 400; }
+        .dcg-label-row { display: flex; align-items: center; gap: 0.4rem; min-height: 1.2em; }
+        .dcg-section {
+          margin: 1.25rem 0 0.5rem;
+          font-size: 1.05rem;
+          font-weight: 800;
+          letter-spacing: 0.2px;
+          color: var(--accent);
+        }
+        .dcg-section-first { margin-top: 0.25rem; }
+        .dcg-section-split {
+          margin-top: 2.25rem;
+          padding-top: 0.9rem;
+          border-top: 1px solid var(--border);
+        }
 
         .dcg-authors { display: flex; flex-direction: column; gap: .5rem; }
 
@@ -567,11 +1029,24 @@ export default function DataCitation() {
 
         .dcg-btn { appearance: none; border: 1px solid var(--border); background: var(--accent); color: var(--sl-color-text-invert); border-radius: 999px; padding: .5rem .9rem; margin-bottom: 1rem; font-weight: 700; cursor: pointer; transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .02s ease; }
         .dcg-btn.secondary { background: transparent; color: var(--accent); border-color: var(--accent); }
+        .dcg-btn.ghost { background: transparent; color: var(--ink); border-color: var(--border); }
         .dcg-btn:hover { border-color: var(--accent); }
         .dcg-btn:active { transform: translateY(1px); }
         .dcg-btn[disabled] { opacity: .75; cursor: default; }
         .dcg-btn.is-copied { background: color-mix(in oklab, var(--accent) 18%, white); color: var(--accent); border-color: var(--accent); }
         .dcg-btn.secondary:hover { background: color-mix(in oklab, var(--accent) 12%, transparent); }
+        .dcg-card-header .dcg-btn { margin-bottom: 0; padding: .4rem .75rem; font-weight: 600; }
+        .dcg-add-author {
+          font-size: 0.85rem;
+          padding: 0.38rem 0.7rem;
+          border-width: 1px;
+          border-color: color-mix(in oklab, var(--accent) 55%, var(--border));
+        }
+        .dcg-add-author:hover {
+          background: #e8efff;
+          border-color: var(--accent);
+          color: var(--accent);
+        }
 
         .dcg-output { min-height: 140px; padding: .75rem; border-radius: 8px; border: 1px dashed var(--border); background: color-mix(in oklab, var(--sl-color-bg) 90%, black 10%); color: var(--sl-color-text); }
         .dcg-output i { font-style: italic; }
@@ -580,6 +1055,7 @@ export default function DataCitation() {
 
         /* Spacing tweaks for dense fields */
         .dcg-row, .dcg-row-3 { margin-top: 1rem; }
+        .dcg-style-toggle { margin-top: 0; margin-bottom: .75rem; }
 
         /* Neutralize any CardGrid stagger transforms within this tool */
         .dcg-grid > * { transform: none !important; }
