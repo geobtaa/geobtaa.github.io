@@ -10,6 +10,12 @@ const data = entry.data as Record<string, unknown>;
 const id = entry.id ?? '';
 const showMeta = ['posts/', 'updates/', 'library/'].some((prefix) => id.startsWith(prefix));
 const isLibraryEntry = id.startsWith('library/');
+const showCover = ['posts/', 'updates/'].some((prefix) => id.startsWith(prefix));
+
+const localImageModules = import.meta.glob('../assets/images/**/*', {
+  eager: true,
+  import: 'default',
+});
 
 const normalizeAuthors = (raw: unknown): string[] => {
   if (!Array.isArray(raw)) return [];
@@ -55,16 +61,63 @@ const toDescription = (value: unknown): string | undefined => {
   return trimmed.length > 0 ? trimmed : undefined;
 };
 
+const resolveCoverImage = (image: unknown): string | undefined => {
+  if (!image) return undefined;
+  if (image instanceof URL) {
+    return image.toString();
+  }
+  if (typeof image === 'object' && image !== null && 'src' in image) {
+    const src = (image as { src?: unknown }).src;
+    if (typeof src === 'string') return src;
+    if (src instanceof URL) return src.toString();
+  }
+  if (typeof image !== 'string') return undefined;
+  if (image.startsWith('@images/')) {
+    const path = image.slice('@images/'.length);
+    const key = `../assets/images/${path}`;
+    const resolved = localImageModules[key];
+    if (typeof resolved === 'string') return resolved;
+  }
+  return image;
+};
+
+const extractCover = (cover: unknown) => {
+  if (!cover || typeof cover !== 'object') return undefined;
+  const record = cover as Record<string, unknown>;
+  if ('image' in record) {
+    const image = resolveCoverImage(record.image);
+    if (!image) return undefined;
+    const alt = typeof record.alt === 'string' ? record.alt : '';
+    const caption = typeof record.caption === 'string' ? record.caption : undefined;
+    return { image, alt, caption };
+  }
+  if ('light' in record) {
+    const image = resolveCoverImage(record.light);
+    if (!image) return undefined;
+    const alt = typeof record.alt === 'string' ? record.alt : '';
+    const caption = typeof record.caption === 'string' ? record.caption : undefined;
+    return { image, alt, caption };
+  }
+  return undefined;
+};
+
 const authors = showMeta ? normalizeAuthors(data.authors) : [];
 const published = showMeta ? toDate(data.date) : undefined;
 const tags = showMeta ? normalizeTags(data.tags) : [];
 const year = showMeta && isLibraryEntry ? toYear(data.year) : undefined;
 const description = isLibraryEntry ? toDescription(data.description) : undefined;
+const cover = showCover ? extractCover(data.cover) : undefined;
 ---
 
 <div class="page-title not-content">
   <h1 id={PAGE_TITLE_ID}>{entry.data.title}</h1>
   {showMeta && <ArticleMeta authors={authors} date={published} tags={tags} year={year} />}
+  {cover && (
+    <figure class="page-title__cover">
+      <img src={cover.image} alt={cover.alt || ''} loading="lazy" decoding="async" />
+      {cover.caption && <figcaption>{cover.caption}</figcaption>}
+    </figure>
+  )}
   {description && <p class="page-title__description"><span class="page-title__description-label">Summary:</span> {description}</p>}
 </div>
 
@@ -102,6 +155,28 @@ const description = isLibraryEntry ? toDescription(data.description) : undefined
       margin-right: 0.35rem;
       color: var(--sl-color-text);
       text-transform: none;
+    }
+
+    .page-title__cover {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .page-title__cover img {
+      width: 100%;
+      max-width: 960px;
+      border-radius: 12px;
+      border: 1px solid var(--sl-color-hairline);
+      background: var(--sl-color-black);
+    }
+
+    .page-title__cover figcaption {
+      max-width: 960px;
+      color: var(--sl-color-text);
+      font-size: 0.9rem;
+      line-height: 1.5;
     }
   }
 </style>

@@ -79,8 +79,9 @@ collections:
             hint: "Describe the image for people using screen readers."
           - label: "Caption"
             name: "caption"
-            widget: "text"
+            widget: "string"
             required: false
+            hint: "Shown below the cover image on the post page."
 
       - label: "Tags"
         name: "tags"

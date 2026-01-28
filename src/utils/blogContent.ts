@@ -13,6 +13,7 @@ export type BlogItem = {
   cover?: {
     image: string;
     alt: string;
+    caption?: string;
   };
 };
 
@@ -57,14 +58,16 @@ const extractCover = (cover: unknown): BlogItem['cover'] | undefined => {
     const image = resolveCoverImage(record.image);
     if (!image) return undefined;
     const alt = typeof record.alt === 'string' ? record.alt : '';
-    return { image, alt };
+    const caption = typeof record.caption === 'string' ? record.caption : undefined;
+    return { image, alt, caption };
   }
 
   if ('light' in record) {
     const lightImage = resolveCoverImage(record.light);
     if (!lightImage) return undefined;
     const alt = typeof record.alt === 'string' ? record.alt : '';
-    return { image: lightImage, alt };
+    const caption = typeof record.caption === 'string' ? record.caption : undefined;
+    return { image: lightImage, alt, caption };
   }
 
   return undefined;

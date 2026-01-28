@@ -71,6 +71,10 @@ export const blogEntrySchema = ({ image }: SchemaContext) =>
            */
           alt: z.string(),
           /**
+           * Optional caption text displayed with the cover image.
+           */
+          caption: z.string().optional(),
+          /**
            * Relative path to an image file in your project, e.g. `../../assets/cover.png`, or a URL to a remote image.
            */
           image: z.union([image(), z.string()]),
@@ -80,6 +84,10 @@ export const blogEntrySchema = ({ image }: SchemaContext) =>
            * Alternative text describing the cover image for assistive technologies.
            */
           alt: z.string(),
+          /**
+           * Optional caption text displayed with the cover image.
+           */
+          caption: z.string().optional(),
           /**
            * Relative path to an image file in your project, e.g. `../../assets/cover-dark.png`, or a URL to a remote
            * image to use in dark mode.
