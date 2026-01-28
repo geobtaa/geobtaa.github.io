@@ -10,8 +10,6 @@ const data = entry.data as Record<string, unknown>;
 const id = entry.id ?? '';
 const showMeta = ['posts/', 'updates/', 'library/'].some((prefix) => id.startsWith(prefix));
 const isLibraryEntry = id.startsWith('library/');
-const showCover = ['posts/', 'updates/'].some((prefix) => id.startsWith(prefix));
-
 const localImageModules = import.meta.glob('../assets/images/**/*', {
   eager: true,
   import: 'default',
@@ -106,18 +104,12 @@ const published = showMeta ? toDate(data.date) : undefined;
 const tags = showMeta ? normalizeTags(data.tags) : [];
 const year = showMeta && isLibraryEntry ? toYear(data.year) : undefined;
 const description = isLibraryEntry ? toDescription(data.description) : undefined;
-const cover = showCover ? extractCover(data.cover) : undefined;
+const cover = undefined;
 ---
 
 <div class="page-title not-content">
   <h1 id={PAGE_TITLE_ID}>{entry.data.title}</h1>
   {showMeta && <ArticleMeta authors={authors} date={published} tags={tags} year={year} />}
-  {cover && (
-    <figure class="page-title__cover">
-      <img src={cover.image} alt={cover.alt || ''} loading="lazy" decoding="async" />
-      {cover.caption && <figcaption>{cover.caption}</figcaption>}
-    </figure>
-  )}
   {description && <p class="page-title__description"><span class="page-title__description-label">Summary:</span> {description}</p>}
 </div>
 
@@ -157,26 +149,5 @@ const cover = showCover ? extractCover(data.cover) : undefined;
       text-transform: none;
     }
 
-    .page-title__cover {
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-
-    .page-title__cover img {
-      width: 100%;
-      max-width: 960px;
-      border-radius: 12px;
-      border: 1px solid var(--sl-color-hairline);
-      background: var(--sl-color-black);
-    }
-
-    .page-title__cover figcaption {
-      max-width: 960px;
-      color: var(--sl-color-text);
-      font-size: 0.9rem;
-      line-height: 1.5;
-    }
   }
 </style>
