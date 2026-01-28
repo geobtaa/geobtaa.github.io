@@ -77,11 +77,6 @@ collections:
             name: "alt"
             widget: "string"
             hint: "Describe the image for people using screen readers."
-          - label: "Caption"
-            name: "caption"
-            widget: "string"
-            required: false
-            hint: "Shown below the cover image on the post page."
 
       - label: "Tags"
         name: "tags"
@@ -323,10 +318,6 @@ collections:
             name: "alt"
             widget: "string"
             hint: "Describe the image for people using screen readers."
-          - label: "Caption"
-            name: "caption"
-            widget: "text"
-            required: false
 
       - label: "Tags"
         name: "tags"
