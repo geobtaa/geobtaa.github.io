@@ -9,6 +9,7 @@ import { NAV_GROUPS, type NavSidebarAutogenerate, type NavSidebarEntry, type Nav
 import type { StarlightUserConfig } from '@astrojs/starlight/types';
 import reverseDateSidebar from './src/plugins/reverseDateSidebar';
 import removeTocOverview from './src/plugins/removeTocOverview';
+import remarkCenterLayoutImages from './src/plugins/remarkCenterLayoutImages';
 
 type SidebarItem = NonNullable<StarlightUserConfig['sidebar']>[number];
 
@@ -53,6 +54,9 @@ const starlightSidebar: StarlightUserConfig['sidebar'] = NAV_GROUPS.flatMap((gro
 
 export default defineConfig({
   site: 'https://gin.btaa.org',
+  markdown: {
+    remarkPlugins: [remarkCenterLayoutImages],
+  },
   redirects: {
     '/updates/': '/blog/',
     '/policies/harmful-language': '/library/harmful-language',
