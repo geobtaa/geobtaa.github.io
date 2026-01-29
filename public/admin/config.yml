@@ -68,15 +68,18 @@ collections:
         name: "cover"
         widget: "object"
         collapsed: false
+        required: false
         fields:
           - label: "Cover Image"
             name: "image"
             widget: "image"
             choose_url: true
+            required: false
           - label: "Alt Text"
             name: "alt"
             widget: "string"
             hint: "Describe the image for people using screen readers."
+            required: false
 
       - label: "Tags"
         name: "tags"
@@ -309,11 +312,13 @@ collections:
         name: "cover"
         widget: "object"
         collapsed: false
+        required: false
         fields:
           - label: "Cover Image"
             name: "image"
             widget: "image"
             choose_url: true
+            required: false
           - label: "Alt Text"
             name: "alt"
             widget: "string"
