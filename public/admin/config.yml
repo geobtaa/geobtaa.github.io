@@ -80,6 +80,7 @@ collections:
             widget: "string"
             hint: "Describe the image for people using screen readers."
             required: false
+            required: false
 
       - label: "Tags"
         name: "tags"
