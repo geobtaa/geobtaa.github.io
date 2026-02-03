@@ -7,7 +7,7 @@ backend:
   squash_merges: true
 
 publish_mode: editorial_workflow
-
+local_backend: true
 site_url: https://gin.btaa.org
 media_folder: "src/assets/images"
 public_folder: "@images"
@@ -342,131 +342,236 @@ collections:
         default: false
         hint: "If checked, this content stays hidden from the public site even when the workflow status is Published."
 
-      - label: "Body"
-        name: "body"
-        widget: "markdown"
-        default: |
-          import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
-          import CenterLayout from 'src/components/CenterLayout.astro';
-          import ChipList from 'src/components/ChipList.astro';
-          import { Card, CardGrid } from '@astrojs/starlight/components';
+      - label: "Use Structured Layout"
+        name: "programUpdateLayout"
+        widget: "boolean"
+        default: true
+        hint: "Leave enabled to use the structured Program Update layout."
 
-          <div class="monthly-highlight">
+      - label: "Program Update Details"
+        name: "programUpdate"
+        widget: "object"
+        required: false
+        fields:
+          - label: "Monthly Highlight"
+            name: "highlight"
+            widget: "object"
+            fields:
+              - label: "Title"
+                name: "title"
+                widget: "string"
+                required: false
+              - label: "Intro"
+                name: "intro"
+                widget: "markdown"
+                required: false
+              - label: "Bullets"
+                name: "bullets"
+                widget: "list"
+                required: false
+                field:
+                  label: "Bullet"
+                  name: "bullet"
+                  widget: "string"
+              - label: "Link"
+                name: "link"
+                widget: "object"
+                required: false
+                fields:
+                  - label: "Label"
+                    name: "label"
+                    widget: "string"
+                    required: false
+                  - label: "URL"
+                    name: "url"
+                    widget: "string"
+                    required: false
+              - label: "Image"
+                name: "image"
+                widget: "object"
+                required: false
+                fields:
+                  - label: "Image"
+                    name: "src"
+                    widget: "image"
+                    choose_url: true
+                    required: false
+                  - label: "Alt Text"
+                    name: "alt"
+                    widget: "string"
+                    required: false
+                  - label: "Caption"
+                    name: "caption"
+                    widget: "string"
+                    required: false
 
-          ## Highlight Title
+          - label: "Committees"
+            name: "committees"
+            widget: "list"
+            required: false
+            fields:
+              - label: "Committee Name"
+                name: "name"
+                widget: "string"
+              - label: "Updates"
+                name: "updates"
+                widget: "list"
+                field:
+                  label: "Update"
+                  name: "update"
+                  widget: "string"
 
-          Introductory paragraph for this month's highlight. Replace this text with a summary of the featured activity.
+          - label: "Workgroups"
+            name: "workgroups"
+            widget: "list"
+            required: false
+            fields:
+              - label: "Workgroup Name"
+                name: "name"
+                widget: "string"
+              - label: "Updates"
+                name: "updates"
+                widget: "list"
+                field:
+                  label: "Update"
+                  name: "update"
+                  widget: "string"
 
-          <CenterLayout>
-          ![Highlight image](@images/example.png)
-          *Caption describing the highlight image.*
-          </CenterLayout>
+          - label: "BTAA Geoportal"
+            name: "geoportal"
+            widget: "object"
+            required: false
+            fields:
+              - label: "Chart"
+                name: "chart"
+                widget: "object"
+                required: false
+                fields:
+                  - label: "Image"
+                    name: "image"
+                    widget: "image"
+                    choose_url: true
+                    required: false
+                  - label: "Alt Text"
+                    name: "alt"
+                    widget: "string"
+                    required: false
+                  - label: "Caption"
+                    name: "caption"
+                    widget: "string"
+                    required: false
+              - label: "Stats"
+                name: "stats"
+                widget: "list"
+                required: false
+                fields:
+                  - label: "Label"
+                    name: "label"
+                    widget: "string"
+                  - label: "Value"
+                    name: "value"
+                    widget: "string"
+              - label: "Top Google Searches"
+                name: "topGoogleSearches"
+                widget: "list"
+                required: false
+                field:
+                  label: "Search"
+                  name: "search"
+                  widget: "string"
+              - label: "Top Internal Search Keywords"
+                name: "topInternalSearches"
+                widget: "list"
+                required: false
+                field:
+                  label: "Keyword"
+                  name: "keyword"
+                  widget: "string"
+              - label: "More Stats Link"
+                name: "moreStats"
+                widget: "object"
+                required: false
+                fields:
+                  - label: "Link Label"
+                    name: "label"
+                    widget: "string"
+                    required: false
+                  - label: "URL"
+                    name: "url"
+                    widget: "string"
+                    required: false
 
-          **Key Themes**
+          - label: "Collections"
+            name: "collections"
+            widget: "object"
+            required: false
+            fields:
+              - label: "Total Records Label"
+                name: "totalRecordsLabel"
+                widget: "string"
+                required: false
+                hint: "Example: Total records as of January 2026"
+              - label: "Total Records Value"
+                name: "totalRecordsValue"
+                widget: "string"
+                required: false
+              - label: "Harvesting Activities"
+                name: "harvesting"
+                widget: "list"
+                required: false
+                fields:
+                  - label: "Title"
+                    name: "title"
+                    widget: "string"
+                  - label: "Records Added"
+                    name: "added"
+                    widget: "string"
+                  - label: "Records Retired"
+                    name: "retired"
+                    widget: "string"
 
-          - Theme or takeaway one
-          - Theme or takeaway two
+          - label: "Web Development"
+            name: "webDevelopment"
+            widget: "object"
+            required: false
+            fields:
+              - label: "Highlights"
+                name: "highlights"
+                widget: "list"
+                required: false
+                field:
+                  label: "Highlight"
+                  name: "highlight"
+                  widget: "string"
+              - label: "More Details Link"
+                name: "moreDetails"
+                widget: "object"
+                required: false
+                fields:
+                  - label: "Link Label"
+                    name: "label"
+                    widget: "string"
+                    required: false
+                  - label: "URL"
+                    name: "url"
+                    widget: "string"
+                    required: false
 
-          **Next Steps**
-          Outline the upcoming actions or focus areas related to the highlight.
+          - label: "Priority Projects"
+            name: "priorityProjects"
+            widget: "object"
+            required: false
+            fields:
+              - label: "Link Label"
+                name: "label"
+                widget: "string"
+                required: false
+              - label: "URL"
+                name: "url"
+                widget: "string"
+                required: false
 
-          </div>
-
-          ## Program Activities
-
-          ### Committees
-
-          <CardGrid>
-            <Card title="TECHnology">
-              - Brief update about technology committee work.
-            </Card>
-
-            <Card title="Community Engagement">
-              - Summary of community engagement efforts.
-            </Card>
-
-            <Card title="Knowledge">
-              Highlights of knowledge committee activities.
-            </Card>
-
-            <Card title="Coordination">
-              - Key coordination actions or planning notes.
-            </Card>
-          </CardGrid>
-
-          ### Workgroups
-
-          <Card>
-
-          #### Workgroup Name
-
-          * Update or milestone item one
-          * Update or milestone item two
-
-          </Card>
-
-          ## BTAA Geoportal
-
-          ### This month by the numbers
-
-          <TwoThirdsLayout>
-            <div slot="left">
-            ![Chart description](@images/monthly-stats.png)
-            *Caption for the monthly stats chart.*
-            </div>
-            <div slot="right">
-            <div class="compact-list">
-            * Visitors: TBD
-            * Visits: TBD
-            * Downloads: TBD
-            * Visits with download: TBD
-            * Outlinks: TBD
-            * Visits with outlink: TBD
-            * Num. searches: TBD
-            * Search keywords: TBD
-            * Pageviews: TBD
-            </div>
-            </div>
-          </TwoThirdsLayout>
-
-          :::tip[More stats]
-          Link to the analytics dashboard or additional reporting.
-          :::
-
-          #### Top Google searches leading to the Geoportal
-          <ChipList class="not-content">
-            - Placeholder search one
-            - Placeholder search two
-            - Placeholder search three
-          </ChipList>
-
-          #### Top internal search keywords
-          <ChipList class="not-content">
-            - Keyword one
-            - Keyword two
-            - Keyword three
-          </ChipList>
-
-          ### Collections
-
-          <p class="records-total">Total records as of [Month Day, Year]: **TBD**</p>
-
-          ### Harvesting Activities
-
-          | [Title] | Records added | Records retired |
-          | :---- | -----: | -----: |
-          | [Example harvest](#) | 0 | 0 |
-          | Total | 0 | 0 |
-
-          ### Web Development
-
-          * Development update one
-          * Development update two
-
-          :::tip[More development details]
-          Link to development report or documentation.
-          :::
-
-          ## Priority Projects Update
-
-          <a href="https://github.com/orgs/geobtaa/projects/22/views/6">Refer to our Priority Projects board.</a>
+          - label: "Additional Notes"
+            name: "additionalNotes"
+            widget: "markdown"
+            required: false

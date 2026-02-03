@@ -88,6 +88,7 @@ export default defineConfig({
         Header: './src/components/Header.astro',
         Sidebar: './src/components/SidebarWithFilters.astro',
         PageTitle: './src/components/PageTitleWithMeta.astro',
+        MarkdownContent: './src/components/MarkdownContent.astro',
       },
       plugins: [
         starlightImageZoom(),

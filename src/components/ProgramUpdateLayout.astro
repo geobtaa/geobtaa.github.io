@@ -1,0 +1,352 @@
+---
+import CenterLayout from './CenterLayout.astro';
+import ChipList from './ChipList.astro';
+import TwoThirdsLayout from './TwoThirdsLayout.astro';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import { renderMarkdown } from '../utils/renderMarkdown';
+
+const { data } = Astro.props;
+
+const programUpdate = (data && typeof data === 'object' && 'programUpdate' in data)
+  ? (data as { programUpdate?: Record<string, unknown> }).programUpdate
+  : undefined;
+
+const highlight = (programUpdate?.highlight ?? {}) as Record<string, unknown>;
+const committees = Array.isArray(programUpdate?.committees) ? programUpdate?.committees : [];
+const workgroups = Array.isArray(programUpdate?.workgroups) ? programUpdate?.workgroups : [];
+const geoportal = (programUpdate?.geoportal ?? {}) as Record<string, unknown>;
+const collections = (programUpdate?.collections ?? {}) as Record<string, unknown>;
+const webDevelopment = (programUpdate?.webDevelopment ?? {}) as Record<string, unknown>;
+const priorityProjects = (programUpdate?.priorityProjects ?? {}) as Record<string, unknown>;
+
+const highlightIntroHtml = await renderMarkdown(String(highlight.intro ?? ''));
+const additionalNotesHtml = await renderMarkdown(String(programUpdate?.additionalNotes ?? ''));
+
+const localImageModules = import.meta.glob('../assets/images/**/*', {
+  eager: true,
+  import: 'default',
+});
+
+const resolveImage = (image: unknown): string | undefined => {
+  if (!image) return undefined;
+  if (image instanceof URL) return image.toString();
+  if (typeof image === 'string') {
+    if (image.startsWith('@images/')) {
+      const path = image.slice('@images/'.length);
+      const key = `../assets/images/${path}`;
+      const resolved = localImageModules[key];
+      if (typeof resolved === 'string') return resolved;
+    }
+    return image;
+  }
+  if (typeof image === 'object' && image !== null && 'src' in image) {
+    const src = (image as { src?: unknown }).src;
+    if (typeof src === 'string') return src;
+    if (src instanceof URL) return src.toString();
+  }
+  return undefined;
+};
+
+const toStringArray = (value: unknown): string[] =>
+  Array.isArray(value)
+    ? value.map((item) => String(item).trim()).filter((item) => item.length > 0)
+    : [];
+
+const toRecordArray = (value: unknown): Record<string, unknown>[] =>
+  Array.isArray(value) ? value.filter((item) => item && typeof item === 'object') : [];
+
+const highlightLink =
+  highlight.link && typeof highlight.link === 'object'
+    ? (() => {
+        const link = highlight.link as Record<string, unknown>;
+        const label = typeof link.label === 'string' ? link.label.trim() : '';
+        const url = typeof link.url === 'string' ? link.url.trim() : '';
+        return url ? { label, url, text: label || url } : null;
+      })()
+    : null;
+
+const highlightImage =
+  highlight.image && typeof highlight.image === 'object'
+    ? (() => {
+        const image = highlight.image as Record<string, unknown>;
+        const src = resolveImage(image.src);
+        if (!src) return null;
+        const alt = typeof image.alt === 'string' ? image.alt : '';
+        const caption = typeof image.caption === 'string' ? image.caption : '';
+        return { src, alt, caption };
+      })()
+    : null;
+
+const geoportalChart =
+  geoportal.chart && typeof geoportal.chart === 'object'
+    ? (() => {
+        const chart = geoportal.chart as Record<string, unknown>;
+        const src = resolveImage(chart.image);
+        if (!src) return null;
+        const alt = typeof chart.alt === 'string' ? chart.alt : '';
+        const caption = typeof chart.caption === 'string' ? chart.caption : '';
+        return { src, alt, caption };
+      })()
+    : null;
+
+const moreStatsLink =
+  geoportal.moreStats && typeof geoportal.moreStats === 'object'
+    ? (() => {
+        const moreStats = geoportal.moreStats as Record<string, unknown>;
+        const label = typeof moreStats.label === 'string' ? moreStats.label.trim() : '';
+        const url = typeof moreStats.url === 'string' ? moreStats.url.trim() : '';
+        return label && url ? { label, url } : null;
+      })()
+    : null;
+
+const moreDetailsLink =
+  webDevelopment.moreDetails && typeof webDevelopment.moreDetails === 'object'
+    ? (() => {
+        const moreDetails = webDevelopment.moreDetails as Record<string, unknown>;
+        const label = typeof moreDetails.label === 'string' ? moreDetails.label.trim() : '';
+        const url = typeof moreDetails.url === 'string' ? moreDetails.url.trim() : '';
+        return label && url ? { label, url } : null;
+      })()
+    : null;
+
+const priorityLink =
+  priorityProjects && typeof priorityProjects === 'object'
+    ? (() => {
+        const label = typeof priorityProjects.label === 'string' ? priorityProjects.label.trim() : '';
+        const url = typeof priorityProjects.url === 'string' ? priorityProjects.url.trim() : '';
+        return url ? { label, url, text: label || url } : label ? { label, text: label } : null;
+      })()
+    : null;
+---
+
+{programUpdate ? (
+  <>
+    {(highlight.title || highlightIntroHtml) && (
+      <div class="monthly-highlight">
+        {highlight.title && <h2>{String(highlight.title)}</h2>}
+        {highlightIntroHtml && <div set:html={highlightIntroHtml} />}
+        {toStringArray(highlight.bullets).length > 0 && (
+          <ul>
+            {toStringArray(highlight.bullets).map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        )}
+        {highlightLink && (
+          <p>
+            {highlightLink.label && <strong>{highlightLink.label}: </strong>}
+            {highlightLink.url ? <a href={highlightLink.url}>{highlightLink.text}</a> : highlightLink.text}
+          </p>
+        )}
+        {highlightImage && (
+          <CenterLayout>
+            <figure>
+              <img src={highlightImage.src} alt={highlightImage.alt} />
+              {highlightImage.caption && <figcaption><em>{highlightImage.caption}</em></figcaption>}
+            </figure>
+          </CenterLayout>
+        )}
+      </div>
+    )}
+
+    {(committees.length > 0 || workgroups.length > 0) && <h2>Program Activities</h2>}
+
+    {committees.length > 0 && (
+      <>
+        <h3>Committees</h3>
+        <CardGrid>
+          {toRecordArray(committees).map((committee) => {
+            const name = typeof committee.name === 'string' ? committee.name : '';
+            const updates = toStringArray(committee.updates);
+            if (!name && updates.length === 0) return null;
+            return (
+              <Card title={name || 'Committee'}>
+                {updates.length > 0 ? (
+                  <ul>
+                    {updates.map((item) => (
+                      <li>{item}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </Card>
+            );
+          })}
+        </CardGrid>
+      </>
+    )}
+
+    {workgroups.length > 0 && (
+      <>
+        <h3>Workgroups</h3>
+        <Card>
+          {toRecordArray(workgroups).map((workgroup) => {
+            const name = typeof workgroup.name === 'string' ? workgroup.name : '';
+            const updates = toStringArray(workgroup.updates);
+            if (!name && updates.length === 0) return null;
+            return (
+              <>
+                {name && <h4>{name}</h4>}
+                {updates.length > 0 && (
+                  <ul>
+                    {updates.map((item) => (
+                      <li>{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            );
+          })}
+        </Card>
+      </>
+    )}
+
+    {(geoportal.chart || geoportal.stats || geoportal.topGoogleSearches || geoportal.topInternalSearches) && (
+      <>
+        <h2>BTAA Geoportal</h2>
+
+        {(geoportal.chart || geoportal.stats) && (
+          <>
+            <h3>This month by the numbers</h3>
+            <TwoThirdsLayout>
+              <div slot="left">
+                {geoportalChart && (
+                  <figure>
+                    <img src={geoportalChart.src} alt={geoportalChart.alt} />
+                    {geoportalChart.caption && <figcaption><em>{geoportalChart.caption}</em></figcaption>}
+                  </figure>
+                )}
+              </div>
+              <div slot="right">
+                <ul class="compact-list">
+                  {toRecordArray(geoportal.stats).map((stat) => {
+                    const label = typeof stat.label === 'string' ? stat.label.trim() : '';
+                    const value = typeof stat.value === 'string' ? stat.value.trim() : '';
+                    if (!label && !value) return null;
+                    return (
+                      <li><strong>{label}:</strong> {value}</li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </TwoThirdsLayout>
+          </>
+        )}
+
+        {toStringArray(geoportal.topGoogleSearches).length > 0 && (
+          <>
+            <h4>Top Google searches leading to the Geoportal</h4>
+            <ChipList class="not-content">
+              {toStringArray(geoportal.topGoogleSearches).map((item) => (
+                <li>{item}</li>
+              ))}
+            </ChipList>
+          </>
+        )}
+
+        {toStringArray(geoportal.topInternalSearches).length > 0 && (
+          <>
+            <h4>Top internal search keywords</h4>
+            <ChipList class="not-content">
+              {toStringArray(geoportal.topInternalSearches).map((item) => (
+                <li>{item}</li>
+              ))}
+            </ChipList>
+          </>
+        )}
+
+        {moreStatsLink && (
+          <aside class="starlight-aside starlight-aside--tip">
+            <div class="starlight-aside__title">More stats</div>
+            <div class="starlight-aside__content">
+              <p><a href={moreStatsLink.url}>{moreStatsLink.label}</a></p>
+            </div>
+          </aside>
+        )}
+      </>
+    )}
+
+    {(collections.totalRecordsLabel || collections.totalRecordsValue || collections.harvesting) && (
+      <>
+        <h2>Collections</h2>
+
+        {(collections.totalRecordsLabel || collections.totalRecordsValue) && (
+          <p class="records-total">
+            {collections.totalRecordsLabel ? String(collections.totalRecordsLabel) : 'Total records'}:{' '}
+            {collections.totalRecordsValue ? <strong>{String(collections.totalRecordsValue)}</strong> : null}
+          </p>
+        )}
+
+        {toRecordArray(collections.harvesting).length > 0 && (
+          <>
+            <h3>Harvesting Activities</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Records added</th>
+                  <th>Records retired</th>
+                </tr>
+              </thead>
+              <tbody>
+                {toRecordArray(collections.harvesting).map((row) => {
+                  const title = typeof row.title === 'string' ? row.title : '';
+                  const added = row.added !== undefined ? String(row.added) : '';
+                  const retired = row.retired !== undefined ? String(row.retired) : '';
+                  if (!title && !added && !retired) return null;
+                  return (
+                    <tr>
+                      <td>{title}</td>
+                      <td>{added}</td>
+                      <td>{retired}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </>
+        )}
+      </>
+    )}
+
+    {(webDevelopment.highlights || webDevelopment.moreDetails) && (
+      <>
+        <h2>Web Development</h2>
+        {toStringArray(webDevelopment.highlights).length > 0 && (
+          <ul>
+            {toStringArray(webDevelopment.highlights).map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        )}
+        {moreDetailsLink && (
+          <aside class="starlight-aside starlight-aside--note">
+            <div class="starlight-aside__title">More development details</div>
+            <div class="starlight-aside__content">
+              <p><a href={moreDetailsLink.url}>{moreDetailsLink.label}</a></p>
+            </div>
+          </aside>
+        )}
+      </>
+    )}
+
+    {priorityLink && (
+      <>
+        <h2>Priority Projects Update</h2>
+        <p>
+          {priorityLink.url ? (
+            <a href={priorityLink.url}>{priorityLink.text}</a>
+          ) : (
+            priorityLink.text
+          )}
+        </p>
+      </>
+    )}
+
+    {additionalNotesHtml && (
+      <>
+        <h2>Additional Notes</h2>
+        <div set:html={additionalNotesHtml} />
+      </>
+    )}
+  </>
+) : null}

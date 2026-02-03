@@ -1,0 +1,14 @@
+---
+import '@astrojs/starlight/style/markdown.css';
+import ProgramUpdateLayout from './ProgramUpdateLayout.astro';
+
+const { starlightRoute } = Astro.locals;
+const entry = starlightRoute.entry;
+const data = entry.data as Record<string, unknown>;
+const isUpdate = (entry.id ?? '').startsWith('updates/');
+const useStructuredLayout = isUpdate && data?.programUpdateLayout === true;
+---
+
+<div class="sl-markdown-content">
+  {useStructuredLayout ? <ProgramUpdateLayout data={data} /> : <slot />}
+</div>

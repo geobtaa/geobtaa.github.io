@@ -1,141 +1,97 @@
 ---
 title: Program Update Template
-
 draft: true
 date: 2025-01-01
-excerpt: >
-  One-sentence summary of the update.
+excerpt: One-sentence summary of the update.
 tags:
   - Program Updates
-# Optional cover image (remove entirely if not needed)
-# cover:
-#   image: "@images/placeholder.png"
-#   alt: Describe the cover image here.
-#   caption: Optional caption text for the cover image.
+programUpdateLayout: true
+programUpdate:
+  highlight:
+    title: Monthly Highlight Title
+    intro: |
+      Introductory paragraph for this month's highlight. Replace this text with a summary
+      of the featured activity.
+    bullets:
+      - Key theme or takeaway one
+      - Key theme or takeaway two
+    link:
+      label: Read the full story
+      url: https://example.com
+    image:
+      src: "@images/example.png"
+      alt: Describe the highlight image
+      caption: Caption describing the highlight image.
+  committees:
+    - name: TECHnology
+      updates:
+        - Brief update about technology committee work.
+    - name: Community Engagement
+      updates:
+        - Summary of community engagement efforts.
+    - name: Knowledge
+      updates:
+        - Highlights of knowledge committee activities.
+    - name: Coordination
+      updates:
+        - Key coordination actions or planning notes.
+  workgroups:
+    - name: Workgroup Name
+      updates:
+        - Update or milestone item one
+        - Update or milestone item two
+  geoportal:
+    chart:
+      image: "@images/monthly-stats.png"
+      alt: Chart description
+      caption: Caption for the monthly stats chart.
+    stats:
+      - label: Visitors
+        value: TBD
+      - label: Visits
+        value: TBD
+      - label: Downloads
+        value: TBD
+      - label: Visits with download
+        value: TBD
+      - label: Outlinks
+        value: TBD
+      - label: Visits with outlink
+        value: TBD
+      - label: Num. searches
+        value: TBD
+      - label: Search keywords
+        value: TBD
+      - label: Pageviews
+        value: TBD
+    topGoogleSearches:
+      - Placeholder search one
+      - Placeholder search two
+      - Placeholder search three
+    topInternalSearches:
+      - Keyword one
+      - Keyword two
+      - Keyword three
+    moreStats:
+      label: View the analytics dashboard
+      url: https://example.com
+  collections:
+    totalRecordsLabel: Total records as of [Month Year]
+    totalRecordsValue: TBD
+    harvesting:
+      - title: Example harvest
+        added: 0
+        retired: 0
+  webDevelopment:
+    highlights:
+      - Development update one
+      - Development update two
+    moreDetails:
+      label: View development report
+      url: https://example.com
+  priorityProjects:
+    label: Refer to our Priority Projects board
+    url: https://github.com/orgs/geobtaa/projects/22/views/6
+  additionalNotes: |
+    Use this section for any additional callouts, announcements, or resources.
 ---
-
-import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
-import ChipList from 'src/components/ChipList.astro';
-import { Card, CardGrid } from '@astrojs/starlight/components';
-
-<div class="monthly-highlight">
-## Monthly Highlight: Title Goes Here
-
-Summarize the key win or theme for the month. Use one or two short paragraphs to set the tone and capture the headline story.
-
-- You can mix in brief lists when helpful.
-- Or keep it to just narrative text if that reads better.
-
-</div>
-
-## Program Activities
-
-### Committees
-
-<CardGrid>
-  <Card title="Community Engagement">
-    Highlight outcomes or decisions from the Community Engagement Committee.
-  </Card>
-
-  <Card title="Coordination">
-    Summarize meeting status, scheduling notes, or important follow-ups.
-  </Card>
-
-  <Card title="Knowledge">
-    Capture knowledge-sharing initiatives or documentation updates.
-  </Card>
-
-  <Card title="TECHnology">
-    Note major decisions, outstanding items, or upcoming agenda topics.
-  </Card>
-</CardGrid>
-
-<Card title="Workgroups">
-
-#### Geodata Collection Workgroup
-
-- Share the main milestone or deliverable completed this month.
-- Note any upcoming collaboration or partner engagement.
-
-#### Service Model Collaboration Workgroup
-
-- Document report progress, handoffs, or blockers.
-
-#### Geospatial Data Citation Workgroup
-
-- Capture meeting cadences or notable research findings.
-
-</Card>
-
-## BTAA Geoportal
-
-### This month by the numbers
-
-<TwoThirdsLayout>
-  <div slot="left">
-  ![Unique visitors by month](@images/yyyy-mm-monthly-users.png)
-  *Caption describing the featured chart.*
-  </div>
-
-  <div slot="right">
-  <div class="compact-list">
-  - Visitors: 0
-  - Visits: 0
-  - Downloads: 0
-  - Visits with download: 0%
-  - Outlinks: 0
-  - Visits with outlink: 0%
-  - Num. searches: 0
-  - Search keywords: 0
-  </div>
-  </div>
-</TwoThirdsLayout>
-
-### Top Google searches leading to the Geoportal
-
-<ChipList class="not-content">
-- Example search
-- Second search
-- Another search
-</ChipList>
-
-### Top internal keyword searches
-
-<ChipList class="not-content">
-- Example keyword
-- Second keyword
-- Another keyword
-</ChipList>
-
-:::tip[More stats]
-Link to dashboards, Tableau views, or related data sources.
-:::
-
-## Collections
-
-<p class="records-total">Total records as of {{MONTH}} 1, {{YEAR}}: **0**</p>
-
-### Harvesting Activities
-
-| Title | Records Added | Records Retired |
-|:--|--:|--:|
-| Source name | 0 | 0 |
-| **Total** | **0** | **0** |
-
-## Web Development
-
-**New Features or Enhancements**
-
-- **Title the highlight.** Summarize the impact in one sentence.
-- **Call out infrastructure updates.** Mention new tooling or automation.
-- **List in-flight work.** Note what's coming next.
-
-:::note[More development details]
-Provide a link to supporting documentation or reports.
-:::
-
-## Priority Projects Update
-
-[Link to the priority projects tracker or entry point](https://example.com).
-
-Use this section for any additional callouts, announcements, or resources that do not fit into the standard sections above.
