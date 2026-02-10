@@ -27,22 +27,22 @@ const FILE_FORMAT_OPTIONS = [
 
 const FIELD_HELP = {
   title:
-    "Provide the complete title of the dataset, including edition or version if applicable, as assigned by the data creator or provider.",
+    "Provide the complete title of the dataset.",
   creators:
-    "Provide the name of the individual, group, or organization responsible for creating or making the data, noting that the data publisher may be a different entity.",
+    "Provide the name of the individual, group, or organization responsible for creating or making the data.",
   year:
     "Indicate the year the dataset was published, which may represent a one-time or infrequent release for the cited version of the data.",
   version:
-    "Version or edition number of the data. If not provided by the data publisher, the publication date or access date should be used instead.",
+    "Version or edition number of the data.",
   publisher:
-    "Identify the organization or entity responsible for making the dataset available through archiving, publishing, or distribution, which may differ from the original data author/creator(s).",
+    "Identify the organization or entity responsible for making the dataset available through archiving, publishing, or distribution.",
   pid:
-    "Provide a static electronic location or persistent identifier (e.g., DOI or URL) used to access the dataset, and include the retrieval date if the link does not point to a specific version.",
+    "Provide a static electronic location or persistent identifier (e.g., DOI or URL) used to access the dataset.",
   format:
-    "Specify the format and general resource type of the data, such as physical media, downloadable files, live services, or standardized labels like [dataset] or [data file and documentation].",
+    "Choose a format from the dropdown list or write in a custom value.",
   accessed:
     "Date the dataset was retrieved. If the Temporal Coverage or Year of Publication is unknown, use this field to provide some temporal context.",
-  temporalCoverage: "“Time Period of dataset” (free text).",
+  temporalCoverage: "“Time period of dataset” (free text).",
 } as const;
 
 // Types
