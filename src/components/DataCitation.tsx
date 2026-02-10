@@ -42,7 +42,7 @@ const FIELD_HELP = {
     "Specify the format and general resource type of the data, such as physical media, downloadable files, live services, or standardized labels like [dataset] or [data file and documentation].",
   accessed:
     "Date the dataset was retrieved. If the Temporal Coverage or Year of Publication is unknown, use this field to provide some temporal context.",
-  temporalCoverage: "Year(s) of dataset.",
+  temporalCoverage: "“Time Period of dataset” (free text).",
 } as const;
 
 // Types
@@ -79,6 +79,19 @@ function sentenceCase(str?: string) {
     ].join(" ");
   }
   return s;
+}
+function formatDateForCitation(iso?: string) {
+  if (!iso) return "";
+  const [year, month, day] = iso.split("-");
+  if (!year || !month || !day) return iso;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  if (Number.isNaN(date.getTime())) return iso;
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(date);
 }
 function apaAuthor(a: Author) {
   if (a.type === "org") return (a.org || "").trim();
@@ -282,27 +295,30 @@ export default function DataCitation() {
   const [pid, setPid] = useState("");
   const [dateAccessed, setDateAccessed] = useState("");
   const [fileFormat, setFileFormat] = useState("");
+  const [formatFilter, setFormatFilter] = useState("");
   const [formatMenuOpen, setFormatMenuOpen] = useState(false);
   const [style, setStyle] = useState<"apa" | "mla" | "chicago">("apa");
   const [copied, setCopied] = useState(false);
   const formatFieldRef = useRef<HTMLDivElement | null>(null);
+  const formatInputRef = useRef<HTMLInputElement | null>(null);
 
   const filteredFormatOptions = useMemo(() => {
-    const query = fileFormat.trim().toLowerCase();
+    const query = formatFilter.trim().toLowerCase();
     if (!query) return FILE_FORMAT_OPTIONS;
     return FILE_FORMAT_OPTIONS.filter((opt) => opt.toLowerCase().includes(query));
-  }, [fileFormat]);
+  }, [formatFilter]);
 
   const html = useMemo(() => {
+    const displayTitle = title.trim() ? title : "Title";
     const payload = {
       authors,
-      title,
+      title: displayTitle,
       year,
       temporalCoverage,
       version,
       publisher,
       pid,
-      dateAccessed,
+      dateAccessed: formatDateForCitation(dateAccessed),
     };
     if (style === "mla") {
       const base = buildMLA(payload);
@@ -361,6 +377,7 @@ export default function DataCitation() {
     setPid("");
     setDateAccessed("");
     setFileFormat("");
+    setFormatFilter("");
     setFormatMenuOpen(false);
   }
 
@@ -436,22 +453,48 @@ export default function DataCitation() {
               <div className="dcg-combobox" ref={formatFieldRef}>
                 <input
                   id={formatId}
+                  ref={formatInputRef}
                   placeholder="Select from list or enter a format"
                   value={fileFormat}
                   onChange={(e) => {
                     setFileFormat(e.target.value);
+                    setFormatFilter(e.target.value);
                     setFormatMenuOpen(true);
                   }}
-                  onFocus={() => setFormatMenuOpen(true)}
+                  onFocus={() => {
+                    setFormatFilter("");
+                    setFormatMenuOpen(true);
+                  }}
                   role="combobox"
                   aria-expanded={formatMenuOpen}
                   aria-controls="dcg-format-menu"
                 />
+                {fileFormat && (
+                  <button
+                    className="dcg-combo-clear"
+                    type="button"
+                    aria-label="Clear format"
+                    onClick={() => {
+                      setFileFormat("");
+                      setFormatFilter("");
+                      setFormatMenuOpen(true);
+                      requestAnimationFrame(() => formatInputRef.current?.focus());
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
                 <button
                   className="dcg-combo-caret"
                   type="button"
                   aria-label="Show format options"
-                  onClick={() => setFormatMenuOpen((open) => !open)}
+                  onClick={() =>
+                    setFormatMenuOpen((open) => {
+                      const next = !open;
+                      if (next) setFormatFilter("");
+                      return next;
+                    })
+                  }
                 />
                 {formatMenuOpen && (
                   <div className="dcg-combo-menu" role="listbox" id="dcg-format-menu">
@@ -464,6 +507,7 @@ export default function DataCitation() {
                           className="dcg-combo-option"
                           onClick={() => {
                             setFileFormat(opt);
+                            setFormatFilter(opt);
                             setFormatMenuOpen(false);
                           }}
                         >
@@ -662,9 +706,15 @@ export default function DataCitation() {
               </div>
               <input
                 id={yearId}
-                placeholder="YYYY (Only add the 4-digit year)"
+                inputMode="numeric"
+                pattern="\\d{4}"
+                maxLength={4}
+                placeholder="YYYY"
                 value={year}
-                onChange={(e) => setYear(e.target.value)}
+                onChange={(e) => {
+                  const next = e.target.value.replace(/\D/g, "").slice(0, 4);
+                  setYear(next);
+                }}
               />
             </div>
           </div>
@@ -699,7 +749,7 @@ export default function DataCitation() {
               </div>
               <input
                 id={dateAccessedId}
-                placeholder="e.g., January 27, 2026"
+                type="date"
                 value={dateAccessed}
                 onChange={(e) => setDateAccessed(e.target.value)}
               />
@@ -779,7 +829,30 @@ export default function DataCitation() {
         .dcg-wrap select:focus { outline: 2px solid color-mix(in oklab, var(--accent) 40%, transparent); outline-offset: 2px; }
 
         .dcg-combobox { position: relative; }
-        .dcg-combobox input { padding-right: 2.4rem; }
+        .dcg-combobox input { padding-right: 4.9rem; }
+        .dcg-combo-clear {
+          position: absolute;
+          top: 50%;
+          right: 2.6rem;
+          transform: translateY(-50%);
+          height: 1.9rem;
+          width: 1.9rem;
+          border-radius: 999px;
+          border: 1px solid var(--border);
+          background: var(--sl-color-bg);
+          color: var(--ink);
+          cursor: pointer;
+          padding: 0;
+          display: grid;
+          place-items: center;
+          font-size: 1rem;
+          line-height: 1;
+        }
+        .dcg-combo-clear:hover { border-color: var(--accent); }
+        .dcg-combo-clear:focus-visible {
+          outline: 2px solid color-mix(in oklab, var(--accent) 40%, transparent);
+          outline-offset: 2px;
+        }
         .dcg-combo-caret {
           position: absolute;
           top: 50%;
