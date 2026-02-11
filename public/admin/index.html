@@ -9,7 +9,81 @@
   <body>
     <!-- Include the script that builds the page and powers Decap CMS -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    <script>
+      (function () {
+        if (!window.CMS || typeof window.CMS.registerEventListener !== "function") return;
+
+        const escapedComponentTagPattern =
+          /&lt;\/?[A-Z][A-Za-z0-9._:-]*(?:\s+[^&<>]*)?&gt;/;
+
+        function validateMdxBody(body) {
+          const errors = [];
+          const lines = body.split(/\r?\n/);
+          let inCodeFence = false;
+          let openAdmonitions = 0;
+          let escapedComponentFound = false;
+
+          for (const rawLine of lines) {
+            const line = rawLine.trim();
+
+            if (/^```/.test(line)) {
+              inCodeFence = !inCodeFence;
+              continue;
+            }
+
+            if (inCodeFence) continue;
+
+            if (line === ":::") {
+              if (openAdmonitions === 0) {
+                errors.push('Found a closing ":::" without a matching opening admonition.');
+              } else {
+                openAdmonitions -= 1;
+              }
+              continue;
+            }
+
+            if (line.startsWith(":::")) {
+              openAdmonitions += 1;
+            }
+
+            if (!escapedComponentFound && escapedComponentTagPattern.test(line)) {
+              escapedComponentFound = true;
+            }
+          }
+
+          if (inCodeFence) {
+            errors.push('Unclosed triple-backtick code fence ("```").');
+          }
+
+          if (openAdmonitions > 0) {
+            errors.push('Unclosed admonition fence (":::").');
+          }
+
+          if (escapedComponentFound) {
+            errors.push(
+              "Escaped MDX component tag detected (for example: &lt;Card&gt;). Keep component tags unescaped in source mode.",
+            );
+          }
+
+          return errors;
+        }
+
+        CMS.registerEventListener({
+          name: "preSave",
+          handler: ({ entry }) => {
+            const data = entry.get("data");
+            const body = data && data.get ? data.get("body") : "";
+            if (typeof body !== "string" || body.length === 0) return data;
+
+            const errors = validateMdxBody(body);
+            if (errors.length) {
+              throw new Error(`Please fix the following before saving:\n- ${errors.join("\n- ")}`);
+            }
+
+            return data;
+          },
+        });
+      })();
+    </script>
   </body>
 </html>
-
-

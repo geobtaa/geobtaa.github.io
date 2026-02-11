@@ -1,0 +1,453 @@
+---
+import CenterLayout from 'src/components/CenterLayout.astro';
+import ChipList from 'src/components/ChipList.astro';
+import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+type UpdateList = string[];
+
+interface HighlightSection {
+  title?: string;
+  intro?: string;
+  linkText?: string;
+  linkUrl?: string;
+  image?: string;
+  imageAlt?: string;
+  imageCaption?: string;
+}
+
+interface CommitteeSection {
+  technology?: UpdateList;
+  communityEngagement?: UpdateList;
+  knowledge?: UpdateList;
+  coordination?: UpdateList;
+}
+
+interface WorkgroupSection {
+  name: string;
+  updates?: UpdateList;
+}
+
+interface GeoportalMetric {
+  label: string;
+  value: string;
+}
+
+interface GeoportalSection {
+  chartImage?: string;
+  chartAlt?: string;
+  chartCaption?: string;
+  metrics?: GeoportalMetric[];
+  topGoogleSearches?: UpdateList;
+  topInternalSearches?: UpdateList;
+  recordsTotalAsOf?: string;
+  recordsTotalValue?: string;
+  moreStatsUrl?: string;
+  moreStatsLabel?: string;
+}
+
+interface HarvestingActivityRow {
+  title: string;
+  recordsAdded?: string;
+  recordsRetired?: string;
+}
+
+interface WebDevelopmentSection {
+  updates?: UpdateList;
+  moreDetailsUrl?: string;
+  moreDetailsLabel?: string;
+}
+
+interface PriorityProjectsSection {
+  url?: string;
+  label?: string;
+}
+
+interface ProgramUpdateData {
+  highlight?: HighlightSection;
+  committees?: CommitteeSection;
+  workgroups?: WorkgroupSection[];
+  geoportal?: GeoportalSection;
+  harvestingActivities?: HarvestingActivityRow[];
+  webDevelopment?: WebDevelopmentSection;
+  priorityProjects?: PriorityProjectsSection;
+}
+
+const { data } = Astro.props as { data?: ProgramUpdateData };
+
+const localImageModules = import.meta.glob('../assets/images/**/*', {
+  eager: true,
+  import: 'default',
+});
+
+const normalizeString = (value: unknown): string => {
+  if (typeof value !== 'string') return '';
+  return value.trim();
+};
+
+const normalizeList = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => normalizeString(item)).filter((item) => item.length > 0);
+};
+
+const resolveImage = (image: unknown): string => {
+  if (!image || typeof image !== 'string') return '';
+  if (/^(https?:)?\/\//.test(image) || image.startsWith('/')) {
+    return image;
+  }
+  if (image.startsWith('@images/')) {
+    const path = image.slice('@images/'.length);
+    const candidates = [`../assets/images/${path}`, `/src/assets/images/${path}`, `src/assets/images/${path}`];
+    for (const key of candidates) {
+      const resolved = localImageModules[key];
+      if (typeof resolved === 'string') {
+        return resolved;
+      }
+      if (
+        resolved &&
+        typeof resolved === 'object' &&
+        'src' in resolved &&
+        typeof (resolved as { src?: unknown }).src === 'string'
+      ) {
+        return (resolved as { src: string }).src;
+      }
+    }
+
+    for (const [key, resolved] of Object.entries(localImageModules)) {
+      if (!key.endsWith(`/assets/images/${path}`) && !key.endsWith(`assets/images/${path}`)) {
+        continue;
+      }
+      if (typeof resolved === 'string') {
+        return resolved;
+      }
+      if (
+        resolved &&
+        typeof resolved === 'object' &&
+        'src' in resolved &&
+        typeof (resolved as { src?: unknown }).src === 'string'
+      ) {
+        return (resolved as { src: string }).src;
+      }
+    }
+  }
+  return image;
+};
+
+const splitParagraphs = (value: unknown): string[] => {
+  const text = normalizeString(value);
+  if (!text) return [];
+  return text
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter((paragraph) => paragraph.length > 0);
+};
+
+const highlight = data?.highlight ?? {};
+const committees = data?.committees ?? {};
+const workgroups = Array.isArray(data?.workgroups)
+  ? data!.workgroups
+      .filter((group): group is WorkgroupSection => Boolean(group && typeof group === 'object' && 'name' in group))
+      .map((group) => ({
+        name: normalizeString(group.name),
+        updates: normalizeList(group.updates),
+      }))
+      .filter((group) => group.name.length > 0)
+  : [];
+
+const geoportal = data?.geoportal ?? {};
+const metrics = Array.isArray(geoportal.metrics)
+  ? geoportal.metrics
+      .filter((metric): metric is GeoportalMetric => Boolean(metric && typeof metric === 'object'))
+      .map((metric) => ({
+        label: normalizeString(metric.label),
+        value: normalizeString(metric.value),
+      }))
+      .filter((metric) => metric.label.length > 0 || metric.value.length > 0)
+  : [];
+
+const harvestingActivities = Array.isArray(data?.harvestingActivities)
+  ? data!.harvestingActivities
+      .filter((row): row is HarvestingActivityRow => Boolean(row && typeof row === 'object'))
+      .map((row) => ({
+        title: normalizeString(row.title),
+        recordsAdded: normalizeString(row.recordsAdded),
+        recordsRetired: normalizeString(row.recordsRetired),
+      }))
+      .filter((row) => row.title.length > 0)
+  : [];
+
+const webDevelopment = data?.webDevelopment ?? {};
+const priorityProjects = data?.priorityProjects ?? {};
+
+const highlightTitle = normalizeString(highlight.title) || 'Monthly Highlight';
+const highlightParagraphs = splitParagraphs(highlight.intro);
+const highlightLinkText = normalizeString(highlight.linkText);
+const highlightLinkUrl = normalizeString(highlight.linkUrl);
+const highlightImage = resolveImage(highlight.image);
+const highlightImageAlt = normalizeString(highlight.imageAlt);
+const highlightImageCaption = normalizeString(highlight.imageCaption);
+
+const committeeTechnology = normalizeList(committees.technology);
+const committeeCommunity = normalizeList(committees.communityEngagement);
+const committeeKnowledge = normalizeList(committees.knowledge);
+const committeeCoordination = normalizeList(committees.coordination);
+
+const chartImage = resolveImage(geoportal.chartImage);
+const chartAlt = normalizeString(geoportal.chartAlt);
+const chartCaption = normalizeString(geoportal.chartCaption);
+const topGoogleSearches = normalizeList(geoportal.topGoogleSearches);
+const topInternalSearches = normalizeList(geoportal.topInternalSearches);
+const recordsTotalAsOf = normalizeString(geoportal.recordsTotalAsOf);
+const recordsTotalValue = normalizeString(geoportal.recordsTotalValue);
+const moreStatsUrl = normalizeString(geoportal.moreStatsUrl);
+const moreStatsLabel = normalizeString(geoportal.moreStatsLabel) || 'More stats';
+
+const webDevelopmentUpdates = normalizeList(webDevelopment.updates);
+const webDevelopmentMoreDetailsUrl = normalizeString(webDevelopment.moreDetailsUrl);
+const webDevelopmentMoreDetailsLabel =
+  normalizeString(webDevelopment.moreDetailsLabel) || 'More development details';
+
+const priorityProjectsUrl = normalizeString(priorityProjects.url);
+const priorityProjectsLabel =
+  normalizeString(priorityProjects.label) || 'Refer to our Priority Projects board.';
+---
+
+<div class="monthly-highlight">
+  <h2>{highlightTitle}</h2>
+
+  {
+    highlightParagraphs.length > 0 ? (
+      highlightParagraphs.map((paragraph) => <p>{paragraph}</p>)
+    ) : (
+      <p>Add this month&apos;s highlight summary.</p>
+    )
+  }
+
+  {
+    highlightLinkUrl && (
+      <p>
+        <strong>Read more:</strong>{' '}
+        <a href={highlightLinkUrl}>{highlightLinkText || highlightLinkUrl}</a>
+      </p>
+    )
+  }
+
+  {
+    highlightImage && (
+      <CenterLayout>
+        <img src={highlightImage} alt={highlightImageAlt} />
+        {highlightImageCaption && <p><em>{highlightImageCaption}</em></p>}
+      </CenterLayout>
+    )
+  }
+</div>
+
+<h2>Program Activities</h2>
+<h3>Committees</h3>
+
+<CardGrid>
+  <Card title="TECHnology">
+    {
+      committeeTechnology.length > 0 ? (
+        <ul>
+          {committeeTechnology.map((item) => <li>{item}</li>)}
+        </ul>
+      ) : (
+        <p>Add updates for this committee.</p>
+      )
+    }
+  </Card>
+
+  <Card title="Community Engagement">
+    {
+      committeeCommunity.length > 0 ? (
+        <ul>
+          {committeeCommunity.map((item) => <li>{item}</li>)}
+        </ul>
+      ) : (
+        <p>Add updates for this committee.</p>
+      )
+    }
+  </Card>
+
+  <Card title="Knowledge">
+    {
+      committeeKnowledge.length > 0 ? (
+        <ul>
+          {committeeKnowledge.map((item) => <li>{item}</li>)}
+        </ul>
+      ) : (
+        <p>Add updates for this committee.</p>
+      )
+    }
+  </Card>
+
+  <Card title="Coordination">
+    {
+      committeeCoordination.length > 0 ? (
+        <ul>
+          {committeeCoordination.map((item) => <li>{item}</li>)}
+        </ul>
+      ) : (
+        <p>Add updates for this committee.</p>
+      )
+    }
+  </Card>
+</CardGrid>
+
+<h3>Workgroups</h3>
+
+<Card title="Workgroups">
+  {
+    workgroups.length > 0 ? (
+      workgroups.map((group) => (
+        <Fragment>
+          <h4>{group.name}</h4>
+          {
+            group.updates.length > 0 ? (
+              <ul>
+                {group.updates.map((item) => <li>{item}</li>)}
+              </ul>
+            ) : (
+              <p>Add updates for this workgroup.</p>
+            )
+          }
+        </Fragment>
+      ))
+    ) : (
+      <p>Add one or more workgroup updates.</p>
+    )
+  }
+</Card>
+
+<h2>BTAA Geoportal</h2>
+<h3>This month by the numbers</h3>
+
+<TwoThirdsLayout>
+  <div slot="left">
+    {
+      chartImage ? (
+        <Fragment>
+          <img src={chartImage} alt={chartAlt} />
+          {chartCaption && <p><em>{chartCaption}</em></p>}
+        </Fragment>
+      ) : (
+        <p>Add a chart image to this section.</p>
+      )
+    }
+  </div>
+  <div slot="right">
+    <div class="compact-list">
+      {
+        metrics.length > 0 ? (
+          <ul>
+            {metrics.map((metric) => <li>{metric.label}: {metric.value}</li>)}
+          </ul>
+        ) : (
+          <p>Add monthly metric values.</p>
+        )
+      }
+    </div>
+  </div>
+</TwoThirdsLayout>
+
+{
+  moreStatsUrl && (
+    <p>
+      <a href={moreStatsUrl}>{moreStatsLabel}</a>
+    </p>
+  )
+}
+
+<h4>Top Google searches leading to the Geoportal</h4>
+<ChipList class="not-content">
+  {
+    topGoogleSearches.length > 0 ? (
+      topGoogleSearches.map((item) => <li>{item}</li>)
+    ) : (
+      <li>Add top Google search terms.</li>
+    )
+  }
+</ChipList>
+
+<h4>Top internal search keywords</h4>
+<ChipList class="not-content">
+  {
+    topInternalSearches.length > 0 ? (
+      topInternalSearches.map((item) => <li>{item}</li>)
+    ) : (
+      <li>Add top internal search keywords.</li>
+    )
+  }
+</ChipList>
+
+<h3>Collections</h3>
+
+{
+  recordsTotalAsOf || recordsTotalValue ? (
+    <p class="records-total">
+      Total records as of {recordsTotalAsOf || 'TBD'}: <strong>{recordsTotalValue || 'TBD'}</strong>
+    </p>
+  ) : (
+    <p class="records-total">
+      Total records as of TBD: <strong>TBD</strong>
+    </p>
+  )
+}
+
+<h3>Harvesting Activities</h3>
+
+{
+  harvestingActivities.length > 0 ? (
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th style="text-align: right;">Records added</th>
+          <th style="text-align: right;">Records retired</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          harvestingActivities.map((row) => (
+            <tr>
+              <td>{row.title}</td>
+              <td style="text-align: right;">{row.recordsAdded || '0'}</td>
+              <td style="text-align: right;">{row.recordsRetired || '0'}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  ) : (
+    <p>Add harvesting activity rows.</p>
+  )
+}
+
+<h3>Web Development</h3>
+{
+  webDevelopmentUpdates.length > 0 ? (
+    <ul>
+      {webDevelopmentUpdates.map((item) => <li>{item}</li>)}
+    </ul>
+  ) : (
+    <p>Add web development updates.</p>
+  )
+}
+
+{
+  webDevelopmentMoreDetailsUrl && (
+    <p>
+      <a href={webDevelopmentMoreDetailsUrl}>{webDevelopmentMoreDetailsLabel}</a>
+    </p>
+  )
+}
+
+<h2>Priority Projects Update</h2>
+{
+  priorityProjectsUrl ? (
+    <a href={priorityProjectsUrl}>{priorityProjectsLabel}</a>
+  ) : (
+    <p>Add a priority projects URL.</p>
+  )
+}
