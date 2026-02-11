@@ -7,10 +7,13 @@ backend:
   squash_merges: true
 
 publish_mode: editorial_workflow
+local_backend: true
 
 site_url: https://gin.btaa.org
 media_folder: "src/assets/images"
 public_folder: "@images"
+editor:
+  preview: false
 
 collections:
   - name: "about"
@@ -39,6 +42,8 @@ collections:
       - label: "Body"
         name: "body"
         widget: "markdown"
+        modes: ["raw"]
+        editor_components: []
 
   - name: "blog"
     label: "Blog Posts"
@@ -99,6 +104,8 @@ collections:
       - label: "Body"
         name: "body"
         widget: "markdown"
+        modes: ["raw"]
+        editor_components: []
 
   - name: "conference"
     label: "Conference"
@@ -126,6 +133,8 @@ collections:
       - label: "Body"
         name: "body"
         widget: "markdown"
+        modes: ["raw"]
+        editor_components: []
 
   - name: "guides"
     label: "Guides"
@@ -153,6 +162,8 @@ collections:
       - label: "Body"
         name: "body"
         widget: "markdown"
+        modes: ["raw"]
+        editor_components: []
 
   - name: "library"
     label: "Library Docs"
@@ -200,6 +211,8 @@ collections:
       - label: "Body"
         name: "body"
         widget: "markdown"
+        modes: ["raw"]
+        editor_components: []
 
   - name: "projects"
     label: "Projects"
@@ -227,6 +240,8 @@ collections:
       - label: "Body"
         name: "body"
         widget: "markdown"
+        modes: ["raw"]
+        editor_components: []
 
   - name: "scholarship"
     label: "Scholarship"
@@ -254,6 +269,8 @@ collections:
       - label: "Body"
         name: "body"
         widget: "markdown"
+        modes: ["raw"]
+        editor_components: []
 
   - name: "team"
     label: "Team"
@@ -281,6 +298,8 @@ collections:
       - label: "Body"
         name: "body"
         widget: "markdown"
+        modes: ["raw"]
+        editor_components: []
 
   - name: "updates"
     label: "Program Updates"
@@ -342,131 +361,236 @@ collections:
         default: false
         hint: "If checked, this content stays hidden from the public site even when the workflow status is Published."
 
+      - label: "Structured Content (Pilot)"
+        name: "programUpdate"
+        widget: "object"
+        required: true
+        collapsed: false
+        hint: "Use these plain-text fields to build the update without editing MDX layout code."
+        fields:
+          - label: "Highlight"
+            name: "highlight"
+            widget: "object"
+            required: true
+            collapsed: false
+            fields:
+              - label: "Section Title"
+                name: "title"
+                widget: "string"
+                required: true
+                default: "Monthly Highlight"
+              - label: "Summary"
+                name: "intro"
+                widget: "text"
+                required: true
+                hint: "Use blank lines to separate paragraphs."
+              - label: "Link Text"
+                name: "linkText"
+                widget: "string"
+                required: false
+              - label: "Link URL"
+                name: "linkUrl"
+                widget: "string"
+                required: false
+              - label: "Image"
+                name: "image"
+                widget: "image"
+                choose_url: true
+                required: false
+              - label: "Image Alt Text"
+                name: "imageAlt"
+                widget: "string"
+                required: false
+              - label: "Image Caption"
+                name: "imageCaption"
+                widget: "string"
+                required: false
+
+          - label: "Committees"
+            name: "committees"
+            widget: "object"
+            required: true
+            collapsed: false
+            fields:
+              - label: "TECHnology Updates"
+                name: "technology"
+                widget: "list"
+                required: true
+                field:
+                  label: "Update"
+                  name: "item"
+                  widget: "string"
+              - label: "Community Engagement Updates"
+                name: "communityEngagement"
+                widget: "list"
+                required: true
+                field:
+                  label: "Update"
+                  name: "item"
+                  widget: "string"
+              - label: "Knowledge Updates"
+                name: "knowledge"
+                widget: "list"
+                required: true
+                field:
+                  label: "Update"
+                  name: "item"
+                  widget: "string"
+              - label: "Coordination Updates"
+                name: "coordination"
+                widget: "list"
+                required: true
+                field:
+                  label: "Update"
+                  name: "item"
+                  widget: "string"
+
+          - label: "Workgroups"
+            name: "workgroups"
+            widget: "list"
+            required: true
+            summary: "{{fields.name}}"
+            fields:
+              - label: "Workgroup Name"
+                name: "name"
+                widget: "string"
+              - label: "Updates"
+                name: "updates"
+                widget: "list"
+                required: true
+                field:
+                  label: "Update"
+                  name: "item"
+                  widget: "string"
+
+          - label: "Geoportal"
+            name: "geoportal"
+            widget: "object"
+            required: true
+            collapsed: false
+            fields:
+              - label: "Monthly Stats Chart Image"
+                name: "chartImage"
+                widget: "image"
+                choose_url: true
+                required: false
+              - label: "Monthly Stats Chart Alt Text"
+                name: "chartAlt"
+                widget: "string"
+                required: false
+              - label: "Monthly Stats Chart Caption"
+                name: "chartCaption"
+                widget: "string"
+                required: false
+              - label: "Metrics"
+                name: "metrics"
+                widget: "list"
+                required: true
+                summary: "{{fields.label}}: {{fields.value}}"
+                fields:
+                  - label: "Label"
+                    name: "label"
+                    widget: "string"
+                  - label: "Value"
+                    name: "value"
+                    widget: "string"
+              - label: "Top Google Searches"
+                name: "topGoogleSearches"
+                widget: "list"
+                required: true
+                field:
+                  label: "Search Term"
+                  name: "item"
+                  widget: "string"
+              - label: "Top Internal Search Keywords"
+                name: "topInternalSearches"
+                widget: "list"
+                required: true
+                field:
+                  label: "Keyword"
+                  name: "item"
+                  widget: "string"
+              - label: "Collections Total Records Date Label"
+                name: "recordsTotalAsOf"
+                widget: "string"
+                required: true
+                hint: "Example: January 2026"
+              - label: "Collections Total Records Value"
+                name: "recordsTotalValue"
+                widget: "string"
+                required: true
+              - label: "More Stats URL"
+                name: "moreStatsUrl"
+                widget: "string"
+                required: false
+              - label: "More Stats Link Label"
+                name: "moreStatsLabel"
+                widget: "string"
+                required: false
+
+          - label: "Harvesting Activities"
+            name: "harvestingActivities"
+            widget: "list"
+            required: true
+            summary: "{{fields.title}}"
+            fields:
+              - label: "Title"
+                name: "title"
+                widget: "string"
+              - label: "Records Added"
+                name: "recordsAdded"
+                widget: "string"
+                required: false
+              - label: "Records Retired"
+                name: "recordsRetired"
+                widget: "string"
+                required: false
+
+          - label: "Web Development"
+            name: "webDevelopment"
+            widget: "object"
+            required: true
+            collapsed: false
+            fields:
+              - label: "Updates"
+                name: "updates"
+                widget: "list"
+                required: true
+                field:
+                  label: "Update"
+                  name: "item"
+                  widget: "string"
+              - label: "More Details URL"
+                name: "moreDetailsUrl"
+                widget: "string"
+                required: false
+              - label: "More Details Link Label"
+                name: "moreDetailsLabel"
+                widget: "string"
+                required: false
+
+          - label: "Priority Projects"
+            name: "priorityProjects"
+            widget: "object"
+            required: true
+            collapsed: false
+            fields:
+              - label: "URL"
+                name: "url"
+                widget: "string"
+                required: true
+              - label: "Link Label"
+                name: "label"
+                widget: "string"
+                required: false
+
       - label: "Body"
         name: "body"
         widget: "markdown"
+        modes: ["raw"]
+        editor_components: []
+        hint: "Structured pilot default. Edit this only if you need advanced custom MDX markup."
         default: |
-          import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
-          import CenterLayout from 'src/components/CenterLayout.astro';
-          import ChipList from 'src/components/ChipList.astro';
-          import { Card, CardGrid } from '@astrojs/starlight/components';
+          import ProgramUpdateStructured from 'src/components/ProgramUpdateStructured.astro';
 
-          <div class="monthly-highlight">
-
-          ## Highlight Title
-
-          Introductory paragraph for this month's highlight. Replace this text with a summary of the featured activity.
-
-          <CenterLayout>
-          ![Highlight image](@images/example.png)
-          *Caption describing the highlight image.*
-          </CenterLayout>
-
-          **Key Themes**
-
-          - Theme or takeaway one
-          - Theme or takeaway two
-
-          **Next Steps**
-          Outline the upcoming actions or focus areas related to the highlight.
-
-          </div>
-
-          ## Program Activities
-
-          ### Committees
-
-          <CardGrid>
-            <Card title="TECHnology">
-              - Brief update about technology committee work.
-            </Card>
-
-            <Card title="Community Engagement">
-              - Summary of community engagement efforts.
-            </Card>
-
-            <Card title="Knowledge">
-              Highlights of knowledge committee activities.
-            </Card>
-
-            <Card title="Coordination">
-              - Key coordination actions or planning notes.
-            </Card>
-          </CardGrid>
-
-          ### Workgroups
-
-          <Card>
-
-          #### Workgroup Name
-
-          * Update or milestone item one
-          * Update or milestone item two
-
-          </Card>
-
-          ## BTAA Geoportal
-
-          ### This month by the numbers
-
-          <TwoThirdsLayout>
-            <div slot="left">
-            ![Chart description](@images/monthly-stats.png)
-            *Caption for the monthly stats chart.*
-            </div>
-            <div slot="right">
-            <div class="compact-list">
-            * Visitors: TBD
-            * Visits: TBD
-            * Downloads: TBD
-            * Visits with download: TBD
-            * Outlinks: TBD
-            * Visits with outlink: TBD
-            * Num. searches: TBD
-            * Search keywords: TBD
-            * Pageviews: TBD
-            </div>
-            </div>
-          </TwoThirdsLayout>
-
-          :::tip[More stats]
-          Link to the analytics dashboard or additional reporting.
-          :::
-
-          #### Top Google searches leading to the Geoportal
-          <ChipList class="not-content">
-            - Placeholder search one
-            - Placeholder search two
-            - Placeholder search three
-          </ChipList>
-
-          #### Top internal search keywords
-          <ChipList class="not-content">
-            - Keyword one
-            - Keyword two
-            - Keyword three
-          </ChipList>
-
-          ### Collections
-
-          <p class="records-total">Total records as of [Month Day, Year]: **TBD**</p>
-
-          ### Harvesting Activities
-
-          | [Title] | Records added | Records retired |
-          | :---- | -----: | -----: |
-          | [Example harvest](#) | 0 | 0 |
-          | Total | 0 | 0 |
-
-          ### Web Development
-
-          * Development update one
-          * Development update two
-
-          :::tip[More development details]
-          Link to development report or documentation.
-          :::
-
-          ## Priority Projects Update
-
-          <a href="https://github.com/orgs/geobtaa/projects/22/views/6">Refer to our Priority Projects board.</a>
+          <ProgramUpdateStructured data={frontmatter.programUpdate} />
