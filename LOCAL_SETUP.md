@@ -1,6 +1,6 @@
-# Local Setup (Beginner-Friendly)
+# Local Setup
 
-This guide is written for a first-time, nontechnical setup.
+This guide is written for a first-time setup.
 All command-line steps below are run inside the **VS Code Terminal** on Mac (shell: `zsh`).
 
 ## 1. Install GitHub Desktop and clone the repository
