@@ -93,6 +93,7 @@ export const collections = {
             z.object({
               // Optional 4-digit year; accepts number or string and coerces to number
               year: z.coerce.number().int().min(1800).max(2100).optional(),
+              hidePageTitle: z.boolean().optional(),
             }),
           ),
     }),

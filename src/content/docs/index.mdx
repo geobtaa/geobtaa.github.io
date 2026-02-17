@@ -2,37 +2,60 @@
 title: Big Ten Academic Alliance Geospatial Information Network
 description: Supporting the geospatial research community and fostering connections among geospatial library professionals.
 template: splash
-banner:
-  content: |
-    <a href="https://mailchi.mp/d146395039e5/coordinates-from-btaa-gin-signup-page" target='blank'>Subscribe to our quarterly newsletter, <em>Coordinates</em>!</a>
-hero:
-  tagline: Supporting the geospatial research community and fostering connections among geospatial library professionals.
-  image:
-    light: ../../assets/images/celebration.png
-    dark: ../../assets/images/celebration-white.png
-  actions:
-    - text: ABOUT
-      link: /about/about-us/
-      icon: right-arrow
-    - text: Visit the BTAA Geoportal
-      link: https://geo.btaa.org
-      icon: external
-      variant: minimal
+hidePageTitle: true
+
 ---
 
+import celebrationImage from '../../assets/images/celebration.png';
+import conferenceImage from '../../assets/images/cover.png';
 
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+<section id="home-content" class="homepage-hero">
+  <div class="homepage-hero__left">
+    <h1>Welcome to the Big Ten Academic Alliance Geospatial Information Network</h1>
+    <div class="homepage-hero__intro">
+      <div class="homepage-hero__intro-content">
+        <p>Learn about all of the ways we support the geospatial research community and foster connections among geospatial library professionals.</p>
+        <div class="homepage-hero__actions">
+          <a href="/about/about-us/" class="homepage-hero__button">About BTAA-GIN</a>
+        </div>
+      </div>
+      <img src={celebrationImage.src} alt="Celebrating 10 years" class="homepage-hero__image" />
+    </div>
+  </div>
 
-<div class="gold-highlight">
+  <div class="homepage-cards">
+    <a
+      class="homepage-card homepage-card--light-blue"
+      href="https://mailchi.mp/d146395039e5/coordinates-from-btaa-gin-signup-page"
+      target="_blank"
+      rel="noreferrer"
+    >
+      <h2>Stay Connected</h2>
+      <p>Subscribe to our quarterly newsletter, <em>Coordinates</em>, for our latest news, events, and resources.</p>
+      <span class="homepage-card__link">Subscribe &gt;&gt;</span>
+    </a>
 
-Mark your calendars! Our next Big Ten GIS Conference returns April 17, 2026.
+    <a class="homepage-card homepage-card--yellow" href="https://geo.btaa.org" target="_blank" rel="noreferrer">
+      <h2>Explore Maps and Data</h2>
+      <p>
+        The BTAA Geoportal has over 114,000 records including GIS datasets, web services, and digitized historical maps.
+      </p>
+      <span class="homepage-card__link">geo.btaa.org &gt;&gt;</span>
+    </a>
 
-</div>
-
-
-<div id="home-content">
-
-</div>
-
-
-
+    <a class="homepage-card homepage-card--conference" href="/conference">
+      <div class="homepage-card__conference-text">
+        <h2 class="homepage-card__conference-heading">2026 Big Ten GIS Conference</h2>
+        <p>
+          Our Call for Proposals is Open. We welcome presentations, lightning talks, and map gallery submissions from
+          anyone using geospatial information in their work.
+        </p>
+        <span class="homepage-card__link">Submit by March 5, 2026 &gt;&gt;</span>
+      </div>
+      <div class="homepage-card__conference-date" style={`background-image: url(${conferenceImage.src});`}>
+        <span>SAVE THE DATE</span>
+        <strong>April 17, 2026</strong>
+      </div>
+    </a>
+  </div>
+</section>

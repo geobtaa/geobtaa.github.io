@@ -6,6 +6,7 @@ const PAGE_TITLE_ID = 'page-title';
 const route = Astro.locals.starlightRoute;
 const entry = route.entry;
 const data = entry.data as Record<string, unknown>;
+const hidePageTitle = Astro.url.pathname === '/' || data.hidePageTitle === true;
 
 const id = entry.id ?? '';
 const showMeta = ['posts/', 'updates/', 'library/'].some((prefix) => id.startsWith(prefix));
@@ -107,11 +108,17 @@ const description = isLibraryEntry ? toDescription(data.description) : undefined
 const cover = undefined;
 ---
 
-<div class="page-title not-content">
-  <h1 id={PAGE_TITLE_ID}>{entry.data.title}</h1>
-  {showMeta && <ArticleMeta authors={authors} date={published} tags={tags} year={year} />}
-  {description && <p class="page-title__description"><span class="page-title__description-label">Summary:</span> {description}</p>}
-</div>
+{
+  hidePageTitle ? (
+    <div class="page-title-sentinel" aria-hidden="true"></div>
+  ) : (
+    <div class="page-title not-content">
+      <h1 id={PAGE_TITLE_ID}>{entry.data.title}</h1>
+      {showMeta && <ArticleMeta authors={authors} date={published} tags={tags} year={year} />}
+      {description && <p class="page-title__description"><span class="page-title__description-label">Summary:</span> {description}</p>}
+    </div>
+  )
+}
 
 <style>
   @layer starlight.core {

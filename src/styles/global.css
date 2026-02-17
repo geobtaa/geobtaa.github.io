@@ -84,16 +84,26 @@ background: var(--sl-color-bg);
 }
 
 .content-panel:has(#home-content) > .sl-container:first-of-type {
-  max-width: min(var(--home-hero-width, 80rem), 100%);
-  padding-inline: clamp(1.75rem, 6vw, 5rem);
+  max-width: min(var(--home-hero-width, 96rem), 100%);
+  padding-inline: clamp(0.5rem, 1.6vw, 1.5rem);
+}
+
+/* Hide the title panel when the page title component opts out. */
+main > .content-panel:has(.page-title-sentinel) {
+  display: none;
+}
+
+main > .content-panel:has(.page-title-sentinel) + .content-panel {
+  border-top: 0;
 }
 
 #home-content {
   position: relative;
   width: 100%;
   border-color: var(--div-backgrounds);
-  padding-inline: clamp(1.75rem, 6vw, 5rem);
-  padding-block: clamp(2.5rem, 6vw, 4rem);
+  padding-inline: 0;
+  padding-block-start: clamp(0.75rem, 2vw, 1.5rem);
+  padding-block-end: clamp(2rem, 4vw, 3rem);
 
 }
 
@@ -565,3 +575,192 @@ input[type="checkbox"]:checked::after {
 			text-wrap: balance;
 			box-shadow: var(--sl-shadow-sm);
 		}
+
+/* Homepage hero layout */
+.homepage-hero {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.homepage-hero__left h1 {
+  border: 0;
+  font-size: clamp(2rem, 2.6vw, 2.6rem);
+  line-height: 1.12;
+  margin: 0 0 1.6rem;
+}
+
+.homepage-hero__intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem 1.25rem;
+  align-items: start;
+}
+
+.homepage-hero__intro-content {
+  display: grid;
+  gap: 0.8rem;
+  align-content: start;
+}
+
+.homepage-hero__intro p {
+  font-size: 1.15rem;
+  max-width: 46ch;
+  margin: 0;
+}
+
+.homepage-hero__actions {
+  margin: 0.55rem 0 0;
+}
+
+.homepage-hero__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  background: var(--btaa-med-blue);
+  color: var(--btaa-white);
+  font-family: var(--font-family-heading);
+  font-weight: 600;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.homepage-hero__button:hover {
+  background: var(--btaa-dark-blue);
+}
+
+.homepage-hero__image {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  width: clamp(120px, 16vw, 190px);
+  height: auto;
+}
+
+.homepage-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.homepage-card {
+  border-radius: 1.75rem;
+  padding: 1.6rem;
+  text-decoration: none;
+  display: block;
+  min-height: 240px;
+  color: var(--btaa-dark-blue);
+}
+
+.homepage-card h2 {
+  margin: 0 0 0.8rem;
+  border: 0;
+  font-size: 1.75rem;
+  line-height: 1.1;
+}
+
+.homepage-card p {
+  font-size: 1.08rem;
+  margin: 0 0 1rem;
+  line-height: 1.4;
+}
+
+.homepage-card__link {
+  font-family: var(--font-family-heading);
+  font-weight: 600;
+}
+
+.homepage-card--light-blue {
+  background: #b7cce0;
+}
+
+.homepage-card--yellow {
+  background: #eadf8f;
+}
+
+.homepage-card--conference {
+  grid-column: 1 / -1;
+  background: #0a4360;
+  color: var(--btaa-white);
+  padding: 0;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  min-height: 280px;
+}
+
+.homepage-card__conference-text {
+  padding: 1.75rem;
+}
+
+.homepage-card--conference h2 {
+  color: var(--btaa-white);
+  font-size: 2rem;
+}
+
+.homepage-card__conference-heading {
+  color: var(--btaa-white) !important;
+}
+
+.homepage-card__conference-date {
+  background-size: cover;
+  background-position: center;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 0.35rem;
+  padding: 1rem;
+  font-family: var(--font-family-heading);
+  background-color: rgba(0, 60, 91, 0.75);
+  background-blend-mode: multiply;
+}
+
+.homepage-card__conference-date span {
+  font-size: 1.5rem;
+  color: #eadf8f;
+}
+
+.homepage-card__conference-date strong {
+  font-size: 1.6rem;
+  line-height: 1.1;
+  color: #eadf8f;
+}
+
+@media (max-width: 70rem) {
+  .homepage-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .homepage-hero__intro p {
+    max-width: 60ch;
+  }
+}
+
+@media (max-width: 48rem) {
+  .homepage-hero__intro {
+    grid-template-columns: 1fr;
+  }
+
+  .homepage-hero__image {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: start;
+    width: clamp(110px, 38vw, 170px);
+    margin-top: 0.5rem;
+  }
+
+  .homepage-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .homepage-card--conference {
+    grid-template-columns: 1fr;
+  }
+}
