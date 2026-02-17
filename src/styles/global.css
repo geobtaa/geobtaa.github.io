@@ -634,11 +634,28 @@ input[type="checkbox"]:checked::after {
 }
 
 .homepage-hero__image {
+  width: 100%;
+  height: auto;
+}
+
+:root[data-theme="light"] .homepage-hero__intro > starlight-image-zoom-zoomable:has(.homepage-hero__image),
+:root[data-theme="dark"] .homepage-hero__intro > starlight-image-zoom-zoomable:has(.homepage-hero__image) {
   grid-column: 2;
   grid-row: 1;
   justify-self: end;
-  width: clamp(120px, 16vw, 190px);
-  height: auto;
+  width: clamp(145px, 19vw, 235px);
+}
+
+.homepage-hero__intro > starlight-image-zoom-zoomable:has(.homepage-hero__image--dark) {
+  display: none;
+}
+
+:root[data-theme="dark"] .homepage-hero__intro > starlight-image-zoom-zoomable:has(.homepage-hero__image--light) {
+  display: none;
+}
+
+:root[data-theme="dark"] .homepage-hero__intro > starlight-image-zoom-zoomable:has(.homepage-hero__image--dark) {
+  display: block;
 }
 
 .homepage-cards {
@@ -680,6 +697,17 @@ input[type="checkbox"]:checked::after {
 
 .homepage-card--yellow {
   background: #eadf8f;
+}
+
+:root[data-theme="dark"] .homepage-card--light-blue,
+:root[data-theme="dark"] .homepage-card--yellow {
+  background: #363a40;
+  color: var(--btaa-white);
+}
+
+:root[data-theme="dark"] .homepage-card--light-blue :is(h2, p, .homepage-card__link),
+:root[data-theme="dark"] .homepage-card--yellow :is(h2, p, .homepage-card__link) {
+  color: var(--btaa-white);
 }
 
 .homepage-card--conference {
@@ -748,12 +776,8 @@ input[type="checkbox"]:checked::after {
     grid-template-columns: 1fr;
   }
 
-  .homepage-hero__image {
-    grid-column: 1;
-    grid-row: auto;
-    justify-self: start;
-    width: clamp(110px, 38vw, 170px);
-    margin-top: 0.5rem;
+  .homepage-hero__intro > starlight-image-zoom-zoomable:has(.homepage-hero__image) {
+    display: none;
   }
 
   .homepage-cards {
