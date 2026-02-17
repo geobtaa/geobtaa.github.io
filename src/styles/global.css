@@ -589,29 +589,33 @@ input[type="checkbox"]:checked::after {
   font-size: clamp(2rem, 2.6vw, 2.6rem);
   line-height: 1.12;
   margin: 0 0 1.6rem;
+  text-align: center;
 }
 
 .homepage-hero__intro {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1rem 1.25rem;
-  align-items: start;
+  max-width: 46ch;
+  margin-inline: auto;
 }
 
 .homepage-hero__intro-content {
   display: grid;
   gap: 0.8rem;
   align-content: start;
+  justify-items: center;
 }
 
 .homepage-hero__intro p {
   font-size: 1.15rem;
   max-width: 46ch;
   margin: 0;
+  text-align: center;
 }
 
 .homepage-hero__actions {
   margin: 0.55rem 0 0;
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .homepage-hero__button {
@@ -638,23 +642,25 @@ input[type="checkbox"]:checked::after {
   height: auto;
 }
 
-:root[data-theme="light"] .homepage-hero__intro > starlight-image-zoom-zoomable:has(.homepage-hero__image),
-:root[data-theme="dark"] .homepage-hero__intro > starlight-image-zoom-zoomable:has(.homepage-hero__image) {
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: end;
-  width: clamp(145px, 19vw, 235px);
+.homepage-hero__media {
+  margin-top: 0.7rem;
+  display: flex;
+  justify-content: center;
 }
 
-.homepage-hero__intro > starlight-image-zoom-zoomable:has(.homepage-hero__image--dark) {
+.homepage-hero__media > starlight-image-zoom-zoomable:has(.homepage-hero__image) {
+  width: clamp(200px, 23vw, 320px);
+}
+
+.homepage-hero__media > starlight-image-zoom-zoomable:has(.homepage-hero__image--dark) {
   display: none;
 }
 
-:root[data-theme="dark"] .homepage-hero__intro > starlight-image-zoom-zoomable:has(.homepage-hero__image--light) {
+:root[data-theme="dark"] .homepage-hero__media > starlight-image-zoom-zoomable:has(.homepage-hero__image--light) {
   display: none;
 }
 
-:root[data-theme="dark"] .homepage-hero__intro > starlight-image-zoom-zoomable:has(.homepage-hero__image--dark) {
+:root[data-theme="dark"] .homepage-hero__media > starlight-image-zoom-zoomable:has(.homepage-hero__image--dark) {
   display: block;
 }
 
@@ -773,10 +779,10 @@ input[type="checkbox"]:checked::after {
 
 @media (max-width: 48rem) {
   .homepage-hero__intro {
-    grid-template-columns: 1fr;
+    max-width: none;
   }
 
-  .homepage-hero__intro > starlight-image-zoom-zoomable:has(.homepage-hero__image) {
+  .homepage-hero__media > starlight-image-zoom-zoomable:has(.homepage-hero__image) {
     display: none;
   }
 
