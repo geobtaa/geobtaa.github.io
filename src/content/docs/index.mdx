@@ -9,6 +9,7 @@ hidePageTitle: true
 import celebrationImage from '../../assets/images/celebration.png';
 import celebrationWhiteImage from '../../assets/images/celebration-white.png';
 import conferenceImage from '../../assets/images/cover.png';
+import geoportalLogo from '../../assets/images/btaa-geoportal.png';
 
 <section id="home-content" class="homepage-hero">
   <div class="homepage-hero__left">
@@ -61,12 +62,16 @@ import conferenceImage from '../../assets/images/cover.png';
       </form>
     </div>
 
-    <a class="homepage-card homepage-card--yellow" href="https://geo.btaa.org" target="_blank" rel="noreferrer">
-      <h2>Explore Maps and Data</h2>
+    <a class="homepage-card homepage-card--yellow homepage-card--geoportal" href="https://geo.btaa.org" target="_blank" rel="noreferrer">
+      <h2>Explore Maps & Data</h2>
+      <div class="homepage-card__geoportal-footer">
+        <div class="homepage-card__geoportal-logo-wrap">
+          <img src={geoportalLogo.src} alt="BTAA Geoportal logo" class="homepage-card__geoportal-logo" loading="lazy" />
+        </div>
+      </div>
       <p>
-        The BTAA Geoportal has over 114,000 records including GIS datasets, web services, and digitized historical maps.
+        The BTAA Geoportal has over 115,000 records including GIS datasets, web services, and scanned historical maps.
       </p>
-      <span class="homepage-card__link">geo.btaa.org &gt;&gt;</span>
     </a>
 
     <a class="homepage-card homepage-card--conference" href="/conference">
@@ -85,4 +90,3 @@ import conferenceImage from '../../assets/images/cover.png';
     </a>
   </div>
 </section>
-
