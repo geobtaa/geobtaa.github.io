@@ -28,16 +28,38 @@ import conferenceImage from '../../assets/images/cover.png';
   </div>
 
   <div class="homepage-cards">
-    <a
-      class="homepage-card homepage-card--light-blue"
-      href="https://mailchi.mp/d146395039e5/coordinates-from-btaa-gin-signup-page"
-      target="_blank"
-      rel="noreferrer"
-    >
+    <div class="homepage-card homepage-card--light-blue">
       <h2>Stay Connected</h2>
       <p>Subscribe to our quarterly newsletter, <em>Coordinates</em>, for our latest news, events, and resources.</p>
-      <span class="homepage-card__link">Subscribe &gt;&gt;</span>
-    </a>
+
+      <form
+        action="https://umn.us4.list-manage.com/subscribe/post?u=f56349594c4ba02808786a168&amp;id=587345a050&amp;f_id=004329e6f0"
+        method="post"
+        id="mc-embedded-subscribe-form-home"
+        name="mc-embedded-subscribe-form-home"
+        target="_blank"
+      >
+        <div class="mc-field-group">
+          <label for="mce-EMAIL-home">Email Address <span class="asterisk">*</span></label>
+          <input
+            type="email"
+            name="EMAIL"
+            class="required email"
+            id="mce-EMAIL-home"
+            required
+            value=""
+          />
+        </div>
+
+        <div aria-hidden="true" style="position:absolute; left:-5000px;">
+          <input type="text" name="b_f56349594c4ba02808786a168_587345a050" tabindex="-1" value="" />
+        </div>
+
+        <div class="clear">
+          <input type="submit" name="subscribe" id="mc-embedded-subscribe-home" class="button" value="Subscribe" />
+        </div>
+      </form>
+    </div>
 
     <a class="homepage-card homepage-card--yellow" href="https://geo.btaa.org" target="_blank" rel="noreferrer">
       <h2>Explore Maps and Data</h2>
@@ -63,3 +85,4 @@ import conferenceImage from '../../assets/images/cover.png';
     </a>
   </div>
 </section>
+

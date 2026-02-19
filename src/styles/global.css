@@ -697,6 +697,50 @@ input[type="checkbox"]:checked::after {
   font-weight: 600;
 }
 
+#home-content .homepage-card form,
+.newsletter-signup-card form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+#home-content .homepage-card .mc-field-group label,
+.newsletter-signup-card .mc-field-group label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-family: var(--font-family-heading);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+#home-content .homepage-card .mc-field-group input[type="email"],
+.newsletter-signup-card .mc-field-group input[type="email"] {
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid color-mix(in srgb, var(--btaa-dark-blue) 35%, transparent);
+  border-radius: 0.55rem;
+  padding: 0.55rem 0.7rem;
+  background: var(--btaa-white);
+  color: var(--btaa-dark-blue);
+}
+
+#home-content .homepage-card .button,
+.newsletter-signup-card .button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-family: var(--font-family-heading);
+  font-weight: 700;
+  background: var(--btaa-dark-blue);
+  color: var(--btaa-white);
+  cursor: pointer;
+}
+
+#home-content .homepage-card .homepage-card__link,
+.newsletter-signup-card .homepage-card__link {
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+
 .homepage-card--light-blue {
   background: #b7cce0;
 }
@@ -714,6 +758,18 @@ input[type="checkbox"]:checked::after {
 :root[data-theme="dark"] .homepage-card--light-blue :is(h2, p, .homepage-card__link),
 :root[data-theme="dark"] .homepage-card--yellow :is(h2, p, .homepage-card__link) {
   color: var(--btaa-white);
+}
+
+:root[data-theme="dark"] #home-content .homepage-card .mc-field-group input[type="email"],
+:root[data-theme="dark"] .newsletter-signup-card .mc-field-group input[type="email"] {
+  background: #1f242b;
+  border-color: #7f97a8;
+  color: var(--btaa-white);
+}
+
+:root[data-theme="dark"] #home-content .homepage-card .button,
+:root[data-theme="dark"] .newsletter-signup-card .button {
+  background: var(--btaa-blue);
 }
 
 .homepage-card--conference {
