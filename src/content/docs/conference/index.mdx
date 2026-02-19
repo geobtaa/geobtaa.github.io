@@ -28,6 +28,39 @@ import TwoThirdsRLayout from '@components/TwoThirdsRLayout.astro'
 <TwoThirdsLayout>
 <div slot="right">
 ![conference banner](@images/conference-2025-announce.png)
+
+<div class="homepage-card homepage-card--light-blue newsletter-signup-card">
+  <h2>Stay Connected</h2>
+  <p>Subscribe to our quarterly newsletter, <em>Coordinates</em>, for our latest news, events, and resources.</p>
+
+  <form
+    action="https://umn.us4.list-manage.com/subscribe/post?u=f56349594c4ba02808786a168&amp;id=587345a050&amp;f_id=004329e6f0"
+    method="post"
+    id="mc-embedded-subscribe-form-conference"
+    name="mc-embedded-subscribe-form-conference"
+    target="_blank"
+  >
+    <div class="mc-field-group">
+      <label for="mce-EMAIL-conference">Email Address <span class="asterisk">*</span></label>
+      <input
+        type="email"
+        name="EMAIL"
+        class="required email"
+        id="mce-EMAIL-conference"
+        required
+        value=""
+      />
+    </div>
+
+    <div aria-hidden="true" style="position:absolute; left:-5000px;">
+      <input type="text" name="b_f56349594c4ba02808786a168_587345a050" tabindex="-1" value="" />
+    </div>
+
+    <div class="clear">
+      <input type="submit" name="subscribe" id="mc-embedded-subscribe-conference" class="button" value="Subscribe" />
+    </div>
+  </form>
+</div>
 </div>
 
 <div slot="left">
@@ -63,9 +96,6 @@ Register (free): Registration Form
 
 Closed captions will be provided throughout the event.
  */}
-
-### Stay Informed
-*Coordinates*, the BTAA‑GIN newsletter, shares updates and opportunities across the geospatial community. **<a href="https://mailchi.mp/d146395039e5/coordinates-from-btaa-gin-signup-page">Sign up here</a>** to receive future announcements, including submission deadlines and event details.
 
 </div>
 </TwoThirdsLayout>
