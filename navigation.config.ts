@@ -1,4 +1,4 @@
-export type NavGroupId = 'about' | 'resources' | 'conference' | 'documentation' | 'blog';
+export type NavGroupId = 'about' | 'resources' | 'conference' | 'metadata' | 'blog';
 
 export type NavSidebarAutogenerateSort = 'reverse-date';
 
@@ -45,7 +45,7 @@ export const NAV_GROUPS = [
       { kind: 'autogenerate', label: 'Team', directory: 'team', collapsed: false },
       { kind: 'autogenerate', label: 'Projects', directory: 'projects', collapsed: false },
       { kind: 'autogenerate', label: 'Scholarship', directory: 'scholarship', collapsed: false },
-      { kind: 'link', label: 'Reports', link: '/library/' },
+      { kind: 'link', label: 'Document Library', link: '/library/' },
     ],
   },
 
@@ -59,6 +59,17 @@ export const NAV_GROUPS = [
     ],
 
   },
+
+  {
+    id: 'metadata',
+    label: 'Metadata',
+    landing: '/metadata/',
+    sidebar: [
+      { kind: 'autogenerate', label: 'Metadata', directory: 'metadata', collapsed: false },
+    ],
+  },
+
+
   {
     id: 'conference',
     label: 'Conference',
@@ -68,14 +79,7 @@ export const NAV_GROUPS = [
     ],
   },
 
-  {
-    id: 'documentation',
-    label: 'Documentation',
-    landing: '/metadata/',
-    sidebar: [
-      { kind: 'autogenerate', label: 'Metadata', directory: 'metadata', collapsed: false },
-    ],
-  },
+
 
   {
     id: 'blog',
@@ -156,7 +160,7 @@ export const deriveGroupFromPath = (path: string): NavGroupId | undefined => {
   }
 
   if (startsWithAny(normalized, ['/metadata'])) {
-    return 'documentation';
+    return 'metadata';
   }
 
   if (startsWithAny(normalized, ['/blog', '/posts', '/updates'])) {
