@@ -1,4 +1,4 @@
-export type NavGroupId = 'about' | 'resources' | 'conference' | 'metadata' | 'blog';
+export type NavGroupId = 'about' | 'resources' | 'conference' | 'documentation' | 'blog';
 
 export type NavSidebarAutogenerateSort = 'reverse-date';
 
@@ -69,8 +69,8 @@ export const NAV_GROUPS = [
   },
 
   {
-    id: 'metadata',
-    label: 'Metadata',
+    id: 'documentation',
+    label: 'Documentation',
     landing: '/metadata/',
     sidebar: [
       { kind: 'autogenerate', label: 'Metadata', directory: 'metadata', collapsed: false },
@@ -155,8 +155,8 @@ export const deriveGroupFromPath = (path: string): NavGroupId | undefined => {
     return 'conference';
   }
 
-  if (normalized.startsWith('/metadata')) {
-    return 'metadata';
+  if (startsWithAny(normalized, ['/metadata'])) {
+    return 'documentation';
   }
 
   if (startsWithAny(normalized, ['/blog', '/posts', '/updates'])) {
