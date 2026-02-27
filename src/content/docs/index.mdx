@@ -3,12 +3,14 @@ title: Big Ten Academic Alliance Geospatial Information Network
 description: Supporting the geospatial research community and fostering connections among geospatial library professionals.
 template: splash
 hidePageTitle: true
+banner:
+  content:  Mark your calendars! Our next Big Ten GIS Conference returns <b>April 17, 2026</b>.
+
 
 ---
 
 import celebrationImage from '../../assets/images/celebration.png';
 import celebrationWhiteImage from '../../assets/images/celebration-white.png';
-import conferenceImage from '../../assets/images/cover.png';
 import geoportalLogo from '../../assets/images/btaa-geoportal.png';
 
 <section id="home-content" class="homepage-hero">
@@ -30,7 +32,7 @@ import geoportalLogo from '../../assets/images/btaa-geoportal.png';
 
   <div class="homepage-cards">
     <div class="homepage-card homepage-card--light-blue">
-      <h2>Stay Connected</h2>
+      <h2>Subscribe to stay Connected</h2>
       <p>Subscribe to our quarterly newsletter, <em>Coordinates</em>, for our latest news, events, and resources.</p>
 
       <form
@@ -70,23 +72,41 @@ import geoportalLogo from '../../assets/images/btaa-geoportal.png';
         </div>
       </div>
       <p>
-        The BTAA Geoportal has over 115,000 records including GIS datasets, web services, and scanned historical maps.
+        The BTAA Geoportal has over 115,000 records including GIS data, web services, and historical maps.
       </p>
+      <div class="homepage-card__geoportal-cta">
+        <span class="homepage-card__geoportal-button">BTAA Geoportal</span>
+      </div>
     </a>
 
-    <a class="homepage-card homepage-card--conference" href="/conference">
+    <div class="homepage-card homepage-card--conference">
       <div class="homepage-card__conference-text">
         <h2 class="homepage-card__conference-heading">2026 Big Ten GIS Conference</h2>
         <p>
           Our Call for Proposals is Open. We welcome presentations, lightning talks, and map gallery submissions from
           anyone using geospatial information in their work.
         </p>
-        <span class="homepage-card__link">Submit by March 5, 2026 &gt;&gt;</span>
+        <div class="homepage-card__conference-links">
+          <a href="https://forms.gle/zoaPAeJpmshgGLCX9" class="homepage-card__link">
+            <span class="homepage-card__conference-link-main">SUBMIT A TALK &gt;&gt;</span>
+            <span class="homepage-card__conference-link-date"> by March 5, 2026</span>
+          </a>
+          <a href="https://forms.gle/GNF1TvKsTmGnYk7x7" class="homepage-card__link">
+            <span class="homepage-card__conference-link-main">SUBMIT A MAP &gt;&gt;</span>
+            <span class="homepage-card__conference-link-date"> by March 23, 2026</span>
+          </a>
+        </div>
       </div>
-      <div class="homepage-card__conference-date" style={`background-image: url(${conferenceImage.src});`}>
-        <span>SAVE THE DATE</span>
-        <strong>April 17, 2026</strong>
+      <div class="homepage-card__conference-action">
+        <a
+          href="https://btaa.zoom.us/webinar/register/WN_GVyIJSuBRMCEU9JUwBJ9nQ#/registration"
+          target="_blank"
+          rel="noreferrer"
+          class="homepage-card__conference-register"
+        >
+          Register now &gt;&gt;
+        </a>
       </div>
-    </a>
+    </div>
   </div>
 </section>
