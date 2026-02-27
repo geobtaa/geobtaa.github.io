@@ -30,6 +30,7 @@
 --font-family-heading: "Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 --font-family-nav:      Roboto, Helvetica, Arial, sans-serif;
 --font-family-body:    "Lora", "Times New Roman", Times, serif;
+}
 
 /* Headings */
 main h1, main h2, main h3, main h4, main h5, main h6 {
@@ -37,7 +38,7 @@ font-family: var(--font-family-heading);
 }
 
 main h1 {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 600;
   border-bottom: 2px solid var(--sl-color-primary);
   padding-bottom: 0.25rem;
@@ -46,7 +47,7 @@ main h1 {
 }
 
 main h2 {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-weight: 600;
   border-bottom: 2px solid var(--sl-color-primary);
   padding-bottom: 0.25rem;
@@ -58,7 +59,6 @@ main h3 {
   font-size: 1.3rem;
   font-weight: 600;
   margin-top: 1.5rem;
-  color: var(--sl-color-primary);
   color: var(--sl-color-headings);
 }
 
@@ -68,6 +68,11 @@ main h4 {
   text-transform: uppercase;
   margin-top: 1rem;
   color: var(--sl-color-text-accent);
+}
+
+.page-title h1,
+h1#page-title {
+  font-size: 1.8rem !important;
 }
 
 
@@ -81,7 +86,6 @@ background: var(--sl-color-bg);
 
 /* Inline icon helper */
 .sl-markdown-content .inline-icon { display: inline; }
-}
 
 .content-panel:has(#home-content) > .sl-container:first-of-type {
   max-width: min(var(--home-hero-width, 96rem), 100%);
@@ -275,7 +279,7 @@ input[type="checkbox"]:checked::after {
   .about-figure img{
     width:100%; height:auto; display:block; border-radius:5px;
     box-shadow: 0 10px 30px -20px rgba(0,0,0,.45);
-  } */
+  }
 
   /* Feature cards */
   .grid{ display:grid; gap:1rem; }
@@ -590,7 +594,7 @@ input[type="checkbox"]:checked::after {
 
 .homepage-hero__left h1 {
   border: 0;
-  font-size: clamp(2rem, 2.6vw, 2.6rem);
+  font-size: clamp(1.8rem, calc(2.6vw - 0.2rem), 2.4rem);
   line-height: 1.12;
   margin: 0 0 1.6rem;
   text-align: center;
@@ -688,7 +692,7 @@ input[type="checkbox"]:checked::after {
 .homepage-card h2 {
   margin: 0 0 0.8rem;
   border: 0;
-  font-size: 1.75rem;
+  font-size: 1.55rem;
   line-height: 1.1;
 }
 
@@ -761,7 +765,6 @@ input[type="checkbox"]:checked::after {
 }
 
 .homepage-card__geoportal-footer {
-  margin-top: auto;
   display: flex;
   width: 100%;
   justify-content: center;
@@ -787,6 +790,28 @@ input[type="checkbox"]:checked::after {
   box-shadow: 0 8px 22px -14px rgba(0, 0, 0, 0.45);
 }
 
+.homepage-card__geoportal-cta {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  padding-top: 0.65rem;
+}
+
+.homepage-card__geoportal-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.4rem;
+  padding: 0.45rem 1.05rem;
+  border-radius: 999px;
+  background: var(--btaa-dark-blue);
+  color: var(--btaa-white);
+  font-family: var(--font-family-heading);
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+}
+
 :root[data-theme="dark"] .homepage-card--light-blue,
 :root[data-theme="dark"] .homepage-card--yellow {
   background: #363a40;
@@ -801,6 +826,11 @@ input[type="checkbox"]:checked::after {
 :root[data-theme="dark"] .homepage-card__geoportal-logo {
   border-color: rgba(255, 255, 255, 0.22);
   box-shadow: 0 10px 26px -16px rgba(0, 0, 0, 0.7);
+}
+
+:root[data-theme="dark"] .homepage-card__geoportal-button {
+  background: var(--btaa-blue);
+  color: var(--btaa-white);
 }
 
 :root[data-theme="dark"] #home-content .homepage-card .mc-field-group input[type="email"],
@@ -835,35 +865,82 @@ input[type="checkbox"]:checked::after {
 
 .homepage-card--conference h2 {
   color: var(--btaa-white);
-  font-size: 2rem;
+  font-size: 1.8rem;
 }
 
 .homepage-card__conference-heading {
   color: var(--btaa-white) !important;
 }
 
-.homepage-card__conference-date {
-  background-size: cover;
-  background-position: center;
+.homepage-card__conference-links {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.homepage-card--conference .homepage-card__link {
+  margin-top: 0;
+  color: var(--btaa-white) !important;
+  font-weight: 400;
+}
+
+.homepage-card--conference .homepage-card__link:hover,
+.homepage-card--conference .homepage-card__link:focus-visible {
+  color: var(--btaa-white) !important;
+}
+
+.homepage-card__conference-link-main {
+  font-weight: 800;
+}
+
+.homepage-card__conference-link-date {
+  font-weight: 400;
+}
+
+.homepage-card__conference-action {
   display: grid;
   place-content: center;
-  text-align: center;
-  gap: 0.35rem;
-  padding: 1rem;
+  padding: 1.25rem;
+  background-color: rgba(0, 60, 91, 0.4);
+}
+
+.homepage-card__conference-register {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 7.5rem;
+  width: min(100%, 20rem);
+  padding: 1.1rem 1.35rem;
+  border-radius: 0.7rem;
+  background: #ffffff;
+  color: #0a4360 !important;
+  text-decoration: none;
   font-family: var(--font-family-heading);
-  background-color: rgba(0, 60, 91, 0.75);
-  background-blend-mode: multiply;
-}
-
-.homepage-card__conference-date span {
-  font-size: 1.5rem;
-  color: #eadf8f;
-}
-
-.homepage-card__conference-date strong {
-  font-size: 1.6rem;
+  font-size: 1.4rem !important;
+  font-weight: 600 !important;
   line-height: 1.1;
-  color: #eadf8f;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 12px 30px -16px rgba(0, 0, 0, 0.55);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.homepage-card__conference-register p {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.homepage-card__conference-register:hover,
+.homepage-card__conference-register:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 15px 34px -16px rgba(0, 0, 0, 0.62);
+}
+
+:root[data-theme="dark"] .homepage-card__conference-register {
+  background: #ffffff;
+  color: #0a4360 !important;
 }
 
 @media (max-width: 70rem) {
@@ -903,7 +980,11 @@ input[type="checkbox"]:checked::after {
     display: none;
   }
 
-  .homepage-card--conference-date {
+  .homepage-card__conference-action {
     min-height: 9.5rem;
+  }
+
+  .homepage-card__conference-register {
+    min-height: 6.8rem;
   }
 }
