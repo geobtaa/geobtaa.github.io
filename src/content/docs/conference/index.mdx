@@ -69,16 +69,16 @@ import TwoThirdsLayout from '@components/TwoThirdsLayout.astro'
 
 <section class="conference-share-note">
   <h3>Share the Conference</h3>
-  <p>Invite colleagues and students in one click.</p>
+  <p>Invite colleagues and students.</p>
   <div class="conference-share-actions">
-    <a
-      href="https://gin.btaa.org/conference/"
+    <button
+      type="button"
+      data-share-url="https://gin.btaa.org/conference/"
       class="conference-share-action conference-share-action--button"
-      target="_blank"
-      rel="noreferrer"
+      onclick="navigator.clipboard.writeText(this.dataset.shareUrl).then(() => this.textContent = 'Copied').catch(() => window.prompt('Copy this link:', this.dataset.shareUrl));"
     >
-      Conference Link
-    </a>
+      Copy Link
+    </button>
     <a
       href="mailto:?subject=Big%20Ten%20GIS%20Conference%20(April%2017%2C%202026)&body=Join%20me%20at%20the%20Big%20Ten%20GIS%20Conference%3A%20https%3A%2F%2Fgin.btaa.org%2Fconference%2F"
       class="conference-share-action"
