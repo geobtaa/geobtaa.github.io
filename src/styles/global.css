@@ -983,8 +983,17 @@ input[type="checkbox"]:checked::after {
   background: var(--btaa-med-blue);
 }
 
-.conference-pill-link:hover,
-.conference-pill-link:focus-visible {
+.conference-pill-link--closed {
+  background: #b64242;
+}
+
+.conference-pill-link--closed:hover,
+.conference-pill-link--closed:focus-visible {
+  text-decoration: none;
+}
+
+.conference-pill-link:not(.conference-pill-link--closed):hover,
+.conference-pill-link:not(.conference-pill-link--closed):focus-visible {
   text-decoration: underline;
 }
 
