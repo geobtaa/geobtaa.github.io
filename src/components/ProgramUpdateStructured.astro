@@ -443,11 +443,11 @@ const priorityProjectsLabel =
   )
 }
 
-<h2>Priority Projects Update</h2>
 {
-  priorityProjectsUrl ? (
-    <a href={priorityProjectsUrl}>{priorityProjectsLabel}</a>
-  ) : (
-    <p>Add a priority projects URL.</p>
+  priorityProjectsUrl && (
+    <Fragment>
+      <h2>Priority Projects Update</h2>
+      <a href={priorityProjectsUrl}>{priorityProjectsLabel}</a>
+    </Fragment>
   )
 }
