@@ -5,3 +5,65 @@ import StarlightViewModesTableOfContents from 'starlight-view-modes/components/T
 
 <StarlightFullviewModeTableOfContents><slot /></StarlightFullviewModeTableOfContents>
 <StarlightViewModesTableOfContents />
+
+<script>
+  const buildDynamicToc = () => {
+    const content = document.querySelector('main .sl-markdown-content');
+    if (!content) return;
+
+    const headings = [...content.querySelectorAll('h2[id], h3[id]')].filter(
+      (heading) => !heading.closest('starlight-toc'),
+    );
+    if (headings.length === 0) return;
+
+    document.querySelectorAll('starlight-toc nav').forEach((nav) => {
+      if (nav.querySelector('li a[href^="#"]')) return;
+
+      const list = document.createElement('ul');
+      let currentSectionItem = null;
+
+      headings.forEach((heading) => {
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        const label = document.createElement('span');
+
+        link.href = `#${heading.id}`;
+        label.textContent = heading.textContent?.trim() ?? '';
+        link.append(label);
+        item.append(link);
+
+        if (heading.tagName === 'H2') {
+          list.append(item);
+          currentSectionItem = item;
+          return;
+        }
+
+        if (!currentSectionItem) {
+          list.append(item);
+          return;
+        }
+
+        let childList = currentSectionItem.querySelector(':scope > ul');
+        if (!childList) {
+          childList = document.createElement('ul');
+          currentSectionItem.append(childList);
+        }
+        childList.append(item);
+      });
+
+      nav.append(list);
+    });
+  };
+
+  const scheduleDynamicToc = () => {
+    window.requestAnimationFrame(() => buildDynamicToc());
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scheduleDynamicToc, { once: true });
+  } else {
+    scheduleDynamicToc();
+  }
+
+  document.addEventListener('astro:page-load', scheduleDynamicToc);
+</script>

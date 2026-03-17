@@ -494,22 +494,18 @@ collections:
                   - label: "Value"
                     name: "value"
                     widget: "string"
-              - label: "Top Google Searches"
+              - label: "Top Google Searches (comma-separated)"
                 name: "topGoogleSearches"
                 widget: "list"
                 required: true
-                field:
-                  label: "Search Term"
-                  name: "item"
-                  widget: "string"
-              - label: "Top Internal Search Keywords"
+                separator: ","
+                hint: "Enter search terms separated by commas."
+              - label: "Top Internal Search Keywords (comma-separated)"
                 name: "topInternalSearches"
                 widget: "list"
                 required: true
-                field:
-                  label: "Keyword"
-                  name: "item"
-                  widget: "string"
+                separator: ","
+                hint: "Enter keywords separated by commas."
               - label: "Collections Total Records Date Label"
                 name: "recordsTotalAsOf"
                 widget: "string"
@@ -519,32 +515,11 @@ collections:
                 name: "recordsTotalValue"
                 widget: "string"
                 required: true
-              - label: "More Stats URL"
-                name: "moreStatsUrl"
-                widget: "string"
-                required: false
-              - label: "More Stats Link Label"
-                name: "moreStatsLabel"
-                widget: "string"
-                required: false
-
           - label: "Harvesting Activities"
             name: "harvestingActivities"
-            widget: "list"
+            widget: "text"
             required: true
-            summary: "{{fields.title}}"
-            fields:
-              - label: "Title"
-                name: "title"
-                widget: "string"
-              - label: "Records Added"
-                name: "recordsAdded"
-                widget: "string"
-                required: false
-              - label: "Records Retired"
-                name: "recordsRetired"
-                widget: "string"
-                required: false
+            hint: "Paste a table with Title, Records added, and Records retired columns. Markdown tables, tab-separated spreadsheet rows, and comma-separated rows are supported."
 
           - label: "Web Development"
             name: "webDevelopment"
@@ -566,21 +541,6 @@ collections:
                 required: false
               - label: "More Details Link Label"
                 name: "moreDetailsLabel"
-                widget: "string"
-                required: false
-
-          - label: "Priority Projects"
-            name: "priorityProjects"
-            widget: "object"
-            required: true
-            collapsed: false
-            fields:
-              - label: "URL"
-                name: "url"
-                widget: "string"
-                required: true
-              - label: "Link Label"
-                name: "label"
                 widget: "string"
                 required: false
 

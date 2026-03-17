@@ -51,30 +51,25 @@ const programUpdateSchema = z.object({
           topInternalSearches: z.array(z.string()).optional(),
           recordsTotalAsOf: z.string().optional(),
           recordsTotalValue: z.string().optional(),
-          moreStatsUrl: z.string().optional(),
-          moreStatsLabel: z.string().optional(),
         })
         .optional(),
       harvestingActivities: z
-        .array(
-          z.object({
-            title: z.string(),
-            recordsAdded: z.string().optional(),
-            recordsRetired: z.string().optional(),
-          }),
-        )
+        .union([
+          z.array(
+            z.object({
+              title: z.string(),
+              recordsAdded: z.string().optional(),
+              recordsRetired: z.string().optional(),
+            }),
+          ),
+          z.string(),
+        ])
         .optional(),
       webDevelopment: z
         .object({
           updates: z.array(z.string()).optional(),
           moreDetailsUrl: z.string().optional(),
           moreDetailsLabel: z.string().optional(),
-        })
-        .optional(),
-      priorityProjects: z
-        .object({
-          url: z.string().optional(),
-          label: z.string().optional(),
         })
         .optional(),
     })
