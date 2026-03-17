@@ -5,12 +5,182 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
     <title>Content Manager</title>
+    <link rel="stylesheet" href="/admin/admin.css" />
   </head>
   <body>
     <!-- Include the script that builds the page and powers Decap CMS -->
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
     <script>
       (function () {
+        function getAdminView(hash) {
+          if (/^#\/collections\/[^/]+$/.test(hash)) return "collection-list";
+          if (/^#\/collections\/[^/]+\/(entries\/.+|new)$/.test(hash)) return "entry-editor";
+          return "default";
+        }
+
+        function getCollectionName(hash) {
+          const match = (hash || "").match(/^#\/collections\/([^/]+)/);
+          return match ? match[1] : "";
+        }
+
+        function syncAdminViewClass() {
+          document.body.dataset.adminView = getAdminView(window.location.hash || "");
+        }
+
+        let listViewObserver = null;
+        let forcedListHash = "";
+
+        function stopListViewObserver() {
+          if (!listViewObserver) return;
+          listViewObserver.disconnect();
+          listViewObserver = null;
+        }
+
+        function forceListView() {
+          const hash = window.location.hash || "";
+          if (getAdminView(hash) !== "collection-list") return true;
+
+          const listButton = document.querySelector('button[aria-label="List view option"]');
+          if (!(listButton instanceof HTMLButtonElement)) return false;
+
+          if (forcedListHash !== hash) {
+            listButton.click();
+            forcedListHash = hash;
+          }
+
+          return true;
+        }
+
+        function watchForListViewControls() {
+          stopListViewObserver();
+
+          if (forceListView()) return;
+
+          listViewObserver = new MutationObserver(() => {
+            if (forceListView()) {
+              stopListViewObserver();
+            }
+          });
+
+          listViewObserver.observe(document.body, { childList: true, subtree: true });
+
+          window.setTimeout(stopListViewObserver, 4000);
+        }
+
+        function syncAdminUi() {
+          const hash = window.location.hash || "";
+          syncAdminViewClass();
+          document.body.dataset.adminCollection = getCollectionName(hash);
+
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(watchForListViewControls);
+          });
+
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(initCustomSortControl);
+          });
+        }
+
+        syncAdminUi();
+        window.addEventListener("hashchange", syncAdminUi);
+
+        function parseEntryDate(href) {
+          const match = (href || "").match(/\/entries\/(\d{4})-(\d{2})(?:-(\d{2}))?/);
+          if (!match) return 0;
+
+          const year = Number(match[1]);
+          const month = Number(match[2]) - 1;
+          const day = match[3] ? Number(match[3]) : 1;
+          return Date.UTC(year, month, day);
+        }
+
+        function sortUpdateCards(sortBy) {
+          const cardsGrid =
+            document.querySelector(".css-1y2l20x-CardsGrid") ||
+            document.querySelector('[class*="CardsGrid"]');
+
+          if (!(cardsGrid instanceof HTMLElement)) return;
+
+          const cards = Array.from(cardsGrid.children);
+          cards.sort((a, b) => {
+            const aLink = a.querySelector('a[href]');
+            const bLink = b.querySelector('a[href]');
+            const aTitle = a.textContent.trim().toLocaleLowerCase();
+            const bTitle = b.textContent.trim().toLocaleLowerCase();
+
+            if (sortBy === "title") {
+              return aTitle.localeCompare(bTitle);
+            }
+
+            const aDate = parseEntryDate(aLink && "href" in aLink ? aLink.getAttribute("href") : "");
+            const bDate = parseEntryDate(bLink && "href" in bLink ? bLink.getAttribute("href") : "");
+
+            return bDate - aDate || aTitle.localeCompare(bTitle);
+          });
+
+          cards.forEach((card) => cardsGrid.appendChild(card));
+        }
+
+        function initCustomSortControl() {
+          const hash = window.location.hash || "";
+          const isUpdatesListView =
+            getAdminView(hash) === "collection-list" && getCollectionName(hash) === "updates";
+
+          const existingControl = document.getElementById("custom-updates-sort");
+
+          if (!isUpdatesListView) {
+            if (existingControl) existingControl.remove();
+            return;
+          }
+
+          const controlsContainer =
+            document.querySelector(".css-uopcpt-CollectionControlsContainer") ||
+            document.querySelector('[class*="CollectionControlsContainer"]');
+
+          if (!(controlsContainer instanceof HTMLElement)) return;
+
+          const nativeSortWrapper = Array.from(controlsContainer.children).find((element) =>
+            element.textContent && element.textContent.includes("Sort by"),
+          );
+
+          if (nativeSortWrapper instanceof HTMLElement) {
+            nativeSortWrapper.setAttribute("hidden", "hidden");
+            nativeSortWrapper.setAttribute("aria-hidden", "true");
+          }
+
+          if (existingControl instanceof HTMLElement) {
+            sortUpdateCards(existingControl.value || "updated");
+            return;
+          }
+
+          const wrapper = document.createElement("label");
+          wrapper.id = "custom-updates-sort-wrapper";
+          wrapper.className = "custom-updates-sort";
+          wrapper.textContent = "Sort by";
+
+          const select = document.createElement("select");
+          select.id = "custom-updates-sort";
+          select.setAttribute("aria-label", "Sort Program Updates");
+
+          const updatedOption = document.createElement("option");
+          updatedOption.value = "updated";
+          updatedOption.textContent = "Updated On";
+
+          const titleOption = document.createElement("option");
+          titleOption.value = "title";
+          titleOption.textContent = "Title";
+
+          select.append(updatedOption, titleOption);
+          select.value = "updated";
+          select.addEventListener("change", () => {
+            sortUpdateCards(select.value);
+          });
+
+          wrapper.appendChild(select);
+          controlsContainer.appendChild(wrapper);
+          sortUpdateCards("updated");
+        }
+
         if (!window.CMS || typeof window.CMS.registerEventListener !== "function") return;
 
         const escapedComponentTagPattern =
