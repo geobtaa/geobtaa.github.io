@@ -35,10 +35,23 @@ All commands are run from the root of the project, from a terminal:
 | :------------------------ | :----------------------------------------------- |
 | `npm install`             | Installs dependencies                            |
 | `npm run dev`             | Starts local dev server at `localhost:4321`      |
+| `npm run decap`           | Starts the Decap local backend proxy             |
 | `npm run build`           | Build your production site to `./dist/`          |
 | `npm run preview`         | Preview your build locally, before deploying     |
 | `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `npm run astro -- --help` | Get help using the Astro CLI                     |
+
+## Decap Local Testing
+
+For local Decap CMS evaluation, use two terminals:
+
+1. Run `npm run dev`
+2. Run `npm run decap`
+3. Open `http://localhost:4321/admin/index.html`
+
+The exact admin URL matters here: use `/admin/index.html` during local development.
+
+See [DECAP_LOCAL.md](/Users/olive/GitHub/geobtaa.github.io/DECAP_LOCAL.md) for the full workflow.
 
 ## 🔄 Updating Navigation
 
