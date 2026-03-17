@@ -573,6 +573,60 @@ input[type="checkbox"]:checked::after {
   color: color-mix(in srgb, var(--sl-color-accent) 85%, white 15%);
 }
 
+/* Sidebar Callout */
+
+.sidebar-callout {
+  --sidebar-callout-border: var(--btaa-med-blue);
+  --sidebar-callout-bg: color-mix(in srgb, var(--btaa-light-blue) 78%, white 22%);
+  --sidebar-callout-title: var(--btaa-dark-blue);
+  position: sticky;
+  top: 1.5rem;
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.1rem 1.2rem 1.2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--sidebar-callout-border) 35%, white 65%);
+  border-top: 4px solid var(--sidebar-callout-border);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--sidebar-callout-bg) 90%, white 10%) 0%,
+    var(--sidebar-callout-bg) 100%
+  );
+  box-shadow: 0 14px 34px -24px rgba(8, 33, 61, 0.45);
+}
+
+.sidebar-callout > :first-child {
+  margin-top: 0;
+}
+
+.sidebar-callout > :last-child {
+  margin-bottom: 0;
+}
+
+.sidebar-callout__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--sidebar-callout-title);
+}
+
+.sidebar-callout :where(p, ul, ol) {
+  margin: 0;
+}
+
+.sidebar-callout :where(ul, ol) {
+  padding-left: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  .sidebar-callout {
+    position: static;
+  }
+}
+
 
 .sl-banner {
 			--__sl-banner-text: var(--btaa-black);
