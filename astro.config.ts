@@ -63,7 +63,7 @@ export default defineConfig({
     '/policies/collection-development': '/library/collection-development',
     '/Map-Gallery-Update/': '/conference/map-gallery/',
   },
-  integrations: 
+  integrations: [
     starlight({
       title: 'BTAA-GIN',
       favicon: 'favicon.ico',
