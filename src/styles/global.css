@@ -209,44 +209,30 @@ color: var(--btaa-white);
 }
 
 
-/* Remove the default bullet from list items containing checkboxes */
-li:has(input[type="checkbox"]) {
-  list-style-type: none; /* no bullet */
-}
-
 .sl-markdown-content ul li,
 .sl-markdown-content ol li {
   margin-bottom: 1rem;
 }
 
-/* Style the checkbox itself */
-input[type="checkbox"] {
-  width: 15px;
-  height: 15px;
-  appearance: none;          /* turn off browser default */
-  -webkit-appearance: none;  /* for Safari */
-  border: 2px solid #666;    /* border for unchecked box */
-  border-radius: 3px;        /* optional: rounded corners */
-  display: inline-block;
-  vertical-align: middle;
+.sl-markdown-content li.task-list-item {
+  list-style: none;
   position: relative;
-  cursor: pointer;
+  padding-left: 1.75rem;
 }
 
-/* Checked state */
-input[type="checkbox"]:checked {
-  background-color: #2e7d32;
-  border-color: #2e7d32;
-}
-
-/* Add a white checkmark for the checked state */
-input[type="checkbox"]:checked::after {
-  content: "✔";
-  color: white;
-  font-size: 12px;
+.sl-markdown-content li.task-list-item::before {
+  content: "☐";
   position: absolute;
-  top: -1px;
-  /* left: 2px; */
+  left: 0;
+  top: 0.05rem;
+  color: var(--sl-color-text);
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.sl-markdown-content li.task-list-item[data-task-status="checked"]::before {
+  content: "☑";
+  color: #2e7d32;
 }
 
   .about-hero{
