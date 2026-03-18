@@ -1,7 +1,7 @@
 ---
 import ArticleMeta from './ArticleMeta.astro';
 
-const PAGE_TITLE_ID = 'page-title';
+const PAGE_TITLE_ID = '_top';
 
 const route = Astro.locals.starlightRoute;
 const entry = route.entry;
@@ -110,7 +110,7 @@ const cover = undefined;
 
 {
   hidePageTitle ? (
-    <div class="page-title-sentinel" aria-hidden="true"></div>
+    <div id={PAGE_TITLE_ID} class="page-title-sentinel" aria-hidden="true"></div>
   ) : (
     <div class="page-title not-content">
       <h1 id={PAGE_TITLE_ID}>{entry.data.title}</h1>
