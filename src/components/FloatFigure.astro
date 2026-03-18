@@ -1,0 +1,82 @@
+---
+interface Props {
+  side?: 'left' | 'right';
+  width?: string;
+}
+
+const { side = 'right', width = 'min(42%, 18rem)' } = Astro.props;
+---
+
+<figure class={`float-figure float-figure--${side} not-content`} style={`--float-figure-width: ${width};`}>
+  <slot />
+</figure>
+
+<style>
+  .float-figure {
+    width: var(--float-figure-width);
+    max-width: 100%;
+    margin-top: 0.35rem;
+    margin-bottom: 1rem;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .float-figure--right {
+    float: right;
+    margin-left: 1.5rem;
+  }
+
+  .float-figure--left {
+    float: left;
+    margin-right: 1.5rem;
+  }
+
+  .float-figure :global(p) {
+    margin: 0;
+  }
+
+  .float-figure :global(p + p) {
+    margin-top: 0.55rem;
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  .float-figure :global(a) {
+    color: var(--sl-color-text-accent);
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.12em;
+  }
+
+  .float-figure :global(a:hover) {
+    color: var(--sl-color-text-accent);
+  }
+
+  .float-figure :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 24px -16px rgba(0, 0, 0, 0.25);
+  }
+
+  @media (max-width: 900px) {
+    .float-figure {
+      float: none;
+      width: min(100%, 24rem);
+      margin-right: auto;
+      margin-left: auto;
+    }
+  }
+
+  @media print {
+    .float-figure {
+      float: right;
+      width: min(35%, 15rem);
+      margin-top: 0.2rem;
+      margin-bottom: 0.75rem;
+      margin-left: 1rem;
+      margin-right: 0;
+    }
+  }
+</style>
