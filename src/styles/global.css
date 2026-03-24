@@ -1304,7 +1304,8 @@ color: var(--btaa-white);
   overflow: hidden;
   display: grid;
   grid-template-columns: 2fr 1fr;
-  min-height: 280px;
+  min-height: 0;
+  align-items: center;
 }
 
 .homepage-card__conference-text {
@@ -1350,15 +1351,16 @@ color: var(--btaa-white);
   place-content: center;
   padding: 1.25rem;
   background-color: rgba(0, 60, 91, 0.4);
+  align-self: stretch;
 }
 
 .homepage-card__conference-register {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 7.5rem;
+  min-height: 0;
   width: min(100%, 20rem);
-  padding: 1.1rem 1.35rem;
+  padding: 0.95rem 1.35rem;
   border-radius: 0.7rem;
   background: #ffffff;
   color: #0a4360 !important;
@@ -1426,13 +1428,5 @@ color: var(--btaa-white);
 
   .homepage-hero__media > starlight-image-zoom-zoomable:has(.homepage-hero__image) {
     display: none;
-  }
-
-  .homepage-card__conference-action {
-    min-height: 9.5rem;
-  }
-
-  .homepage-card__conference-register {
-    min-height: 6.8rem;
   }
 }
