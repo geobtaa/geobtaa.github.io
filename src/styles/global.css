@@ -388,7 +388,7 @@ color: var(--btaa-white);
 /* Compact list style for denser layouts */
 .compact-list {
   font-size: 0.9rem;       /* slightly smaller font */
-  line-height: 1.1;        /* tighter line spacing */
+  line-height: 1.35;       /* keep wrapped lines readable without changing item spacing */
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   padding-left: 1.2em;     /* smaller indentation */
