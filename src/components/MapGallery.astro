@@ -6,6 +6,11 @@ import FilterableGallery from './FilterableGallery.tsx';
 
 import type { Map } from './FilterableGallery.tsx';
 
+type CsvMap = Map & {
+  publish_status?: string;
+  publication_status?: string;
+};
+
 // 1. Define the path to your CSV file
 const csvPath = path.join(process.cwd(), 'src/content/docs/conference/map-gallery/submissions.csv');
 
@@ -17,14 +22,32 @@ const parseResult = Papa.parse(csvFile, {
   header: true, // Use the first row as object keys
   skipEmptyLines: true,
 });
-const allMaps = parseResult.data as Map[];
+const previewEnabled = Astro.url.searchParams.get('preview') === 'true';
+const requestedYear = Astro.url.searchParams.get('year');
+
+const allMaps = parseResult.data as CsvMap[];
+const visibleMaps = allMaps
+  .filter((map) => {
+    const publicationStatus = (map.publication_status ?? map.publish_status ?? 'published')
+      .trim()
+      .toLowerCase();
+    return previewEnabled || publicationStatus === 'published';
+  })
+  .map(({ publish_status: _publishStatus, publication_status: _publicationStatus, ...map }) => map);
+
+const years = [...new Set(visibleMaps.map((map) => map.year).filter(Boolean))].sort((a, b) => Number(b) - Number(a));
+const initialYear = requestedYear && years.includes(requestedYear) ? requestedYear : (years[0] ?? '');
 ---
 
 <div class="map-gallery-container not-content">
   <p class="map-gallery-intro">A collection of interactive and static maps from the BTAA GIN Conference.</p>
   <p class="map-gallery-note">Note: The BTAA-GIN hosts this map gallery to highlight GIS projects happening across our member institutions and beyond. Static and interactive maps are provided "as is" based on information received from their authors and are not reviewed for quality or accuracy prior to inclusion in the gallery.</p>
-  
-  <FilterableGallery client:load maps={allMaps} />
+
+  {previewEnabled && (
+    <p class="map-gallery-preview-note">Preview mode is enabled for this gallery link. Draft submissions are visible here.</p>
+  )}
+
+  <FilterableGallery client:load maps={visibleMaps} years={years} initialYear={initialYear} />
 </div>
 
 <style>
@@ -41,6 +64,15 @@ const allMaps = parseResult.data as Map[];
     font-size: 1.1rem; /* Slightly larger text */
     color: var(--sl-color-gray-3);
     margin-bottom: 2rem; /* Adds space below the paragraph */
+  }
+
+  .map-gallery-preview-note {
+    margin: 0 0 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px dashed var(--sl-color-orange-high);
+    border-radius: 0.5rem;
+    background-color: var(--sl-color-orange-low);
+    color: var(--sl-color-text);
   }
 
 /* Updated styles for the filter controls */
