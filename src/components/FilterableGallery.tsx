@@ -13,6 +13,12 @@ export interface Map {
   kind: string;
 }
 
+type FilterableGalleryProps = {
+  maps: Map[];
+  years: string[];
+  initialYear: string;
+};
+
 function resolveUrl(maybePath: string) {
   const base = (import.meta as any).env?.BASE_URL ?? '/';
   if (!maybePath) return '';
@@ -21,10 +27,9 @@ function resolveUrl(maybePath: string) {
   return base.replace(/\/+$/, '/') + trimmed;                      // join with BASE_URL
 }
 
-export default function FilterableGallery({ maps }: { maps: Map[] }) {
-  const [selectedYear, setSelectedYear] = useState('2026');
+export default function FilterableGallery({ maps, years, initialYear }: FilterableGalleryProps) {
+  const [selectedYear, setSelectedYear] = useState(initialYear);
   const [selectedMap, setSelectedMap] = useState<Map | null>(null);
-  const years = ['2026','2025', '2023', '2022', '2021', '2020'];
 
   const filteredMaps = maps.filter(m => m.year === selectedYear);
   const interactiveMaps = filteredMaps.filter(m => m.kind.includes('Interactive'));
@@ -42,39 +47,45 @@ export default function FilterableGallery({ maps }: { maps: Map[] }) {
         </select>
       </div>
 
-      <h2>Interactive Maps</h2>
-      <hr />
-      <div className="gallery-grid">
-        {interactiveMaps.map(m => {
-          const img = resolveUrl(m.image);
-          return (
-            <div key={m.link} className="project-card" onClick={() => open(m)}>
-              <img src={img} alt={m.title} className="card-image" loading="lazy" />
-              <div className="card-content">
-                <h3>{m.title}</h3>
-                <p>{`${m.name}, ${m.institution}${m.other_authors ? '; ' + m.other_authors : ''}`}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {filteredMaps.length === 0 ? (
+        <p>No map submissions are available for this year.</p>
+      ) : (
+        <>
+          <h2>Interactive Maps</h2>
+          <hr />
+          <div className="gallery-grid">
+            {interactiveMaps.map(m => {
+              const img = resolveUrl(m.image);
+              return (
+                <div key={m.link} className="project-card" onClick={() => open(m)}>
+                  <img src={img} alt={m.title} className="card-image" loading="lazy" />
+                  <div className="card-content">
+                    <h3>{m.title}</h3>
+                    <p>{`${m.name}, ${m.institution}${m.other_authors ? '; ' + m.other_authors : ''}`}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-      <h2>Static Maps</h2>
-      <hr />
-      <div className="gallery-grid">
-        {staticMaps.map(m => {
-          const img = resolveUrl(m.image);
-          return (
-            <div key={m.link} className="project-card" onClick={() => open(m)}>
-              <img src={img} alt={m.title} className="card-image" loading="lazy" />
-              <div className="card-content">
-                <h3>{m.title}</h3>
-                <p>{`${m.name}, ${m.institution}${m.other_authors ? '; ' + m.other_authors : ''}`}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+          <h2>Static Maps</h2>
+          <hr />
+          <div className="gallery-grid">
+            {staticMaps.map(m => {
+              const img = resolveUrl(m.image);
+              return (
+                <div key={m.link} className="project-card" onClick={() => open(m)}>
+                  <img src={img} alt={m.title} className="card-image" loading="lazy" />
+                  <div className="card-content">
+                    <h3>{m.title}</h3>
+                    <p>{`${m.name}, ${m.institution}${m.other_authors ? '; ' + m.other_authors : ''}`}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       <div className="modal-backdrop" onClick={close} data-visible={!!selectedMap}>
         {selectedMap && (
