@@ -21,16 +21,27 @@ const allMaps = parseResult.data as Map[];
 ---
 
 <div class="map-gallery-container not-content">
-  <p>A collection of interactive and static maps from the BTAA GIN Conference.</p>
+  <p class="map-gallery-intro">A collection of interactive and static maps from the BTAA GIN Conference.</p>
+  <p class="map-gallery-note">Note: The BTAA-GIN hosts this map gallery to highlight GIS projects happening across our member institutions and beyond. Static and interactive maps are provided "as is" based on information received from their authors and are not reviewed for quality or accuracy prior to inclusion in the gallery.</p>
+  
   <FilterableGallery client:load maps={allMaps} />
 </div>
 
 <style>
-  :global(.map-gallery-container > p) {
-  font-size: 1.1rem; /* Slightly larger text */
-  color: var(--sl-color-gray-3);
-  margin-bottom: 2rem; /* Adds space below the paragraph */
-}
+  .map-gallery-note {
+    margin: 0 0 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--sl-color-accent);
+    border-radius: 0.5rem;
+    background-color: var(--sl-color-bg-alt);
+    color: var(--sl-color-text);
+  }
+
+  .map-gallery-intro {
+    font-size: 1.1rem; /* Slightly larger text */
+    color: var(--sl-color-gray-3);
+    margin-bottom: 2rem; /* Adds space below the paragraph */
+  }
 
 /* Updated styles for the filter controls */
 :global(.filter-controls) {
