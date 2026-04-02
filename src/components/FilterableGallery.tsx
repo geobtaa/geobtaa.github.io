@@ -1,5 +1,5 @@
 // /src/components/FilterableGallery.tsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export interface Map {
   year: string;
@@ -11,13 +11,9 @@ export interface Map {
   link: string;
   image: string;   // from CSV (e.g., "map-gallery/foo.jpg" or "/map-gallery/foo.jpg")
   kind: string;
+  publish_status?: string;
+  publication_status?: string;
 }
-
-type FilterableGalleryProps = {
-  maps: Map[];
-  years: string[];
-  initialYear: string;
-};
 
 function resolveUrl(maybePath: string) {
   const base = (import.meta as any).env?.BASE_URL ?? '/';
@@ -27,11 +23,97 @@ function resolveUrl(maybePath: string) {
   return base.replace(/\/+$/, '/') + trimmed;                      // join with BASE_URL
 }
 
-export default function FilterableGallery({ maps, years, initialYear }: FilterableGalleryProps) {
-  const [selectedYear, setSelectedYear] = useState(initialYear);
-  const [selectedMap, setSelectedMap] = useState<Map | null>(null);
+function getYears(maps: Map[]) {
+  return [...new Set(maps.map((map) => map.year).filter(Boolean))].sort((a, b) => Number(b) - Number(a));
+}
 
-  const filteredMaps = maps.filter(m => m.year === selectedYear);
+function getInitialYear(maps: Map[], requestedYear: string | null) {
+  const years = getYears(maps);
+  if (requestedYear && years.includes(requestedYear)) {
+    return requestedYear;
+  }
+
+  return years[0] ?? '';
+}
+
+type FilterableGalleryProps = {
+  maps: Map[];
+  previewDataUrl: string;
+};
+
+export default function FilterableGallery({ maps, previewDataUrl }: FilterableGalleryProps) {
+  const [visibleMaps, setVisibleMaps] = useState(maps);
+  const [selectedYear, setSelectedYear] = useState(getInitialYear(maps, null));
+  const [selectedMap, setSelectedMap] = useState<Map | null>(null);
+  const [previewEnabled, setPreviewEnabled] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedYear = params.get('year');
+    const shouldPreview = params.get('preview') === 'true';
+
+    if (!shouldPreview) {
+      setVisibleMaps(maps);
+      setPreviewEnabled(false);
+      setPreviewError(false);
+      setSelectedYear(getInitialYear(maps, requestedYear));
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadPreviewMaps = async () => {
+      try {
+        const response = await fetch(resolveUrl(previewDataUrl));
+        if (!response.ok) {
+          throw new Error(`Preview request failed with ${response.status}`);
+        }
+
+        const previewMaps = (await response.json()) as Map[];
+        if (cancelled) {
+          return;
+        }
+
+        setVisibleMaps(previewMaps);
+        setPreviewEnabled(true);
+        setPreviewError(false);
+        setSelectedYear(getInitialYear(previewMaps, requestedYear));
+      } catch (error) {
+        console.error('Unable to load preview gallery data.', error);
+        if (cancelled) {
+          return;
+        }
+
+        setVisibleMaps(maps);
+        setPreviewEnabled(false);
+        setPreviewError(true);
+        setSelectedYear(getInitialYear(maps, requestedYear));
+      }
+    };
+
+    loadPreviewMaps();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [maps, previewDataUrl]);
+
+  const years = getYears(visibleMaps);
+
+  useEffect(() => {
+    if (selectedMap && !visibleMaps.some((map) => map.link === selectedMap.link)) {
+      setSelectedMap(null);
+    }
+  }, [selectedMap, visibleMaps]);
+
+  useEffect(() => {
+    if (!years.includes(selectedYear)) {
+      setSelectedYear(years[0] ?? '');
+    }
+  }, [selectedYear, years]);
+
+  const filteredMaps = visibleMaps.filter(m => m.year === selectedYear);
   const interactiveMaps = filteredMaps.filter(m => m.kind.includes('Interactive'));
   const staticMaps = filteredMaps.filter(m => m.kind.includes('Static'));
 
@@ -40,6 +122,12 @@ export default function FilterableGallery({ maps, years, initialYear }: Filterab
 
   return (
     <div>
+      {previewEnabled && (
+        <p className="map-gallery-preview-note">Preview mode is enabled. Draft submissions are visible in this link.</p>
+      )}
+      {previewError && (
+        <p className="map-gallery-preview-note">Preview mode could not be loaded, so the public gallery is being shown.</p>
+      )}
       <div className="filter-controls">
         <label htmlFor="year-select">Select Map Gallery Year:</label>
         <select id="year-select" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
@@ -47,45 +135,39 @@ export default function FilterableGallery({ maps, years, initialYear }: Filterab
         </select>
       </div>
 
-      {filteredMaps.length === 0 ? (
-        <p>No map submissions are available for this year.</p>
-      ) : (
-        <>
-          <h2>Interactive Maps</h2>
-          <hr />
-          <div className="gallery-grid">
-            {interactiveMaps.map(m => {
-              const img = resolveUrl(m.image);
-              return (
-                <div key={m.link} className="project-card" onClick={() => open(m)}>
-                  <img src={img} alt={m.title} className="card-image" loading="lazy" />
-                  <div className="card-content">
-                    <h3>{m.title}</h3>
-                    <p>{`${m.name}, ${m.institution}${m.other_authors ? '; ' + m.other_authors : ''}`}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      <h2>Interactive Maps</h2>
+      <hr />
+      <div className="gallery-grid">
+        {interactiveMaps.map(m => {
+          const img = resolveUrl(m.image);
+          return (
+            <div key={m.link} className="project-card" onClick={() => open(m)}>
+              <img src={img} alt={m.title} className="card-image" loading="lazy" />
+              <div className="card-content">
+                <h3>{m.title}</h3>
+                <p>{`${m.name}, ${m.institution}${m.other_authors ? '; ' + m.other_authors : ''}`}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-          <h2>Static Maps</h2>
-          <hr />
-          <div className="gallery-grid">
-            {staticMaps.map(m => {
-              const img = resolveUrl(m.image);
-              return (
-                <div key={m.link} className="project-card" onClick={() => open(m)}>
-                  <img src={img} alt={m.title} className="card-image" loading="lazy" />
-                  <div className="card-content">
-                    <h3>{m.title}</h3>
-                    <p>{`${m.name}, ${m.institution}${m.other_authors ? '; ' + m.other_authors : ''}`}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
+      <h2>Static Maps</h2>
+      <hr />
+      <div className="gallery-grid">
+        {staticMaps.map(m => {
+          const img = resolveUrl(m.image);
+          return (
+            <div key={m.link} className="project-card" onClick={() => open(m)}>
+              <img src={img} alt={m.title} className="card-image" loading="lazy" />
+              <div className="card-content">
+                <h3>{m.title}</h3>
+                <p>{`${m.name}, ${m.institution}${m.other_authors ? '; ' + m.other_authors : ''}`}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       <div className="modal-backdrop" onClick={close} data-visible={!!selectedMap}>
         {selectedMap && (

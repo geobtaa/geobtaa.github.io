@@ -1,53 +1,15 @@
 ---
-import { promises as fs } from 'fs';
-import path from 'path';
-import Papa from 'papaparse';
 import FilterableGallery from './FilterableGallery.tsx';
+import { isPublished, loadGalleryMaps } from '../utils/mapGallery';
 
-import type { Map } from './FilterableGallery.tsx';
-
-type CsvMap = Map & {
-  publish_status?: string;
-  publication_status?: string;
-};
-
-// 1. Define the path to your CSV file
-const csvPath = path.join(process.cwd(), 'src/content/docs/conference/map-gallery/submissions.csv');
-
-// 2. Read the file contents from the disk
-const csvFile = await fs.readFile(csvPath, 'utf-8');
-
-// 3. Parse the CSV data into an array of objects
-const parseResult = Papa.parse(csvFile, {
-  header: true, // Use the first row as object keys
-  skipEmptyLines: true,
-});
-const previewEnabled = Astro.url.searchParams.get('preview') === 'true';
-const requestedYear = Astro.url.searchParams.get('year');
-
-const allMaps = parseResult.data as CsvMap[];
-const visibleMaps = allMaps
-  .filter((map) => {
-    const publicationStatus = (map.publication_status ?? map.publish_status ?? 'published')
-      .trim()
-      .toLowerCase();
-    return previewEnabled || publicationStatus === 'published';
-  })
-  .map(({ publish_status: _publishStatus, publication_status: _publicationStatus, ...map }) => map);
-
-const years = [...new Set(visibleMaps.map((map) => map.year).filter(Boolean))].sort((a, b) => Number(b) - Number(a));
-const initialYear = requestedYear && years.includes(requestedYear) ? requestedYear : (years[0] ?? '');
+const publishedMaps = (await loadGalleryMaps()).filter(isPublished);
 ---
 
 <div class="map-gallery-container not-content">
   <p class="map-gallery-intro">A collection of interactive and static maps from the BTAA GIN Conference.</p>
   <p class="map-gallery-note">Note: The BTAA-GIN hosts this map gallery to highlight GIS projects happening across our member institutions and beyond. Static and interactive maps are provided "as is" based on information received from their authors and are not reviewed for quality or accuracy prior to inclusion in the gallery.</p>
 
-  {previewEnabled && (
-    <p class="map-gallery-preview-note">Preview mode is enabled for this gallery link. Draft submissions are visible here.</p>
-  )}
-
-  <FilterableGallery client:load maps={visibleMaps} years={years} initialYear={initialYear} />
+  <FilterableGallery client:load maps={publishedMaps} previewDataUrl="/conference/map-gallery/preview.json" />
 </div>
 
 <style>
@@ -66,7 +28,7 @@ const initialYear = requestedYear && years.includes(requestedYear) ? requestedYe
     margin-bottom: 2rem; /* Adds space below the paragraph */
   }
 
-  .map-gallery-preview-note {
+  :global(.map-gallery-preview-note) {
     margin: 0 0 1rem;
     padding: 1rem 1.25rem;
     border: 1px dashed var(--sl-color-orange-high);
