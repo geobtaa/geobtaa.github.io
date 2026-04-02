@@ -7,7 +7,7 @@ This gallery is driven by two things:
 - submission metadata in [submissions.csv](src/content/docs/conference/map-gallery/submissions.csv)
 - thumbnail images in [public/map-gallery](public/map-gallery)
 
-The public gallery page is [index.mdx](src/content/docs/conference/map-gallery/index.mdx), which renders the gallery component.
+The map gallery file is at [conference/map-gallery/index.mdx](src/content/docs/conference/map-gallery/index.mdx), which renders the gallery component.
 
 ## Files and folders
 
@@ -43,7 +43,7 @@ Place gallery thumbnails in [public/map-gallery](public/map-gallery).
 Guidelines:
 
 - Keep each thumbnail filename stable once it is referenced in `submissions.csv`.
-- Prefer `.webp` images for the final committed asset.
+- Prefer `.webp` images to keep the page load manageable.
 - The CSV should reference thumbnails as `map-gallery/<filename>.webp`.
 
 Example:
