@@ -9,15 +9,14 @@ sidebar:
 
 ## Access
 
-|  |  |
-| --- | --- |
 | Field Label | Access |
+| --- | --- |
 | Field Name | b1g_access_s |
 | Purpose | Links for accessing restricted resources |
 | Entry Guidelines | Use the Licensed Data tab in the GeoBTAA Template. It has three columns: friendlier_id, institution_code, and access_URL. friendlier_id is the ID of the parent record. institution_code is a dropdown value for a BTAA institution. access_URL is the URL for the institution’s library catalog record for the database. |
 | Example Value | https://search.lib.umich.edu/databases/record/39117 |
 | Controlled Vocabulary? | FALSE |
-| Vocabulary List | |
+| Vocabulary List | https://docs.google.com/spreadsheets/d/1g7TFqjYQ2KEShhocI0stINnI1cYDoMpoFgD8yWA6tbM/edit?gid=1084902039#gid=1084902039 |
 | Field Type | String |
 | Multivalued? | FALSE |
 | Required? | FALSE |
@@ -27,9 +26,8 @@ sidebar:
 
 ## Accrual Method
 
-|  |  |
-| --- | --- |
 | Field Label | Accrual Method |
+| --- | --- |
 | Field Name | b1g_dct_accrualMethod_s |
 | Purpose | Method used to obtain the metadata |
 | Entry Guidelines | Select one controlled value that reflects how the metadata record was created or obtained. |
@@ -45,9 +43,8 @@ sidebar:
 
 ## Accrual Periodicity
 
-|  |  |
-| --- | --- |
 | Field Label | Accrual Periodicity |
+| --- | --- |
 | Field Name | b1g_dct_accrualPeriodicity_s |
 | Purpose | Frequency at which a website is harvested |
 | Entry Guidelines | Select one controlled value that best represents how often the resource should be reviewed or reharvested. |
@@ -63,9 +60,8 @@ sidebar:
 
 ## Admin Notes
 
-|  |  |
-| --- | --- |
 | Field Label | Admin Notes |
+| --- | --- |
 | Field Name | b1g_adminNote_sm |
 | Purpose | Internal notes about status, issues, or enrichment |
 | Entry Guidelines | Enter plain text as needed to support processing and tracking. |
@@ -81,9 +77,8 @@ sidebar:
 
 ## B1G Image
 
-|  |  |
-| --- | --- |
 | Field Label | B1G Image |
+| --- | --- |
 | Field Name | b1g_image_ss |
 | Purpose | Thumbnail displayed in search results |
 | Entry Guidelines | Enter a secure (https) URL to an image file. Acceptable file types: JPEG or PNG. |
@@ -99,9 +94,8 @@ sidebar:
 
 ## Code
 
-|  |  |
-| --- | --- |
 | Field Label | Code |
+| --- | --- |
 | Field Name | b1g_code_s |
 | Purpose | Internal grouping or tracking code |
 | Entry Guidelines | Do not enter manually. This value is assigned by GIN staff. |
@@ -117,9 +111,8 @@ sidebar:
 
 ## Coordinate Reference System
 
-|  |  |
-| --- | --- |
 | Field Label | Coordinate Reference System |
+| --- | --- |
 | Field Name | b1g_dct_conformsTo_sm |
 | Purpose | Coordinate reference system of the resource |
 | Entry Guidelines | Enter a resolvable URI (URL) for the coordinate reference system from a known registry. |
@@ -135,9 +128,8 @@ sidebar:
 
 ## Creator ID
 
-|  |  |
-| --- | --- |
 | Field Label | Creator ID |
+| --- | --- |
 | Field Name | b1g_creatorID_sm |
 | Purpose | URI identifying the creator (OCLC FAST) |
 | Entry Guidelines | Enter a URI for an authority record from OCLC FAST (use the WorldCat FAST URL). |
@@ -153,9 +145,8 @@ sidebar:
 
 ## Date Accessioned
 
-|  |  |
-| --- | --- |
 | Field Label | Date Accessioned |
+| --- | --- |
 | Field Name | b1g_dateAccessioned_dt |
 | Purpose | Date the record was added |
 | Entry Guidelines | Enter the date the record was harvested or added to the geoportal, in yyyy-mm-dd format. |
@@ -171,9 +162,8 @@ sidebar:
 
 ## Date Retired
 
-|  |  |
-| --- | --- |
 | Field Label | Date Retired |
+| --- | --- |
 | Field Name | b1g_dateRetired_dt |
 | Purpose | Date the record was removed or unpublished |
 | Entry Guidelines | Enter the date the record was removed/unpublished, in yyyy-mm-dd format. |
@@ -189,9 +179,8 @@ sidebar:
 
 ## Deprioritize
 
-|  |  |
-| --- | --- |
 | Field Label | Deprioritize |
+| --- | --- |
 | Field Name | b1g_deprioritized_b |
 | Purpose | Flag that lowers a record’s ranking in search results |
 | Entry Guidelines | Enter true or false. |
@@ -207,9 +196,8 @@ sidebar:
 
 ## Endpoint Description
 
-|  |  |
-| --- | --- |
 | Field Label | Endpoint Description |
+| --- | --- |
 | Field Name | b1g_dcat_endpointDescription_s |
 | Purpose | Type of API or link used to access the resource  |
 | Entry Guidelines | Use an existing standardized value when possible. Enter "downloads page" for static web pages that provide downloads but no API or other programmatic access point. |
@@ -225,9 +213,8 @@ sidebar:
 
 ## Endpoint URL
 
-|  |  |
-| --- | --- |
 | Field Label | Endpoint URL |
+| --- | --- |
 | Field Name | b1g_dcat_endpointURL_s |
 | Purpose | URL from which the resource was harvested |
 | Entry Guidelines | Enter the full URL of the API endpoint, metadata feed, landing page, or query used to harvest the resource. |
@@ -243,9 +230,8 @@ sidebar:
 
 ## GeoNames
 
-|  |  |
-| --- | --- |
 | Field Label | GeoNames |
+| --- | --- |
 | Field Name | b1g_geonames_sm |
 | Purpose | URI for a place name from the GeoNames database |
 | Entry Guidelines | Enter a GeoNames Semantic Web Service URI in the form http://sws.geonames.org/<ID>/. |
@@ -261,9 +247,8 @@ sidebar:
 
 ## Harvest Workflow
 
-|  |  |
-| --- | --- |
 | Field Label | Harvest Workflow |
+| --- | --- |
 | Field Name | b1g_harvestWorkflow_s |
 | Purpose | Workflow that produced the record |
 | Entry Guidelines | Enter the code/name for the corresponding harvest workflow used to generate the record. |
@@ -279,9 +264,8 @@ sidebar:
 
 ## Is Harvested
 
-|  |  |
-| --- | --- |
 | Field Label | Is Harvested |
+| --- | --- |
 | Field Name | b1g_isHarvested_b |
 | Purpose | Whether the website is actively harvested |
 | Entry Guidelines | Enter true or false. |
@@ -297,9 +281,8 @@ sidebar:
 
 ## Language String
 
-|  |  |
-| --- | --- |
 | Field Label | Language String |
+| --- | --- |
 | Field Name | b1g_language_sm |
 | Purpose | Human-readable language label |
 | Entry Guidelines | Do not enter manually. |
@@ -315,9 +298,8 @@ sidebar:
 
 ## Last Harvested
 
-|  |  |
-| --- | --- |
 | Field Label | Last Harvested |
+| --- | --- |
 | Field Name | b1g_lastHarvested_dt |
 | Purpose | Date the website was last harvested |
 | Entry Guidelines | Enter a date in yyyy-mm-dd format. |
@@ -333,9 +315,8 @@ sidebar:
 
 ## Local Collection
 
-|  |  |
-| --- | --- |
 | Field Label | Local Collection |
+| --- | --- |
 | Field Name | b1g_localCollectionLabel_sm |
 | Purpose | Subcollection defined by the Publisher or Provider |
 | Entry Guidelines | Enter plain text. |
@@ -351,9 +332,8 @@ sidebar:
 
 ## Mediator
 
-|  |  |
-| --- | --- |
 | Field Label | Mediator |
+| --- | --- |
 | Field Name | b1g_dct_mediator_sm |
 | Purpose | Institutions that provide authentication for licensed resources |
 | Entry Guidelines | Enter the full BTAA institution name as listed on the Institutions page. |
@@ -369,9 +349,8 @@ sidebar:
 
 ## Provenance
 
-|  |  |
-| --- | --- |
 | Field Label | Provenance |
+| --- | --- |
 | Field Name | b1g_dct_provenance_sm |
 | Purpose | Plain-language summary of how the record was obtained |
 | Entry Guidelines | Enter complete sentences describing when, where, and how the record was obtained. Values may be entered manually or generated programmatically. |
@@ -387,9 +366,8 @@ sidebar:
 
 ## Publication State
 
-|  |  |
-| --- | --- |
 | Field Label | Publication State |
+| --- | --- |
 | Field Name | b1g_publication_state_s |
 | Purpose | Whether the record is visible in the geoportal |
 | Entry Guidelines | Enter one of the three allowed values. |
@@ -405,9 +383,8 @@ sidebar:
 
 ## Spatial Resolution as Text
 
-|  |  |
-| --- | --- |
 | Field Label | Spatial Resolution as Text |
+| --- | --- |
 | Field Name | b1g_dcat_spatialResolutionInMeters_s |
 | Purpose | Human-readable description of spatial resolution |
 | Entry Guidelines | Enter a scale, distance, or other descriptive free text. |
@@ -423,9 +400,8 @@ sidebar:
 
 ## Spatial Resolution in Meters
 
-|  |  |
-| --- | --- |
 | Field Label | Spatial Resolution in Meters |
+| --- | --- |
 | Field Name | b1g_dcat_spatialResolutionInMeters_sm |
 | Purpose | Numeric spatial resolution of a raster dataset |
 | Entry Guidelines | Enter a numeric resolution in meters. |
@@ -441,9 +417,8 @@ sidebar:
 
 ## Tags
 
-|  |  |
-| --- | --- |
 | Field Label | Tags |
+| --- | --- |
 | Field Name | b1g_adminTags_sm |
 | Purpose | Administrative keywords for internal tracking |
 | Entry Guidelines | Use tags only for internal categories. |
@@ -459,9 +434,8 @@ sidebar:
 
 ## Website Platform
 
-|  |  |
-| --- | --- |
 | Field Label | Website Platform |
+| --- | --- |
 | Field Name | b1g_websitePlatform_s |
 | Purpose | Technology platform used by the website |
 | Entry Guidelines | Use a standardized platform value when possible. If unclear, use "custom data portal" or "other". |

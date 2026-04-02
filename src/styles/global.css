@@ -209,44 +209,30 @@ color: var(--btaa-white);
 }
 
 
-/* Remove the default bullet from list items containing checkboxes */
-li:has(input[type="checkbox"]) {
-  list-style-type: none; /* no bullet */
-}
-
 .sl-markdown-content ul li,
 .sl-markdown-content ol li {
   margin-bottom: 1rem;
 }
 
-/* Style the checkbox itself */
-input[type="checkbox"] {
-  width: 15px;
-  height: 15px;
-  appearance: none;          /* turn off browser default */
-  -webkit-appearance: none;  /* for Safari */
-  border: 2px solid #666;    /* border for unchecked box */
-  border-radius: 3px;        /* optional: rounded corners */
-  display: inline-block;
-  vertical-align: middle;
+.sl-markdown-content li.task-list-item {
+  list-style: none;
   position: relative;
-  cursor: pointer;
+  padding-left: 1.75rem;
 }
 
-/* Checked state */
-input[type="checkbox"]:checked {
-  background-color: #2e7d32;
-  border-color: #2e7d32;
-}
-
-/* Add a white checkmark for the checked state */
-input[type="checkbox"]:checked::after {
-  content: "✔";
-  color: white;
-  font-size: 12px;
+.sl-markdown-content li.task-list-item::before {
+  content: "☐";
   position: absolute;
-  top: -1px;
-  /* left: 2px; */
+  left: 0;
+  top: 0.05rem;
+  color: var(--sl-color-text);
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.sl-markdown-content li.task-list-item[data-task-status="checked"]::before {
+  content: "☑";
+  color: #2e7d32;
 }
 
   .about-hero{
@@ -402,7 +388,7 @@ input[type="checkbox"]:checked::after {
 /* Compact list style for denser layouts */
 .compact-list {
   font-size: 0.9rem;       /* slightly smaller font */
-  line-height: 1.1;        /* tighter line spacing */
+  line-height: 1.35;       /* keep wrapped lines readable without changing item spacing */
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   padding-left: 1.2em;     /* smaller indentation */
@@ -571,6 +557,60 @@ input[type="checkbox"]:checked::after {
   content: '';
   margin-right: 0rem;
   color: color-mix(in srgb, var(--sl-color-accent) 85%, white 15%);
+}
+
+/* Sidebar Callout */
+
+.sidebar-callout {
+  --sidebar-callout-border: var(--btaa-med-blue);
+  --sidebar-callout-bg: color-mix(in srgb, var(--btaa-light-blue) 78%, white 22%);
+  --sidebar-callout-title: var(--btaa-dark-blue);
+  position: sticky;
+  top: 1.5rem;
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.1rem 1.2rem 1.2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--sidebar-callout-border) 35%, white 65%);
+  border-top: 4px solid var(--sidebar-callout-border);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--sidebar-callout-bg) 90%, white 10%) 0%,
+    var(--sidebar-callout-bg) 100%
+  );
+  box-shadow: 0 14px 34px -24px rgba(8, 33, 61, 0.45);
+}
+
+.sidebar-callout > :first-child {
+  margin-top: 0;
+}
+
+.sidebar-callout > :last-child {
+  margin-bottom: 0;
+}
+
+.sidebar-callout__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--sidebar-callout-title);
+}
+
+.sidebar-callout :where(p, ul, ol) {
+  margin: 0;
+}
+
+.sidebar-callout :where(ul, ol) {
+  padding-left: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  .sidebar-callout {
+    position: static;
+  }
 }
 
 
@@ -1264,7 +1304,8 @@ input[type="checkbox"]:checked::after {
   overflow: hidden;
   display: grid;
   grid-template-columns: 2fr 1fr;
-  min-height: 280px;
+  min-height: 0;
+  align-items: center;
 }
 
 .homepage-card__conference-text {
@@ -1310,15 +1351,16 @@ input[type="checkbox"]:checked::after {
   place-content: center;
   padding: 1.25rem;
   background-color: rgba(0, 60, 91, 0.4);
+  align-self: stretch;
 }
 
 .homepage-card__conference-register {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 7.5rem;
+  min-height: 0;
   width: min(100%, 20rem);
-  padding: 1.1rem 1.35rem;
+  padding: 0.95rem 1.35rem;
   border-radius: 0.7rem;
   background: #ffffff;
   color: #0a4360 !important;
@@ -1386,13 +1428,5 @@ input[type="checkbox"]:checked::after {
 
   .homepage-hero__media > starlight-image-zoom-zoomable:has(.homepage-hero__image) {
     display: none;
-  }
-
-  .homepage-card__conference-action {
-    min-height: 9.5rem;
-  }
-
-  .homepage-card__conference-register {
-    min-height: 6.8rem;
   }
 }

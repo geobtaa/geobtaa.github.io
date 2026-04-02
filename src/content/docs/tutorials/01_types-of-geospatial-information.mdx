@@ -19,7 +19,6 @@ import CoverSlide from '/src/components/CoverSlide.astro';
 import MetadataBlock from '/src/components/MetadataBlock.astro';
 import TwoThirdsLayout from '/src/components/TwoThirdsLayout.astro';
 
-
 <Slideshow>
 
 <CoverSlide>
@@ -125,19 +124,19 @@ GIS data can be hosted online using **web services**.
 <TwoThirdsLayout>
   <div slot="left">
   ## Raster Data
-    * Raster data is made up of pixels. 
+    * Raster data is made up of pixels.
     * Each pixel has its own value.
     * Raster data is usually used to represent surfaces.
-    * Raster data models are commonly used for: 
+    * Raster data models are commonly used for:
     	* digital elevation models (DEM)
-    	* aerial and satellite imagery 
+    	* aerial and satellite imagery
     	* land use / land cover maps
     * Raster data resolution: cell dimension, or the size of pixels.
     * Raster images can consume a large amount of storage space.
     </div>
 
   <div slot="right">
-  ![Raster Data](@images/raster-data.png) 
+  ![Raster Data](@images/raster-data.png)
   *Used by permission of Paul Bolstad, GIS Fundamentals*
   </div>
 
@@ -165,7 +164,7 @@ GIS data can be hosted online using **web services**.
 
 ## Vector vs. Raster
 
-|   |**Vector**|**Raster**|
+|**Data Type**|**Vector**|**Raster**|
 |---|---|---|
 |**Positional Precision**|Can be precise|Defined by cell size|
 |**Attribute Precision**|Poor for continuous data|Good for continuous data|
@@ -174,28 +173,27 @@ GIS data can be hosted online using **web services**.
 |**Storage Requirement**|Relatively small|Often quite large|
 |**Spatial Analysis**|Good topology relationship|Good for modeling|
 
-
 ---
 
 ## Tabular Data
 
 Tables with geospatial information can be used for mapping purposes in GIS.
 
-  * Tables with spatial information that can be joined with an existing map 
+- Tables with spatial information that can be joined with an existing map
 
-  * Tables with XY coordinate information
+- Tables with XY coordinate information
 
-  * Tables with address information
+- Tables with address information
 
-  * Geocoded data
+- Geocoded data
 
 ---
 <TwoThirdsLayout>
   <div slot="left">
   ## Scanned maps
-    * A scanned map stored as an image file.
-    * Georeferenced scanned map: has a linked file that stores spatial information so that it can be overlayed with other digital maps in GIS. Usually stored as GeoTIFF.
-    * Un-georeferenced scanned map: The presence of coordinates in the record’s metadata does not make the map georeferenced. Can be saved as TIFF or JPG, etc.
+    - A scanned map stored as an image file.
+    - Georeferenced scanned map: has a linked file that stores spatial information so that it can be overlayed with other digital maps in GIS. Usually stored as GeoTIFF.
+    - Un-georeferenced scanned map: The presence of coordinates in the record’s metadata does not make the map georeferenced. Can be saved as TIFF or JPG, etc.
     </div>
 
   <div slot="right">
@@ -208,9 +206,9 @@ Tables with geospatial information can be used for mapping purposes in GIS.
 
 ## Web Services - GIS
 
-* A streaming GIS layer that can be viewed and queried in a browser or GIS application.
+- A streaming GIS layer that can be viewed and queried in a browser or GIS application.
 
-* Types of GIS web services - they are often provided using either Esri format or open standard defined by Open Geospatial Consortium (OGC)
+- Types of GIS web services - they are often provided using either Esri format or open standard defined by Open Geospatial Consortium (OGC)
 
 ---
 
@@ -248,20 +246,19 @@ Tables with geospatial information can be used for mapping purposes in GIS.
   </tr>
 </table>
 
-
 ---
 
 ## How to Find Data in the BTAA Geoportal
 
 The [BTAA Geoportal search results page](https://geo.btaa.org/?search_field=all_fields&q=) provides a facet for **Resource Class**. This allows a user to filter by the following categories:
 
-* **Datasets:** vector or raster data
-* **Maps:** scanned print maps
-* **Web Services:** any item with a web service, such as an ArcGIS REST service or an OGC web service
-* **Imagery:** aerial photography and satellite imagery
-* **Websites:** interactive web resource, such as a dashboard or online map
-* **Series:** a set of records that are part of a sequence or local grouping
-* **Collections:** a thematic or administrative group of records
+- **Datasets:** vector or raster data
+- **Maps:** scanned print maps
+- **Web Services:** any item with a web service, such as an ArcGIS REST service or an OGC web service
+- **Imagery:** aerial photography and satellite imagery
+- **Websites:** interactive web resource, such as a dashboard or online map
+- **Series:** a set of records that are part of a sequence or local grouping
+- **Collections:** a thematic or administrative group of records
 
 ---
 
@@ -269,9 +266,9 @@ The [BTAA Geoportal search results page](https://geo.btaa.org/?search_field=all_
 
 Find an example for each of following type of data from [BTAA Geoportal](https://geo.btaa.org). Discuss the use cases of each data type, as well as pros/cons of the particular data type.
 
-  - Vector data
-  - Raster data
-  - Scanned map
-  - Web service
+- Vector data
+- Raster data
+- Scanned map
+- Web service
 
 </Slideshow>

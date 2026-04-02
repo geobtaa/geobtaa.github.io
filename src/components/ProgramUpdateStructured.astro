@@ -42,8 +42,6 @@ interface GeoportalSection {
   topInternalSearches?: UpdateList;
   recordsTotalAsOf?: string;
   recordsTotalValue?: string;
-  moreStatsUrl?: string;
-  moreStatsLabel?: string;
 }
 
 interface HarvestingActivityRow {
@@ -58,19 +56,13 @@ interface WebDevelopmentSection {
   moreDetailsLabel?: string;
 }
 
-interface PriorityProjectsSection {
-  url?: string;
-  label?: string;
-}
-
 interface ProgramUpdateData {
   highlight?: HighlightSection;
   committees?: CommitteeSection;
   workgroups?: WorkgroupSection[];
   geoportal?: GeoportalSection;
-  harvestingActivities?: HarvestingActivityRow[];
+  harvestingActivities?: HarvestingActivityRow[] | string;
   webDevelopment?: WebDevelopmentSection;
-  priorityProjects?: PriorityProjectsSection;
 }
 
 const { data } = Astro.props as { data?: ProgramUpdateData };
@@ -88,6 +80,73 @@ const normalizeString = (value: unknown): string => {
 const normalizeList = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
   return value.map((item) => normalizeString(item)).filter((item) => item.length > 0);
+};
+
+const parseDelimitedRow = (line: string): string[] => {
+  const trimmed = line.trim();
+  if (!trimmed) return [];
+
+  if (trimmed.includes('|')) {
+    return trimmed
+      .replace(/^\|/, '')
+      .replace(/\|$/, '')
+      .split('|')
+      .map((cell) => cell.trim());
+  }
+
+  if (trimmed.includes('\t')) {
+    return trimmed.split('\t').map((cell) => cell.trim());
+  }
+
+  return trimmed.split(',').map((cell) => cell.trim());
+};
+
+const isMarkdownDividerRow = (cells: string[]): boolean =>
+  cells.length > 0 &&
+  cells.every((cell) => /^:?-{3,}:?$/.test(cell.replace(/\s+/g, '')));
+
+const normalizeHarvestingActivities = (value: unknown): HarvestingActivityRow[] => {
+  if (Array.isArray(value)) {
+    return value
+      .filter((row): row is HarvestingActivityRow => Boolean(row && typeof row === 'object'))
+      .map((row) => ({
+        title: normalizeString(row.title),
+        recordsAdded: normalizeString(row.recordsAdded),
+        recordsRetired: normalizeString(row.recordsRetired),
+      }))
+      .filter((row) => row.title.length > 0);
+  }
+
+  const text = normalizeString(value);
+  if (!text) return [];
+
+  const rows = text
+    .split('\n')
+    .map((line) => parseDelimitedRow(line))
+    .filter((cells) => cells.some((cell) => cell.length > 0));
+
+  if (rows.length === 0) return [];
+
+  const normalizedRows = rows.filter((cells) => !isMarkdownDividerRow(cells));
+  if (normalizedRows.length === 0) return [];
+
+  const [firstRow, ...restRows] = normalizedRows;
+  const headerCells = firstRow.map((cell) => cell.toLowerCase());
+  const looksLikeHeader =
+    headerCells.length >= 3 &&
+    headerCells[0].includes('title') &&
+    headerCells[1].includes('added') &&
+    headerCells[2].includes('retired');
+
+  const dataRows = looksLikeHeader ? restRows : normalizedRows;
+
+  return dataRows
+    .map((cells) => ({
+      title: normalizeString(cells[0]),
+      recordsAdded: normalizeString(cells[1]),
+      recordsRetired: normalizeString(cells[2]),
+    }))
+    .filter((row) => row.title.length > 0);
 };
 
 const resolveImage = (image: unknown): string => {
@@ -165,19 +224,9 @@ const metrics = Array.isArray(geoportal.metrics)
       .filter((metric) => metric.label.length > 0 || metric.value.length > 0)
   : [];
 
-const harvestingActivities = Array.isArray(data?.harvestingActivities)
-  ? data!.harvestingActivities
-      .filter((row): row is HarvestingActivityRow => Boolean(row && typeof row === 'object'))
-      .map((row) => ({
-        title: normalizeString(row.title),
-        recordsAdded: normalizeString(row.recordsAdded),
-        recordsRetired: normalizeString(row.recordsRetired),
-      }))
-      .filter((row) => row.title.length > 0)
-  : [];
+const harvestingActivities = normalizeHarvestingActivities(data?.harvestingActivities);
 
 const webDevelopment = data?.webDevelopment ?? {};
-const priorityProjects = data?.priorityProjects ?? {};
 
 const highlightTitle = normalizeString(highlight.title) || 'Monthly Highlight';
 const highlightParagraphs = splitParagraphs(highlight.intro);
@@ -199,21 +248,15 @@ const topGoogleSearches = normalizeList(geoportal.topGoogleSearches);
 const topInternalSearches = normalizeList(geoportal.topInternalSearches);
 const recordsTotalAsOf = normalizeString(geoportal.recordsTotalAsOf);
 const recordsTotalValue = normalizeString(geoportal.recordsTotalValue);
-const moreStatsUrl = normalizeString(geoportal.moreStatsUrl);
-const moreStatsLabel = normalizeString(geoportal.moreStatsLabel) || 'More stats';
 
 const webDevelopmentUpdates = normalizeList(webDevelopment.updates);
 const webDevelopmentMoreDetailsUrl = normalizeString(webDevelopment.moreDetailsUrl);
 const webDevelopmentMoreDetailsLabel =
   normalizeString(webDevelopment.moreDetailsLabel) || 'More development details';
-
-const priorityProjectsUrl = normalizeString(priorityProjects.url);
-const priorityProjectsLabel =
-  normalizeString(priorityProjects.label) || 'Refer to our Priority Projects board.';
 ---
 
 <div class="monthly-highlight">
-  <h2>{highlightTitle}</h2>
+  <h2 id="monthly-highlight">{highlightTitle}</h2>
 
   {
     highlightParagraphs.length > 0 ? (
@@ -242,8 +285,8 @@ const priorityProjectsLabel =
   }
 </div>
 
-<h2>Program Activities</h2>
-<h3>Committees</h3>
+<h2 id="program-activities">Program Activities</h2>
+<h3 id="committees">Committees</h3>
 
 <CardGrid>
   <Card title="TECHnology">
@@ -295,7 +338,7 @@ const priorityProjectsLabel =
   </Card>
 </CardGrid>
 
-<h3>Workgroups</h3>
+<h3 id="workgroups">Workgroups</h3>
 
 <Card title="Workgroups">
   {
@@ -320,8 +363,8 @@ const priorityProjectsLabel =
   }
 </Card>
 
-<h2>BTAA Geoportal</h2>
-<h3>This month by the numbers</h3>
+<h2 id="btaa-geoportal">BTAA Geoportal</h2>
+<h3 id="geoportal-metrics">This month by the numbers</h3>
 
 <TwoThirdsLayout>
   <div slot="left">
@@ -351,13 +394,16 @@ const priorityProjectsLabel =
   </div>
 </TwoThirdsLayout>
 
-{
-  moreStatsUrl && (
+<aside aria-label="More stats" class="starlight-aside starlight-aside--tip">
+  <p class="starlight-aside__title" aria-hidden="true">More stats</p>
+  <div class="starlight-aside__content">
     <p>
-      <a href={moreStatsUrl}>{moreStatsLabel}</a>
+      <a href="https://tableau.umn.edu/t/UL/views/BTAAGeoportalusageMatomo/Monthlycharts">
+        Link to the analytics dashboard for additional reporting.
+      </a>
     </p>
-  )
-}
+  </div>
+</aside>
 
 <h4>Top Google searches leading to the Geoportal</h4>
 <ChipList class="not-content">
@@ -381,7 +427,7 @@ const priorityProjectsLabel =
   }
 </ChipList>
 
-<h3>Collections</h3>
+<h3 id="collections">Collections</h3>
 
 {
   recordsTotalAsOf || recordsTotalValue ? (
@@ -395,7 +441,7 @@ const priorityProjectsLabel =
   )
 }
 
-<h3>Harvesting Activities</h3>
+<h3 id="harvesting-activities">Harvesting Activities</h3>
 
 {
   harvestingActivities.length > 0 ? (
@@ -424,7 +470,7 @@ const priorityProjectsLabel =
   )
 }
 
-<h3>Web Development</h3>
+<h3 id="web-development">Web Development</h3>
 {
   webDevelopmentUpdates.length > 0 ? (
     <ul>
@@ -440,14 +486,5 @@ const priorityProjectsLabel =
     <p>
       <a href={webDevelopmentMoreDetailsUrl}>{webDevelopmentMoreDetailsLabel}</a>
     </p>
-  )
-}
-
-{
-  priorityProjectsUrl && (
-    <Fragment>
-      <h2>Priority Projects Update</h2>
-      <a href={priorityProjectsUrl}>{priorityProjectsLabel}</a>
-    </Fragment>
   )
 }

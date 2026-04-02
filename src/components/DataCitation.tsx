@@ -2,6 +2,8 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 const FILE_FORMAT_OPTIONS = [
   "ArcGRID",
+  "CAD Files",
+  "CSV",
   "Geodatabase",
   "GeoJPEG",
   "GeoJSON",
@@ -12,17 +14,17 @@ const FILE_FORMAT_OPTIONS = [
   "KML/KMZ",
   "LAS/LAZ",
   "MrSID",
+  "NetCDF",
+  "OSM Data",
   "PDF",
   "PNG",
   "Shapefile",
   "SQLite Database",
   "Spreadsheet",
   "TIFF",
-  "Web Service",
   "Tile Package",
-  "NetCDF",
-  "OSM Data",
-  "CAD Files",
+  "Web Service",
+  
 ];
 
 const FIELD_HELP = {

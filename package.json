@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
+    "decap": "npx decap-server",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
