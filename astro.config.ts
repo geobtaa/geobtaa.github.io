@@ -62,7 +62,6 @@ export default defineConfig({
     '/updates/': '/blog/',
     '/policies/harmful-language': '/library/harmful-language',
     '/policies/collection-development': '/library/collection-development',
-    '/Map-Gallery-Update/': '/conference/map-gallery/',
   },
   integrations: [
     starlight({
