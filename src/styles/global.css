@@ -496,6 +496,14 @@ color: var(--btaa-white);
   color: color-mix(in srgb, var(--sl-color-accent) 85%, white 15%);
 }
 
+.program-update-structured > h2 {
+  margin-top: 2.5rem;
+}
+
+.program-update-structured > h2:first-child {
+  margin-top: 0;
+}
+
 .records-total {
   display: inline-flex;
   justify-content: center;

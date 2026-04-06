@@ -201,6 +201,39 @@ const splitParagraphs = (value: unknown): string[] => {
     .filter((paragraph) => paragraph.length > 0);
 };
 
+const escapeHtml = (value: string): string =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+const renderInlineLinks = (value: unknown): string => {
+  const text = normalizeString(value);
+  if (!text) return '';
+
+  const markdownLinkPattern = /\[([^\]]+)\]\(([^)\s]+)\)/g;
+  let html = '';
+  let lastIndex = 0;
+
+  for (const match of text.matchAll(markdownLinkPattern)) {
+    const index = match.index ?? 0;
+    const [fullMatch, label, href] = match;
+
+    html += escapeHtml(text.slice(lastIndex, index));
+
+    const safeHref = escapeHtml(href);
+    const target = /^https?:\/\//i.test(href) ? ' target="_blank" rel="noopener noreferrer"' : '';
+    html += `<a href="${safeHref}"${target}>${escapeHtml(label)}</a>`;
+
+    lastIndex = index + fullMatch.length;
+  }
+
+  html += escapeHtml(text.slice(lastIndex));
+  return html;
+};
+
 const highlight = data?.highlight ?? {};
 const committees = data?.committees ?? {};
 const workgroups = Array.isArray(data?.workgroups)
@@ -255,236 +288,238 @@ const webDevelopmentMoreDetailsLabel =
   normalizeString(webDevelopment.moreDetailsLabel) || 'More development details';
 ---
 
-<div class="monthly-highlight">
-  <h2 id="monthly-highlight">{highlightTitle}</h2>
+<div class="program-update-structured">
+  <div class="monthly-highlight">
+    <h2 id="monthly-highlight">{highlightTitle}</h2>
 
-  {
-    highlightParagraphs.length > 0 ? (
-      highlightParagraphs.map((paragraph) => <p>{paragraph}</p>)
-    ) : (
-      <p>Add this month&apos;s highlight summary.</p>
-    )
-  }
+    {
+      highlightParagraphs.length > 0 ? (
+        highlightParagraphs.map((paragraph) => <p set:html={renderInlineLinks(paragraph)} />)
+      ) : (
+        <p>Add this month&apos;s highlight summary.</p>
+      )
+    }
 
-  {
-    highlightLinkUrl && (
+    {
+      highlightLinkUrl && (
+        <p>
+          <strong>Read more:</strong>{' '}
+          <a href={highlightLinkUrl}>{highlightLinkText || highlightLinkUrl}</a>
+        </p>
+      )
+    }
+
+    {
+      highlightImage && (
+        <CenterLayout>
+          <img src={highlightImage} alt={highlightImageAlt} />
+          {highlightImageCaption && <p><em>{highlightImageCaption}</em></p>}
+        </CenterLayout>
+      )
+    }
+  </div>
+
+  <h2 id="program-activities">Program Activities</h2>
+  <h3 id="committees">Committees</h3>
+
+  <CardGrid>
+    <Card title="TECHnology">
+      {
+        committeeTechnology.length > 0 ? (
+          <ul>
+            {committeeTechnology.map((item) => <li>{item}</li>)}
+          </ul>
+        ) : (
+          <p>Add updates for this committee.</p>
+        )
+      }
+    </Card>
+
+    <Card title="Community Engagement">
+      {
+        committeeCommunity.length > 0 ? (
+          <ul>
+            {committeeCommunity.map((item) => <li>{item}</li>)}
+          </ul>
+        ) : (
+          <p>Add updates for this committee.</p>
+        )
+      }
+    </Card>
+
+    <Card title="Knowledge">
+      {
+        committeeKnowledge.length > 0 ? (
+          <ul>
+            {committeeKnowledge.map((item) => <li>{item}</li>)}
+          </ul>
+        ) : (
+          <p>Add updates for this committee.</p>
+        )
+      }
+    </Card>
+
+    <Card title="Coordination">
+      {
+        committeeCoordination.length > 0 ? (
+          <ul>
+            {committeeCoordination.map((item) => <li>{item}</li>)}
+          </ul>
+        ) : (
+          <p>Add updates for this committee.</p>
+        )
+      }
+    </Card>
+  </CardGrid>
+
+  <h3 id="workgroups">Workgroups</h3>
+
+  <Card title="Workgroups">
+    {
+      workgroups.length > 0 ? (
+        workgroups.map((group) => (
+          <Fragment>
+            <h4>{group.name}</h4>
+            {
+              group.updates.length > 0 ? (
+                <ul>
+                  {group.updates.map((item) => <li>{item}</li>)}
+                </ul>
+              ) : (
+                <p>Add updates for this workgroup.</p>
+              )
+            }
+          </Fragment>
+        ))
+      ) : (
+        <p>Add one or more workgroup updates.</p>
+      )
+    }
+  </Card>
+
+  <h2 id="btaa-geoportal">BTAA Geoportal</h2>
+  <h3 id="geoportal-metrics">This month by the numbers</h3>
+
+  <TwoThirdsLayout>
+    <div slot="left">
+      {
+        chartImage ? (
+          <Fragment>
+            <img src={chartImage} alt={chartAlt} />
+            {chartCaption && <p><em>{chartCaption}</em></p>}
+          </Fragment>
+        ) : (
+          <p>Add a chart image to this section.</p>
+        )
+      }
+    </div>
+    <div slot="right">
+      <div class="compact-list">
+        {
+          metrics.length > 0 ? (
+            <ul>
+              {metrics.map((metric) => <li>{metric.label}: {metric.value}</li>)}
+            </ul>
+          ) : (
+            <p>Add monthly metric values.</p>
+          )
+        }
+      </div>
+    </div>
+  </TwoThirdsLayout>
+
+  <aside aria-label="More stats" class="starlight-aside starlight-aside--tip">
+    <p class="starlight-aside__title" aria-hidden="true">More stats</p>
+    <div class="starlight-aside__content">
       <p>
-        <strong>Read more:</strong>{' '}
-        <a href={highlightLinkUrl}>{highlightLinkText || highlightLinkUrl}</a>
+        <a href="https://tableau.umn.edu/t/UL/views/BTAAGeoportalusageMatomo/Monthlycharts">
+          Link to the analytics dashboard for additional reporting.
+        </a>
+      </p>
+    </div>
+  </aside>
+
+  <h4>Top Google searches leading to the Geoportal</h4>
+  <ChipList class="not-content">
+    {
+      topGoogleSearches.length > 0 ? (
+        topGoogleSearches.map((item) => <li>{item}</li>)
+      ) : (
+        <li>Add top Google search terms.</li>
+      )
+    }
+  </ChipList>
+
+  <h4>Top internal search keywords</h4>
+  <ChipList class="not-content">
+    {
+      topInternalSearches.length > 0 ? (
+        topInternalSearches.map((item) => <li>{item}</li>)
+      ) : (
+        <li>Add top internal search keywords.</li>
+      )
+    }
+  </ChipList>
+
+  <h3 id="collections">Collections</h3>
+
+  {
+    recordsTotalAsOf || recordsTotalValue ? (
+      <p class="records-total">
+        Total records as of {recordsTotalAsOf || 'TBD'}: <strong>{recordsTotalValue || 'TBD'}</strong>
+      </p>
+    ) : (
+      <p class="records-total">
+        Total records as of TBD: <strong>TBD</strong>
       </p>
     )
   }
 
+  <h3 id="harvesting-activities">Harvesting Activities</h3>
+
   {
-    highlightImage && (
-      <CenterLayout>
-        <img src={highlightImage} alt={highlightImageAlt} />
-        {highlightImageCaption && <p><em>{highlightImageCaption}</em></p>}
-      </CenterLayout>
+    harvestingActivities.length > 0 ? (
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th style="text-align: right;">Records added</th>
+            <th style="text-align: right;">Records retired</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            harvestingActivities.map((row) => (
+              <tr>
+                <td>{row.title}</td>
+                <td style="text-align: right;">{row.recordsAdded || '0'}</td>
+                <td style="text-align: right;">{row.recordsRetired || '0'}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    ) : (
+      <p>Add harvesting activity rows.</p>
+    )
+  }
+
+  <h3 id="web-development">Web Development</h3>
+  {
+    webDevelopmentUpdates.length > 0 ? (
+      <ul>
+        {webDevelopmentUpdates.map((item) => <li>{item}</li>)}
+      </ul>
+    ) : (
+      <p>Add web development updates.</p>
+    )
+  }
+
+  {
+    webDevelopmentMoreDetailsUrl && (
+      <p>
+        <a href={webDevelopmentMoreDetailsUrl}>{webDevelopmentMoreDetailsLabel}</a>
+      </p>
     )
   }
 </div>
-
-<h2 id="program-activities">Program Activities</h2>
-<h3 id="committees">Committees</h3>
-
-<CardGrid>
-  <Card title="TECHnology">
-    {
-      committeeTechnology.length > 0 ? (
-        <ul>
-          {committeeTechnology.map((item) => <li>{item}</li>)}
-        </ul>
-      ) : (
-        <p>Add updates for this committee.</p>
-      )
-    }
-  </Card>
-
-  <Card title="Community Engagement">
-    {
-      committeeCommunity.length > 0 ? (
-        <ul>
-          {committeeCommunity.map((item) => <li>{item}</li>)}
-        </ul>
-      ) : (
-        <p>Add updates for this committee.</p>
-      )
-    }
-  </Card>
-
-  <Card title="Knowledge">
-    {
-      committeeKnowledge.length > 0 ? (
-        <ul>
-          {committeeKnowledge.map((item) => <li>{item}</li>)}
-        </ul>
-      ) : (
-        <p>Add updates for this committee.</p>
-      )
-    }
-  </Card>
-
-  <Card title="Coordination">
-    {
-      committeeCoordination.length > 0 ? (
-        <ul>
-          {committeeCoordination.map((item) => <li>{item}</li>)}
-        </ul>
-      ) : (
-        <p>Add updates for this committee.</p>
-      )
-    }
-  </Card>
-</CardGrid>
-
-<h3 id="workgroups">Workgroups</h3>
-
-<Card title="Workgroups">
-  {
-    workgroups.length > 0 ? (
-      workgroups.map((group) => (
-        <Fragment>
-          <h4>{group.name}</h4>
-          {
-            group.updates.length > 0 ? (
-              <ul>
-                {group.updates.map((item) => <li>{item}</li>)}
-              </ul>
-            ) : (
-              <p>Add updates for this workgroup.</p>
-            )
-          }
-        </Fragment>
-      ))
-    ) : (
-      <p>Add one or more workgroup updates.</p>
-    )
-  }
-</Card>
-
-<h2 id="btaa-geoportal">BTAA Geoportal</h2>
-<h3 id="geoportal-metrics">This month by the numbers</h3>
-
-<TwoThirdsLayout>
-  <div slot="left">
-    {
-      chartImage ? (
-        <Fragment>
-          <img src={chartImage} alt={chartAlt} />
-          {chartCaption && <p><em>{chartCaption}</em></p>}
-        </Fragment>
-      ) : (
-        <p>Add a chart image to this section.</p>
-      )
-    }
-  </div>
-  <div slot="right">
-    <div class="compact-list">
-      {
-        metrics.length > 0 ? (
-          <ul>
-            {metrics.map((metric) => <li>{metric.label}: {metric.value}</li>)}
-          </ul>
-        ) : (
-          <p>Add monthly metric values.</p>
-        )
-      }
-    </div>
-  </div>
-</TwoThirdsLayout>
-
-<aside aria-label="More stats" class="starlight-aside starlight-aside--tip">
-  <p class="starlight-aside__title" aria-hidden="true">More stats</p>
-  <div class="starlight-aside__content">
-    <p>
-      <a href="https://tableau.umn.edu/t/UL/views/BTAAGeoportalusageMatomo/Monthlycharts">
-        Link to the analytics dashboard for additional reporting.
-      </a>
-    </p>
-  </div>
-</aside>
-
-<h4>Top Google searches leading to the Geoportal</h4>
-<ChipList class="not-content">
-  {
-    topGoogleSearches.length > 0 ? (
-      topGoogleSearches.map((item) => <li>{item}</li>)
-    ) : (
-      <li>Add top Google search terms.</li>
-    )
-  }
-</ChipList>
-
-<h4>Top internal search keywords</h4>
-<ChipList class="not-content">
-  {
-    topInternalSearches.length > 0 ? (
-      topInternalSearches.map((item) => <li>{item}</li>)
-    ) : (
-      <li>Add top internal search keywords.</li>
-    )
-  }
-</ChipList>
-
-<h3 id="collections">Collections</h3>
-
-{
-  recordsTotalAsOf || recordsTotalValue ? (
-    <p class="records-total">
-      Total records as of {recordsTotalAsOf || 'TBD'}: <strong>{recordsTotalValue || 'TBD'}</strong>
-    </p>
-  ) : (
-    <p class="records-total">
-      Total records as of TBD: <strong>TBD</strong>
-    </p>
-  )
-}
-
-<h3 id="harvesting-activities">Harvesting Activities</h3>
-
-{
-  harvestingActivities.length > 0 ? (
-    <table>
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th style="text-align: right;">Records added</th>
-          <th style="text-align: right;">Records retired</th>
-        </tr>
-      </thead>
-      <tbody>
-        {
-          harvestingActivities.map((row) => (
-            <tr>
-              <td>{row.title}</td>
-              <td style="text-align: right;">{row.recordsAdded || '0'}</td>
-              <td style="text-align: right;">{row.recordsRetired || '0'}</td>
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
-  ) : (
-    <p>Add harvesting activity rows.</p>
-  )
-}
-
-<h3 id="web-development">Web Development</h3>
-{
-  webDevelopmentUpdates.length > 0 ? (
-    <ul>
-      {webDevelopmentUpdates.map((item) => <li>{item}</li>)}
-    </ul>
-  ) : (
-    <p>Add web development updates.</p>
-  )
-}
-
-{
-  webDevelopmentMoreDetailsUrl && (
-    <p>
-      <a href={webDevelopmentMoreDetailsUrl}>{webDevelopmentMoreDetailsLabel}</a>
-    </p>
-  )
-}
