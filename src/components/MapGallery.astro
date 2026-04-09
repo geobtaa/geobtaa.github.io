@@ -24,7 +24,7 @@ const publishedMaps = (await loadGalleryMaps()).filter(isPublished);
 
   .map-gallery-intro {
     font-size: 1.1rem; /* Slightly larger text */
-    color: var(--sl-color-gray-3);
+    color: var(--sl-color-text);
     margin-bottom: 2rem; /* Adds space below the paragraph */
   }
 
@@ -146,7 +146,7 @@ const publishedMaps = (await loadGalleryMaps()).filter(isPublished);
 
   :global(.modal-authors) {
     margin: 0 0 1.5rem;
-    color: #000;
+    color: var(--sl-color-text);
     text-transform: none;
     letter-spacing: normal;
     font-size: 1rem;
