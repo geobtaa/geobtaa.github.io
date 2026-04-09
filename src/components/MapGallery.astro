@@ -144,6 +144,16 @@ const publishedMaps = (await loadGalleryMaps()).filter(isPublished);
     color: #333;
   }
 
+  :global(.modal-authors) {
+    margin: 0 0 1.5rem;
+    color: #000;
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
   :global(.modal-image) {
     width: min(42%, 320px);
     max-height: 420px;
