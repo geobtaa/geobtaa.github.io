@@ -179,7 +179,9 @@ export default function FilterableGallery({ maps, previewDataUrl }: FilterableGa
               <img src={resolveUrl(selectedMap.image)} alt={selectedMap.title} className="modal-image" />
             </a>
             <p>{selectedMap.abstract}</p>
-            <a href={selectedMap.link} className="modal-link-card" target="_blank" rel="noopener noreferrer">View Full Map &rarr;</a>
+            <a href={selectedMap.link} className="modal-link-card" target="_blank" rel="noopener noreferrer">
+              {selectedMap.kind.includes('Interactive') ? 'Visit interactive map' : 'View Full Map'} &rarr;
+            </a>
           </div>
         )}
       </div>
