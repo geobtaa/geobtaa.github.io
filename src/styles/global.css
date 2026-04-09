@@ -136,6 +136,7 @@ p.title {
 --sl-color-text:        var(--btaa-black);
 --sl-color-headings: var(--btaa-dark-blue);
 --sl-color-text-muted:  var(--btaa-dark-gray);
+--sl-color-text-secondary: var(--sl-color-text-muted);
 --sl-color-accent-muted: var(--btaa-white);
 --sl-color-accent-low:  rgba(0, 136, 206, 0.20);
 --sl-color-accent:      var(--btaa-med-blue);
@@ -186,6 +187,12 @@ color: #FFFFFF;
 /* ========== DARK THEME ========== */
 :root[data-theme="dark"] {
 /* --sl-color-bg-nav:      var(--btaa-dark-blue); */
+--sl-color-gray-1: #ffffff;
+--sl-color-gray-2: #f3f6fa;
+--sl-color-gray-3: #d2dae4;
+--sl-color-text: var(--sl-color-gray-2);
+--sl-color-text-muted: var(--sl-color-gray-3);
+--sl-color-text-secondary: var(--sl-color-text-muted);
 --sl-color-accent-high: var(--btaa-white);
 --sl-color-accent: var(--btaa-white);
 --sl-color-accent-muted: var(--btaa-gray);
