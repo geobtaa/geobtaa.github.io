@@ -42,7 +42,7 @@ for (const file of files) {
     const newFile = path.join(dir, `${base}.webp`);
 
     // Create optimized WEBP version
-    await sharp(file)
+    await sharp(file, { limitInputPixels: false })
     .resize({ width: 1600 })
     .webp({ quality: 80 })
     .toFile(`${newFile}.tmp`);
