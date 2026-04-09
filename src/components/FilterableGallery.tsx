@@ -174,7 +174,7 @@ export default function FilterableGallery({ maps, previewDataUrl }: FilterableGa
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={close}>&times;</button>
             <h2>{selectedMap.title}</h2>
-            <h4>{`${selectedMap.name}, ${selectedMap.institution}${selectedMap.other_authors ? '; ' + selectedMap.other_authors : ''}`}</h4>
+            <h4 className="modal-authors">{`${selectedMap.name}, ${selectedMap.institution}${selectedMap.other_authors ? '; ' + selectedMap.other_authors : ''}`}</h4>
             <a href={selectedMap.link} target="_blank" rel="noopener noreferrer">
               <img src={resolveUrl(selectedMap.image)} alt={selectedMap.title} className="modal-image" />
             </a>
