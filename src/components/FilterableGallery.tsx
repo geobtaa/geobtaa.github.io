@@ -36,6 +36,10 @@ function getInitialYear(maps: Map[], requestedYear: string | null) {
   return years[0] ?? '';
 }
 
+function formatAuthors(map: Map) {
+  return `${map.name} (${map.institution})${map.other_authors ? '; ' + map.other_authors : ''}`;
+}
+
 type FilterableGalleryProps = {
   maps: Map[];
   previewDataUrl: string;
@@ -145,7 +149,7 @@ export default function FilterableGallery({ maps, previewDataUrl }: FilterableGa
               <img src={img} alt={m.title} className="card-image" loading="lazy" />
               <div className="card-content">
                 <h3>{m.title}</h3>
-                <p>{`${m.name}, ${m.institution}${m.other_authors ? '; ' + m.other_authors : ''}`}</p>
+                <p>{formatAuthors(m)}</p>
               </div>
             </div>
           );
@@ -162,7 +166,7 @@ export default function FilterableGallery({ maps, previewDataUrl }: FilterableGa
               <img src={img} alt={m.title} className="card-image" loading="lazy" />
               <div className="card-content">
                 <h3>{m.title}</h3>
-                <p>{`${m.name}, ${m.institution}${m.other_authors ? '; ' + m.other_authors : ''}`}</p>
+                <p>{formatAuthors(m)}</p>
               </div>
             </div>
           );
@@ -174,7 +178,7 @@ export default function FilterableGallery({ maps, previewDataUrl }: FilterableGa
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={close}>&times;</button>
             <h2>{selectedMap.title}</h2>
-            <h4 className="modal-authors">{`${selectedMap.name}, ${selectedMap.institution}${selectedMap.other_authors ? '; ' + selectedMap.other_authors : ''}`}</h4>
+            <h4 className="modal-authors">{formatAuthors(selectedMap)}</h4>
             <a href={selectedMap.link} target="_blank" rel="noopener noreferrer">
               <img src={resolveUrl(selectedMap.image)} alt={selectedMap.title} className="modal-image" />
             </a>
