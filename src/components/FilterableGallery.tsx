@@ -40,6 +40,10 @@ function formatAuthors(map: Map) {
   return `${map.name} (${map.institution})${map.other_authors ? '; ' + map.other_authors : ''}`;
 }
 
+function sortMapsByTitle(maps: Map[]) {
+  return [...maps].sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+}
+
 type FilterableGalleryProps = {
   maps: Map[];
   previewDataUrl: string;
@@ -117,7 +121,7 @@ export default function FilterableGallery({ maps, previewDataUrl }: FilterableGa
     }
   }, [selectedYear, years]);
 
-  const filteredMaps = visibleMaps.filter(m => m.year === selectedYear);
+  const filteredMaps = sortMapsByTitle(visibleMaps.filter(m => m.year === selectedYear));
   const interactiveMaps = filteredMaps.filter(m => m.kind.includes('Interactive'));
   const staticMaps = filteredMaps.filter(m => m.kind.includes('Static'));
   const selectedYearCountLabel = selectedYear
@@ -134,7 +138,7 @@ export default function FilterableGallery({ maps, previewDataUrl }: FilterableGa
         <div className="map-gallery-header-row">
           <div className="map-gallery-header-copy">
             <h1 className="map-gallery-title">Map Gallery</h1>
-            <p className="map-gallery-intro">Browse the Map Gallery to see how participants are using GIS to tell stories, solve problems, and visualize data. Submissions include both static and interactive projects created with a variety of tools and approaches.</p>
+            <p className="map-gallery-intro">Browse the Map Gallery to see how contributors are using GIS to tell stories, solve problems, and visualize data. Submissions include both static and interactive projects created with a variety of tools and approaches.</p>
           </div>
           <p className="map-gallery-count">{selectedYearCountLabel}</p>
         </div>
