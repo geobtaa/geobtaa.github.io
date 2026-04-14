@@ -6,26 +6,21 @@ const publishedMaps = (await loadGalleryMaps()).filter(isPublished);
 ---
 
 <div class="map-gallery-container not-content">
-  <p class="map-gallery-intro">A collection of interactive and static maps from the BTAA GIN Conference.</p>
-  <p class="map-gallery-note">Note: The BTAA-GIN hosts this map gallery to highlight GIS projects happening across our member institutions and beyond. Static and interactive maps are provided "as is" based on information received from their authors and are not reviewed for quality or accuracy prior to inclusion in the gallery.</p>
-
   <FilterableGallery client:load maps={publishedMaps} previewDataUrl="/conference/map-gallery/preview.json" />
+  <p class="map-gallery-footnote"><sup>*</sup> Static and interactive maps are provided "as is" based on information received from their authors and are not reviewed for quality or accuracy prior to inclusion in the gallery.</p>
 </div>
 
 <style>
-  .map-gallery-note {
-    margin: 0 0 1rem;
-    padding: 1rem 1.25rem;
-    border: 1px solid var(--sl-color-accent);
-    border-radius: 0.5rem;
-    background-color: var(--sl-color-bg-alt);
-    color: var(--sl-color-text);
+  .map-gallery-container {
+    padding-top: 0;
   }
 
-  .map-gallery-intro {
-    font-size: 1.1rem; /* Slightly larger text */
-    color: var(--sl-color-text);
-    margin-bottom: 2rem; /* Adds space below the paragraph */
+  .map-gallery-footnote {
+    margin: 1.5rem 0 0;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--sl-color-hairline);
+    font-size: 0.9rem;
+    color: var(--sl-color-text-secondary);
   }
 
   :global(.map-gallery-preview-note) {
@@ -35,6 +30,62 @@ const publishedMaps = (await loadGalleryMaps()).filter(isPublished);
     border-radius: 0.5rem;
     background-color: var(--sl-color-orange-low);
     color: var(--sl-color-text);
+  }
+
+  :global(.map-gallery-header) {
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, var(--sl-color-bg-alt), color-mix(in srgb, var(--sl-color-bg) 82%, white));
+  }
+
+  :global(.map-gallery-kicker) {
+    margin: 0 0 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-text-secondary);
+  }
+
+  :global(.map-gallery-header-row) {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    flex-wrap: wrap;
+  }
+
+  :global(.map-gallery-header-copy) {
+    max-width: 46rem;
+  }
+
+  :global(.map-gallery-title) {
+    margin: 0 0 0.25rem;
+    font-size: clamp(1.7rem, 3.5vw, 2.2rem);
+    line-height: 1.05;
+    color: var(--sl-color-headings);
+  }
+
+  :global(.map-gallery-intro) {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--sl-color-text);
+  }
+
+  :global(.map-gallery-count) {
+    margin: 0;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sl-color-bg) 55%, white);
+    border: 1px solid color-mix(in srgb, var(--sl-color-headings) 18%, var(--sl-color-hairline));
+    color: var(--sl-color-headings);
+    font-size: 0.98rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    box-shadow: 0 6px 18px rgba(0, 60, 91, 0.08);
+    white-space: nowrap;
   }
 
 /* Updated styles for the filter controls */

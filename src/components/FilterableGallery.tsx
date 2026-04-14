@@ -120,12 +120,25 @@ export default function FilterableGallery({ maps, previewDataUrl }: FilterableGa
   const filteredMaps = visibleMaps.filter(m => m.year === selectedYear);
   const interactiveMaps = filteredMaps.filter(m => m.kind.includes('Interactive'));
   const staticMaps = filteredMaps.filter(m => m.kind.includes('Static'));
+  const selectedYearCountLabel = selectedYear
+    ? `${filteredMaps.length} ${filteredMaps.length === 1 ? 'map' : 'maps'} in ${selectedYear}`
+    : `${visibleMaps.length} ${visibleMaps.length === 1 ? 'map' : 'maps'}`;
 
   const open = (m: Map) => setSelectedMap(m);
   const close = () => setSelectedMap(null);
 
   return (
     <div>
+      <div className="map-gallery-header">
+        <p className="map-gallery-kicker">Big Ten GIS Conference</p>
+        <div className="map-gallery-header-row">
+          <div className="map-gallery-header-copy">
+            <h1 className="map-gallery-title">Map Gallery</h1>
+            <p className="map-gallery-intro">Browse the Map Gallery to see how participants are using GIS to tell stories, solve problems, and visualize data. Submissions include both static and interactive projects created with a variety of tools and approaches.</p>
+          </div>
+          <p className="map-gallery-count">{selectedYearCountLabel}</p>
+        </div>
+      </div>
       {previewEnabled && (
         <p className="map-gallery-preview-note">Preview mode is enabled. Draft submissions are visible in this link.</p>
       )}
