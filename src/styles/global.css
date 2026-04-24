@@ -574,6 +574,18 @@ color: var(--btaa-white);
   color: color-mix(in srgb, var(--sl-color-accent) 85%, white 15%);
 }
 
+:root[data-theme="dark"] .gold-highlight {
+  background: #3b3320;
+  border-color: #9d8342;
+  box-shadow: 0 14px 36px -24px rgba(0, 0, 0, 0.55);
+  color: var(--sl-color-text);
+}
+
+:root[data-theme="dark"] .gold-highlight::before,
+:root[data-theme="dark"] .gold-highlight :where(h2)::before {
+  color: color-mix(in srgb, var(--btaa-yellow) 80%, white 20%);
+}
+
 /* Sidebar Callout */
 
 .sidebar-callout {
