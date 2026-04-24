@@ -210,7 +210,7 @@ color: var(--btaa-white);
 .starlight-aside--note {
   background-color: var(--btaa-light-blue);
   --sl-color-asides-border: var(--btaa-gray);
-  --sl-color-asides-text-accent: var(--btaa-dark-blue);
+  --sl-color-asides-text-accent: var(--sl-color-text);
 }
 
 }
