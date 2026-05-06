@@ -515,12 +515,6 @@ collections:
                 name: "recordsTotalValue"
                 widget: "string"
                 required: true
-          - label: "Harvesting Activities"
-            name: "harvestingActivities"
-            widget: "text"
-            required: true
-            hint: "Paste a table with Title, Records added, and Records retired columns. Markdown tables, tab-separated spreadsheet rows, and comma-separated rows are supported."
-
           - label: "Web Development"
             name: "webDevelopment"
             widget: "object"
