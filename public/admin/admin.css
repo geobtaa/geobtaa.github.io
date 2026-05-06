@@ -26,11 +26,7 @@ body button,
 body input,
 body select,
 body textarea {
-  font-family:
-    "Avenir Next",
-    Avenir,
-    "Segoe UI",
-    sans-serif;
+  font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
 }
 
 #nc-root {
@@ -269,15 +265,45 @@ body[data-admin-view="collection-list"] #nc-root [class*="CollectionTop"] h1 {
   font-size: 1.75rem !important;
 }
 
-body[data-admin-view="collection-list"] #nc-root .css-pyxbz6-CollectionContainer,
-body[data-admin-view="collection-list"] #nc-root [class*="CollectionContainer"] {
+body[data-admin-view="collection-list"] #nc-root a[href$="/new"] {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.55rem 1rem !important;
+  border: 1px solid var(--admin-accent) !important;
+  border-radius: 10px !important;
+  background: var(--admin-accent) !important;
+  color: #fff !important;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none !important;
+  box-shadow: 0 2px 8px rgba(16, 42, 67, 0.12) !important;
+}
+
+body[data-admin-view="collection-list"] #nc-root a[href$="/new"]:hover,
+body[data-admin-view="collection-list"] #nc-root a[href$="/new"]:focus {
+  background: #004c75 !important;
+  border-color: #004c75 !important;
+  color: #fff !important;
+  text-decoration: none !important;
+}
+
+body[data-admin-view="collection-list"]
+  #nc-root
+  .css-pyxbz6-CollectionContainer,
+body[data-admin-view="collection-list"]
+  #nc-root
+  [class*="CollectionContainer"] {
   display: flex !important;
   align-items: flex-start !important;
   gap: 1.5rem !important;
   width: 100% !important;
 }
 
-body[data-admin-view="collection-list"] #nc-root .css-102us41-SidebarContainer-card-card,
+body[data-admin-view="collection-list"]
+  #nc-root
+  .css-102us41-SidebarContainer-card-card,
 body[data-admin-view="collection-list"] #nc-root [class*="SidebarContainer"] {
   flex: 0 0 260px !important;
   width: 260px !important;
@@ -305,8 +331,14 @@ body[data-admin-view="collection-list"] #nc-root [class*="CollectionMain"] {
   left: auto !important;
 }
 
-body[data-admin-view="collection-list"] #nc-root .css-kg0ufi-CollectionMain > div,
-body[data-admin-view="collection-list"] #nc-root [class*="CollectionMain"] > div {
+body[data-admin-view="collection-list"]
+  #nc-root
+  .css-kg0ufi-CollectionMain
+  > div,
+body[data-admin-view="collection-list"]
+  #nc-root
+  [class*="CollectionMain"]
+  > div {
   max-width: none !important;
 }
 
@@ -315,7 +347,8 @@ body[data-admin-view="collection-list"] #nc-root [class*="SidebarNavList"] a {
   line-height: 1.3;
 }
 
-body[data-admin-view="collection-list"][data-admin-collection="updates"] #custom-updates-sort-wrapper {
+body[data-admin-view="collection-list"][data-admin-collection="updates"]
+  #custom-updates-sort-wrapper {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
@@ -324,7 +357,8 @@ body[data-admin-view="collection-list"][data-admin-collection="updates"] #custom
   color: var(--admin-heading);
 }
 
-body[data-admin-view="collection-list"][data-admin-collection="updates"] #custom-updates-sort {
+body[data-admin-view="collection-list"][data-admin-collection="updates"]
+  #custom-updates-sort {
   width: auto !important;
   min-width: 11rem;
   min-height: 2.5rem;
@@ -334,7 +368,9 @@ body[data-admin-view="collection-list"][data-admin-collection="updates"] #custom
   color: var(--admin-text) !important;
 }
 
-body[data-admin-view="collection-list"] #nc-root button[aria-label="Grid view option"] {
+body[data-admin-view="collection-list"]
+  #nc-root
+  button[aria-label="Grid view option"] {
   display: none !important;
 }
 
@@ -346,7 +382,9 @@ body[data-admin-view="collection-list"] #nc-root .css-1y2l20x-CardsGrid {
   gap: 0.75rem !important;
 }
 
-body[data-admin-view="collection-list"] #nc-root .css-gtrr8n-ListCard-card-card {
+body[data-admin-view="collection-list"]
+  #nc-root
+  .css-gtrr8n-ListCard-card-card {
   margin: 0 !important;
   min-height: 0 !important;
   background: var(--admin-panel) !important;
@@ -363,7 +401,9 @@ body[data-admin-view="collection-list"] #nc-root .css-6x6ze7-ListCardLink {
 }
 
 body[data-admin-view="collection-list"] #nc-root .css-6x6ze7-ListCardLink:hover,
-body[data-admin-view="collection-list"] #nc-root .css-6x6ze7-ListCardLink:focus {
+body[data-admin-view="collection-list"]
+  #nc-root
+  .css-6x6ze7-ListCardLink:focus {
   background: var(--admin-accent-soft) !important;
   text-decoration: underline !important;
 }
@@ -382,12 +422,18 @@ body[data-admin-view="collection-list"] #nc-root .css-v1zvwj-ListCardTitle {
 }
 
 @media (max-width: 1023px) {
-  body[data-admin-view="collection-list"] #nc-root .css-pyxbz6-CollectionContainer,
-  body[data-admin-view="collection-list"] #nc-root [class*="CollectionContainer"] {
+  body[data-admin-view="collection-list"]
+    #nc-root
+    .css-pyxbz6-CollectionContainer,
+  body[data-admin-view="collection-list"]
+    #nc-root
+    [class*="CollectionContainer"] {
     display: block !important;
   }
 
-  body[data-admin-view="collection-list"] #nc-root .css-102us41-SidebarContainer-card-card,
+  body[data-admin-view="collection-list"]
+    #nc-root
+    .css-102us41-SidebarContainer-card-card,
   body[data-admin-view="collection-list"] #nc-root [class*="SidebarContainer"] {
     width: auto !important;
     max-width: none !important;
