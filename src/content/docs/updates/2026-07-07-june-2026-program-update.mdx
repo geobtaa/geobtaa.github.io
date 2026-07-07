@@ -1,0 +1,94 @@
+---
+title: June 2026 Program Update
+excerpt: BTAA-GIN participated in Geo4LibCamp 2026 at a significant moment for
+  the program.
+authors:
+  - name: BTAA-GIN Staff
+cover:
+  image: https://geo4libcamp.org/images/full-logo.jpg
+  alt: Geo4LibCamp logo
+tags:
+  - Program Updates
+date: 2026-07-07T11:15:00.000-05:00
+draft: false
+programUpdate:
+  highlight:
+    title: "Geo4LibCamp 2026: data preservation and a new search API"
+    intro: >
+      BTAA-GIN participated in Geo4LibCamp 2026 at a significant moment for the
+      program. The new BTAA Geoportal was nearing launch, and the conference's
+      discussions on how to preserve public geodata, how to build infrastructure
+      that lasts, and how to support metadata creation closely tracked the
+      program's own recent work.
+
+
+      Karen Majewicz, Associate Director of Technology and Data Curation, presented the program's Urban Base Layers project, which preserves city-level geospatial data published through open data portals and ArcGIS Hubs. The discussion that followed surfaced shared challenges with preservation of public geodata across institutions: uncertain licensing, limited staff time, and inconsistent relationships with government data providers.
+
+
+      Majewicz and Eric Larson, the software developer for the BTAA Geoportal, also led a workshop on the new BTAA Geospatial API, which extends open-source standards including GeoBlacklight and OpenGeoMetadata with new search features and documentation built for reuse at other institutions.
+
+
+      Both sessions reflect a question the broader field is still working out: how to keep public geospatial data usable over time, in ways other institutions can build on rather than start over.
+  committees:
+    technology:
+      - Meeting canceled due to focus on Geoportal launch.
+    communityEngagement:
+      - "Progress made on recording updated Geoportal video tutorials with focus
+        on new features and user interface and noted other content pages needing
+        similar updates. "
+      - Signed-off on Outreach Toolkit and 2026 GIS Conference Wrap-Up Report.
+      - Set a July blog post and brainstormed potential lightning talk topics
+        for Program Team meetings.
+    knowledge:
+      - Meetings canceled until Fall.
+    coordination:
+      - Confirmed Geoportal June 15 launch timeline and needs.
+      - Reviewed BTAA-GIN Outreach Strategy Map and overall Communications plan
+        for official Geoportal campaign beginning Sept 2026.
+  geoportal:
+    chartImage: "@images/2026-06-monthly-users.png"
+    chartAlt: June monthly users year over year
+    chartCaption: June monthly users year-over-year
+    metrics:
+      - label: "Visitors "
+        value: 10,212
+      - label: "Pageviews "
+        value: 21,051
+      - label: "Downloads "
+        value: "704"
+      - label: Searches
+        value: "746"
+    topGoogleSearches:
+      - btaa geoportal
+      - trempealeau county gis
+      - franklin county lines
+      - idot cameras
+      - hancock county ohio gis
+      - mille lacs county gis
+      - illinois traffic cameras
+      - river shapefile of bangladesh
+      - waupaca county gis
+      - bass lake indiana
+    topInternalSearches:
+      - PLSS
+      - Ukraine
+      - Bathymetry
+      - Geology
+      - New London
+      - Sanborn
+      - public safety answering point boundaries
+      - Covid
+      - New london WI
+      - salvador
+    recordsTotalValue: 130,691
+    recordsTotalAsOf: July 2026
+  webDevelopment:
+    updates:
+      - "Production launch: The new API now serves the Geoportal at geo.btaa.org
+        along with a completely redesigned React frontend."
+    moreDetailsLabel: Refer to our Priority Projects board for more details.
+    moreDetailsUrl: https://github.com/orgs/geobtaa/projects/29
+---
+import ProgramUpdateStructured from 'src/components/ProgramUpdateStructured.astro';
+
+<ProgramUpdateStructured data={frontmatter.programUpdate} />
