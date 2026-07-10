@@ -192,7 +192,7 @@ sidebar:
 | Required? | FALSE |
 | Commentary | Use to lower a record’s ranking in search results. Note: there is no corresponding “prioritize” flag. |
 | Namespace source | Local |
-| Definition URI | https://gin.btaa.org/metadata/b1g/#child-record |
+| Definition URI | https://gin.btaa.org/metadata/b1g/#deprioritize |
 
 ## Endpoint Description
 
@@ -385,7 +385,7 @@ sidebar:
 
 | Field Label | Spatial Resolution as Text |
 | --- | --- |
-| Field Name | b1g_dcat_spatialResolutionInMeters_s |
+| Field Name | b1g_geodcat_spatialResolutionAsText_sm |
 | Purpose | Human-readable description of spatial resolution |
 | Entry Guidelines | Enter a scale, distance, or other descriptive free text. |
 | Example Value | Scale [1:1,140,480] |

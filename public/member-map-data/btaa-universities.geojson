@@ -19,6 +19,7 @@
 { "type": "Feature", "properties": { "id": 14, "name": "University of Nebraska–Lincoln" }, "geometry": { "type": "Point", "coordinates": [ -96.70305, 40.8202 ] } },
 { "type": "Feature", "properties": { "id": 15, "name": "University of Oregon" }, "geometry": { "type": "Point", "coordinates": [ -123.0758, 44.0443 ] } },
 { "type": "Feature", "properties": { "id": 16, "name": "University of Washington" }, "geometry": { "type": "Point", "coordinates": [ -122.308, 47.6541 ] } },
-{ "type": "Feature", "properties": { "id": 17, "name": "University of Wisconsin–Madison" }, "geometry": { "type": "Point", "coordinates": [ -89.41736, 43.0766 ] } }
+{ "type": "Feature", "properties": { "id": 17, "name": "University of Wisconsin–Madison" }, "geometry": { "type": "Point", "coordinates": [ -89.41736, 43.0766 ] } },
+{ "type": "Feature", "properties": { "id": 18, "name": "University of Southern California" }, "geometry": { "type": "Point", "coordinates": [ -118.2851, 34.0235 ] } }
 ]
 }
