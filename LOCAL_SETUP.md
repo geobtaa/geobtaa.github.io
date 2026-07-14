@@ -19,7 +19,7 @@ At this point, the project is now copied to your computer.
 1. Download and install **Visual Studio Code**: https://code.visualstudio.com/
 2. Open VS Code.
 3. Click the **Extensions** icon on the left sidebar.
-4. Install these extensions:
+4. Install these extensions (Optional):
    - `Astro`
    - `MDX`
    - `Markdown All in One`
