@@ -1,7 +1,7 @@
 ---
-title: Urban Base Layers Curation Pilot 2025
-description: 'Pilot plan of the project to collect geospatial data from major cities.'
-year: 2025
+title: Urban Base Layers Curation Strategy
+description: 'Overview of the project to collect geospatial data from major cities.'
+year: 2026
 tags:
 - program guidelines
 ---
@@ -11,11 +11,6 @@ import TwoThirdsRLayout from '/src/components/TwoThirdsRLayout.astro';
 import TwoThirdsLayout from '/src/components/TwoThirdsLayout.astro';
 import CenterLayout from '/src/components/CenterLayout.astro';
 
-:::danger[Deprecation warning]
-
-This plan has been superceded by the [Urban Base Layers Curation Strategy](/library/urban-curation-strategy), which provides more avenues for contribution.
-
-:::
 
 ## Purpose
 
@@ -38,50 +33,20 @@ We collect six core datasets from each participating city:
 
 </div>
 
+Note: If one or more of these datasets are not available from the city, we may contact the county or omit the layer.
+
 <div slot="right">
 ![Layer icons](@images/urban-base-layers.png)
 </div>
 </TwoThirdsRLayout>
 
-## The Cities
+## Data Snapshots
 
-<TwoThirdsRLayout>
-<div slot="left">
-Our initial scope includes the largest cities in each state of the BTAA region:
-<div class="compact-list">
-<br/>
-1. Baltimore  
-2. Chicago  
-3. Columbus  
-4. Des Moines  
-5. Detroit  
-6. Indianapolis  
-7. Milwaukee  
-8. Minneapolis  
-9. Newark  
-10. Omaha  
-11. Philadelphia  
-12. Portland  
-13. Seattle
-</div>
-</div>
-<div slot="right">
-![cities map](@images/urban-base-layers-cities.png)
-</div>
-</TwoThirdsRLayout>
-
-:::caution[Disclaimer]
-This list may change or expand in based on data availability and partner interest.
-:::
-
-## 2025 Snapshot
-
-* Years: The project begins with a 2025 snapshot of major metro areas across the Big Ten region. Additional retrospective snapshots may be collected after the 2025 set is complete.
+* Years: We will collect the most recent snapshot of major metro areas across the Big Ten region.
 * Data sources: Original files obtained directly from city GIS contacts.
 * Metadata: Created by BTAA GIN staff with input from data providers.
 * Attribution: Cities retain credit as the creators and publishers of the data.
 * Publication: Datasets will be indexed in the BTAA Geoportal with clear source and date labels.
-
 
 ## Anticipated Outcomes
 
@@ -95,15 +60,14 @@ This list may change or expand in based on data availability and partner interes
 
 </CenterLayout>
 
-## Method of Aquisition
+## How BTAA-GIN Handles the Data
 
-<Steps>
-1. Work with city GIS staff to obtain original-format datasets and metadata  
-2. Document the datasets using the OpenGeoMetadata profile
-3. Create web derivatives for previews (thumbnails and PM Tiles)
-4. Upload datasets to storage buckets
-5. Index in the BTAA Geoportal
-</Steps>
+* Datasets retrieved from open data portals are processed by BTAA-GIN staff and published in the BTAA Geoportal (geo.btaa.org) with full source attribution and publication date labeling. BTAA-GIN creates and maintains the metadata; the originating city or agency retains credit as the data provider.
+
+* Published records are publicly accessible and citable. When researchers need historical versions of urban datasets, the BTAA Geoportal provides a documented point of access — extending the useful life of data that cities have already made available.
+
+* BTAA-GIN does not claim preservation authority over these datasets. We make them discoverable and well-described within an academic library context.*
+
 
 ## Context
 
