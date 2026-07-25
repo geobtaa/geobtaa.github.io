@@ -1,34 +1,40 @@
 ---
 title: Geospatial Data Citation Generator
-description: Create dataset citations in APA or MLA from authors, title, year,
-  version, publisher, and DOI/URL.
+description: Create dataset citations in APA, MLA, or Chicago style from
+  manually entered or automatically retrieved metadata.
 tableOfContents: false
 draft: false
+template: splash
 ---
-
-Use this tool to format dataset citations in **APA**, **MLA**, or **Chicago** style. Your input is not sent anywhere; it runs entirely in your browser.
-
-:::note
-This tool is currently being refined and we encourage you to share your [feedback](https://geo.btaa.org/feedback) to help us improve it for all users. In accordance with research protocol, please verify all citations for accuracy.
-:::
-
-<div style={{ marginBottom: "1.25rem" }} />
 
 import DataCitation from "/src/components/DataCitation.tsx";
 
-
 <DataCitation client:load />
+
+<section className="citation-definitions">
 
 ## Citation Field Definitions
 
-| Category | Summary |
-| --- | --- |
-| Dataset Title | Provide the complete title of the dataset. |
-| File Type / Format | Choose a format from the dropdown list or write in a custom value. |
-| Version | Version or edition number of the data. |
-| Persistent identifier or URL | Provide a static electronic location or persistent identifier (e.g., DOI or URL) used to access the dataset. |
-| Author(s)/Creator(s) | Provide the name of the individual, group, or organization responsible for creating or making the data. |
-| Data Publisher | Identify the organization or entity responsible for making the dataset available through archiving, publishing, or distribution. |
-| Year of Publication | Indicate the year the dataset was published, which may represent a one-time or infrequent release for the cited version of the data. |
-| Temporal Coverage | Time period of the dataset (free text). |
-| Date accessed | Date the dataset was retrieved. If the Temporal Coverage or Year of Publication is unknown, use this field to provide some temporal context. |
+| Category                     | Summary                                                                                                                                                                                       |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dataset Title                | Provide the complete title of the dataset.                                                                                                                                                    |
+| File Type / Format           | Choose a format from the dropdown list or type in a custom value.                                                                                                                             |
+| Version                      | Version or edition number of the data.                                                                                                                                                        |
+| Persistent identifier or URL | Provide a static electronic location or persistent identifier (e.g., DOI or URL) used to access the dataset.                                                                                  |
+| Creator                      | Provide the name of the individual, group, or organization responsible for creating or making the data. This field is equivalent to the term 'Author' and can include multiple creators.      |
+| Publisher or Repository      | Identify the organization or entity responsible for making the dataset available through archiving, publishing, or distribution.                                                              |
+| Year of Publication          | Indicate the year the dataset was published, which may represent a one-time or infrequent release for the cited version of the data.                                                          |
+| Temporal Coverage            | Time period of the dataset (free text).                                                                                                                                                       |
+| Date accessed                | Date you retrieved the dataset. If the Temporal Coverage or Year of Publication is unknown, use this field to provide some temporal context. Change the date as needed or toggle off to omit. |
+
+</section>
+
+<section className="citation-about">
+
+## About this tool
+
+Geospatial datasets often require details that general-purpose citation
+generators overlook. This tool, developed by the BTAA-GIN, helps users create consistent, editable citations in
+common styles.
+
+</section>

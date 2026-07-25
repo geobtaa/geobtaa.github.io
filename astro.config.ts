@@ -64,6 +64,7 @@ export default defineConfig({
     '/policies/collection-development': '/library/collection-development',
     '/citation': '/guides/data-cite/',
     '/mapgallery': '/conference/map-gallery/',
+    "/tools/data-citation": "/guides/data-cite/"
   },
   integrations: [
     starlight({
