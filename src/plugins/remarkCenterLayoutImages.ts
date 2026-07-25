@@ -1,10 +1,12 @@
-import type { Parent } from 'mdast';
+import type { Root, RootContent } from 'mdast';
+import type { MdxJsxFlowElement } from 'mdast-util-mdx-jsx';
+import type { MdxjsEsm } from 'mdast-util-mdxjs-esm';
 import type { Plugin } from 'unified';
 import { visitParents } from 'unist-util-visit-parents';
 
 const BLOG_PATH_MATCH = /\/src\/content\/docs\/posts\//;
 
-const remarkCenterLayoutImages: Plugin<[], Parent> = () => {
+const remarkCenterLayoutImages: Plugin<[], Root> = () => {
   return (tree, file) => {
     const rawPath =
       typeof file?.path === 'string'
@@ -18,7 +20,7 @@ const remarkCenterLayoutImages: Plugin<[], Parent> = () => {
 
     visitParents(tree, 'image', (node, ancestors) => {
       const parent = ancestors.at(-1);
-      const grandparent = ancestors.at(-2) as Parent | undefined;
+      const grandparent = ancestors.at(-2);
 
       if (!parent || parent.type !== 'paragraph' || !grandparent || !Array.isArray(grandparent.children)) {
         return;
@@ -28,7 +30,7 @@ const remarkCenterLayoutImages: Plugin<[], Parent> = () => {
 
       const caption = typeof node.title === 'string' ? node.title : '';
 
-      const figureChildren: Parent['children'] = [parent];
+      const figureChildren: MdxJsxFlowElement['children'] = [parent];
 
       if (caption) {
         figureChildren.push({
@@ -37,16 +39,19 @@ const remarkCenterLayoutImages: Plugin<[], Parent> = () => {
           attributes: [],
           children: [
             {
-              type: 'mdxJsxTextElement',
-              name: 'em',
-              attributes: [],
-              children: [{ type: 'text', value: caption }],
+              type: 'paragraph',
+              children: [
+                {
+                  type: 'emphasis',
+                  children: [{ type: 'text', value: caption }],
+                },
+              ],
             },
           ],
         });
       }
 
-      const replacement = {
+      const replacement: MdxJsxFlowElement = {
         type: 'mdxJsxFlowElement',
         name: 'CenterLayout',
         attributes: [],
@@ -60,10 +65,11 @@ const remarkCenterLayoutImages: Plugin<[], Parent> = () => {
         ],
       };
 
-      const index = grandparent.children.indexOf(parent);
+      const siblings = grandparent.children as RootContent[];
+      const index = siblings.indexOf(parent);
       if (index === -1) return;
 
-      grandparent.children.splice(index, 1, replacement);
+      siblings.splice(index, 1, replacement);
       needsImport = true;
     });
 
@@ -75,7 +81,7 @@ const remarkCenterLayoutImages: Plugin<[], Parent> = () => {
 
     if (!hasImport) {
       const importValue = "import CenterLayout from '/src/components/CenterLayout.astro';";
-      tree.children.unshift({
+      const centerLayoutImport: MdxjsEsm = {
         type: 'mdxjsEsm',
         value: importValue,
         data: {
@@ -86,6 +92,7 @@ const remarkCenterLayoutImages: Plugin<[], Parent> = () => {
               {
                 type: 'ImportDeclaration',
                 source: { type: 'Literal', value: '/src/components/CenterLayout.astro' },
+                attributes: [],
                 specifiers: [
                   {
                     type: 'ImportDefaultSpecifier',
@@ -96,7 +103,8 @@ const remarkCenterLayoutImages: Plugin<[], Parent> = () => {
             ],
           },
         },
-      });
+      };
+      tree.children.unshift(centerLayoutImport);
     }
   };
 };

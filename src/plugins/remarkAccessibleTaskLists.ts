@@ -1,4 +1,5 @@
-import type { ListItem, Parent } from 'mdast';
+import type { ListItem, Root } from 'mdast';
+import type { MdxJsxTextElement } from 'mdast-util-mdx-jsx';
 import type { Plugin } from 'unified';
 import { visitParents } from 'unist-util-visit-parents';
 
@@ -9,14 +10,14 @@ type HProperties = {
 
 const SCREEN_READER_PREFIX_CLASS = 'visually-hidden';
 
-const buildStatusPrefix = (checked: boolean) => ({
+const buildStatusPrefix = (checked: boolean): MdxJsxTextElement => ({
   type: 'mdxJsxTextElement',
   name: 'span',
   attributes: [{ type: 'mdxJsxAttribute', name: 'class', value: SCREEN_READER_PREFIX_CLASS }],
   children: [{ type: 'text', value: checked ? 'Completed: ' : 'Not completed: ' }],
 });
 
-const remarkAccessibleTaskLists: Plugin<[], Parent> = () => {
+const remarkAccessibleTaskLists: Plugin<[], Root> = () => {
   return (tree) => {
     visitParents(tree, 'listItem', (node) => {
       const listItem = node as ListItem & { data?: { hProperties?: HProperties } };
@@ -53,7 +54,7 @@ const remarkAccessibleTaskLists: Plugin<[], Parent> = () => {
             ),
         )
       ) {
-        firstChild.children.unshift(buildStatusPrefix(checked) as never);
+        firstChild.children.unshift(buildStatusPrefix(checked));
       }
 
       delete listItem.checked;

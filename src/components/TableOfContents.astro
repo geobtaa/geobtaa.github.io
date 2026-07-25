@@ -20,7 +20,7 @@ import StarlightViewModesTableOfContents from 'starlight-view-modes/components/T
       if (nav.querySelector('li a[href^="#"]')) return;
 
       const list = document.createElement('ul');
-      let currentSectionItem = null;
+      let currentSectionItem: HTMLLIElement | null = null;
 
       headings.forEach((heading) => {
         const item = document.createElement('li');
