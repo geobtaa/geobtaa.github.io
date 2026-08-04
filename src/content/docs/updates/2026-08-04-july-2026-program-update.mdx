@@ -1,0 +1,72 @@
+---
+title: July 2026 Program Update
+excerpt: "BTAA Geoportal: Rebuilt from the Ground Up"
+authors:
+  - name: BTAA-GIN Staff
+cover:
+  image: "@images/geoportalscreen072026.png"
+  alt: Newly redesigned BTAA Geoportal homepage as of June 2026
+tags:
+  - Program Updates
+date: 2026-08-04T10:49:00.000-05:00
+draft: false
+programUpdate:
+  highlight:
+    title: "BTAA Geoportal: Rebuilt from the Ground Up"
+    intro: >
+      The BTAA Geoportal has relaunched, marking the biggest technical update in
+      the program's ten-year history. Rebuilt on a new modular, API-first
+      architecture, the redesigned Geoportal continues BTAA-GIN's commitment to
+      making geospatial data, maps, and GIS resources easy to find and use
+      across its 18 member institutions.
+
+      The redesign was a collaboration of Eric Larson, BTAA-GIN's lead developer, who brought the technical expertise behind the new architecture and design, and Karen Majewicz, Associate Director of Technology & Data Curation, who led project decision-making. Working together, in coordination with the Technology Committee, they rebuilt the platform from backend to frontend. To help users get the most out of the new interface, BTAA-GIN has also released a series of short video tutorials covering common search strategies, from finding historic campus maps to locating LiDAR-based land cover data.
+
+      The redesigned Geoportal debuts with a more intuitive interface, an interactive hexbin map for exploring the collection visually, and expanded filtering by date range, resource type, and geographic extent. Spotlighted collections include the Sanborn fire insurance maps, the Urban Base Layers collection, and the USDA Important Farmlands collection.
+
+      For the broader geospatial library field, the redesign offers a working example of infrastructure built for sustainability: a shared platform serving 18 institutions that can now evolve piece by piece as technology changes, rather than requiring a full migration each time.
+
+      Explore the redesigned BTAA Geoportal at geo.btaa.org.
+    linkText: Watch the tutorial series on YouTube @GeoBTAA
+    linkUrl: https://www.youtube.com/playlist?list=PLDkqGeyyAHzg
+    image: "@images/geoportalscreen072026.png"
+    imageAlt: Newly redesigned BTAA Geoportal homepage as of June 2026
+    imageCaption: Newly redesigned BTAA Geoportal homepage as of June 2026
+  committees:
+    technology:
+      - Following a successful launch of the new Geoportal on June 15, 2026, no
+        post-launch bugs/issues reported to the Tech Committee.
+      - Created a list of Geoportal new features to support the creation of
+        promotional materials and the help documentation efforts.
+      - "Initiated a short-term collections working group who will update the
+        Collections policy to include: geodata collection work (i.e. Urban Base
+        Layers), opengeometadata collections, prioritizing stable resources, and
+        clarification when we make access copies."
+    communityEngagement:
+      - Continuing to update GIN website for new Geoportal, tutorials, and
+        LibGuide resources through working meetings and additional sprints.
+      - First Maps in the Wild blog post published, from Anna Rohl, University
+        of Michigan.
+    knowledge:
+      - Meetings canceled until Fall.
+    coordination:
+      - "Reviewed Outreach Plan to kick-off with official Geoportal launch -
+        Sept 2026. "
+      - Agreed on strategic priority process and prepared for August meeting to
+        decide/approve on each priority group recommendation
+  workgroups:
+    - name: Data Citation
+      updates:
+        - Set up Zotero for citation and upgraded the tool’s user interface.
+  webDevelopment:
+    updates:
+      - Focus is on Product Management planning for 2026-2027 year
+    moreDetailsUrl: "https://github.com/orgs/geobtaa/projects/29 "
+    moreDetailsLabel: Refer to our Priority Projects board for more details
+  geoportal:
+    recordsTotalAsOf: 8/4/2026
+    recordsTotalValue: 137,340
+---
+import ProgramUpdateStructured from 'src/components/ProgramUpdateStructured.astro';
+
+<ProgramUpdateStructured data={frontmatter.programUpdate} />
