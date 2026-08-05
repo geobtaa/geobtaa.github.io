@@ -81,20 +81,20 @@ A LiDAR generated point cloud is a collection of points that stores 3D (XYZ) inf
 
 1.  Go to [geo.btaa.org](https://geo.btaa.org).
 
-2.  Under Explore Maps and Data , search for "DC LiDAR Point Cloud".
+2.  Using the text search bar at the top of the screen, search for “DC LiDAR Point Cloud".
 
-3.  Double click on the layer " District of Columbia: Classified Point Cloud LiDAR Tile Index" then go to the Visit Source link.
+3.  In the results page, click on the item “2020 LiDAR - Classified LAS [District of Columbia--Washington],” and then click the Visit Source link in the bottom-right.
 
-4.  Within the OCTO Tile Grid web application, zoom down to Washington Monument.
+4.  Within the Open Data DC application, zoom down to the Washington Monument. If you need help locating it, [use this link](https://opendata.dc.gov/datasets/DCGIS::2020-lidar-classified-las/explore?location=38.889358%2C-77.040500%2C20).
 
-5.  Click on the grid box where the majority of Washington Monument is covered (TILE NAME 2015).
+5.  Click on “Download,” then use the slider button to “Filter By Extent” and click to access the first zip folder.
 
-6.  Click on the "More info" hyperlinked text will download the LiDAR point cloud for the selected tile area.
+6.  Click on the Download option of the Box folder (large file) and unzip the file when the download has finished.
 
 </Steps>
 
 <CenterLayout>
-![Media Options](@images/washington-monument-grid.png)*Select the Washington Monument Grid*
+![Media Options](@images/filterbyextent_tutorial_lidar.jpg)*Select the Washington Monument Grid*
 </CenterLayout>
 
 ---
@@ -107,7 +107,7 @@ A LiDAR generated point cloud is a collection of points that stores 3D (XYZ) inf
 
 1.  Start a new ArcGIS Pro project.
 
-2.  Add the downloaded .las dataset (i.e, 2015.las) in the 2D map. By default the las point clouds are rendered and symbolized based on elevation.
+2.  Add one of the downloaded .las datasets (2015.las) into your map and then right-click and zoom in. By default, the .las point clouds are rendered and symbolized based on elevation
 
 </Steps>
 
