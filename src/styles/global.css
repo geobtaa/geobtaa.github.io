@@ -1330,7 +1330,7 @@ color: var(--btaa-white);
   outline: none;
   overflow: hidden;
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr;
   min-height: 0;
   align-items: center;
 }
@@ -1346,6 +1346,16 @@ color: var(--btaa-white);
 
 .homepage-card__conference-heading {
   color: var(--btaa-white) !important;
+}
+
+.homepage-card--conference .homepage-card__geoportal-logo-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.homepage-card--conference .homepage-card__geoportal-logo {
+  width: 80%;
+  max-width: 100%;
 }
 
 .homepage-card__conference-links {
@@ -1374,11 +1384,12 @@ color: var(--btaa-white);
 }
 
 .homepage-card__conference-action {
+  position: absolute;
+  inset: 0;
   display: grid;
-  place-content: center;
-  padding: 1.25rem;
-  background-color: rgba(0, 60, 91, 0.4);
-  align-self: stretch;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 60, 91, 0.2);
 }
 
 .homepage-card__conference-register {
