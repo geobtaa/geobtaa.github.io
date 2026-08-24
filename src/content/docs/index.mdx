@@ -9,6 +9,8 @@ hidePageTitle: true
 import celebrationImage from '../../assets/images/celebration.png';
 import celebrationWhiteImage from '../../assets/images/celebration-white.png';
 import geoportalLogo from '../../assets/images/btaa-geoportal.png';
+import geoportalHomepageImage from '../../assets/images/hp-geoportal2026.png';
+import sanbornThumbnail from '../../assets/images/sanborn-hp-thumb.png';
 
 <section id="home-content" class="homepage-hero">
   <div class="homepage-hero__left">
@@ -72,7 +74,7 @@ import geoportalLogo from '../../assets/images/btaa-geoportal.png';
       <h2>Guides & Tutorials</h2>
       <div class="homepage-card__geoportal-footer">
         <div class="homepage-card__geoportal-logo-wrap">
-          <img src="src/assets/images/sanborn-hp-thumb.png" alt="Sanborn map thumbnail" class="homepage-card__geoportal-logo" loading="lazy" />
+          <img src={sanbornThumbnail.src} alt="Sanborn map thumbnail" class="homepage-card__geoportal-logo" loading="lazy" />
         </div>
       </div>
       <p>
@@ -87,7 +89,7 @@ import geoportalLogo from '../../assets/images/btaa-geoportal.png';
       <div class="homepage-card__conference-text">
         <h2 class="homepage-card__conference-heading">Find geospatial data in one place</h2>
         <div class="homepage-card__geoportal-logo-wrap">
-          <img src="src/assets/images/hp-clean-geoportal2026.png" alt="BTAA Geoportal homepage thumbnail" class="homepage-card__geoportal-logo" loading="lazy" />
+          <img src={geoportalHomepageImage.src} alt="BTAA Geoportal homepage thumbnail" class="homepage-card__geoportal-logo" loading="lazy" />
           <div class="homepage-card__conference-action">
             <a
               href="https://geo.btaa.org/"
