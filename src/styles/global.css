@@ -749,6 +749,7 @@ color: var(--btaa-white);
 .homepage-card {
   border-radius: 1.75rem;
   padding: 1.6rem;
+  margin: 0;
   text-decoration: none;
   display: block;
   min-height: 240px;
@@ -1237,6 +1238,11 @@ color: var(--btaa-white);
 .homepage-card--geoportal {
   display: flex;
   flex-direction: column;
+}
+
+.homepage-card--light-blue,
+.homepage-card--geoportal {
+  align-self: start;
 }
 
 .homepage-card__geoportal-footer {

@@ -30,9 +30,26 @@ import sanbornThumbnail from '../../assets/images/sanborn-hp-thumb.png';
   </div>
 
   <div class="homepage-cards">
+    <div class="homepage-card homepage-card--conference" href="https://geo.btaa.org/" target="_blank" rel="noreferrer">
+      <div class="homepage-card__conference-text">
+        <h2 class="homepage-card__conference-heading">Find geospatial data in one place</h2>
+        <div class="homepage-card__geoportal-logo-wrap">
+          <img src={geoportalHomepageImage.src} alt="BTAA Geoportal homepage thumbnail" class="homepage-card__geoportal-logo" loading="lazy" />
+          <div class="homepage-card__conference-action">
+            <a
+              href="https://geo.btaa.org/"
+              class="homepage-card__conference-register">
+              Search the Geoportal &gt;&gt;
+            </a>
+          </div>
+        </div>
+        <p class="homepage-card__conference-description">A collaboration of Big Ten university libraries, the Geoportal provides access to more than 100,000 geospatial records and maps from around the world — searchable, citable, and free to use.</p>
+      </div>
+    </div>
+
     <div class="homepage-card homepage-card--light-blue">
-      <h2>Subscribe to stay Connected</h2>
-      <p>Subscribe to our quarterly newsletter, <em>Coordinates</em>, for our latest news, events, and resources.</p>
+      <h2>Subscribe to Stay Connected</h2>
+      <p>Subscribe to our quarterly newsletter, <em>Coordinates</em>, for our latest news, events, resources, and announcements about our Big Ten GIS Conference.</p>
 
       <form
         action="https://umn.us4.list-manage.com/subscribe/post?u=f56349594c4ba02808786a168&amp;id=587345a050&amp;f_id=004329e6f0"
@@ -85,21 +102,5 @@ import sanbornThumbnail from '../../assets/images/sanborn-hp-thumb.png';
       </div>
     </a>
 
-    <div class="homepage-card homepage-card--conference" href="https://geo.btaa.org/" target="_blank" rel="noreferrer">
-      <div class="homepage-card__conference-text">
-        <h2 class="homepage-card__conference-heading">Find geospatial data in one place</h2>
-        <div class="homepage-card__geoportal-logo-wrap">
-          <img src={geoportalHomepageImage.src} alt="BTAA Geoportal homepage thumbnail" class="homepage-card__geoportal-logo" loading="lazy" />
-          <div class="homepage-card__conference-action">
-            <a
-              href="https://geo.btaa.org/"
-              class="homepage-card__conference-register">
-              Search the Geoportal &gt;&gt;
-            </a>
-          </div>
-        </div>
-        <p class="homepage-card__conference-description">A collaboration of Big Ten university libraries, the Geoportal provides access to more than 100,000 geospatial records and maps from around the world — searchable, citable, and free to use.</p>
-      </div>
-    </div>
   </div>
 </section>
