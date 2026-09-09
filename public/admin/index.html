@@ -8,8 +8,10 @@
     <link rel="stylesheet" href="/admin/admin.css" />
   </head>
   <body>
+    <!-- Retry a publish when a just-saved editorial-workflow branch has a newer head. -->
+    <script src="/admin/github-publish-retry.js"></script>
     <!-- Include the script that builds the page and powers Decap CMS -->
-    <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    <script src="https://unpkg.com/decap-cms@3.15.1/dist/decap-cms.js"></script>
     <script>
       (function () {
         function getAdminView(hash) {
@@ -186,6 +188,10 @@
         const escapedComponentTagPattern =
           /&lt;\/?[A-Z][A-Za-z0-9._:-]*(?:\s+[^&<>]*)?&gt;/;
 
+        const programUpdateBody = `import ProgramUpdateStructured from 'src/components/ProgramUpdateStructured.astro';
+
+<ProgramUpdateStructured data={frontmatter.programUpdate} />`;
+
         function validateMdxBody(body) {
           const errors = [];
           const lines = body.split(/\r?\n/);
@@ -242,7 +248,18 @@
           name: "preSave",
           handler: ({ entry }) => {
             const data = entry.get("data");
-            const body = data && data.get ? data.get("body") : "";
+            if (!data || typeof data.get !== "function") return data;
+
+            const body = data.get("body");
+            const programUpdate = data.get("programUpdate");
+
+            // Decap occasionally omits a markdown default while recreating a draft.
+            // Keep the field optional in the form, but always write the renderer that
+            // turns the structured fields into the published Program Update page.
+            if (programUpdate && (typeof body !== "string" || body.trim().length === 0)) {
+              return data.set("body", programUpdateBody);
+            }
+
             if (typeof body !== "string" || body.length === 0) return data;
 
             const errors = validateMdxBody(body);

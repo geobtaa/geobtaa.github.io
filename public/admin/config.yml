@@ -541,9 +541,10 @@ collections:
       - label: "Body"
         name: "body"
         widget: "markdown"
+        required: false
         modes: ["raw"]
         editor_components: []
-        hint: "Structured pilot default. Edit this only if you need advanced custom MDX markup."
+        hint: "Optional. The structured Program Update renderer is added automatically when this is left blank. Edit this only if you need advanced custom MDX markup."
         default: |
           import ProgramUpdateStructured from 'src/components/ProgramUpdateStructured.astro';
 
