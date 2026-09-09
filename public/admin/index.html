@@ -31,11 +31,233 @@
 
         let listViewObserver = null;
         let forcedListHash = "";
+        let editorViewObserver = null;
+        let editorUiFrame = 0;
+
+        const programUpdateSections = [
+          { label: "1. Monthly Highlight", shortLabel: "Highlight", key: "highlight" },
+          { label: "2. Committee Updates", shortLabel: "Committees", key: "committees" },
+          { label: "3. Workgroup Updates", shortLabel: "Workgroups", key: "workgroups" },
+          { label: "4. Geoportal Activity", shortLabel: "Geoportal", key: "geoportal" },
+          {
+            label: "5. Web Development Updates",
+            shortLabel: "Web Development",
+            key: "web-development",
+          },
+        ];
 
         function stopListViewObserver() {
           if (!listViewObserver) return;
           listViewObserver.disconnect();
           listViewObserver = null;
+        }
+
+        function stopEditorViewObserver() {
+          if (editorViewObserver) {
+            editorViewObserver.disconnect();
+            editorViewObserver = null;
+          }
+
+          if (editorUiFrame) {
+            window.cancelAnimationFrame(editorUiFrame);
+            editorUiFrame = 0;
+          }
+        }
+
+        function normalizedText(element) {
+          return (element && element.textContent ? element.textContent : "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .toLocaleLowerCase();
+        }
+
+        function findEditorLabel(text) {
+          const expected = text.toLocaleLowerCase();
+          const candidates = document.querySelectorAll(
+            '#nc-root label, #nc-root [class*="FieldLabel"], #nc-root [class*="ObjectControlLabel"], #nc-root [class*="ListControlLabel"]',
+          );
+
+          return (
+            Array.from(candidates).find((candidate) => normalizedText(candidate) === expected) ||
+            Array.from(candidates).find((candidate) =>
+              normalizedText(candidate).startsWith(`${expected} `),
+            )
+          );
+        }
+
+        function findControlContainer(label) {
+          if (!(label instanceof HTMLElement)) return null;
+          return label.closest('[class*="ControlContainer"]');
+        }
+
+        function flattenObjectWidget(label, boundaryKind) {
+          if (!(label instanceof HTMLLabelElement)) return false;
+
+          const widgetBoundary = document.getElementById(label.htmlFor);
+          if (!(widgetBoundary instanceof HTMLElement)) return false;
+
+          const objectToolbar = widgetBoundary.firstElementChild;
+          if (!(objectToolbar instanceof HTMLElement)) return false;
+
+          const toggle = objectToolbar.querySelector('button[data-testid="expand-button"]');
+          if (toggle instanceof HTMLButtonElement) {
+            const action = (toggle.getAttribute("aria-label") || "").toLocaleLowerCase();
+            if (action.includes("expand")) toggle.click();
+            toggle.dataset.programUpdateFixedToggle = boundaryKind;
+          }
+
+          widgetBoundary.dataset.programUpdateBoundary = boundaryKind;
+          objectToolbar.dataset.programUpdateObjectToolbar = boundaryKind;
+          return true;
+        }
+
+        function initProgramUpdateMetadata(rootControl) {
+          const fieldsContainer = rootControl.parentElement;
+          if (!(fieldsContainer instanceof HTMLElement)) return;
+
+          fieldsContainer.dataset.programUpdateFields = "true";
+          const metadataFields = [
+            { label: "Title", key: "title" },
+            { label: "Short Summary", key: "summary" },
+            { label: "Authors", key: "authors" },
+            { label: "Optional Cover Image", key: "cover" },
+            { label: "Tags", key: "tags" },
+            { label: "Publication Date", key: "date" },
+            { label: "Keep this update hidden from the site", key: "visibility" },
+          ];
+
+          let firstControl = null;
+          metadataFields.forEach(({ label: labelText, key }) => {
+            const label = findEditorLabel(labelText);
+            const control = findControlContainer(label);
+            if (!(label instanceof HTMLElement) || !(control instanceof HTMLElement)) return;
+
+            control.dataset.programUpdateMeta = key;
+            label.dataset.programUpdateMetaLabel = "true";
+            if (!firstControl) firstControl = control;
+
+            if (label instanceof HTMLLabelElement) {
+              const widgetBoundary = document.getElementById(label.htmlFor);
+              if (widgetBoundary instanceof HTMLElement) {
+                widgetBoundary.dataset.programUpdateMetaBoundary = key;
+              }
+            }
+          });
+
+          if (!firstControl || document.getElementById("program-update-meta-heading")) return;
+
+          const heading = document.createElement("div");
+          heading.id = "program-update-meta-heading";
+          heading.innerHTML =
+            "<strong>Page details</strong><span>Title, publishing information, and optional display settings</span>";
+          firstControl.before(heading);
+        }
+
+        function buildProgramUpdateNav(rootControl) {
+          const existingNav = document.getElementById("program-update-section-nav");
+          if (existingNav) return;
+
+          const nav = document.createElement("nav");
+          nav.id = "program-update-section-nav";
+          nav.setAttribute("aria-label", "Program Update sections");
+
+          const navLabel = document.createElement("strong");
+          navLabel.textContent = "Jump to section";
+          nav.appendChild(navLabel);
+
+          const links = document.createElement("div");
+          links.className = "program-update-section-links";
+
+          programUpdateSections.forEach((section) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = section.shortLabel;
+            button.addEventListener("click", () => {
+              const target = document.querySelector(
+                `[data-program-update-section="${section.key}"]`,
+              );
+              if (target instanceof HTMLElement) {
+                target.scrollIntoView({ behavior: "smooth", block: "start" });
+                const firstInput = target.querySelector(
+                  'input:not([type="hidden"]), textarea, [contenteditable="true"]',
+                );
+                if (firstInput instanceof HTMLElement) firstInput.focus({ preventScroll: true });
+              }
+            });
+            links.appendChild(button);
+          });
+
+          nav.appendChild(links);
+          rootControl.before(nav);
+        }
+
+        function initProgramUpdateEditor() {
+          const hash = window.location.hash || "";
+          const isUpdateEditor =
+            getAdminView(hash) === "entry-editor" && getCollectionName(hash) === "updates";
+
+          if (!isUpdateEditor) {
+            const nav = document.getElementById("program-update-section-nav");
+            if (nav) nav.remove();
+            return true;
+          }
+
+          const rootLabel = findEditorLabel("Update Content");
+          const rootControl = findControlContainer(rootLabel);
+          if (!(rootControl instanceof HTMLElement)) return false;
+
+          rootControl.dataset.programUpdateRoot = "true";
+          rootLabel.dataset.programUpdateRootLabel = "true";
+          const rootReady = flattenObjectWidget(rootLabel, "root");
+
+          const sectionsReady = programUpdateSections.every((section) => {
+            const label = findEditorLabel(section.label);
+            const control = findControlContainer(label);
+            if (!(control instanceof HTMLElement)) return false;
+
+            control.dataset.programUpdateSection = section.key;
+            label.dataset.programUpdateSectionLabel = "true";
+            const boundaryKind = section.key === "workgroups" ? "list-section" : "section";
+            return flattenObjectWidget(label, boundaryKind);
+          });
+
+          const visibilityLabel = findEditorLabel("Keep this update hidden from the site");
+          const visibilityControl = findControlContainer(visibilityLabel);
+          if (visibilityControl instanceof HTMLElement) {
+            visibilityControl.dataset.programUpdateUtility = "visibility";
+            visibilityLabel.dataset.programUpdateUtilityLabel = "true";
+          }
+
+          initProgramUpdateMetadata(rootControl);
+          buildProgramUpdateNav(rootControl);
+          return rootReady && sectionsReady;
+        }
+
+        function scheduleProgramUpdateEditor() {
+          if (editorUiFrame) return;
+          editorUiFrame = window.requestAnimationFrame(() => {
+            editorUiFrame = 0;
+            if (initProgramUpdateEditor() && editorViewObserver) {
+              editorViewObserver.disconnect();
+              editorViewObserver = null;
+            }
+          });
+        }
+
+        function watchProgramUpdateEditor() {
+          stopEditorViewObserver();
+
+          const hash = window.location.hash || "";
+          const isUpdateEditor =
+            getAdminView(hash) === "entry-editor" && getCollectionName(hash) === "updates";
+          if (!isUpdateEditor) return;
+
+          scheduleProgramUpdateEditor();
+          editorViewObserver = new MutationObserver(scheduleProgramUpdateEditor);
+          editorViewObserver.observe(document.getElementById("nc-root") || document.body, {
+            childList: true,
+            subtree: true,
+          });
         }
 
         function forceListView() {
@@ -81,10 +303,27 @@
           window.requestAnimationFrame(() => {
             window.requestAnimationFrame(initCustomSortControl);
           });
+
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(watchProgramUpdateEditor);
+          });
         }
 
         syncAdminUi();
         window.addEventListener("hashchange", syncAdminUi);
+        document.addEventListener("click", (event) => {
+          if (!(event.target instanceof Element) || !event.target.closest("button")) return;
+          if (
+            getAdminView(window.location.hash || "") !== "entry-editor" ||
+            getCollectionName(window.location.hash || "") !== "updates"
+          ) {
+            return;
+          }
+
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(initProgramUpdateEditor);
+          });
+        });
 
         function parseEntryDate(href) {
           const match = (href || "").match(/\/entries\/(\d{4})-(\d{2})(?:-(\d{2}))?/);

@@ -502,6 +502,14 @@ color: var(--btaa-white);
   gap: 1rem;
 }
 
+.program-update-richtext > :first-child {
+  margin-top: 0;
+}
+
+.program-update-richtext > :last-child {
+  margin-bottom: 0;
+}
+
 .monthly-highlight :where(h2)::before {
   content: '';
   margin-right: 0rem;

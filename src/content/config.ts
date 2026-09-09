@@ -5,6 +5,8 @@ import { blogSchema } from 'src/content/BlogSchema';
 import { videosSchema } from 'starlight-videos/schemas';
 
 const programUpdateSchema = z.object({
+  // Narrative fields now save as Markdown strings. Keep accepting the former
+  // string arrays so older entries remain buildable during content migration.
   programUpdate: z
     .object({
       highlight: z
@@ -20,17 +22,17 @@ const programUpdateSchema = z.object({
         .optional(),
       committees: z
         .object({
-          technology: z.array(z.string()).optional(),
-          communityEngagement: z.array(z.string()).optional(),
-          knowledge: z.array(z.string()).optional(),
-          coordination: z.array(z.string()).optional(),
+          technology: z.union([z.string(), z.array(z.string())]).optional(),
+          communityEngagement: z.union([z.string(), z.array(z.string())]).optional(),
+          knowledge: z.union([z.string(), z.array(z.string())]).optional(),
+          coordination: z.union([z.string(), z.array(z.string())]).optional(),
         })
         .optional(),
       workgroups: z
         .array(
           z.object({
             name: z.string(),
-            updates: z.array(z.string()).optional(),
+            updates: z.union([z.string(), z.array(z.string())]).optional(),
           }),
         )
         .optional(),
@@ -67,7 +69,7 @@ const programUpdateSchema = z.object({
         .optional(),
       webDevelopment: z
         .object({
-          updates: z.array(z.string()).optional(),
+          updates: z.union([z.string(), z.array(z.string())]).optional(),
           moreDetailsUrl: z.string().optional(),
           moreDetailsLabel: z.string().optional(),
         })

@@ -6,6 +6,7 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 import { createMarkdownProcessor } from '@astrojs/markdown-remark';
 
 type UpdateList = string[];
+type NarrativeContent = string | UpdateList;
 
 interface HighlightSection {
   title?: string;
@@ -18,15 +19,15 @@ interface HighlightSection {
 }
 
 interface CommitteeSection {
-  technology?: UpdateList;
-  communityEngagement?: UpdateList;
-  knowledge?: UpdateList;
-  coordination?: UpdateList;
+  technology?: NarrativeContent;
+  communityEngagement?: NarrativeContent;
+  knowledge?: NarrativeContent;
+  coordination?: NarrativeContent;
 }
 
 interface WorkgroupSection {
   name: string;
-  updates?: UpdateList;
+  updates?: NarrativeContent;
 }
 
 interface GeoportalMetric {
@@ -46,7 +47,7 @@ interface GeoportalSection {
 }
 
 interface WebDevelopmentSection {
-  updates?: UpdateList;
+  updates?: NarrativeContent;
   moreDetailsUrl?: string;
   moreDetailsLabel?: string;
 }
@@ -74,6 +75,15 @@ const normalizeString = (value: unknown): string => {
 const normalizeList = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
   return value.map((item) => normalizeString(item)).filter((item) => item.length > 0);
+};
+
+const normalizeNarrative = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return normalizeList(value)
+      .map((item) => `- ${item}`)
+      .join('\n');
+  }
+  return normalizeString(value);
 };
 
 const resolveImage = (image: unknown): string => {
@@ -126,7 +136,7 @@ const workgroups = Array.isArray(data?.workgroups)
       .filter((group): group is WorkgroupSection => Boolean(group && typeof group === 'object' && 'name' in group))
       .map((group) => ({
         name: normalizeString(group.name),
-        updates: normalizeList(group.updates),
+        updates: normalizeNarrative(group.updates),
       }))
       .filter((group) => group.name.length > 0)
   : [];
@@ -149,6 +159,8 @@ const highlightMarkdown = normalizeString(highlight.intro);
 const markdownProcessor = await createMarkdownProcessor({
   syntaxHighlight: false,
 });
+const renderMarkdown = async (value: string): Promise<string> =>
+  value ? (await markdownProcessor.render(value)).code : '';
 const highlightHtml = highlightMarkdown
   ? (await markdownProcessor.render(highlightMarkdown)).code
   : '';
@@ -158,10 +170,16 @@ const highlightImage = resolveImage(highlight.image);
 const highlightImageAlt = normalizeString(highlight.imageAlt);
 const highlightImageCaption = normalizeString(highlight.imageCaption);
 
-const committeeTechnology = normalizeList(committees.technology);
-const committeeCommunity = normalizeList(committees.communityEngagement);
-const committeeKnowledge = normalizeList(committees.knowledge);
-const committeeCoordination = normalizeList(committees.coordination);
+const committeeTechnologyHtml = await renderMarkdown(normalizeNarrative(committees.technology));
+const committeeCommunityHtml = await renderMarkdown(normalizeNarrative(committees.communityEngagement));
+const committeeKnowledgeHtml = await renderMarkdown(normalizeNarrative(committees.knowledge));
+const committeeCoordinationHtml = await renderMarkdown(normalizeNarrative(committees.coordination));
+const renderedWorkgroups = await Promise.all(
+  workgroups.map(async (group) => ({
+    ...group,
+    updatesHtml: await renderMarkdown(group.updates),
+  })),
+);
 
 const chartImage = resolveImage(geoportal.chartImage);
 const chartAlt = normalizeString(geoportal.chartAlt);
@@ -171,7 +189,7 @@ const topInternalSearches = normalizeList(geoportal.topInternalSearches);
 const recordsTotalAsOf = normalizeString(geoportal.recordsTotalAsOf);
 const recordsTotalValue = normalizeString(geoportal.recordsTotalValue);
 
-const webDevelopmentUpdates = normalizeList(webDevelopment.updates);
+const webDevelopmentUpdatesHtml = await renderMarkdown(normalizeNarrative(webDevelopment.updates));
 const webDevelopmentMoreDetailsUrl = normalizeString(webDevelopment.moreDetailsUrl);
 const webDevelopmentMoreDetailsLabel =
   normalizeString(webDevelopment.moreDetailsLabel) || 'More development details';
@@ -214,10 +232,8 @@ const webDevelopmentMoreDetailsLabel =
   <CardGrid>
     <Card title="TECHnology">
       {
-        committeeTechnology.length > 0 ? (
-          <ul>
-            {committeeTechnology.map((item) => <li>{item}</li>)}
-          </ul>
+        committeeTechnologyHtml ? (
+          <div class="program-update-richtext" set:html={committeeTechnologyHtml} />
         ) : (
           <p>Add updates for this committee.</p>
         )
@@ -226,10 +242,8 @@ const webDevelopmentMoreDetailsLabel =
 
     <Card title="Community Engagement">
       {
-        committeeCommunity.length > 0 ? (
-          <ul>
-            {committeeCommunity.map((item) => <li>{item}</li>)}
-          </ul>
+        committeeCommunityHtml ? (
+          <div class="program-update-richtext" set:html={committeeCommunityHtml} />
         ) : (
           <p>Add updates for this committee.</p>
         )
@@ -238,10 +252,8 @@ const webDevelopmentMoreDetailsLabel =
 
     <Card title="Knowledge">
       {
-        committeeKnowledge.length > 0 ? (
-          <ul>
-            {committeeKnowledge.map((item) => <li>{item}</li>)}
-          </ul>
+        committeeKnowledgeHtml ? (
+          <div class="program-update-richtext" set:html={committeeKnowledgeHtml} />
         ) : (
           <p>Add updates for this committee.</p>
         )
@@ -250,10 +262,8 @@ const webDevelopmentMoreDetailsLabel =
 
     <Card title="Coordination">
       {
-        committeeCoordination.length > 0 ? (
-          <ul>
-            {committeeCoordination.map((item) => <li>{item}</li>)}
-          </ul>
+        committeeCoordinationHtml ? (
+          <div class="program-update-richtext" set:html={committeeCoordinationHtml} />
         ) : (
           <p>Add updates for this committee.</p>
         )
@@ -265,15 +275,13 @@ const webDevelopmentMoreDetailsLabel =
 
   <Card title="Workgroups">
     {
-      workgroups.length > 0 ? (
-        workgroups.map((group) => (
+      renderedWorkgroups.length > 0 ? (
+        renderedWorkgroups.map((group) => (
           <Fragment>
             <h4>{group.name}</h4>
             {
-              group.updates.length > 0 ? (
-                <ul>
-                  {group.updates.map((item) => <li>{item}</li>)}
-                </ul>
+              group.updatesHtml ? (
+                <div class="program-update-richtext" set:html={group.updatesHtml} />
               ) : (
                 <p>Add updates for this workgroup.</p>
               )
@@ -372,10 +380,8 @@ const webDevelopmentMoreDetailsLabel =
 
   <h3 id="web-development">Web Development</h3>
   {
-    webDevelopmentUpdates.length > 0 ? (
-      <ul>
-        {webDevelopmentUpdates.map((item) => <li>{item}</li>)}
-      </ul>
+    webDevelopmentUpdatesHtml ? (
+      <div class="program-update-richtext" set:html={webDevelopmentUpdatesHtml} />
     ) : (
       <p>Add web development updates.</p>
     )

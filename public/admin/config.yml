@@ -314,13 +314,17 @@ collections:
         name: "title"
         widget: "string"
 
-      - label: "Excerpt"
+      - label: "Short Summary"
         name: "excerpt"
         widget: "text"
+        hint: "A brief description used in update listings and search results."
 
       - label: "Authors"
         name: "authors"
         widget: "list"
+        label_singular: "author"
+        collapsed: true
+        summary: "{{fields.name}}"
         fields:
           - label: "Name"
             name: "name"
@@ -328,10 +332,10 @@ collections:
         default:
           - name: "BTAA-GIN Staff"
 
-      - label: "Cover"
+      - label: "Optional Cover Image"
         name: "cover"
         widget: "object"
-        collapsed: false
+        collapsed: true
         required: false
         fields:
           - label: "Cover Image"
@@ -355,25 +359,25 @@ collections:
         name: "date"
         widget: "datetime"
 
-      - label: "Hide from site"
+      - label: "Keep this update hidden from the site"
         name: "draft"
         widget: "boolean"
         required: false
         default: false
         hint: "If checked, this content stays hidden from the public site even when the workflow status is Published."
 
-      - label: "Structured Content (Pilot)"
+      - label: "Update Content"
         name: "programUpdate"
         widget: "object"
         required: true
         collapsed: false
-        hint: "Use these plain-text fields to build the update without editing MDX layout code."
         fields:
-          - label: "Highlight"
+          - label: "1. Monthly Highlight"
             name: "highlight"
             widget: "object"
             required: true
             collapsed: false
+            hint: "Lead with the most important story or announcement from this month."
             fields:
               - label: "Section Title"
                 name: "title"
@@ -415,68 +419,68 @@ collections:
                 widget: "string"
                 required: false
 
-          - label: "Committees"
+          - label: "2. Committee Updates"
             name: "committees"
             widget: "object"
             required: true
             collapsed: false
+            hint: "Add a short item for each committee activity."
             fields:
-              - label: "TECHnology Updates"
+              - label: "TECHnology Committee"
                 name: "technology"
-                widget: "list"
+                widget: "richtext"
                 required: true
-                field:
-                  label: "Update"
-                  name: "item"
-                  widget: "string"
-              - label: "Community Engagement Updates"
+                modes: ["rich_text"]
+                buttons: ["bold", "italic", "link", "bulleted-list", "numbered-list"]
+                editor_components: []
+              - label: "Community Engagement Committee"
                 name: "communityEngagement"
-                widget: "list"
+                widget: "richtext"
                 required: true
-                field:
-                  label: "Update"
-                  name: "item"
-                  widget: "string"
-              - label: "Knowledge Updates"
+                modes: ["rich_text"]
+                buttons: ["bold", "italic", "link", "bulleted-list", "numbered-list"]
+                editor_components: []
+              - label: "Knowledge Committee"
                 name: "knowledge"
-                widget: "list"
+                widget: "richtext"
                 required: true
-                field:
-                  label: "Update"
-                  name: "item"
-                  widget: "string"
-              - label: "Coordination Updates"
+                modes: ["rich_text"]
+                buttons: ["bold", "italic", "link", "bulleted-list", "numbered-list"]
+                editor_components: []
+              - label: "Coordination Committee"
                 name: "coordination"
-                widget: "list"
+                widget: "richtext"
                 required: true
-                field:
-                  label: "Update"
-                  name: "item"
-                  widget: "string"
+                modes: ["rich_text"]
+                buttons: ["bold", "italic", "link", "bulleted-list", "numbered-list"]
+                editor_components: []
 
-          - label: "Workgroups"
+          - label: "3. Workgroup Updates"
             name: "workgroups"
             widget: "list"
             required: true
+            label_singular: "workgroup"
+            collapsed: false
             summary: "{{fields.name}}"
+            hint: "Create one group for each active workgroup, then add its updates."
             fields:
               - label: "Workgroup Name"
                 name: "name"
                 widget: "string"
               - label: "Updates"
                 name: "updates"
-                widget: "list"
-                required: true
-                field:
-                  label: "Update"
-                  name: "item"
-                  widget: "string"
+                widget: "richtext"
+                required: false
+                modes: ["rich_text"]
+                buttons: ["bold", "italic", "link", "bulleted-list", "numbered-list"]
+                editor_components: []
 
-          - label: "Geoportal"
+          - label: "4. Geoportal Activity"
             name: "geoportal"
             widget: "object"
             required: true
             collapsed: false
+            hint: "Add the monthly chart, usage metrics, searches, and collection total."
             fields:
               - label: "Monthly Stats Chart Image"
                 name: "chartImage"
@@ -495,6 +499,8 @@ collections:
                 name: "metrics"
                 widget: "list"
                 required: true
+                label_singular: "metric"
+                collapsed: false
                 summary: "{{fields.label}}: {{fields.value}}"
                 fields:
                   - label: "Label"
@@ -524,20 +530,20 @@ collections:
                 name: "recordsTotalValue"
                 widget: "string"
                 required: true
-          - label: "Web Development"
+          - label: "5. Web Development Updates"
             name: "webDevelopment"
             widget: "object"
             required: true
             collapsed: false
+            hint: "Summarize notable website and application development work."
             fields:
               - label: "Updates"
                 name: "updates"
-                widget: "list"
+                widget: "richtext"
                 required: true
-                field:
-                  label: "Update"
-                  name: "item"
-                  widget: "string"
+                modes: ["rich_text"]
+                buttons: ["bold", "italic", "link", "bulleted-list", "numbered-list"]
+                editor_components: []
               - label: "More Details URL"
                 name: "moreDetailsUrl"
                 widget: "string"
@@ -547,13 +553,10 @@ collections:
                 widget: "string"
                 required: false
 
-      - label: "Body"
+      - label: "Generated Body"
         name: "body"
-        widget: "markdown"
+        widget: "hidden"
         required: false
-        modes: ["raw"]
-        editor_components: []
-        hint: "Optional. The structured Program Update renderer is added automatically when this is left blank. Edit this only if you need advanced custom MDX markup."
         default: |
           import ProgramUpdateStructured from 'src/components/ProgramUpdateStructured.astro';
 

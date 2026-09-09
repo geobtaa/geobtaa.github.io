@@ -261,6 +261,351 @@ body[data-admin-view="entry-editor"] #nc-root [class*="EditorContainer"] {
   max-width: none !important;
 }
 
+/* Program Update editor ----------------------------------------------------
+   Keep Decap's nested data model, but present its fixed objects as a single
+   sequence of readable form sections instead of a stack of nested boxes. */
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  :is(label, [class*="FieldLabel"], [class*="ObjectControlLabel"], [class*="ListControlLabel"], h1, h2, h3) {
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-root] {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-root-label="true"] {
+  display: none !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-root]
+  :is([class*="ObjectControl"], [class*="ListControl"], [class*="ObjectWidget"], [class*="ListWidget"]) {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-root]
+  :is([class*="ObjectControl"], [class*="ListControl"], [class*="ObjectWidget"], [class*="ListWidget"])
+  > div {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-section] {
+  scroll-margin-top: 9rem;
+  margin: 1.25rem 0 !important;
+  padding: clamp(1rem, 2vw, 1.5rem) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-left: 6px solid var(--admin-accent) !important;
+  border-radius: 6px !important;
+  background: var(--admin-panel) !important;
+  box-shadow: 0 3px 14px rgba(16, 42, 67, 0.06) !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-section-label="true"] {
+  display: block;
+  margin: 0 0 0.85rem !important;
+  color: var(--admin-accent) !important;
+  font-size: 1.2rem !important;
+  font-weight: 750 !important;
+  line-height: 1.3 !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-boundary] {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-object-toolbar="root"],
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-object-toolbar="section"] {
+  display: none !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-object-toolbar="list-section"] {
+  justify-content: flex-end !important;
+  margin: 0 0 0.75rem !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-fixed-toggle] {
+  display: none !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-section="workgroups"]
+  [data-program-update-object-toolbar="list-section"]
+  > button:last-child {
+  min-height: 2.5rem;
+  padding: 0.55rem 0.9rem !important;
+  border: 1px solid #216e43 !important;
+  border-radius: 5px !important;
+  background: #287d4f !important;
+  color: #fff !important;
+  font-size: 0.92rem !important;
+  font-weight: 750 !important;
+  box-shadow: 0 2px 7px rgba(33, 110, 67, 0.2) !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-section="workgroups"]
+  [data-program-update-object-toolbar="list-section"]
+  > button:last-child:is(:hover, :focus-visible) {
+  border-color: #185735 !important;
+  background: #216e43 !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-section="workgroups"]
+  [data-testid^="styled-list-item-top-bar-"]
+  > button:last-child {
+  width: 2rem !important;
+  height: 2rem !important;
+  border: 1px solid #e8aaa5 !important;
+  border-radius: 4px !important;
+  background: #fde9e7 !important;
+  color: #a63d35 !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-section="workgroups"]
+  [data-testid^="styled-list-item-top-bar-"]
+  > button:last-child:is(:hover, :focus-visible) {
+  border-color: #cf746c !important;
+  background: #fbd7d3 !important;
+  color: #852d27 !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-utility="visibility"] {
+  width: fit-content !important;
+  max-width: 100%;
+  margin-block: 1.25rem !important;
+  padding: 0.8rem 1rem !important;
+  border: 1px solid var(--admin-border) !important;
+  border-left: 4px solid #b56c00 !important;
+  border-radius: 4px !important;
+  background: var(--admin-panel) !important;
+  box-shadow: none !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-utility="visibility"]
+  :is(label, [data-program-update-utility-label="true"]) {
+  margin: 0 !important;
+  font-size: 0.96rem !important;
+  line-height: 1.35 !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-fields="true"] {
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-flow: row dense;
+  align-items: start;
+  gap: 0.65rem 0.75rem;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-fields="true"]
+  > * {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+#program-update-meta-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+  margin: 1rem 0 0 !important;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--admin-border);
+  border-left: 5px solid var(--admin-accent);
+  border-radius: 5px;
+  background: #e4edf5;
+  color: var(--admin-heading);
+}
+
+#program-update-meta-heading strong {
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+#program-update-meta-heading span {
+  color: var(--admin-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-meta] {
+  margin: 0 !important;
+  padding: 0.6rem 0.7rem !important;
+  border: 1px solid #d5e0ea !important;
+  border-radius: 5px !important;
+  background: #f8fafc !important;
+  box-shadow: none !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-meta="title"],
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-meta="summary"] {
+  grid-column: span 8;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-meta="date"],
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-meta="visibility"] {
+  grid-column: span 4;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  :is(
+    [data-program-update-meta="authors"],
+    [data-program-update-meta="tags"],
+    [data-program-update-meta="cover"]
+  ) {
+  grid-column: span 4;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-meta-label="true"] {
+  margin-bottom: 0.25rem !important;
+  font-size: 0.79rem !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-meta]
+  :is(small, [class*="Hint"], [class*="description"], [class*="Desc"]) {
+  padding-top: 0.25rem !important;
+  font-size: 0.74rem !important;
+  line-height: 1.3 !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-meta-boundary] {
+  min-height: 2.25rem !important;
+  padding: 0.45rem 0.6rem !important;
+  border-color: #b9c9d8 !important;
+  border-radius: 4px !important;
+  font-size: 0.88rem !important;
+  line-height: 1.35 !important;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  textarea[data-program-update-meta-boundary="summary"] {
+  min-height: 4.5rem !important;
+  resize: vertical;
+}
+
+body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+  #nc-root
+  [data-program-update-meta="visibility"] {
+  width: auto !important;
+  max-width: none;
+  border-left: 4px solid #b56c00 !important;
+}
+
+#program-update-section-nav {
+  position: sticky;
+  top: 4.5rem;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 1.75rem 0 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--admin-heading);
+  box-shadow: 0 3px 12px rgba(16, 42, 67, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+#program-update-section-nav strong {
+  flex: 0 0 auto;
+  font-size: 0.9rem;
+}
+
+#program-update-section-nav .program-update-section-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+#program-update-section-nav button {
+  min-height: 2rem;
+  padding: 0.35rem 0.65rem !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 4px !important;
+  background: var(--admin-panel-muted) !important;
+  color: var(--admin-accent) !important;
+  font-size: 0.86rem !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+}
+
+#program-update-section-nav button:hover {
+  border-color: var(--admin-accent) !important;
+  background: var(--admin-accent-soft) !important;
+}
+
 body[data-admin-view="collection-list"] #nc-root [class*="CollectionTop"] h1 {
   font-size: 1.75rem !important;
 }
@@ -422,6 +767,16 @@ body[data-admin-view="collection-list"] #nc-root .css-v1zvwj-ListCardTitle {
 }
 
 @media (max-width: 1023px) {
+  #program-update-section-nav {
+    position: static;
+    display: block;
+  }
+
+  #program-update-section-nav strong {
+    display: block;
+    margin-bottom: 0.55rem;
+  }
+
   body[data-admin-view="collection-list"]
     #nc-root
     .css-pyxbz6-CollectionContainer,
@@ -444,5 +799,48 @@ body[data-admin-view="collection-list"] #nc-root .css-v1zvwj-ListCardTitle {
   body[data-admin-view="collection-list"] #nc-root [class*="CollectionMain"] {
     margin-left: 0 !important;
     padding-right: 0 !important;
+  }
+}
+
+@media (max-width: 800px) {
+  body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+    #nc-root
+    [data-program-update-fields="true"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+    #nc-root
+    :is(
+      [data-program-update-meta="title"],
+      [data-program-update-meta="summary"],
+      [data-program-update-meta="authors"],
+      [data-program-update-meta="tags"],
+      [data-program-update-meta="cover"]
+    ) {
+    grid-column: 1 / -1;
+  }
+
+  body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+    #nc-root
+    :is([data-program-update-meta="date"], [data-program-update-meta="visibility"]) {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 560px) {
+  #program-update-meta-heading {
+    display: block;
+  }
+
+  #program-update-meta-heading span {
+    display: block;
+    margin-top: 0.25rem;
+  }
+
+  body[data-admin-view="entry-editor"][data-admin-collection="updates"]
+    #nc-root
+    [data-program-update-meta] {
+    grid-column: 1 / -1 !important;
   }
 }
