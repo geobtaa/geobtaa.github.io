@@ -104,7 +104,8 @@ collections:
       - label: "Body"
         name: "body"
         widget: "markdown"
-        modes: ["raw"]
+        modes: ["rich_text", "raw"]
+        hint: "Use Rich Text for standard writing. Switch to Raw before editing imports or custom MDX components."
         editor_components: []
 
   - name: "conference"
@@ -381,9 +382,17 @@ collections:
                 default: "Monthly Highlight"
               - label: "Summary"
                 name: "intro"
-                widget: "text"
+                widget: "richtext"
                 required: true
-                hint: "Use blank lines to separate paragraphs."
+                modes: ["rich_text"]
+                buttons:
+                  - "bold"
+                  - "italic"
+                  - "link"
+                  - "bulleted-list"
+                  - "numbered-list"
+                editor_components: []
+                hint: "Write and format the highlight summary here. Use the toolbar for emphasis, links, and lists."
               - label: "Link Text"
                 name: "linkText"
                 widget: "string"

@@ -3,6 +3,7 @@ import CenterLayout from 'src/components/CenterLayout.astro';
 import ChipList from 'src/components/ChipList.astro';
 import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
 import { Card, CardGrid } from '@astrojs/starlight/components';
+import { createMarkdownProcessor } from '@astrojs/markdown-remark';
 
 type UpdateList = string[];
 
@@ -118,48 +119,6 @@ const resolveImage = (image: unknown): string => {
   return image;
 };
 
-const splitParagraphs = (value: unknown): string[] => {
-  const text = normalizeString(value);
-  if (!text) return [];
-  return text
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter((paragraph) => paragraph.length > 0);
-};
-
-const escapeHtml = (value: string): string =>
-  value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-
-const renderInlineLinks = (value: unknown): string => {
-  const text = normalizeString(value);
-  if (!text) return '';
-
-  const markdownLinkPattern = /\[([^\]]+)\]\(([^)\s]+)\)/g;
-  let html = '';
-  let lastIndex = 0;
-
-  for (const match of text.matchAll(markdownLinkPattern)) {
-    const index = match.index ?? 0;
-    const [fullMatch, label, href] = match;
-
-    html += escapeHtml(text.slice(lastIndex, index));
-
-    const safeHref = escapeHtml(href);
-    const target = /^https?:\/\//i.test(href) ? ' target="_blank" rel="noopener noreferrer"' : '';
-    html += `<a href="${safeHref}"${target}>${escapeHtml(label)}</a>`;
-
-    lastIndex = index + fullMatch.length;
-  }
-
-  html += escapeHtml(text.slice(lastIndex));
-  return html;
-};
-
 const highlight = data?.highlight ?? {};
 const committees = data?.committees ?? {};
 const workgroups = Array.isArray(data?.workgroups)
@@ -186,7 +145,13 @@ const metrics = Array.isArray(geoportal.metrics)
 const webDevelopment = data?.webDevelopment ?? {};
 
 const highlightTitle = normalizeString(highlight.title) || 'Monthly Highlight';
-const highlightParagraphs = splitParagraphs(highlight.intro);
+const highlightMarkdown = normalizeString(highlight.intro);
+const markdownProcessor = await createMarkdownProcessor({
+  syntaxHighlight: false,
+});
+const highlightHtml = highlightMarkdown
+  ? (await markdownProcessor.render(highlightMarkdown)).code
+  : '';
 const highlightLinkText = normalizeString(highlight.linkText);
 const highlightLinkUrl = normalizeString(highlight.linkUrl);
 const highlightImage = resolveImage(highlight.image);
@@ -217,8 +182,8 @@ const webDevelopmentMoreDetailsLabel =
     <h2 id="monthly-highlight">{highlightTitle}</h2>
 
     {
-      highlightParagraphs.length > 0 ? (
-        highlightParagraphs.map((paragraph) => <p set:html={renderInlineLinks(paragraph)} />)
+      highlightHtml ? (
+        <div class="program-update-summary" set:html={highlightHtml} />
       ) : (
         <p>Add this month&apos;s highlight summary.</p>
       )

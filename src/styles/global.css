@@ -497,6 +497,11 @@ color: var(--btaa-white);
   padding-left: 1.2rem;
 }
 
+.program-update-summary {
+  display: grid;
+  gap: 1rem;
+}
+
 .monthly-highlight :where(h2)::before {
   content: '';
   margin-right: 0rem;
