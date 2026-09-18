@@ -46,6 +46,55 @@
           },
         ];
 
+        const standardEntryMetadata = {
+          about: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          conference: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          guides: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          projects: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          scholarship: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          team: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          library: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Year", key: "year", column: "side" },
+            { label: "Tags", key: "tags", column: "side" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          blog: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Excerpt", key: "summary", column: "main" },
+            { label: "Authors", key: "authors", column: "main", style: "compound" },
+            { label: "Cover", key: "cover", column: "main", style: "compound" },
+            { label: "Tags", key: "tags", column: "side" },
+            { label: "Publication Date", key: "date", column: "side", style: "compound" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+        };
+
         function stopListViewObserver() {
           if (!listViewObserver) return;
           listViewObserver.disconnect();
@@ -90,6 +139,117 @@
           return label.closest('[class*="ControlContainer"]');
         }
 
+        function clearStandardEntryEditor() {
+          document.getElementById("entry-meta-heading")?.remove();
+          document.getElementById("entry-body-heading")?.remove();
+
+          document.querySelectorAll("[data-entry-meta]").forEach((element) => {
+            delete element.dataset.entryMeta;
+            delete element.dataset.entryMetaColumn;
+            delete element.dataset.entryMetaStyle;
+          });
+          document
+            .querySelectorAll("[data-entry-meta-label]")
+            .forEach((element) => delete element.dataset.entryMetaLabel);
+          document
+            .querySelectorAll("[data-entry-meta-boundary]")
+            .forEach((element) => delete element.dataset.entryMetaBoundary);
+          document
+            .querySelectorAll("[data-entry-optional-marker]")
+            .forEach((element) => {
+              delete element.dataset.entryOptionalMarker;
+              element.removeAttribute("aria-hidden");
+            });
+          document
+            .querySelectorAll("[data-entry-fields]")
+            .forEach((element) => delete element.dataset.entryFields);
+          document
+            .querySelectorAll("[data-entry-body]")
+            .forEach((element) => delete element.dataset.entryBody);
+          document
+            .querySelectorAll("[data-entry-body-label]")
+            .forEach((element) => delete element.dataset.entryBodyLabel);
+        }
+
+        function initStandardEntryEditor() {
+          const collection = getCollectionName(window.location.hash || "");
+          const metadataFields = standardEntryMetadata[collection];
+          if (!metadataFields) return true;
+
+          document.getElementById("program-update-section-nav")?.remove();
+          clearStandardEntryEditor();
+
+          const bodyLabel = findEditorLabel("Body");
+          const bodyControl = findControlContainer(bodyLabel);
+          if (!(bodyControl instanceof HTMLElement)) return false;
+
+          let firstControl = null;
+          let fieldsContainer = null;
+          let ready = true;
+
+          metadataFields.forEach(
+            ({ label: labelText, key, column = "main", style = "standard" }) => {
+              const label = findEditorLabel(labelText);
+              const control = findControlContainer(label);
+              if (!(label instanceof HTMLElement) || !(control instanceof HTMLElement)) {
+                ready = false;
+                return;
+              }
+
+              if (!firstControl) {
+                firstControl = control;
+                fieldsContainer = control.parentElement;
+              }
+
+              control.dataset.entryMeta = key;
+              control.dataset.entryMetaColumn = column;
+              control.dataset.entryMetaStyle = style;
+              label.dataset.entryMetaLabel = "true";
+
+              if (key === "visibility") {
+                label.querySelectorAll("span, small").forEach((element) => {
+                  if (["optional", "(optional)"].includes(normalizedText(element))) {
+                    element.dataset.entryOptionalMarker = "true";
+                    element.setAttribute("aria-hidden", "true");
+                  }
+                });
+              }
+
+              if (label instanceof HTMLLabelElement) {
+                const widgetBoundary = document.getElementById(label.htmlFor);
+                if (widgetBoundary instanceof HTMLElement) {
+                  widgetBoundary.dataset.entryMetaBoundary = key;
+                }
+              }
+            },
+          );
+
+          if (!ready || !(firstControl instanceof HTMLElement) || !(fieldsContainer instanceof HTMLElement)) {
+            return false;
+          }
+
+          fieldsContainer.dataset.entryFields = "true";
+          bodyControl.dataset.entryBody = "true";
+          if (bodyLabel instanceof HTMLElement) bodyLabel.dataset.entryBodyLabel = "true";
+
+          if (!document.getElementById("entry-meta-heading")) {
+            const heading = document.createElement("div");
+            heading.id = "entry-meta-heading";
+            heading.innerHTML =
+              "<strong>Page details</strong><span>Title, publishing information, and display settings</span>";
+            firstControl.before(heading);
+          }
+
+          if (!document.getElementById("entry-body-heading")) {
+            const heading = document.createElement("div");
+            heading.id = "entry-body-heading";
+            heading.textContent = "Page content";
+            bodyControl.before(heading);
+          }
+
+          return true;
+        }
+
         function flattenObjectWidget(label, boundaryKind) {
           if (!(label instanceof HTMLLabelElement)) return false;
 
@@ -119,22 +279,34 @@
           const metadataFields = [
             { label: "Title", key: "title" },
             { label: "Short Summary", key: "summary" },
-            { label: "Authors", key: "authors" },
-            { label: "Optional Cover Image", key: "cover" },
+            { label: "Authors", key: "authors", style: "compound" },
+            { label: "Optional Cover Image", key: "cover", style: "compound" },
             { label: "Tags", key: "tags" },
-            { label: "Publication Date", key: "date" },
-            { label: "Keep this update hidden from the site", key: "visibility" },
+            { label: "Publication Date", key: "date", style: "compound" },
+            { label: "Hide from site", key: "visibility", style: "compact" },
           ];
 
           let firstControl = null;
-          metadataFields.forEach(({ label: labelText, key }) => {
+          const controls = new Map();
+          metadataFields.forEach(({ label: labelText, key, style = "standard" }) => {
             const label = findEditorLabel(labelText);
             const control = findControlContainer(label);
             if (!(label instanceof HTMLElement) || !(control instanceof HTMLElement)) return;
 
             control.dataset.programUpdateMeta = key;
+            control.dataset.programUpdateMetaStyle = style;
             label.dataset.programUpdateMetaLabel = "true";
+            controls.set(key, control);
             if (!firstControl) firstControl = control;
+
+            if (key === "visibility") {
+              label.querySelectorAll("span, small").forEach((element) => {
+                if (["optional", "(optional)"].includes(normalizedText(element))) {
+                  element.dataset.programUpdateOptionalMarker = "true";
+                  element.setAttribute("aria-hidden", "true");
+                }
+              });
+            }
 
             if (label instanceof HTMLLabelElement) {
               const widgetBoundary = document.getElementById(label.htmlFor);
@@ -143,6 +315,21 @@
               }
             }
           });
+
+          const dateControl = controls.get("date");
+          const visibilityControl = controls.get("visibility");
+          if (
+            dateControl instanceof HTMLElement &&
+            visibilityControl instanceof HTMLElement &&
+            !document.querySelector('[data-program-update-publishing="true"]')
+          ) {
+            const publishingGroup = document.createElement("div");
+            publishingGroup.dataset.programUpdatePublishing = "true";
+            publishingGroup.setAttribute("role", "group");
+            publishingGroup.setAttribute("aria-label", "Publishing settings");
+            dateControl.before(publishingGroup);
+            publishingGroup.append(dateControl, visibilityControl);
+          }
 
           if (!firstControl || document.getElementById("program-update-meta-heading")) return;
 
@@ -191,6 +378,161 @@
           rootControl.before(nav);
         }
 
+        function initProgramUpdateMetrics() {
+          const metricsLabel = findEditorLabel("Metrics");
+          const metricsControl = findControlContainer(metricsLabel);
+          if (!(metricsLabel instanceof HTMLLabelElement) || !(metricsControl instanceof HTMLElement)) {
+            return;
+          }
+
+          metricsControl.dataset.programUpdateMetrics = "true";
+          metricsLabel.dataset.programUpdateMetricsLabel = "true";
+
+          const listBoundary = document.getElementById(metricsLabel.htmlFor);
+          if (listBoundary instanceof HTMLElement) {
+            listBoundary.dataset.programUpdateMetricsList = "true";
+            const listToolbar = listBoundary.firstElementChild;
+            if (listToolbar instanceof HTMLElement) {
+              listToolbar.dataset.programUpdateMetricsToolbar = "true";
+            }
+          }
+
+          metricsControl
+            .querySelectorAll(
+              '[data-testid^="styled-list-item-top-bar-"], [class*="StyledListItemTopBar"]',
+            )
+            .forEach((toolbar) => {
+              if (!(toolbar instanceof HTMLElement) || !(toolbar.parentElement instanceof HTMLElement)) {
+                return;
+              }
+
+              const row = toolbar.parentElement;
+              row.dataset.programUpdateMetricRow = "true";
+              toolbar.dataset.programUpdateMetricRowToolbar = "true";
+
+              const toggle = toolbar.querySelector(
+                'button[data-testid="expand-button"], button:first-of-type',
+              );
+              if (toggle instanceof HTMLButtonElement) {
+                const action = (toggle.getAttribute("aria-label") || "").toLocaleLowerCase();
+                if (action.includes("expand") || !row.querySelector('input[id^="label-field-"]')) {
+                  toggle.click();
+                }
+                toggle.dataset.programUpdateMetricToggle = "true";
+              }
+
+              const summary = row.querySelector('[class*="NestedObjectLabel"]');
+              if (summary instanceof HTMLElement) {
+                summary.dataset.programUpdateMetricSummary = "true";
+              }
+
+              const fieldControls = new Map();
+              row
+                .querySelectorAll('label, [class*="FieldLabel"]')
+                .forEach((fieldLabel) => {
+                  const key = normalizedText(fieldLabel);
+                  if (key !== "label" && key !== "value") return;
+                  const fieldControl = findControlContainer(fieldLabel);
+                  if (!(fieldControl instanceof HTMLElement)) return;
+                  fieldControl.dataset.programUpdateMetricCell = key;
+                  fieldControls.set(key, fieldControl);
+                });
+
+              const labelControl = fieldControls.get("label");
+              const valueControl = fieldControls.get("value");
+              if (!(labelControl instanceof HTMLElement) || !(valueControl instanceof HTMLElement)) return;
+
+              [labelControl, valueControl].forEach((fieldControl) => {
+                let wrapper = fieldControl.parentElement;
+                while (wrapper && wrapper !== row) {
+                  wrapper.dataset.programUpdateMetricFields = "true";
+                  wrapper = wrapper.parentElement;
+                }
+              });
+            });
+        }
+
+        function findEditorLabelWithin(root, text) {
+          if (!(root instanceof HTMLElement)) return null;
+          const expected = text.toLocaleLowerCase();
+          const candidates = root.querySelectorAll(
+            'label, [class*="FieldLabel"], [class*="ObjectControlLabel"], [class*="ListControlLabel"]',
+          );
+
+          return (
+            Array.from(candidates).find((candidate) => normalizedText(candidate) === expected) ||
+            Array.from(candidates).find((candidate) =>
+              normalizedText(candidate).startsWith(`${expected} `),
+            ) ||
+            null
+          );
+        }
+
+        function groupProgramUpdateFields(sectionKey, groupKey, labelTexts) {
+          const section = document.querySelector(`[data-program-update-section="${sectionKey}"]`);
+          if (!(section instanceof HTMLElement)) return;
+
+          const controls = labelTexts.map((labelText) => {
+            const label = findEditorLabelWithin(section, labelText);
+            const control = findControlContainer(label);
+            if (!(label instanceof HTMLElement) || !(control instanceof HTMLElement)) return null;
+
+            control.dataset.programUpdateCompactField = "true";
+            label.dataset.programUpdateCompactLabel = "true";
+            label.querySelectorAll("span, small").forEach((element) => {
+              if (["optional", "(optional)"].includes(normalizedText(element))) {
+                element.dataset.programUpdateOptionalMarker = "true";
+                element.setAttribute("aria-hidden", "true");
+              }
+            });
+            return control;
+          });
+
+          if (controls.some((control) => !(control instanceof HTMLElement))) return;
+          const fieldControls = controls.filter((control) => control instanceof HTMLElement);
+          const existingGroup = section.querySelector(
+            `[data-program-update-compact-group="${groupKey}"]`,
+          );
+          if (existingGroup instanceof HTMLElement) return;
+
+          const parent = fieldControls[0].parentElement;
+          if (
+            !(parent instanceof HTMLElement) ||
+            !fieldControls.every((control) => control.parentElement === parent)
+          ) {
+            return;
+          }
+
+          const group = document.createElement("div");
+          group.dataset.programUpdateCompactGroup = groupKey;
+          fieldControls[0].before(group);
+          group.append(...fieldControls);
+        }
+
+        function initProgramUpdateCompactFields() {
+          groupProgramUpdateFields("highlight", "highlight-link", ["Link Text", "Link URL"]);
+          groupProgramUpdateFields("highlight", "highlight-image-details", [
+            "Image Alt Text",
+            "Image Caption",
+          ]);
+          groupProgramUpdateFields("geoportal", "chart-image-details", [
+            "Monthly Stats Chart Alt Text",
+            "Monthly Stats Chart Caption",
+          ]);
+          groupProgramUpdateFields("geoportal", "searches", [
+            "Top Google Searches (comma-separated)",
+            "Top Internal Search Keywords (comma-separated)",
+          ]);
+          groupProgramUpdateFields("geoportal", "records-total", [
+            "Collections Total Records Date Label",
+            "Collections Total Records Value",
+          ]);
+          groupProgramUpdateFields("web-development", "more-details", [
+            "More Details URL",
+            "More Details Link Label",
+          ]);
+        }
+
         function initProgramUpdateEditor() {
           const hash = window.location.hash || "";
           const isUpdateEditor =
@@ -201,6 +543,8 @@
             if (nav) nav.remove();
             return true;
           }
+
+          clearStandardEntryEditor();
 
           const rootLabel = findEditorLabel("Update Content");
           const rootControl = findControlContainer(rootLabel);
@@ -221,14 +565,9 @@
             return flattenObjectWidget(label, boundaryKind);
           });
 
-          const visibilityLabel = findEditorLabel("Keep this update hidden from the site");
-          const visibilityControl = findControlContainer(visibilityLabel);
-          if (visibilityControl instanceof HTMLElement) {
-            visibilityControl.dataset.programUpdateUtility = "visibility";
-            visibilityLabel.dataset.programUpdateUtilityLabel = "true";
-          }
-
           initProgramUpdateMetadata(rootControl);
+          initProgramUpdateMetrics();
+          initProgramUpdateCompactFields();
           buildProgramUpdateNav(rootControl);
           return rootReady && sectionsReady;
         }
@@ -237,7 +576,10 @@
           if (editorUiFrame) return;
           editorUiFrame = window.requestAnimationFrame(() => {
             editorUiFrame = 0;
-            if (initProgramUpdateEditor() && editorViewObserver) {
+            const collection = getCollectionName(window.location.hash || "");
+            const initialized =
+              collection === "updates" ? initProgramUpdateEditor() : initStandardEntryEditor();
+            if (initialized && editorViewObserver) {
               editorViewObserver.disconnect();
               editorViewObserver = null;
             }
@@ -248,9 +590,7 @@
           stopEditorViewObserver();
 
           const hash = window.location.hash || "";
-          const isUpdateEditor =
-            getAdminView(hash) === "entry-editor" && getCollectionName(hash) === "updates";
-          if (!isUpdateEditor) return;
+          if (getAdminView(hash) !== "entry-editor") return;
 
           scheduleProgramUpdateEditor();
           editorViewObserver = new MutationObserver(scheduleProgramUpdateEditor);

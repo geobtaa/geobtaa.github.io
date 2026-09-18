@@ -64,6 +64,9 @@ collections:
       - label: "Authors"
         name: "authors"
         widget: "list"
+        label_singular: "author"
+        collapsed: true
+        summary: "{{fields.name}}"
         fields:
           - label: "Name"
             name: "name"
@@ -72,7 +75,7 @@ collections:
       - label: "Cover"
         name: "cover"
         widget: "object"
-        collapsed: false
+        collapsed: true
         required: false
         fields:
           - label: "Cover Image"
@@ -359,7 +362,7 @@ collections:
         name: "date"
         widget: "datetime"
 
-      - label: "Keep this update hidden from the site"
+      - label: "Hide from site"
         name: "draft"
         widget: "boolean"
         required: false
@@ -502,6 +505,16 @@ collections:
                 label_singular: "metric"
                 collapsed: false
                 summary: "{{fields.label}}: {{fields.value}}"
+                hint: "The standard monthly metrics are prefilled. Enter each value; add or rename rows only when needed."
+                default:
+                  - label: "Visitors"
+                    value: ""
+                  - label: "Downloads"
+                    value: ""
+                  - label: "Searches"
+                    value: ""
+                  - label: "Pageviews"
+                    value: ""
                 fields:
                   - label: "Label"
                     name: "label"
