@@ -249,7 +249,7 @@ export default function ProjectEditor() {
 
   const create = () => {
     setError(''); setNotice('');
-    setProject({ filename: '', content: '', title: '', description: '', draft: true, body: '' });
+    setProject({ filename: '', content: '', title: '', description: '', draft: false, body: '' });
     setBodyEditorSession((session) => session + 1);
   };
 
@@ -305,11 +305,11 @@ export default function ProjectEditor() {
       {error && <p className="message error" role="alert">{error}</p>}
       <form onSubmit={(event) => event.preventDefault()}>
         {!project.sha && <label>Filename <span>(optional; generated from title)</span><input value={project.filename} onChange={(event) => setProject({ ...project, filename: slugify(event.target.value) })} placeholder="example-project" /></label>}
+        {config.publishing && <label className="checkbox"><input type="checkbox" checked={project.draft} onChange={(event) => setProject({ ...project, draft: event.target.checked })} /> Hide from site</label>}
         <label>Title<input required value={project.title} onChange={(event) => setProject({ ...project, title: event.target.value })} /></label>
         {config.description && <label>Description<textarea required rows={3} value={project.description} onChange={(event) => setProject({ ...project, description: event.target.value })} /></label>}
         <label>Body</label>
         <BodyEditor key={bodyEditorSession} initialValue={project.body} onChange={(body) => setProject((current) => current ? { ...current, body } : current)} />
-        {config.publishing && <label className="checkbox"><input type="checkbox" checked={project.draft} onChange={(event) => setProject({ ...project, draft: event.target.checked })} /> Hide from site</label>}
         <div className="actions">{config.publishing ? <><button disabled={busy} type="button" onClick={() => save(false)}>Save draft</button><button disabled={busy} className="primary" type="button" onClick={() => save(true)}>Publish</button></> : <button disabled={busy} className="primary" type="button" onClick={() => save(false)}>Save changes</button>}</div>
       </form>
     </main>
