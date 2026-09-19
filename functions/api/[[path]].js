@@ -1,6 +1,5 @@
-import { newProject, parseProject, serializeProject } from '../../editor-prototype/content.mjs';
-
-const CONTENT_DIR = 'src/content/docs/projects';
+import { newProject, parseContent, serializeContent } from '../../editor-prototype/content.mjs';
+import { CONTENT_AREAS, contentArea, contentDirectory, encodeContentPath, validateContentPath } from '../../editor-prototype/contentAreas.mjs';
 const SESSION_COOKIE = 'editor_session';
 const STATE_COOKIE = 'editor_oauth_state';
 const VERIFIER_COOKIE = 'editor_oauth_verifier';
@@ -106,23 +105,33 @@ function createGitHubClient(env, token) {
       if (error.status !== 422 || !(await branchExists())) throw error;
     }
   }
+  async function listDirectory(directory, ref, relative = '') {
+    const path = relative ? `${directory}/${relative}` : directory;
+    const files = await request(`/contents/${encodeContentPath(path)}?ref=${encodeURIComponent(ref)}`);
+    const output = [];
+    for (const file of files) {
+      const name = relative ? `${relative}/${file.name}` : file.name;
+      if (file.type === 'dir') output.push(...await listDirectory(directory, ref, name));
+      else if (/\.mdx?$/.test(file.name)) output.push({ name, path: file.path, sha: file.sha });
+    }
+    return output;
+  }
   return {
-    async listProjects() {
+    async listContent(area) {
       const ref = await readRef();
-      const files = await request(`/contents/${CONTENT_DIR}?ref=${encodeURIComponent(ref)}`);
-      return { branch: ref, projects: files.filter((file) => file.type === 'file' && /\.mdx?$/.test(file.name)).map(({ name, path, sha }) => ({ name, path, sha })) };
+      return { branch: ref, entries: await listDirectory(contentDirectory(area), ref) };
     },
-    async getProject(filename) {
+    async getContent(area, filename) {
       const ref = await readRef();
-      const file = await request(`/contents/${CONTENT_DIR}/${encodeURIComponent(filename)}?ref=${encodeURIComponent(ref)}`);
+      const file = await request(`/contents/${encodeContentPath(`${contentDirectory(area)}/${filename}`)}?ref=${encodeURIComponent(ref)}`);
       return { filename, sha: file.sha, content: new TextDecoder().decode(base64ToBytes(file.content.replace(/\s/g, ''))), branch: ref };
     },
-    async saveProject({ filename, content, sha, publish }) {
+    async saveContent({ area, filename, content, sha, publish }) {
       await ensureBranch();
       try {
-        const result = await request(`/contents/${CONTENT_DIR}/${encodeURIComponent(filename)}`, {
+        const result = await request(`/contents/${encodeContentPath(`${contentDirectory(area)}/${filename}`)}`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: `${publish ? 'Publish' : 'Save draft'} project: ${filename}`, content: bytesToBase64(new TextEncoder().encode(content)), branch, ...(sha ? { sha } : {}) }),
+          body: JSON.stringify({ message: area === 'projects' ? `${publish ? 'Publish' : 'Save draft'} project: ${filename}` : `Update ${area}: ${filename}`, content: bytesToBase64(new TextEncoder().encode(content)), branch, ...(sha ? { sha } : {}) }),
         });
         return { sha: result.content.sha, commitSha: result.commit.sha, branch };
       } catch (error) {
@@ -178,29 +187,34 @@ async function authenticatedSession(request, env) {
   return session;
 }
 
-function filenameFrom(pathname) {
-  const value = decodeURIComponent(pathname.slice('/api/projects/'.length));
-  if (!/^[a-z0-9][a-z0-9-]*\.mdx?$/.test(value)) throw new HttpError(400, 'Invalid Project filename.');
-  return value;
+function contentRoute(pathname) {
+  const match = pathname.match(/^\/api\/content\/([^/]+)(?:\/(.+))?$/);
+  if (!match || !contentArea(match[1])) return null;
+  return { area: match[1], filename: match[2] ? validateContentPath(match[2]) : null };
 }
 
-async function projectApi(request, env, pathname) {
+async function contentApi(request, env, pathname) {
   const session = await authenticatedSession(request, env);
   const github = createGitHubClient(env, session.token);
-  if (request.method === 'GET' && pathname === '/api/projects') return json(await github.listProjects());
-  if (!pathname.startsWith('/api/projects/')) throw new HttpError(404, 'Not found.');
-  const filename = filenameFrom(pathname);
+  if (request.method === 'GET' && pathname === '/api/content') return json({ areas: CONTENT_AREAS });
+  const route = contentRoute(pathname);
+  if (!route) throw new HttpError(404, 'Not found.');
+  const { area, filename } = route;
+  if (request.method === 'GET' && !filename) return json(await github.listContent(area));
+  if (!filename) throw new HttpError(400, 'Content filename is required.');
   if (request.method === 'GET') {
-    const file = await github.getProject(filename);
-    return json({ ...file, ...parseProject(file.content) });
+    const file = await github.getContent(area, filename);
+    return json({ ...file, ...parseContent(file.content) });
   }
   if (request.method === 'PUT') {
     const input = await request.json();
-    if (!input.title?.trim() || !input.description?.trim()) throw new HttpError(400, 'Title and description are required.');
-    const project = { title: input.title.trim(), description: input.description.trim(), draft: !input.publish, body: input.body ?? '' };
-    const content = input.sha ? serializeProject(input.originalContent, project) : newProject(project);
-    const saved = await github.saveProject({ filename, content, sha: input.sha, publish: Boolean(input.publish) });
-    return json({ ...saved, content, ...parseProject(content) });
+    const config = contentArea(area);
+    if (!input.title?.trim() || (config.description && !input.description?.trim())) throw new HttpError(400, `Title${config.description ? ' and description are' : ' is'} required.`);
+    if (!input.sha && !config.create) throw new HttpError(400, 'New files are not enabled for this content directory.');
+    const entry = { title: input.title.trim(), description: input.description?.trim() ?? '', draft: config.publishing ? !input.publish : false, body: input.body ?? '' };
+    const content = input.sha ? serializeContent(input.originalContent, entry, { description: config.description, draft: config.publishing }) : newProject(entry);
+    const saved = await github.saveContent({ area, filename, content, sha: input.sha, publish: config.publishing && Boolean(input.publish) });
+    return json({ ...saved, content, ...parseContent(content) });
   }
   throw new HttpError(405, 'Method not allowed.');
 }
@@ -218,7 +232,7 @@ export async function onRequest({ request, env }) {
       const session = await openSession(parseCookies(request)[SESSION_COOKIE] || '', env.SESSION_SECRET);
       return json(session ? { authenticated: true, login: session.login } : { authenticated: false });
     }
-    return await projectApi(request, env, url.pathname);
+    return await contentApi(request, env, url.pathname);
   } catch (error) {
     const status = error instanceof GitHubConflictError ? 409 : (error.status || 500);
     return json({ error: error.message || 'Unexpected server error.' }, status);

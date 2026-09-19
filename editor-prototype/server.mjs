@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { createGitHubClient, GitHubConflictError } from './github.mjs';
-import { newProject, parseProject, serializeProject } from './content.mjs';
+import { newProject, parseContent, serializeContent } from './content.mjs';
+import { CONTENT_AREAS, contentArea, validateContentPath } from './contentAreas.mjs';
 
 const host = '127.0.0.1';
 const port = Number(process.env.PROJECT_EDITOR_PORT || 8787);
@@ -15,10 +16,10 @@ const github = createGitHubClient({
   repo: process.env.PROJECT_EDITOR_REPO,
 });
 
-function filenameFrom(pathname) {
-  const value = decodeURIComponent(pathname.slice('/api/projects/'.length));
-  if (!/^[a-z0-9][a-z0-9-]*\.mdx?$/.test(value)) throw Object.assign(new Error('Invalid Project filename.'), { status: 400 });
-  return value;
+function contentRoute(pathname) {
+  const match = pathname.match(/^\/api\/content\/([^/]+)(?:\/(.+))?$/);
+  if (!match || !contentArea(match[1])) return null;
+  return { area: match[1], filename: match[2] ? validateContentPath(match[2]) : null };
 }
 
 function respond(response, status, data, origin) {
@@ -60,22 +61,25 @@ const server = http.createServer(async (request, response) => {
     if (request.method === 'POST' && url.pathname === '/api/auth/logout') {
       return respond(response, 200, { ok: true }, origin);
     }
-    if (request.method === 'GET' && url.pathname === '/api/projects') {
-      return respond(response, 200, await github.listProjects(), origin);
-    }
-    if (url.pathname.startsWith('/api/projects/')) {
-      const filename = filenameFrom(url.pathname);
+    if (url.pathname === '/api/content') return respond(response, 200, { areas: CONTENT_AREAS }, origin);
+    const route = contentRoute(url.pathname);
+    if (route) {
+      const { area, filename } = route;
+      if (request.method === 'GET' && !filename) return respond(response, 200, await github.listContent(area), origin);
+      if (!filename) throw Object.assign(new Error('Content filename is required.'), { status: 400 });
       if (request.method === 'GET') {
-        const file = await github.getProject(filename);
-        return respond(response, 200, { ...file, ...parseProject(file.content) }, origin);
+        const file = await github.getContent(area, filename);
+        return respond(response, 200, { ...file, ...parseContent(file.content) }, origin);
       }
       if (request.method === 'PUT') {
         const input = await readJson(request);
-        if (!input.title?.trim() || !input.description?.trim()) throw Object.assign(new Error('Title and description are required.'), { status: 400 });
-        const project = { title: input.title.trim(), description: input.description.trim(), draft: !input.publish, body: input.body ?? '' };
-        const content = input.sha ? serializeProject(input.originalContent, project) : newProject(project);
-        const saved = await github.saveProject({ filename, content, sha: input.sha, publish: Boolean(input.publish) });
-        return respond(response, 200, { ...saved, content, ...parseProject(content) }, origin);
+        const config = contentArea(area);
+        if (!input.title?.trim() || (config.description && !input.description?.trim())) throw Object.assign(new Error(`Title${config.description ? ' and description are' : ' is'} required.`), { status: 400 });
+        const entry = { title: input.title.trim(), description: input.description?.trim() ?? '', draft: config.publishing ? !input.publish : false, body: input.body ?? '' };
+        if (!input.sha && !config.create) throw Object.assign(new Error('New files are not enabled for this content directory.'), { status: 400 });
+        const content = input.sha ? serializeContent(input.originalContent, entry, { description: config.description, draft: config.publishing }) : newProject(entry);
+        const saved = await github.saveContent({ area, filename, content, sha: input.sha, publish: config.publishing && Boolean(input.publish) });
+        return respond(response, 200, { ...saved, content, ...parseContent(content) }, origin);
       }
     }
     respond(response, 404, { error: 'Not found.' }, origin);

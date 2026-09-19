@@ -1,10 +1,10 @@
 import { parseDocument } from 'yaml';
 
-const FRONTMATTER = /^(---\r?\n)([\s\S]*?)(\r?\n---\r?\n)(?:\r?\n)?([\s\S]*)$/;
+const FRONTMATTER = /^(---\r?\n)([\s\S]*?)(\r?\n---\r?\n(?:\r?\n)?)([\s\S]*)$/;
 
-export function parseProject(content) {
+export function parseContent(content) {
   const match = content.match(FRONTMATTER);
-  if (!match) throw new Error('Project file does not have valid YAML frontmatter.');
+  if (!match) throw new Error('Content file does not have valid YAML frontmatter.');
 
   const data = parseDocument(match[2]).toJS() ?? {};
   return {
@@ -14,6 +14,8 @@ export function parseProject(content) {
     body: match[4],
   };
 }
+
+export const parseProject = parseContent;
 
 function yamlScalar(value) {
   return JSON.stringify(String(value));
@@ -26,20 +28,25 @@ function replaceField(yaml, name, value) {
   return `${yaml.replace(/\s*$/, '')}\n${replacement}`;
 }
 
-export function serializeProject(original, project) {
+export function serializeContent(original, entry, options = {}) {
   const match = original.match(FRONTMATTER);
-  if (!match) throw new Error('Project file does not have valid YAML frontmatter.');
+  if (!match) throw new Error('Content file does not have valid YAML frontmatter.');
 
   let yaml = match[2];
-  const existing = parseProject(original);
-  if (existing.title !== project.title) yaml = replaceField(yaml, 'title', yamlScalar(project.title));
-  if (existing.description !== project.description) yaml = replaceField(yaml, 'description', yamlScalar(project.description));
-  if (existing.draft !== project.draft || !/^draft:/m.test(yaml)) yaml = replaceField(yaml, 'draft', project.draft ? 'true' : 'false');
+  const existing = parseContent(original);
+  if (existing.title !== entry.title) yaml = replaceField(yaml, 'title', yamlScalar(entry.title));
+  if (options.description && existing.description !== entry.description) yaml = replaceField(yaml, 'description', yamlScalar(entry.description));
+  if (options.draft && (existing.draft !== entry.draft || (entry.draft && !/^draft:/m.test(yaml)))) yaml = replaceField(yaml, 'draft', entry.draft ? 'true' : 'false');
 
   const newline = match[1].includes('\r\n') ? '\r\n' : '\n';
-  yaml = yaml.replace(/\r?\n/g, newline).replace(/\s*$/, '');
-  const body = String(project.body ?? '').replace(/\r?\n/g, newline);
-  return `---${newline}${yaml}${newline}---${newline}${newline}${body.replace(/^\r?\n/, '')}`;
+  yaml = yaml.replace(/\r?\n/g, newline);
+  const body = String(entry.body ?? '').replace(/\r?\n/g, newline);
+  const boundary = match[3].replace(/\r?\n/g, newline);
+  return `${match[1].replace(/\r?\n/g, newline)}${yaml}${boundary}${body}`;
+}
+
+export function serializeProject(original, project) {
+  return serializeContent(original, project, { description: true, draft: true });
 }
 
 export function newProject(project) {

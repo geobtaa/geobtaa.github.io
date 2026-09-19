@@ -22,6 +22,16 @@ export function splitBody(body: string): BodySegment[] {
       while (index < lines.length) { block += lines[index]; if (/^\s*:::\s*$/.test(lines[index])) { index += 1; break; } index += 1; }
       push('protected', block); continue;
     }
+    if (/^\s*\{/.test(line)) {
+      flushMarkdown(); let block = line; index += 1;
+      let depth = (line.match(/\{/g) || []).length - (line.match(/\}/g) || []).length;
+      while (index < lines.length && depth > 0) {
+        block += lines[index];
+        depth += (lines[index].match(/\{/g) || []).length - (lines[index].match(/\}/g) || []).length;
+        index += 1;
+      }
+      push('protected', block); continue;
+    }
     const tag = line.match(/<([A-Za-z][\w.-]*)\b/);
     if (tag && (/^\s*</.test(line) || /^[A-Z]/.test(tag[1]))) {
       flushMarkdown(); let block = line; index += 1;

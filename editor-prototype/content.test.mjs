@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { glob } from 'node:fs/promises';
-import { newProject, parseProject, serializeProject } from './content.mjs';
+import { newProject, parseContent, parseProject, serializeContent, serializeProject } from './content.mjs';
+import { CONTENT_AREAS } from './contentAreas.mjs';
+import { splitBody } from '../src/components/editor-prototype/bodySegments.ts';
 
 test('updates only managed frontmatter and preserves unrelated fields', () => {
   const original = `---\ntitle: Old\ndescription: 'Old description'\nsidebar:\n  order: 4\ntableOfContents: true\n---\n\nHello **world**.\n`;
@@ -32,4 +34,23 @@ test('all existing Project bodies and unrelated frontmatter survive serializatio
       if (original.includes(marker)) assert.ok(saved.includes(marker), `${filename} lost ${marker}`);
     }
   }
+});
+
+test('every enabled content file round-trips without changing body or unmanaged frontmatter', async () => {
+  for (const [area, config] of Object.entries(CONTENT_AREAS)) {
+    for await (const filename of glob(`src/content/docs/${area}/**/*.{md,mdx}`)) {
+      const original = await readFile(filename, 'utf8');
+      const parsed = parseContent(original);
+      const saved = serializeContent(original, parsed, { description: config.description, draft: config.publishing });
+      assert.equal(saved, original, filename);
+      assert.equal(splitBody(parsed.body).map((segment) => segment.content).join(''), parsed.body, `${filename} body segments`);
+    }
+  }
+});
+
+test('non-Project saves preserve specialized frontmatter and existing draft state', () => {
+  const original = `---\ntitle: Group\ncommittee: Steering\nmembers:\n  - One\ndraft: true\n---\n\nBody`;
+  const saved = serializeContent(original, { ...parseContent(original), title: 'Renamed', draft: false, body: 'Edited' });
+  assert.match(saved, /committee: Steering\nmembers:\n  - One\ndraft: true/);
+  assert.deepEqual(parseContent(saved), { title: 'Renamed', description: '', draft: true, body: 'Edited' });
 });

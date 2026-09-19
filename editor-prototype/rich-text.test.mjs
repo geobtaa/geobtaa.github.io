@@ -216,6 +216,14 @@ test('typing in Markdown adjacent to protected MDX preserves the MDX block', () 
   editor.destroy();
 });
 
+test('standalone MDX expressions and comments are preserved as read-only blocks', () => {
+  const body = 'Before\n\n{/* do not rewrite */}\n\n{items.map((item) => (\n  <Card>{item}</Card>\n))}\n\nAfter';
+  const segments = splitBody(body);
+  assert.equal(segments.map((segment) => segment.content).join(''), body);
+  assert.equal(segments.filter((segment) => segment.kind === 'protected').length, 2);
+  assert.match(segments.filter((segment) => segment.kind === 'protected').map((segment) => segment.content).join(''), /do not rewrite[\s\S]*items\.map/);
+});
+
 test('React integration has no live-content rehydration and remounts only for entry sessions', async () => {
   const source = await readFile(new URL('../src/components/editor-prototype/ProjectEditor.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /commands\.setContent|setContent\s*\(/);

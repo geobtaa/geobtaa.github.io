@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGitHubClient, GitHubConflictError } from './github.mjs';
-import { newProject, parseProject, serializeProject } from './content.mjs';
+import { newProject, parseContent, parseProject, serializeContent, serializeProject } from './content.mjs';
 
 function response(status, body) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -74,4 +74,31 @@ test('draft, reload, publish, create, and stale-SHA workflow', async () => {
   branchFiles.set('new-project.mdx', { sha: 'external-sha', content: createdContent });
   await assert.rejects(client.saveProject({ filename: 'new-project.mdx', content: createdContent, sha: created.sha, publish: true }), GitHubConflictError);
   assert.deepEqual(commits.slice(0, 3), ['Save draft project: existing.mdx', 'Publish project: existing.mdx', 'Save draft project: new-project.mdx']);
+});
+
+test('an enabled non-Project entry saves and reloads in its own directory', async () => {
+  let stored = { sha: 'library-sha-1', content: '---\ntitle: Report\ndescription: Summary\nyear: 2025\n---\n\nOriginal.' };
+  const requests = [];
+  const client = createGitHubClient({ token: 'server-only', fetchImpl: async (url, options = {}) => {
+    requests.push({ url, options });
+    const method = options.method || 'GET';
+    if (url.includes('/git/ref/heads/custom-cms')) return response(200, { object: { sha: 'branch-sha' } });
+    if (url.includes('/contents/src/content/docs/library/report.mdx')) {
+      if (method === 'GET') return response(200, { sha: stored.sha, content: Buffer.from(stored.content).toString('base64') });
+      const input = JSON.parse(options.body);
+      assert.equal(input.sha, stored.sha);
+      stored = { sha: 'library-sha-2', content: Buffer.from(input.content, 'base64').toString('utf8') };
+      return response(200, { content: { sha: stored.sha }, commit: { sha: 'library-commit' } });
+    }
+    return response(500, { message: `Unhandled ${method} ${url}` });
+  }});
+
+  const loaded = await client.getContent('library', 'report.mdx');
+  const edited = serializeContent(loaded.content, { ...parseContent(loaded.content), body: 'Edited.' }, { description: true });
+  const saved = await client.saveContent({ area: 'library', filename: 'report.mdx', content: edited, sha: loaded.sha, publish: false });
+  const reloaded = await client.getContent('library', 'report.mdx');
+  assert.equal(saved.sha, 'library-sha-2');
+  assert.equal(parseContent(reloaded.content).body, 'Edited.');
+  const write = requests.find((item) => item.options.method === 'PUT');
+  assert.equal(JSON.parse(write.options.body).message, 'Update library: report.mdx');
 });

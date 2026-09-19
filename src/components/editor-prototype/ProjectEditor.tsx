@@ -2,11 +2,13 @@ import { useEditor, useEditorState, EditorContent } from '@tiptap/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { splitBody } from './bodySegments';
 import { richTextEditorOptions } from './richTextEditor';
+import { CONTENT_AREAS } from '../../../editor-prototype/contentAreas.mjs';
 
 const API = import.meta.env.PUBLIC_PROJECT_EDITOR_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8787' : '');
 const CONFLICT = 'This page has changed in GitHub since you opened it. Reload the latest version before saving.';
 
 type ProjectListItem = { name: string; path: string; sha: string };
+type AreaName = keyof typeof CONTENT_AREAS;
 type Project = {
   filename: string;
   sha?: string;
@@ -134,6 +136,7 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
 export default function ProjectEditor() {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [project, setProject] = useState<Project | null>(null);
+  const [area, setArea] = useState<AreaName>('projects');
   const [branch, setBranch] = useState('custom-cms');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
@@ -143,11 +146,12 @@ export default function ProjectEditor() {
 
   const sortedProjects = useMemo(() => [...projects].sort((a, b) => a.name.localeCompare(b.name)), [projects]);
 
-  const loadList = async () => {
+  const config = CONTENT_AREAS[area];
+  const loadList = async (nextArea: AreaName = area) => {
     setBusy(true); setError('');
     try {
-      const data = await api<{ projects: ProjectListItem[]; branch: string }>('/api/projects');
-      setProjects(data.projects); setBranch(data.branch);
+      const data = await api<{ entries: ProjectListItem[]; branch: string }>(`/api/content/${nextArea}`);
+      setProjects(data.entries); setBranch(data.branch);
     } catch (err) { setError((err as Error).message); }
     finally { setBusy(false); }
   };
@@ -169,7 +173,7 @@ export default function ProjectEditor() {
   if (viewer === undefined) return <main className="editor-shell"><p>Checking GitHub sign-in…</p></main>;
   if (viewer === null) return (
     <main className="editor-shell">
-      <p className="eyebrow">Staging</p><h1>Project editor</h1>
+      <p className="eyebrow">Staging</p><h1>Content editor</h1>
       <p>Sign in with a GitHub account that can write to <code>geobtaa/geobtaa.github.io</code>.</p>
       {error && <p className="message error" role="alert">{error}</p>}
       <a className="button primary" href={`${API}/api/auth/login`}>Sign in with GitHub</a>
@@ -179,7 +183,7 @@ export default function ProjectEditor() {
   const open = async (filename: string) => {
     setBusy(true); setError(''); setNotice('');
     try {
-      setProject(await api<Project>(`/api/projects/${encodeURIComponent(filename)}`));
+      setProject(await api<Project>(`/api/content/${area}/${encodeURIComponent(filename)}`));
       setBodyEditorSession((session) => session + 1);
     }
     catch (err) { setError((err as Error).message); }
@@ -192,6 +196,11 @@ export default function ProjectEditor() {
     setBodyEditorSession((session) => session + 1);
   };
 
+  const selectArea = (nextArea: AreaName) => {
+    setArea(nextArea); setProject(null); setProjects([]); setNotice(''); setError('');
+    void loadList(nextArea);
+  };
+
   const save = async (publish: boolean) => {
     if (!project) return;
     const slug = project.sha ? project.filename.replace(/\.mdx?$/, '') : slugify(project.filename || project.title);
@@ -199,7 +208,7 @@ export default function ProjectEditor() {
     const filename = `${slug}.mdx`;
     setBusy(true); setError(''); setNotice('');
     try {
-      const saved = await api<Project & { commitSha: string }>(`/api/projects/${encodeURIComponent(filename)}`, {
+      const saved = await api<Project & { commitSha: string }>(`/api/content/${area}/${encodeURIComponent(filename)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -211,9 +220,9 @@ export default function ProjectEditor() {
           originalContent: project.content,
         }),
       });
-      setProject({ ...project, ...saved, filename, draft: !publish });
+      setProject({ ...project, ...saved, filename, draft: config.publishing ? !publish : project.draft });
       setBranch(saved.branch || 'custom-cms');
-      setNotice(`${publish ? 'Published' : 'Draft saved'} on custom-cms (commit ${saved.commitSha.slice(0, 7)}).`);
+      setNotice(`${config.publishing ? (publish ? 'Published' : 'Draft saved') : 'Changes saved'} on custom-cms (commit ${saved.commitSha.slice(0, 7)}).`);
       await loadList();
     } catch (err) {
       const message = (err as Error).message;
@@ -223,27 +232,28 @@ export default function ProjectEditor() {
 
   if (!project) return (
     <main className="editor-shell">
-      <header><p className="eyebrow">Staging</p><h1>Project editor</h1><p>Signed in as <strong>{viewer}</strong>. Files are read from <code>{branch}</code>{branch === 'main' ? ' until the prototype branch is created by the first save' : ''}.</p><button className="link-button" type="button" onClick={logout}>Sign out</button></header>
+      <header><p className="eyebrow">Staging</p><h1>Content editor</h1><p>Signed in as <strong>{viewer}</strong>. Files are read from <code>{branch}</code>{branch === 'main' ? ' until the prototype branch is created by the first save' : ''}.</p><button className="link-button" type="button" onClick={logout}>Sign out</button></header>
       {error && <p className="message error" role="alert">{error}</p>}
-      <div className="list-heading"><h2>Projects</h2><button className="primary" type="button" onClick={create}>New Project</button></div>
+      <label className="area-selector">Content area<select value={area} onChange={(event) => selectArea(event.target.value as AreaName)}>{Object.entries(CONTENT_AREAS).map(([name, item]) => <option key={name} value={name}>{item.label}</option>)}</select></label>
+      <div className="list-heading"><h2>{config.label}</h2>{config.create && <button className="primary" type="button" onClick={create}>New Project</button>}</div>
       {busy ? <p>Loading…</p> : <ul className="project-list">{sortedProjects.map((item) => <li key={item.path}><button type="button" onClick={() => open(item.name)}>{item.name.replace(/\.mdx?$/, '')}</button></li>)}</ul>}
     </main>
   );
 
   return (
     <main className="editor-shell">
-      <button className="back" type="button" onClick={() => { setProject(null); setNotice(''); setError(''); }}>← All Projects</button>
-      <h1>{project.sha ? 'Edit Project' : 'New Project'}</h1>
+      <button className="back" type="button" onClick={() => { setProject(null); setNotice(''); setError(''); }}>← All {config.label}</button>
+      <h1>{project.sha ? `Edit ${config.label}` : 'New Project'}</h1>
       {notice && <p className="message success" role="status">{notice}</p>}
       {error && <p className="message error" role="alert">{error}</p>}
       <form onSubmit={(event) => event.preventDefault()}>
         {!project.sha && <label>Filename <span>(optional; generated from title)</span><input value={project.filename} onChange={(event) => setProject({ ...project, filename: slugify(event.target.value) })} placeholder="example-project" /></label>}
         <label>Title<input required value={project.title} onChange={(event) => setProject({ ...project, title: event.target.value })} /></label>
-        <label>Description<textarea required rows={3} value={project.description} onChange={(event) => setProject({ ...project, description: event.target.value })} /></label>
+        {config.description && <label>Description<textarea required rows={3} value={project.description} onChange={(event) => setProject({ ...project, description: event.target.value })} /></label>}
         <label>Body</label>
         <BodyEditor key={bodyEditorSession} initialValue={project.body} onChange={(body) => setProject((current) => current ? { ...current, body } : current)} />
-        <label className="checkbox"><input type="checkbox" checked={project.draft} onChange={(event) => setProject({ ...project, draft: event.target.checked })} /> Hide from site</label>
-        <div className="actions"><button disabled={busy} type="button" onClick={() => save(false)}>Save draft</button><button disabled={busy} className="primary" type="button" onClick={() => save(true)}>Publish</button></div>
+        {config.publishing && <label className="checkbox"><input type="checkbox" checked={project.draft} onChange={(event) => setProject({ ...project, draft: event.target.checked })} /> Hide from site</label>}
+        <div className="actions">{config.publishing ? <><button disabled={busy} type="button" onClick={() => save(false)}>Save draft</button><button disabled={busy} className="primary" type="button" onClick={() => save(true)}>Publish</button></> : <button disabled={busy} className="primary" type="button" onClick={() => save(false)}>Save changes</button>}</div>
       </form>
     </main>
   );

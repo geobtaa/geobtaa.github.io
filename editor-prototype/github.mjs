@@ -1,4 +1,4 @@
-const CONTENT_DIR = 'src/content/docs/projects';
+import { contentDirectory, encodeContentPath } from './contentAreas.mjs';
 
 export class GitHubConflictError extends Error {}
 
@@ -58,21 +58,27 @@ export function createGitHubClient({
     }
   }
 
+  async function listDirectory(directory, ref, relative = '') {
+    const path = relative ? `${directory}/${relative}` : directory;
+    const files = await request(`${api}/contents/${encodeContentPath(path)}?ref=${encodeURIComponent(ref)}`);
+    const output = [];
+    for (const file of files) {
+      const name = relative ? `${relative}/${file.name}` : file.name;
+      if (file.type === 'dir') output.push(...await listDirectory(directory, ref, name));
+      else if (/\.mdx?$/.test(file.name)) output.push({ name, path: file.path, sha: file.sha });
+    }
+    return output;
+  }
+
   return {
-    async listProjects() {
+    async listContent(area = 'projects') {
       const ref = await readRef();
-      const files = await request(`${api}/contents/${CONTENT_DIR}?ref=${encodeURIComponent(ref)}`);
-      return {
-        branch: ref,
-        projects: files
-          .filter((file) => file.type === 'file' && /\.mdx?$/.test(file.name))
-          .map(({ name, path, sha }) => ({ name, path, sha })),
-      };
+      return { branch: ref, entries: await listDirectory(contentDirectory(area), ref) };
     },
 
-    async getProject(filename) {
+    async getContent(area, filename) {
       const ref = await readRef();
-      const file = await request(`${api}/contents/${CONTENT_DIR}/${encodeURIComponent(filename)}?ref=${encodeURIComponent(ref)}`);
+      const file = await request(`${api}/contents/${encodeContentPath(`${contentDirectory(area)}/${filename}`)}?ref=${encodeURIComponent(ref)}`);
       return {
         filename,
         sha: file.sha,
@@ -81,16 +87,16 @@ export function createGitHubClient({
       };
     },
 
-    async saveProject({ filename, content, sha, publish }) {
+    async saveContent({ area, filename, content, sha, publish }) {
       await ensureBranch();
       const payload = {
-        message: `${publish ? 'Publish' : 'Save draft'} project: ${filename}`,
+        message: area === 'projects' ? `${publish ? 'Publish' : 'Save draft'} project: ${filename}` : `Update ${area}: ${filename}`,
         content: Buffer.from(content).toString('base64'),
         branch,
         ...(sha ? { sha } : {}),
       };
       try {
-        const result = await request(`${api}/contents/${CONTENT_DIR}/${encodeURIComponent(filename)}`, {
+        const result = await request(`${api}/contents/${encodeContentPath(`${contentDirectory(area)}/${filename}`)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -103,5 +109,11 @@ export function createGitHubClient({
         throw error;
       }
     },
+    async listProjects() {
+      const result = await this.listContent('projects');
+      return { branch: result.branch, projects: result.entries };
+    },
+    getProject(filename) { return this.getContent('projects', filename); },
+    saveProject(input) { return this.saveContent({ area: 'projects', ...input }); },
   };
 }

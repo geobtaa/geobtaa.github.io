@@ -13,7 +13,8 @@ h2 { margin: 0; }
 .project-list button { width: 100%; padding: .9rem .25rem; border: 0; background: transparent; color: #075985; text-align: left; }
 label { display: grid; gap: .4rem; margin: 1.25rem 0 .5rem; font-weight: 650; }
 label span { color: #64748b; font-size: .85rem; font-weight: 400; }
-input, textarea { width: 100%; padding: .7rem; border: 1px solid #94a3b8; border-radius: .35rem; }
+input, textarea, .area-selector select { width: 100%; padding: .7rem; border: 1px solid #94a3b8; border-radius: .35rem; }
+.area-selector { max-width: 24rem; }
 .checkbox { display: flex; grid-template-columns: auto 1fr; align-items: center; margin-top: 1.25rem; }
 .checkbox input { width: auto; }
 .toolbar { display: flex; flex-wrap: wrap; gap: .35rem; padding: .5rem; background: #f1f5f9; border-bottom: 1px solid #cbd5e1; }

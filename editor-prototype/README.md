@@ -1,6 +1,8 @@
 # Project editor prototype
 
-This isolated prototype is available at `/editor/`. It edits only files in `src/content/docs/projects` and writes them through the GitHub Contents API directly to the `custom-cms` staging branch. Decap `/admin` is unchanged.
+This isolated prototype is available at `/editor/`. It edits a conservative allowlist of content directories under `src/content/docs` and writes through the GitHub Contents API directly to the `custom-cms` staging branch. Decap `/admin` is unchanged.
+
+The enabled directories are `about`, `conference`, `guides`, `library`, `metadata`, `projects`, `scholarship`, `team`, and `workgroups`. Creating files and changing draft/published state remain limited to Projects; other directories edit existing titles, descriptions (where present), and bodies while preserving all other frontmatter.
 
 ## Local setup
 
