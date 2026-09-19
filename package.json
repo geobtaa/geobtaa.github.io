@@ -20,6 +20,7 @@
     "@astrojs/starlight": "^0.36.2",
     "@astrojs/starlight-markdoc": "^0.5.1",
     "@iconify-json/mdi": "^1.2.3",
+    "@tiptap/extension-table": "^3.31.3",
     "@tiptap/markdown": "^3.31.3",
     "@tiptap/react": "^3.31.3",
     "@tiptap/starter-kit": "^3.31.3",

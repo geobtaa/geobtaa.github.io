@@ -1,4 +1,4 @@
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, useEditorState, EditorContent } from '@tiptap/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { splitBody } from './bodySegments';
 import { richTextEditorOptions } from './richTextEditor';
@@ -31,6 +31,14 @@ function slugify(value: string) {
 
 function RichTextEditor({ initialValue, onChange }: { initialValue: string; onChange: (value: string) => void }) {
   const editor = useEditor({ ...richTextEditorOptions(initialValue, onChange), immediatelyRender: false });
+  const active = useEditorState({
+    editor,
+    selector: ({ editor }) => ({
+      bold: editor?.isActive('bold') ?? false,
+      italic: editor?.isActive('italic') ?? false,
+      table: editor?.isActive('table') ?? false,
+    }),
+  });
 
   if (!editor) return null;
   const link = () => {
@@ -46,11 +54,20 @@ function RichTextEditor({ initialValue, onChange }: { initialValue: string; onCh
       <div className="toolbar" role="toolbar" aria-label="Text formatting">
         <button type="button" onClick={() => editor.chain().focus().setParagraph().run()}>Paragraph</button>
         <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>Heading</button>
-        <button type="button" aria-pressed={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()}><strong>Bold</strong></button>
-        <button type="button" aria-pressed={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()}><em>Italic</em></button>
+        <button type="button" aria-pressed={active?.bold} onClick={() => editor.chain().focus().toggleBold().run()}><strong>Bold</strong></button>
+        <button type="button" aria-pressed={active?.italic} onClick={() => editor.chain().focus().toggleItalic().run()}><em>Italic</em></button>
         <button type="button" onClick={link}>Link</button>
         <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()}>Bullets</button>
         <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()}>Numbered</button>
+        <button type="button" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>Insert table</button>
+        {active?.table && <>
+          <span className="toolbar-separator" aria-hidden="true" />
+          <button type="button" onClick={() => editor.chain().focus().addRowAfter().run()}>Add row</button>
+          <button type="button" onClick={() => editor.chain().focus().deleteRow().run()}>Delete row</button>
+          <button type="button" onClick={() => editor.chain().focus().addColumnAfter().run()}>Add column</button>
+          <button type="button" onClick={() => editor.chain().focus().deleteColumn().run()}>Delete column</button>
+          <button type="button" onClick={() => editor.chain().focus().deleteTable().run()}>Delete table</button>
+        </>}
       </div>
       <EditorContent editor={editor} />
     </div>

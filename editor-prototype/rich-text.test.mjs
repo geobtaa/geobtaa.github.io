@@ -59,6 +59,41 @@ test('typing remains continuous after bold is turned on and off', () => {
   editor.destroy();
 });
 
+test('Markdown tables parse, edit, and serialize as one pipe table', () => {
+  const markdown = '| Name | Status |\n| --- | --- |\n| Project A | Active |';
+  const { editor, externalMarkdown } = openEditor(markdown);
+  const document = editor.getJSON();
+  const tables = document.content?.filter((node) => node.type === 'table');
+  assert.equal(tables?.length, 1);
+  assert.equal(tables?.[0].content?.[0].content?.[0].type, 'tableHeader');
+
+  let activeCellEnd;
+  editor.state.doc.descendants((node, pos) => {
+    if (activeCellEnd === undefined && node.type.name === 'tableCell') activeCellEnd = pos + node.nodeSize - 2;
+  });
+  assert.notEqual(activeCellEnd, undefined);
+  editor.commands.setTextSelection(activeCellEnd);
+  type(editor, ' now');
+
+  const serialized = externalMarkdown().trim();
+  assert.match(serialized, /^\| Name\s+\| Status\s+\|/);
+  assert.match(serialized, /\| Project A now\s+\| Active\s+\|/);
+  assert.equal(editor.getJSON().content?.filter((node) => node.type === 'table').length, 1);
+  editor.destroy();
+});
+
+test('table commands create and change a Markdown-compatible table', () => {
+  const { editor } = openEditor();
+  assert.equal(editor.commands.insertTable({ rows: 2, cols: 2, withHeaderRow: true }), true);
+  assert.equal(editor.commands.addRowAfter(), true);
+  assert.equal(editor.commands.addColumnAfter(), true);
+  assert.equal(editor.getJSON().content?.[0].type, 'table');
+  assert.equal(editor.getJSON().content?.[0].content?.length, 3);
+  assert.equal(editor.getJSON().content?.[0].content?.[0].content?.length, 3);
+  assert.match(editor.getMarkdown().trim(), /^\|\s+\|\s+\|\s+\|\n\|\s*---\s*\|\s*---\s*\|\s*---\s*\|/);
+  editor.destroy();
+});
+
 test('opening another entry initializes a new document once', () => {
   const first = openEditor('First');
   type(first.editor, ' entry');

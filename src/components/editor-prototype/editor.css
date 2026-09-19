@@ -17,6 +17,7 @@ input, textarea { width: 100%; padding: .7rem; border: 1px solid #94a3b8; border
 .checkbox { display: flex; grid-template-columns: auto 1fr; align-items: center; margin-top: 1.25rem; }
 .checkbox input { width: auto; }
 .toolbar { display: flex; flex-wrap: wrap; gap: .35rem; padding: .5rem; background: #f1f5f9; border-bottom: 1px solid #cbd5e1; }
+.toolbar-separator { width: 1px; margin: .2rem .15rem; background: #94a3b8; }
 .toolbar button, .actions button, .primary, .back, .button { padding: .55rem .75rem; border: 1px solid #94a3b8; border-radius: .35rem; background: white; color: #0f172a; }
 .button { display: inline-block; text-decoration: none; }
 .link-button { padding: 0; border: 0; background: transparent; color: #075985; text-decoration: underline; }
@@ -27,8 +28,14 @@ input, textarea { width: 100%; padding: .7rem; border: 1px solid #94a3b8; border
 .protected-block { border: 1px dashed #94a3b8; border-radius: .4rem; background: #f8fafc; }
 .protected-block summary { cursor: pointer; padding: .75rem; color: #475569; font-weight: 650; }
 .protected-block pre { max-height: 14rem; margin: 0; padding: .75rem; overflow: auto; border-top: 1px dashed #cbd5e1; white-space: pre-wrap; font-size: .8rem; }
-.tiptap { min-height: 18rem; padding: 1rem; outline: none; }
+.tiptap { min-height: 18rem; padding: 1rem; overflow-x: auto; outline: none; }
 .tiptap > :first-child { margin-top: 0; }
+.tiptap table { width: 100%; margin: 1rem 0; border-collapse: collapse; }
+.tiptap th, .tiptap td { min-width: 7rem; padding: .55rem .65rem; border: 1px solid #94a3b8; vertical-align: top; text-align: left; }
+.tiptap th { background: #f1f5f9; font-weight: 700; }
+.tiptap .selectedCell { background: #e0f2fe; }
+.tiptap th > :first-child, .tiptap td > :first-child { margin-top: 0; }
+.tiptap th > :last-child, .tiptap td > :last-child { margin-bottom: 0; }
 .message { padding: .8rem 1rem; border-radius: .35rem; }
 .error { color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; }
 .success { color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; }
