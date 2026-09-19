@@ -42,6 +42,9 @@ input, textarea, .area-selector select { width: 100%; padding: .7rem; border: 1p
 .tiptap :not(pre) > code { padding: .1rem .25rem; border-radius: .2rem; background: #e2e8f0; }
 .tiptap hr { margin: 1.5rem 0; border: 0; border-top: 1px solid #94a3b8; }
 .tiptap img { display: block; max-width: 100%; height: auto; margin: 1rem 0; }
+.structured-link-card { margin: 1rem 0; padding: 1rem; border: 2px solid #0e7490; border-radius: .5rem; background: #ecfeff; }
+.structured-link-card > strong { display: block; margin-bottom: .5rem; color: #155e75; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; }
+.structured-link-card label { margin: .65rem 0 0; }
 .image-picker { position: fixed; z-index: 20; inset: 5vh max(1rem, calc((100vw - 760px) / 2)); max-height: 90vh; padding: 1.25rem; overflow: auto; border: 1px solid #64748b; border-radius: .6rem; background: white; box-shadow: 0 20px 60px rgb(15 23 42 / 30%); }
 .image-picker-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .image-picker-header h3 { margin: 0; }

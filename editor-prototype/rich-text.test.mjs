@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { glob, readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { Editor } from '@tiptap/core';
 import { parseHTML } from 'linkedom';
 import { splitBody } from '../src/components/editor-prototype/bodySegments.ts';
 import { richTextEditorOptions } from '../src/components/editor-prototype/richTextEditor.ts';
+import { parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor-prototype/linkCardMdx.ts';
 
 const { window } = parseHTML('<!doctype html><html><body></body></html>');
 Object.assign(globalThis, {
@@ -25,7 +26,7 @@ window.getSelection = () => selection;
 function openEditor(markdown = '') {
   let externalMarkdown = markdown;
   const editor = new Editor({ ...richTextEditorOptions(markdown, (next) => { externalMarkdown = next; }), injectCSS: false });
-  editor.commands.setTextSelection(editor.state.doc.content.size - 1);
+  if (editor.state.doc.lastChild?.isTextblock) editor.commands.setTextSelection(editor.state.doc.content.size - 1);
   return { editor, externalMarkdown: () => externalMarkdown };
 }
 
@@ -201,6 +202,92 @@ test('inserting an image writes established @images Markdown syntax', () => {
   assert.equal(editor.commands.setImage({ src: '@images/uploaded-map.webp', alt: 'Uploaded map' }), true);
   assert.match(editor.getMarkdown(), /!\[Uploaded map\]\(@images\/uploaded-map\.webp\)/);
   editor.destroy();
+});
+
+test('all existing LinkCard instances use the supported structured syntax', async () => {
+  const instances = [];
+  for await (const filename of glob('src/content/docs/**/*.{md,mdx}')) {
+    const source = await readFile(filename, 'utf8');
+    instances.push(...source.matchAll(/<LinkCard\b[\s\S]*?\/>/g).map((match) => ({ filename, source: match[0] })));
+  }
+  assert.equal(instances.length, 21);
+  for (const instance of instances) assert.ok(parseLinkCardMdx(instance.source), instance.filename);
+});
+
+test('existing editable LinkCards preserve their surrounding file segment when edited', async () => {
+  let editable = 0;
+  let readOnly = 0;
+  for await (const filename of glob('src/content/docs/**/*.{md,mdx}')) {
+    const body = (await readFile(filename, 'utf8')).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n(?:\r?\n)?/, '');
+    for (const segment of splitBody(body)) {
+      const count = [...segment.content.matchAll(/<LinkCard\b/g)].length;
+      if (!count) continue;
+      if (segment.kind === 'protected') { readOnly += count; continue; }
+      editable += count;
+      const opened = openEditor(segment.content);
+      assert.equal(opened.externalMarkdown(), segment.content, `${filename} changed while opening`);
+      let position;
+      let node;
+      opened.editor.state.doc.descendants((item, pos) => {
+        if (!node && item.type.name === 'linkCardBlock') { node = item; position = pos; }
+      });
+      assert.ok(node, `${filename} did not create a LinkCard node`);
+      const title = `${node.attrs.title} (edited)`;
+      const expectedRaw = updateLinkCardMdx(node.attrs.raw, { title, href: node.attrs.href, description: node.attrs.description });
+      const expected = segment.content.replace(node.attrs.raw, expectedRaw);
+      opened.editor.commands.setNodeSelection(position);
+      opened.editor.commands.updateAttributes('linkCardBlock', { title });
+      const serialized = opened.editor.getMarkdown();
+      const trailing = segment.content.match(/(?:\r?\n)+$/)?.[0] || '';
+      const bounded = `${serialized}${serialized.endsWith('\n') ? '' : trailing}`;
+      assert.equal(bounded, expected, `${filename} changed surrounding Markdown`);
+      opened.editor.destroy();
+    }
+  }
+  assert.equal(editable, 19);
+  assert.equal(readOnly, 2);
+});
+
+test('LinkCard loads as a structured node and round-trips through edit and reload', () => {
+  const markdown = 'Before\n\n<LinkCard\n  title="Original title"\n  href="/original"\n  description="Original description"\n/>\n\nAfter';
+  const opened = openEditor(markdown);
+  const node = opened.editor.getJSON().content?.find((item) => item.type === 'linkCardBlock');
+  assert.equal(node?.attrs?.title, 'Original title');
+  assert.equal(opened.editor.getMarkdown(), markdown);
+
+  let position;
+  opened.editor.state.doc.descendants((item, pos) => { if (item.type.name === 'linkCardBlock') position = pos; });
+  opened.editor.commands.setNodeSelection(position);
+  opened.editor.commands.updateAttributes('linkCardBlock', { title: 'Edited title' });
+  const saved = opened.editor.getMarkdown();
+  assert.equal(saved, markdown.replace('title="Original title"', 'title="Edited title"'));
+  assert.match(saved, /^Before[\s\S]*After$/);
+  opened.editor.destroy();
+
+  const reloaded = openEditor(saved);
+  assert.equal(reloaded.editor.getJSON().content?.find((item) => item.type === 'linkCardBlock')?.attrs?.title, 'Edited title');
+  assert.equal(reloaded.editor.getMarkdown(), saved);
+  reloaded.editor.destroy();
+});
+
+test('editing one LinkCard field preserves its formatting and other fields exactly', () => {
+  const original = `<LinkCard title='Keep title' description="Old &amp; useful" href='/keep-url' />`;
+  const parsed = parseLinkCardMdx(original);
+  const changed = updateLinkCardMdx(original, { title: parsed.title, description: 'New description', href: parsed.href });
+  assert.equal(changed, `<LinkCard title='Keep title' description="New description" href='/keep-url' />`);
+});
+
+test('unsupported LinkCard variants remain unchanged read-only MDX', () => {
+  for (const source of [
+    '<LinkCard title={dynamicTitle} href="/example" />\n',
+    '<LinkCard title="Example" href="/example" icon="external" />\n',
+    '<LinkCard title="Example" href="/example">Children</LinkCard>\n',
+  ]) {
+    assert.equal(parseLinkCardMdx(source), null);
+    const segments = splitBody(source);
+    assert.equal(segments.map((segment) => segment.content).join(''), source);
+    assert.ok(segments.every((segment) => segment.kind === 'protected'));
+  }
 });
 
 test('opening another entry initializes a new document once', () => {

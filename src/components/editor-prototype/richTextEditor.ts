@@ -3,6 +3,7 @@ import { TableKit } from '@tiptap/extension-table';
 import { Markdown } from '@tiptap/markdown';
 import Image from '@tiptap/extension-image';
 import { mergeAttributes, type Editor, type EditorOptions } from '@tiptap/core';
+import { LinkCardBlock } from './LinkCardBlock.ts';
 
 export function repositoryImage(previewBase = '') {
   return Image.extend({
@@ -18,9 +19,10 @@ export function repositoryImage(previewBase = '') {
 export function richTextEditorOptions(initialContent: string, onChange: (markdown: string) => void, previewBase = ''): Partial<EditorOptions> {
   return {
     extensions: [
-      StarterKit.configure({ link: { openOnClick: false } }),
+      StarterKit.configure({ link: { openOnClick: false }, trailingNode: { notAfter: ['linkCardBlock'] } }),
       TableKit,
       repositoryImage(previewBase),
+      LinkCardBlock,
       Markdown.configure({ markedOptions: { gfm: true } }),
     ],
     content: initialContent,

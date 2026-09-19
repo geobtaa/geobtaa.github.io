@@ -1,4 +1,6 @@
-export type BodySegment = { id: number; kind: 'markdown' | 'protected'; content: string };
+import { matchLinkCardBlock, parseLinkCardMdx } from './linkCardMdx.ts';
+
+export type BodySegment = { id: number; kind: 'markdown' | 'protected' | 'structured'; content: string };
 
 export function splitBody(body: string): BodySegment[] {
   const lines = body.match(/[^\n]*\n|[^\n]+$/g) || [];
@@ -7,7 +9,7 @@ export function splitBody(body: string): BodySegment[] {
   const push = (kind: BodySegment['kind'], content: string) => {
     if (!content) return;
     const previous = segments.at(-1);
-    if (previous?.kind === kind) previous.content += content;
+    if (kind !== 'structured' && previous?.kind === kind) previous.content += content;
     else segments.push({ id: segments.length, kind, content });
   };
   const flushMarkdown = () => { push('markdown', markdown); markdown = ''; };
@@ -31,6 +33,14 @@ export function splitBody(body: string): BodySegment[] {
         index += 1;
       }
       push('protected', block); continue;
+    }
+    if (/^\s*<LinkCard\b/.test(line)) {
+      let block = line; index += 1;
+      while (!block.includes('/>') && index < lines.length) { block += lines[index]; index += 1; }
+      flushMarkdown();
+      if (matchLinkCardBlock(block) === block && parseLinkCardMdx(block)) push('structured', block);
+      else push('protected', block);
+      continue;
     }
     const tag = line.match(/<([A-Za-z][\w.-]*)\b/);
     if (tag && (/^\s*</.test(line) || /^[A-Z]/.test(tag[1]))) {
