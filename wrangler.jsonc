@@ -1,5 +1,10 @@
 {
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
   "name": "geobtaa-editor-staging",
-  "pages_build_output_dir": "./dist",
-  "compatibility_date": "2026-09-18"
+  "compatibility_date": "2026-09-19",
+
+  // Cloudflare Pages serves this Astro output and automatically bundles
+  // the file-routed Pages Functions in functions/. This is intentionally
+  // not a standalone Worker configuration: do not add `main` or `assets`.
+  "pages_build_output_dir": "./dist"
 }
