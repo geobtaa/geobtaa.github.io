@@ -55,3 +55,5 @@ Optional variables are `GITHUB_OWNER`, `GITHUB_REPO`, `GITHUB_BRANCH`, and `GITH
 If `editor-prototype` does not exist, reads initially fall back to `main`; the first save creates the branch immediately before committing. Every update includes the blob SHA loaded by the editor. GitHub 409/422 responses are reported as conflicts and are never retried as overwrites.
 
 The existing Decap Worker at `decap-auth.geobtaa.workers.dev` uses a different GitHub OAuth callback and returns credentials in the protocol expected by Decap. Its source is not in this repository, so it is not reused. No `public/admin` files or `config.yml` changes are required.
+
+Small change to trigger build
