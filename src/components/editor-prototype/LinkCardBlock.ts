@@ -1,7 +1,7 @@
 import { createElement, type ChangeEvent } from 'react';
 import { Node } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
-import { matchLinkCardBlock, parseLinkCardMdx, updateLinkCardMdx } from './linkCardMdx.ts';
+import { createLinkCardMdx, matchLinkCardBlock, parseLinkCardMdx, updateLinkCardMdx } from './linkCardMdx.ts';
 
 function LinkCardEditor({ node, updateAttributes }: NodeViewProps) {
   const input = (label: string, key: 'title' | 'href', type = 'text') => createElement('label', null,
@@ -35,9 +35,11 @@ export const LinkCardBlock = Node.create({
     return helpers.createNode('linkCardBlock', parsed || {}, []);
   },
   renderMarkdown(node) {
-    return updateLinkCardMdx(String(node.attrs?.raw || ''), {
+    const fields = {
       title: String(node.attrs?.title || ''), href: String(node.attrs?.href || ''), description: String(node.attrs?.description || ''),
-    }).replace(/\r?\n$/, '');
+    };
+    const raw = String(node.attrs?.raw || '');
+    return (raw ? updateLinkCardMdx(raw, fields) : createLinkCardMdx(fields)).replace(/\r?\n$/, '');
   },
   markdownTokenizer: {
     name: 'linkCardBlock', level: 'block',

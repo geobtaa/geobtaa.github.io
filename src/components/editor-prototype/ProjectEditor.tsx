@@ -2,6 +2,7 @@ import { useEditor, useEditorState, EditorContent } from '@tiptap/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { splitBody } from './bodySegments';
 import { richTextEditorOptions } from './richTextEditor';
+import { createLinkCardMdx, ensureLinkCardImport } from './linkCardMdx';
 import { CONTENT_AREAS } from '../../../editor-prototype/contentAreas.mjs';
 
 const API = import.meta.env.PUBLIC_PROJECT_EDITOR_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8787' : '');
@@ -32,7 +33,7 @@ function slugify(value: string) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-function RichTextEditor({ initialValue, onChange }: { initialValue: string; onChange: (value: string) => void }) {
+function RichTextEditor({ initialValue, onChange, onLinkCardInserted }: { initialValue: string; onChange: (value: string) => void; onLinkCardInserted: () => void }) {
   const editor = useEditor({ ...richTextEditorOptions(initialValue, onChange, API), immediatelyRender: false });
   const [imagePicker, setImagePicker] = useState(false);
   const [images, setImages] = useState<ImageListItem[]>([]);
@@ -42,6 +43,11 @@ function RichTextEditor({ initialValue, onChange }: { initialValue: string; onCh
   const [decorative, setDecorative] = useState(false);
   const [imageBusy, setImageBusy] = useState(false);
   const [imageError, setImageError] = useState('');
+  const [linkCardDialog, setLinkCardDialog] = useState(false);
+  const [linkCardTitle, setLinkCardTitle] = useState('');
+  const [linkCardDescription, setLinkCardDescription] = useState('');
+  const [linkCardHref, setLinkCardHref] = useState('');
+  const [linkCardError, setLinkCardError] = useState('');
   const active = useEditorState({
     editor,
     selector: ({ editor }) => {
@@ -113,6 +119,20 @@ function RichTextEditor({ initialValue, onChange }: { initialValue: string; onCh
     editor.chain().focus().setImage({ src: `@images/${selectedImage}`, alt: decorative ? '' : imageAlt.trim() }).run();
     setImagePicker(false); setSelectedImage(''); setImageAlt(''); setDecorative(false); setImageQuery(''); setImageError('');
   };
+  const insertLinkCard = () => {
+    const fields = {
+      title: linkCardTitle.trim(),
+      description: linkCardDescription.trim(),
+      href: linkCardHref.trim(),
+    };
+    if (!fields.title || !fields.href) return setLinkCardError('Enter a title and URL.');
+    const raw = createLinkCardMdx(fields);
+    const position = editor.state.selection.to;
+    const inserted = editor.chain().focus().insertContentAt(position, { type: 'linkCardBlock', attrs: { ...fields, raw } }).run();
+    if (!inserted) return setLinkCardError('The Link Card could not be inserted at this position.');
+    setLinkCardDialog(false); setLinkCardTitle(''); setLinkCardDescription(''); setLinkCardHref(''); setLinkCardError('');
+    onLinkCardInserted();
+  };
   const visibleImages = images.filter((image) => image.name.toLowerCase().includes(imageQuery.toLowerCase()));
 
   return (
@@ -144,6 +164,7 @@ function RichTextEditor({ initialValue, onChange }: { initialValue: string; onCh
         <button type="button" onClick={() => editor.chain().focus().setHardBreak().run()}>Line break</button>
         <button type="button" onClick={() => void openImagePicker()}>Insert image</button>
         <button type="button" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>Insert table</button>
+        <button type="button" onClick={() => { setLinkCardDialog(true); setLinkCardError(''); }}>Insert → Link Card</button>
         {active?.table && <>
           <span className="toolbar-separator" aria-hidden="true" />
           <button type="button" onClick={() => editor.chain().focus().addRowAfter().run()}>Add row</button>
@@ -165,12 +186,21 @@ function RichTextEditor({ initialValue, onChange }: { initialValue: string; onCh
         {imageError && <p className="message error" role="alert">{imageError}</p>}
         <div className="actions"><button type="button" onClick={() => setImagePicker(false)}>Cancel</button><button className="primary" type="button" disabled={imageBusy} onClick={insertImage}>Insert image</button></div>
       </div>}
+      {linkCardDialog && <div className="link-card-dialog" role="dialog" aria-modal="true" aria-labelledby="link-card-dialog-title">
+        <div className="dialog-header"><h3 id="link-card-dialog-title">Insert Link Card</h3><button type="button" onClick={() => setLinkCardDialog(false)} aria-label="Close Link Card dialog">×</button></div>
+        <label>Title<input required value={linkCardTitle} onChange={(event) => setLinkCardTitle(event.target.value)} /></label>
+        <label>Description <span>(optional)</span><textarea rows={3} value={linkCardDescription} onChange={(event) => setLinkCardDescription(event.target.value)} /></label>
+        <label>URL<input required value={linkCardHref} onChange={(event) => setLinkCardHref(event.target.value)} placeholder="https://… or /path/" /></label>
+        {linkCardError && <p className="message error" role="alert">{linkCardError}</p>}
+        <div className="actions"><button type="button" onClick={() => setLinkCardDialog(false)}>Cancel</button><button className="primary" type="button" onClick={insertLinkCard}>Insert Link Card</button></div>
+      </div>}
     </div>
   );
 }
 
 function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange: (value: string) => void }) {
   const [segments, setSegments] = useState(() => splitBody(initialValue));
+  const [segmentSession, setSegmentSession] = useState(0);
   const segmentsRef = useRef(segments);
   const update = (id: number, content: string) => {
     const current = segmentsRef.current;
@@ -183,10 +213,19 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
     setSegments(next);
     onChange(next.map((segment) => segment.content).join(''));
   };
+  const finishLinkCardInsertion = () => {
+    const body = segmentsRef.current.map((segment) => segment.content).join('');
+    const ensured = ensureLinkCardImport(body);
+    const next = splitBody(ensured.content);
+    segmentsRef.current = next;
+    setSegments(next);
+    setSegmentSession((session) => session + 1);
+    onChange(ensured.content);
+  };
   return <div className="body-editor">
     {segments.map((segment) => segment.kind === 'protected'
-      ? <details className="protected-block" key={segment.id}><summary>Existing MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
-      : <RichTextEditor key={segment.id} initialValue={segment.content} onChange={(content) => update(segment.id, content)} />)}
+      ? <details className="protected-block" key={`${segmentSession}:${segment.id}`}><summary>Existing MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
+      : <RichTextEditor key={`${segmentSession}:${segment.id}`} initialValue={segment.content} onChange={(content) => update(segment.id, content)} onLinkCardInserted={finishLinkCardInsertion} />)}
   </div>;
 }
 

@@ -45,10 +45,11 @@ input, textarea, .area-selector select { width: 100%; padding: .7rem; border: 1p
 .structured-link-card { margin: 1rem 0; padding: 1rem; border: 2px solid #0e7490; border-radius: .5rem; background: #ecfeff; }
 .structured-link-card > strong { display: block; margin-bottom: .5rem; color: #155e75; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; }
 .structured-link-card label { margin: .65rem 0 0; }
-.image-picker { position: fixed; z-index: 20; inset: 5vh max(1rem, calc((100vw - 760px) / 2)); max-height: 90vh; padding: 1.25rem; overflow: auto; border: 1px solid #64748b; border-radius: .6rem; background: white; box-shadow: 0 20px 60px rgb(15 23 42 / 30%); }
-.image-picker-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-.image-picker-header h3 { margin: 0; }
-.image-picker-header button { padding: .25rem .6rem; border: 0; background: transparent; font-size: 1.5rem; }
+.image-picker, .link-card-dialog { position: fixed; z-index: 20; inset: 5vh max(1rem, calc((100vw - 760px) / 2)); max-height: 90vh; padding: 1.25rem; overflow: auto; border: 1px solid #64748b; border-radius: .6rem; background: white; box-shadow: 0 20px 60px rgb(15 23 42 / 30%); }
+.link-card-dialog { inset: 15vh max(1rem, calc((100vw - 560px) / 2)) auto; }
+.image-picker-header, .dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.image-picker-header h3, .dialog-header h3 { margin: 0; }
+.image-picker-header button, .dialog-header button { padding: .25rem .6rem; border: 0; background: transparent; font-size: 1.5rem; }
 .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: .6rem; max-height: 20rem; padding: .25rem; overflow: auto; border: 1px solid #cbd5e1; border-radius: .35rem; }
 .image-grid button { display: grid; align-content: start; gap: .35rem; min-width: 0; padding: .4rem; border: 2px solid transparent; border-radius: .35rem; background: #f8fafc; text-align: left; }
 .image-grid button.selected { border-color: #075985; background: #e0f2fe; }

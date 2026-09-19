@@ -5,7 +5,7 @@ import { Editor } from '@tiptap/core';
 import { parseHTML } from 'linkedom';
 import { splitBody } from '../src/components/editor-prototype/bodySegments.ts';
 import { richTextEditorOptions } from '../src/components/editor-prototype/richTextEditor.ts';
-import { parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor-prototype/linkCardMdx.ts';
+import { createLinkCardMdx, ensureLinkCardImport, LINK_CARD_IMPORT, parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor-prototype/linkCardMdx.ts';
 
 const { window } = parseHTML('<!doctype html><html><body></body></html>');
 Object.assign(globalThis, {
@@ -277,6 +277,68 @@ test('editing one LinkCard field preserves its formatting and other fields exact
   assert.equal(changed, `<LinkCard title='Keep title' description="New description" href='/keep-url' />`);
 });
 
+test('inserting a LinkCard uses the supported MDX syntax and reloads as an editable block', () => {
+  const fields = { title: 'Maps & more', description: 'Open the "catalog"', href: '/catalog/' };
+  const expected = '<LinkCard\n  title="Maps &amp; more"\n  href="/catalog/"\n  description="Open the &quot;catalog&quot;"\n/>';
+  assert.equal(createLinkCardMdx(fields), expected);
+
+  const opened = openEditor('Before\n\nAfter');
+  opened.editor.commands.setTextSelection(8);
+  assert.equal(opened.editor.commands.insertContent({ type: 'linkCardBlock', attrs: { ...fields, raw: createLinkCardMdx(fields) } }), true);
+  const saved = opened.editor.getMarkdown();
+  assert.match(saved, /Before[\s\S]*<LinkCard[\s\S]*Maps &amp; more[\s\S]*After/);
+  opened.editor.destroy();
+
+  const reloaded = openEditor(saved);
+  let position;
+  reloaded.editor.state.doc.descendants((node, pos) => { if (node.type.name === 'linkCardBlock') position = pos; });
+  assert.notEqual(position, undefined);
+  reloaded.editor.commands.setNodeSelection(position);
+  reloaded.editor.commands.updateAttributes('linkCardBlock', { title: 'Edited after reload' });
+  assert.match(reloaded.editor.getMarkdown(), /title="Edited after reload"/);
+  reloaded.editor.destroy();
+});
+
+test('LinkCard import is preserved when present and added once when absent', () => {
+  const existing = "import { Card, LinkCard } from '@astrojs/starlight/components';\nimport Other from './Other.astro';\n\nBody";
+  assert.deepEqual(ensureLinkCardImport(existing), { content: existing, added: false });
+
+  const without = "import Other from './Other.astro';\n\nBody";
+  const once = ensureLinkCardImport(without);
+  assert.equal(once.added, true);
+  assert.equal(once.content, `import Other from './Other.astro';\n${LINK_CARD_IMPORT}\n\nBody`);
+  const twice = ensureLinkCardImport(once.content);
+  assert.deepEqual(twice, { content: once.content, added: false });
+  assert.equal([...twice.content.matchAll(/import \{ LinkCard \}/g)].length, 1);
+});
+
+test('multiple inserted LinkCards remain separate structured nodes', () => {
+  const opened = openEditor('Start');
+  for (const fields of [
+    { title: 'One', description: '', href: '/one/' },
+    { title: 'Two', description: 'Second', href: '/two/' },
+  ]) {
+    assert.equal(opened.editor.commands.insertContentAt(opened.editor.state.selection.to, {
+      type: 'linkCardBlock', attrs: { ...fields, raw: createLinkCardMdx(fields) },
+    }), true);
+  }
+  assert.equal(opened.editor.getJSON().content?.filter((node) => node.type === 'linkCardBlock').length, 2);
+  assert.equal([...opened.editor.getMarkdown().matchAll(/<LinkCard\b/g)].length, 2);
+  opened.editor.destroy();
+});
+
+test('inserting LinkCards keeps unsupported MDX unchanged and creates isolated structured blocks', () => {
+  const original = "import Other from './Other.astro';\n\n<Card dynamic={value}>\nDo not change\n</Card>\n\nBefore";
+  const card = createLinkCardMdx({ title: 'One', description: '', href: '/one/' });
+  const first = ensureLinkCardImport(`${original}\n\n${card}\n`).content;
+  const second = ensureLinkCardImport(`${first}\n${createLinkCardMdx({ title: 'Two', description: 'Second', href: '/two/' })}\n`).content;
+  assert.equal([...second.matchAll(/import \{ LinkCard \}/g)].length, 1);
+  assert.match(second, /<Card dynamic=\{value\}>\nDo not change\n<\/Card>/);
+  const segments = splitBody(second);
+  assert.equal(segments.filter((segment) => segment.kind === 'structured').length, 2);
+  assert.ok(segments.some((segment) => segment.kind === 'protected' && segment.content.includes('Do not change')));
+});
+
 test('unsupported LinkCard variants remain unchanged read-only MDX', () => {
   for (const source of [
     '<LinkCard title={dynamicTitle} href="/example" />\n',
@@ -349,4 +411,5 @@ test('React integration has no live-content rehydration and remounts only for en
   assert.doesNotMatch(source, /commands\.setContent|setContent\s*\(/);
   assert.match(source, /<BodyEditor key=\{bodyEditorSession\} initialValue=\{project\.body\}/);
   assert.doesNotMatch(source, /<BodyEditor key=\{`\$\{project\.filename\}:\$\{project\.sha/);
+  assert.match(source, />Insert → Link Card<\/button>/);
 });

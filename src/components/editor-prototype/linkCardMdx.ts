@@ -1,6 +1,8 @@
 export type LinkCardFields = { title: string; href: string; description: string };
 export type ParsedLinkCard = LinkCardFields & { raw: string; descriptionPresent: boolean };
 
+export const LINK_CARD_IMPORT = "import { LinkCard } from '@astrojs/starlight/components';";
+
 type Attribute = { name: string; quote: string; value: string; valueStart: number; valueEnd: number };
 
 function decodeAttribute(value: string) {
@@ -10,6 +12,50 @@ function decodeAttribute(value: string) {
 function encodeAttribute(value: string, quote = '"') {
   const encoded = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return quote === '"' ? encoded.replace(/"/g, '&quot;') : encoded.replace(/'/g, '&apos;');
+}
+
+export function createLinkCardMdx(fields: LinkCardFields) {
+  const lines = [
+    '<LinkCard',
+    `  title="${encodeAttribute(fields.title)}"`,
+    `  href="${encodeAttribute(fields.href)}"`,
+  ];
+  if (fields.description) lines.push(`  description="${encodeAttribute(fields.description)}"`);
+  lines.push('/>');
+  return lines.join('\n');
+}
+
+function importsLinkCard(line: string) {
+  const match = line.match(/^\s*import\s+(.+?)\s+from\s+(['"])@astrojs\/starlight\/components\2\s*;?\s*$/);
+  const named = match?.[1].match(/\{([^}]*)\}/)?.[1];
+  return named?.split(',').some((binding) => /^LinkCard(?:\s+as\s+LinkCard)?$/.test(binding.trim())) || false;
+}
+
+export function ensureLinkCardImport(source: string) {
+  const lines = source.match(/[^\n]*\n|[^\n]+$/g) || [];
+  if (lines.some(importsLinkCard)) return { content: source, added: false };
+
+  const newline = source.includes('\r\n') ? '\r\n' : '\n';
+  let offset = 0;
+  let afterLastImport = -1;
+  for (const line of lines) {
+    offset += line.length;
+    if (/^\s*import\s/.test(line)) afterLastImport = offset;
+  }
+
+  if (afterLastImport >= 0) {
+    const before = source.slice(0, afterLastImport);
+    const separator = /\r?\n$/.test(before) ? '' : newline;
+    return {
+      content: `${before}${separator}${LINK_CARD_IMPORT}${newline}${source.slice(afterLastImport)}`,
+      added: true,
+    };
+  }
+
+  return {
+    content: source ? `${LINK_CARD_IMPORT}${newline}${newline}${source}` : `${LINK_CARD_IMPORT}${newline}`,
+    added: true,
+  };
 }
 
 function attributes(source: string): Attribute[] | null {
