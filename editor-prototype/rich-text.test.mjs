@@ -177,6 +177,32 @@ test('table commands create and change a Markdown-compatible table', () => {
   editor.destroy();
 });
 
+test('repository images parse visually and keep their Markdown reference after save and reload', () => {
+  const markdown = 'Before\n\n![A useful map](@images/maps/example.png)\n\nAfter';
+  const first = openEditor(markdown);
+  const image = first.editor.getJSON().content?.find((node) => node.type === 'image');
+  assert.equal(image?.attrs?.src, '@images/maps/example.png');
+  assert.equal(image?.attrs?.alt, 'A useful map');
+  assert.equal(first.editor.getMarkdown(), markdown);
+  const rendered = first.editor.view.dom.innerHTML;
+  assert.match(rendered, /src="\/api\/images\/file\/maps\/example\.png"/);
+  const saved = first.editor.getMarkdown();
+  first.editor.destroy();
+
+  const reloaded = openEditor(saved);
+  assert.equal(reloaded.editor.getMarkdown(), markdown);
+  assert.equal(reloaded.editor.getJSON().content?.find((node) => node.type === 'image')?.attrs?.alt, 'A useful map');
+  reloaded.editor.destroy();
+});
+
+test('inserting an image writes established @images Markdown syntax', () => {
+  const { editor } = openEditor('Before');
+  editor.commands.setTextSelection(editor.state.doc.content.size);
+  assert.equal(editor.commands.setImage({ src: '@images/uploaded-map.webp', alt: 'Uploaded map' }), true);
+  assert.match(editor.getMarkdown(), /!\[Uploaded map\]\(@images\/uploaded-map\.webp\)/);
+  editor.destroy();
+});
+
 test('opening another entry initializes a new document once', () => {
   const first = openEditor('First');
   type(first.editor, ' entry');
@@ -222,6 +248,13 @@ test('standalone MDX expressions and comments are preserved as read-only blocks'
   assert.equal(segments.map((segment) => segment.content).join(''), body);
   assert.equal(segments.filter((segment) => segment.kind === 'protected').length, 2);
   assert.match(segments.filter((segment) => segment.kind === 'protected').map((segment) => segment.content).join(''), /do not rewrite[\s\S]*items\.map/);
+});
+
+test('Astro Image components and imported image expressions remain read-only', () => {
+  const body = `import { Image } from 'astro:assets';\nimport map from '@images/map.png';\n\nBefore\n\n<Image src={map} alt="Map" />\n\nAfter`;
+  const segments = splitBody(body);
+  assert.equal(segments.map((segment) => segment.content).join(''), body);
+  assert.match(segments.filter((segment) => segment.kind === 'protected').map((segment) => segment.content).join(''), /import \{ Image \}[\s\S]*<Image src=\{map\}/);
 });
 
 test('React integration has no live-content rehydration and remounts only for entry sessions', async () => {

@@ -1,5 +1,6 @@
 import { newProject, parseContent, serializeContent } from '../../editor-prototype/content.mjs';
 import { CONTENT_AREAS, contentArea, contentDirectory, encodeContentPath, validateContentPath } from '../../editor-prototype/contentAreas.mjs';
+import { IMAGE_DIRECTORY, imageContentType, validateImagePath, validateImageUpload } from '../../editor-prototype/imageAssets.mjs';
 const SESSION_COOKIE = 'editor_session';
 const STATE_COOKIE = 'editor_oauth_state';
 const VERIFIER_COOKIE = 'editor_oauth_verifier';
@@ -78,6 +79,15 @@ async function githubRequest(token, path, options = {}) {
   return response.status === 204 ? null : response.json();
 }
 
+async function githubRawRequest(token, path) {
+  const response = await fetch(`https://api.github.com${path}`, { headers: { Accept: 'application/vnd.github.raw+json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'geobtaa-project-editor-staging' } });
+  if (!response.ok) {
+    const detail = await response.json().catch(() => ({}));
+    throw new HttpError(response.status, detail.message || `GitHub request failed (${response.status}).`);
+  }
+  return new Uint8Array(await response.arrayBuffer());
+}
+
 function repoSettings(env) {
   return {
     owner: env.GITHUB_OWNER || 'geobtaa',
@@ -105,14 +115,14 @@ function createGitHubClient(env, token) {
       if (error.status !== 422 || !(await branchExists())) throw error;
     }
   }
-  async function listDirectory(directory, ref, relative = '') {
+  async function listDirectory(directory, ref, relative = '', pattern = /\.mdx?$/) {
     const path = relative ? `${directory}/${relative}` : directory;
     const files = await request(`/contents/${encodeContentPath(path)}?ref=${encodeURIComponent(ref)}`);
     const output = [];
     for (const file of files) {
       const name = relative ? `${relative}/${file.name}` : file.name;
-      if (file.type === 'dir') output.push(...await listDirectory(directory, ref, name));
-      else if (/\.mdx?$/.test(file.name)) output.push({ name, path: file.path, sha: file.sha });
+      if (file.type === 'dir') output.push(...await listDirectory(directory, ref, name, pattern));
+      else if (pattern.test(file.name)) output.push({ name, path: file.path, sha: file.sha, size: file.size });
     }
     return output;
   }
@@ -136,6 +146,28 @@ function createGitHubClient(env, token) {
         return { sha: result.content.sha, commitSha: result.commit.sha, branch };
       } catch (error) {
         if (sha && (error.status === 409 || error.status === 422)) throw new GitHubConflictError('This page has changed in GitHub since you opened it. Reload the latest version before saving.');
+        throw error;
+      }
+    },
+    async listImages() {
+      const ref = await readRef();
+      return { branch: ref, images: await listDirectory(IMAGE_DIRECTORY, ref, '', /\.(?:png|jpe?g|gif|webp)$/i) };
+    },
+    async getImage(path) {
+      const ref = await readRef();
+      const bytes = await githubRawRequest(token, `${api}/contents/${encodeContentPath(`${IMAGE_DIRECTORY}/${path}`)}?ref=${encodeURIComponent(ref)}`);
+      return { bytes, branch: ref };
+    },
+    async uploadImage({ filename, bytes }) {
+      await ensureBranch();
+      try {
+        const result = await request(`/contents/${encodeContentPath(`${IMAGE_DIRECTORY}/${filename}`)}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: `Upload editor image: ${filename}`, content: bytesToBase64(bytes), branch }),
+        });
+        return { path: filename, sha: result.content.sha, commitSha: result.commit.sha, branch };
+      } catch (error) {
+        if (error.status === 409 || error.status === 422) throw new GitHubConflictError('An image with this filename already exists. Rename the file and try again.');
         throw error;
       }
     },
@@ -219,6 +251,24 @@ async function contentApi(request, env, pathname) {
   throw new HttpError(405, 'Method not allowed.');
 }
 
+async function imageApi(request, env, pathname) {
+  const session = await authenticatedSession(request, env);
+  const github = createGitHubClient(env, session.token);
+  if (request.method === 'GET' && pathname === '/api/images') return json(await github.listImages());
+  if (request.method === 'GET' && pathname.startsWith('/api/images/file/')) {
+    const path = validateImagePath(pathname.slice('/api/images/file/'.length));
+    const image = await github.getImage(path);
+    return new Response(image.bytes, { headers: { 'Content-Type': imageContentType(path), 'Cache-Control': 'private, max-age=300', 'X-Content-Type-Options': 'nosniff' } });
+  }
+  if (request.method === 'POST' && pathname === '/api/images') {
+    const input = await request.json();
+    const bytes = base64ToBytes(String(input.content || ''));
+    const filename = validateImageUpload({ filename: input.filename, mimeType: input.mimeType, bytes });
+    return json(await github.uploadImage({ filename, bytes }), 201);
+  }
+  throw new HttpError(404, 'Not found.');
+}
+
 export async function onRequest({ request, env }) {
   const url = new URL(request.url);
   try {
@@ -232,6 +282,7 @@ export async function onRequest({ request, env }) {
       const session = await openSession(parseCookies(request)[SESSION_COOKIE] || '', env.SESSION_SECRET);
       return json(session ? { authenticated: true, login: session.login } : { authenticated: false });
     }
+    if (url.pathname === '/api/images' || url.pathname.startsWith('/api/images/file/')) return await imageApi(request, env, url.pathname);
     return await contentApi(request, env, url.pathname);
   } catch (error) {
     const status = error instanceof GitHubConflictError ? 409 : (error.status || 500);

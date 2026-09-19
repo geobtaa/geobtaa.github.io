@@ -1,4 +1,5 @@
 import { contentDirectory, encodeContentPath } from './contentAreas.mjs';
+import { IMAGE_DIRECTORY } from './imageAssets.mjs';
 
 export class GitHubConflictError extends Error {}
 
@@ -29,6 +30,16 @@ export function createGitHubClient({
     }
     return response.status === 204 ? null : response.json();
   }
+  async function requestRaw(url) {
+    const response = await fetchImpl(url, { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } });
+    if (!response.ok) {
+      const detail = await response.json().catch(() => ({}));
+      const error = new Error(detail.message || `GitHub request failed (${response.status}).`);
+      error.status = response.status;
+      throw error;
+    }
+    return Buffer.from(await response.arrayBuffer());
+  }
 
   async function branchExists() {
     try {
@@ -58,14 +69,14 @@ export function createGitHubClient({
     }
   }
 
-  async function listDirectory(directory, ref, relative = '') {
+  async function listDirectory(directory, ref, relative = '', pattern = /\.mdx?$/) {
     const path = relative ? `${directory}/${relative}` : directory;
     const files = await request(`${api}/contents/${encodeContentPath(path)}?ref=${encodeURIComponent(ref)}`);
     const output = [];
     for (const file of files) {
       const name = relative ? `${relative}/${file.name}` : file.name;
-      if (file.type === 'dir') output.push(...await listDirectory(directory, ref, name));
-      else if (/\.mdx?$/.test(file.name)) output.push({ name, path: file.path, sha: file.sha });
+      if (file.type === 'dir') output.push(...await listDirectory(directory, ref, name, pattern));
+      else if (pattern.test(file.name)) output.push({ name, path: file.path, sha: file.sha, size: file.size });
     }
     return output;
   }
@@ -115,5 +126,27 @@ export function createGitHubClient({
     },
     getProject(filename) { return this.getContent('projects', filename); },
     saveProject(input) { return this.saveContent({ area: 'projects', ...input }); },
+    async listImages() {
+      const ref = await readRef();
+      return { branch: ref, images: await listDirectory(IMAGE_DIRECTORY, ref, '', /\.(?:png|jpe?g|gif|webp)$/i) };
+    },
+    async getImage(path) {
+      const ref = await readRef();
+      const content = await requestRaw(`${api}/contents/${encodeContentPath(`${IMAGE_DIRECTORY}/${path}`)}?ref=${encodeURIComponent(ref)}`);
+      return { path, content, branch: ref };
+    },
+    async uploadImage({ filename, bytes }) {
+      await ensureBranch();
+      try {
+        const result = await request(`${api}/contents/${encodeContentPath(`${IMAGE_DIRECTORY}/${filename}`)}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: `Upload editor image: ${filename}`, content: Buffer.from(bytes).toString('base64'), branch }),
+        });
+        return { path: filename, sha: result.content.sha, commitSha: result.commit.sha, branch };
+      } catch (error) {
+        if (error.status === 409 || error.status === 422) throw new GitHubConflictError('An image with this filename already exists. Rename the file and try again.');
+        throw error;
+      }
+    },
   };
 }

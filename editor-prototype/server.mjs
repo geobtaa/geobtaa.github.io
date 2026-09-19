@@ -2,6 +2,7 @@ import http from 'node:http';
 import { createGitHubClient, GitHubConflictError } from './github.mjs';
 import { newProject, parseContent, serializeContent } from './content.mjs';
 import { CONTENT_AREAS, contentArea, validateContentPath } from './contentAreas.mjs';
+import { imageContentType, validateImagePath, validateImageUpload } from './imageAssets.mjs';
 
 const host = '127.0.0.1';
 const port = Number(process.env.PROJECT_EDITOR_PORT || 8787);
@@ -35,7 +36,7 @@ async function readJson(request) {
   let raw = '';
   for await (const chunk of request) {
     raw += chunk;
-    if (raw.length > 2_000_000) throw Object.assign(new Error('Request is too large.'), { status: 413 });
+    if (raw.length > 7_100_000) throw Object.assign(new Error('Request is too large.'), { status: 413 });
   }
   return JSON.parse(raw || '{}');
 }
@@ -46,7 +47,7 @@ const server = http.createServer(async (request, response) => {
   if (request.method === 'OPTIONS') {
     response.writeHead(204, {
       'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
       Vary: 'Origin',
     });
@@ -60,6 +61,21 @@ const server = http.createServer(async (request, response) => {
     }
     if (request.method === 'POST' && url.pathname === '/api/auth/logout') {
       return respond(response, 200, { ok: true }, origin);
+    }
+    if (request.method === 'GET' && url.pathname === '/api/images') {
+      return respond(response, 200, await github.listImages(), origin);
+    }
+    if (request.method === 'GET' && url.pathname.startsWith('/api/images/file/')) {
+      const path = validateImagePath(url.pathname.slice('/api/images/file/'.length));
+      const image = await github.getImage(path);
+      response.writeHead(200, { 'Content-Type': imageContentType(path), 'Cache-Control': 'private, max-age=300', ...(origin ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {}) });
+      return response.end(image.content);
+    }
+    if (request.method === 'POST' && url.pathname === '/api/images') {
+      const input = await readJson(request);
+      const bytes = Buffer.from(String(input.content || ''), 'base64');
+      const filename = validateImageUpload({ filename: input.filename, mimeType: input.mimeType, bytes });
+      return respond(response, 201, await github.uploadImage({ filename, bytes }), origin);
     }
     if (url.pathname === '/api/content') return respond(response, 200, { areas: CONTENT_AREAS }, origin);
     const route = contentRoute(url.pathname);

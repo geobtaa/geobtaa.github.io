@@ -8,6 +8,7 @@ const API = import.meta.env.PUBLIC_PROJECT_EDITOR_API_URL || (import.meta.env.DE
 const CONFLICT = 'This page has changed in GitHub since you opened it. Reload the latest version before saving.';
 
 type ProjectListItem = { name: string; path: string; sha: string };
+type ImageListItem = { name: string; path: string; sha: string; size?: number };
 type AreaName = keyof typeof CONTENT_AREAS;
 type Project = {
   filename: string;
@@ -32,7 +33,15 @@ function slugify(value: string) {
 }
 
 function RichTextEditor({ initialValue, onChange }: { initialValue: string; onChange: (value: string) => void }) {
-  const editor = useEditor({ ...richTextEditorOptions(initialValue, onChange), immediatelyRender: false });
+  const editor = useEditor({ ...richTextEditorOptions(initialValue, onChange, API), immediatelyRender: false });
+  const [imagePicker, setImagePicker] = useState(false);
+  const [images, setImages] = useState<ImageListItem[]>([]);
+  const [imageQuery, setImageQuery] = useState('');
+  const [selectedImage, setSelectedImage] = useState('');
+  const [imageAlt, setImageAlt] = useState('');
+  const [decorative, setDecorative] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
+  const [imageError, setImageError] = useState('');
   const active = useEditorState({
     editor,
     selector: ({ editor }) => {
@@ -69,6 +78,42 @@ function RichTextEditor({ initialValue, onChange }: { initialValue: string; onCh
     const level = Number(value.replace('heading-', '')) as 1 | 2 | 3 | 4 | 5 | 6;
     return editor.chain().focus().setHeading({ level }).run();
   };
+  const imageUrl = (path: string) => `${API}/api/images/file/${path.split('/').map(encodeURIComponent).join('/')}`;
+  const openImagePicker = async () => {
+    setImagePicker(true); setImageError('');
+    if (images.length) return;
+    setImageBusy(true);
+    try {
+      const data = await api<{ images: ImageListItem[] }>('/api/images');
+      setImages(data.images.sort((a, b) => a.name.localeCompare(b.name)));
+    } catch (err) { setImageError((err as Error).message); }
+    finally { setImageBusy(false); }
+  };
+  const uploadImage = async (file?: File) => {
+    if (!file) return;
+    setImageBusy(true); setImageError('');
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+      const uploaded = await api<ImageListItem & { commitSha: string }>('/api/images', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, mimeType: file.type, content: dataUrl.slice(dataUrl.indexOf(',') + 1) }),
+      });
+      setImages((current) => [...current.filter((image) => image.name !== uploaded.path), { ...uploaded, name: uploaded.path }].sort((a, b) => a.name.localeCompare(b.name)));
+      setSelectedImage(uploaded.path); setImageQuery(uploaded.path);
+    } catch (err) { setImageError((err as Error).message); }
+    finally { setImageBusy(false); }
+  };
+  const insertImage = () => {
+    if (!selectedImage) return setImageError('Select or upload an image.');
+    if (!decorative && !imageAlt.trim()) return setImageError('Enter alt text, or mark the image as decorative.');
+    editor.chain().focus().setImage({ src: `@images/${selectedImage}`, alt: decorative ? '' : imageAlt.trim() }).run();
+    setImagePicker(false); setSelectedImage(''); setImageAlt(''); setDecorative(false); setImageQuery(''); setImageError('');
+  };
+  const visibleImages = images.filter((image) => image.name.toLowerCase().includes(imageQuery.toLowerCase()));
 
   return (
     <div className="rich-editor">
@@ -97,6 +142,7 @@ function RichTextEditor({ initialValue, onChange }: { initialValue: string; onCh
         <button type="button" aria-pressed={active?.codeBlock} onClick={() => editor.chain().focus().toggleCodeBlock().run()}>Code block</button>
         <button type="button" onClick={() => editor.chain().focus().setHorizontalRule().run()}>Divider</button>
         <button type="button" onClick={() => editor.chain().focus().setHardBreak().run()}>Line break</button>
+        <button type="button" onClick={() => void openImagePicker()}>Insert image</button>
         <button type="button" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>Insert table</button>
         {active?.table && <>
           <span className="toolbar-separator" aria-hidden="true" />
@@ -108,6 +154,17 @@ function RichTextEditor({ initialValue, onChange }: { initialValue: string; onCh
         </>}
       </div>
       <EditorContent editor={editor} />
+      {imagePicker && <div className="image-picker" role="dialog" aria-modal="true" aria-labelledby="image-picker-title">
+        <div className="image-picker-header"><h3 id="image-picker-title">Insert repository image</h3><button type="button" onClick={() => setImagePicker(false)} aria-label="Close image picker">×</button></div>
+        <label>Upload a new image <span>PNG, JPEG, GIF, or WebP; maximum 5 MB</span><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" disabled={imageBusy} onChange={(event) => void uploadImage(event.target.files?.[0])} /></label>
+        <label>Find an existing image<input type="search" value={imageQuery} onChange={(event) => setImageQuery(event.target.value)} placeholder="Filter by filename" /></label>
+        {imageBusy && <p>Loading images…</p>}
+        {!imageBusy && <div className="image-grid">{visibleImages.map((image) => <button type="button" className={selectedImage === image.name ? 'selected' : ''} key={image.path} onClick={() => setSelectedImage(image.name)}><img loading="lazy" src={imageUrl(image.name)} alt="" /><span>{image.name}</span></button>)}</div>}
+        <label>Alt text<input value={imageAlt} disabled={decorative} onChange={(event) => setImageAlt(event.target.value)} /></label>
+        <label className="checkbox"><input type="checkbox" checked={decorative} onChange={(event) => setDecorative(event.target.checked)} /> This image is decorative</label>
+        {imageError && <p className="message error" role="alert">{imageError}</p>}
+        <div className="actions"><button type="button" onClick={() => setImagePicker(false)}>Cancel</button><button className="primary" type="button" disabled={imageBusy} onClick={insertImage}>Insert image</button></div>
+      </div>}
     </div>
   );
 }

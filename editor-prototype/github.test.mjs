@@ -102,3 +102,20 @@ test('an enabled non-Project entry saves and reloads in its own directory', asyn
   const write = requests.find((item) => item.options.method === 'PUT');
   assert.equal(JSON.parse(write.options.body).message, 'Update library: report.mdx');
 });
+
+test('uploads an image as a new custom-cms GitHub file without a replacement SHA', async () => {
+  const requests = [];
+  const client = createGitHubClient({ token: 'server-only', fetchImpl: async (url, options = {}) => {
+    requests.push({ url, options });
+    if (url.includes('/git/ref/heads/custom-cms')) return response(200, { object: { sha: 'branch-sha' } });
+    if (url.includes('/contents/src/assets/images/new-map.png') && options.method === 'PUT') return response(200, { content: { sha: 'image-sha' }, commit: { sha: 'image-commit' } });
+    return response(500, { message: `Unhandled ${options.method || 'GET'} ${url}` });
+  }});
+  const result = await client.uploadImage({ filename: 'new-map.png', bytes: Uint8Array.from([1, 2, 3]) });
+  assert.deepEqual(result, { path: 'new-map.png', sha: 'image-sha', commitSha: 'image-commit', branch: 'custom-cms' });
+  const write = requests.find((item) => item.options.method === 'PUT');
+  const payload = JSON.parse(write.options.body);
+  assert.equal(payload.branch, 'custom-cms');
+  assert.equal(payload.sha, undefined);
+  assert.equal(Buffer.from(payload.content, 'base64').toString('hex'), '010203');
+});
