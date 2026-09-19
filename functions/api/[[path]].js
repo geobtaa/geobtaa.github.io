@@ -83,8 +83,8 @@ function repoSettings(env) {
   return {
     owner: env.GITHUB_OWNER || 'geobtaa',
     repo: env.GITHUB_REPO || 'geobtaa.github.io',
-    branch: env.GITHUB_BRANCH || 'editor-prototype',
-    baseBranch: env.GITHUB_BASE_BRANCH || 'main',
+    branch: 'custom-cms',
+    baseBranch: 'main',
   };
 }
 

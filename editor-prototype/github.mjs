@@ -6,7 +6,7 @@ export function createGitHubClient({
   token,
   owner = 'geobtaa',
   repo = 'geobtaa.github.io',
-  branch = 'editor-prototype',
+  branch = 'custom-cms',
   baseBranch = 'main',
   fetchImpl = fetch,
 }) {

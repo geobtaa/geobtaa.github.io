@@ -134,7 +134,7 @@ function BodyEditor({ value, onChange }: { value: string; onChange: (value: stri
 export default function ProjectEditor() {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [project, setProject] = useState<Project | null>(null);
-  const [branch, setBranch] = useState('editor-prototype');
+  const [branch, setBranch] = useState('custom-cms');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
@@ -207,8 +207,8 @@ export default function ProjectEditor() {
         }),
       });
       setProject({ ...project, ...saved, filename, draft: !publish });
-      setBranch(saved.branch || 'editor-prototype');
-      setNotice(`${publish ? 'Published' : 'Draft saved'} on editor-prototype (commit ${saved.commitSha.slice(0, 7)}).`);
+      setBranch(saved.branch || 'custom-cms');
+      setNotice(`${publish ? 'Published' : 'Draft saved'} on custom-cms (commit ${saved.commitSha.slice(0, 7)}).`);
       await loadList();
     } catch (err) {
       const message = (err as Error).message;

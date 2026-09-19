@@ -20,7 +20,7 @@ test('sends the loaded SHA and reports a stale-SHA conflict', async () => {
   );
   const payload = JSON.parse(requests.at(-1).options.body);
   assert.equal(payload.sha, 'loaded-sha');
-  assert.equal(payload.branch, 'editor-prototype');
+  assert.equal(payload.branch, 'custom-cms');
 });
 
 test('draft, reload, publish, create, and stale-SHA workflow', async () => {
@@ -32,7 +32,7 @@ test('draft, reload, publish, create, and stale-SHA workflow', async () => {
   const fakeFetch = async (url, options = {}) => {
     const method = options.method || 'GET';
     const pathname = new URL(url).pathname;
-    if (pathname.endsWith('/git/ref/heads/editor-prototype')) return branchExists ? response(200, { object: { sha: 'branch-head' } }) : response(404, { message: 'Not Found' });
+    if (pathname.endsWith('/git/ref/heads/custom-cms')) return branchExists ? response(200, { object: { sha: 'branch-head' } }) : response(404, { message: 'Not Found' });
     if (pathname.endsWith('/git/ref/heads/main')) return response(200, { object: { sha: 'main-head' } });
     if (pathname.endsWith('/git/refs') && method === 'POST') { branchExists = true; branchFiles = new Map(mainFiles); return response(201, { object: { sha: 'branch-head' } }); }
     const contentsAt = pathname.indexOf('/contents/src/content/docs/projects');

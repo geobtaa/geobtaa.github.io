@@ -1,6 +1,6 @@
 # Project editor prototype
 
-This isolated prototype is available at `/editor/`. It edits only files in `src/content/docs/projects` and writes them through the GitHub Contents API to the `editor-prototype` branch. Decap `/admin` is unchanged.
+This isolated prototype is available at `/editor/`. It edits only files in `src/content/docs/projects` and writes them through the GitHub Contents API directly to the `custom-cms` staging branch. Decap `/admin` is unchanged.
 
 ## Local setup
 
@@ -50,8 +50,8 @@ Set these runtime variables/secrets for the Pages production environment:
 | `SESSION_SECRET` | encrypted secret | at least 32 random characters; for example, `openssl rand -base64 32` |
 | `ALLOWED_GITHUB_USERS` | variable | recommended comma-separated GitHub logins |
 
-Optional variables are `GITHUB_OWNER`, `GITHUB_REPO`, `GITHUB_BRANCH`, and `GITHUB_BASE_BRANCH`; defaults are `geobtaa`, `geobtaa.github.io`, `editor-prototype`, and `main`.
+Optional hosted variables are `GITHUB_OWNER` and `GITHUB_REPO`; their defaults are `geobtaa` and `geobtaa.github.io`. Local equivalents are `PROJECT_EDITOR_OWNER` and `PROJECT_EDITOR_REPO`. The staging content branch is intentionally fixed to `custom-cms` so a stale Cloudflare variable cannot redirect writes elsewhere.
 
-If `editor-prototype` does not exist, reads initially fall back to `main`; the first save creates the branch immediately before committing. Every update includes the blob SHA loaded by the editor. GitHub 409/422 responses are reported as conflicts and are never retried as overwrites.
+The hosted editor reads from and commits directly to `custom-cms`, so each save triggers the branch-connected Cloudflare Pages deployment. Every update includes the blob SHA loaded by the editor. GitHub 409/422 responses are reported as conflicts and are never retried as overwrites.
 
 The existing Decap Worker at `decap-auth.geobtaa.workers.dev` uses a different GitHub OAuth callback and returns credentials in the protocol expected by Decap. Its source is not in this repository, so it is not reused. No `public/admin` files or `config.yml` changes are required.
