@@ -1,7 +1,7 @@
 import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import { Markdown } from '@tiptap/markdown';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { splitBody } from './bodySegments';
+import { richTextEditorOptions } from './richTextEditor';
 
 const API = import.meta.env.PUBLIC_PROJECT_EDITOR_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8787' : '');
 const CONFLICT = 'This page has changed in GitHub since you opened it. Reload the latest version before saving.';
@@ -17,7 +17,6 @@ type Project = {
   body: string;
   branch?: string;
 };
-type BodySegment = { id: number; kind: 'markdown' | 'protected'; content: string };
 
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API}${path}`, options);
@@ -30,61 +29,8 @@ function slugify(value: string) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-function splitBody(body: string): BodySegment[] {
-  const lines = body.match(/[^\n]*\n|[^\n]+$/g) || [];
-  const segments: BodySegment[] = [];
-  let markdown = '';
-  const push = (kind: BodySegment['kind'], content: string) => {
-    if (!content) return;
-    const previous = segments.at(-1);
-    if (previous?.kind === kind) previous.content += content;
-    else segments.push({ id: segments.length, kind, content });
-  };
-  const flushMarkdown = () => { push('markdown', markdown); markdown = ''; };
-
-  for (let index = 0; index < lines.length;) {
-    const line = lines[index];
-    if (/^\s*(import|export)\s/.test(line)) {
-      flushMarkdown(); push('protected', line); index += 1; continue;
-    }
-    if (/^\s*:::/.test(line)) {
-      flushMarkdown(); let block = line; index += 1;
-      while (index < lines.length) { block += lines[index]; if (/^\s*:::\s*$/.test(lines[index])) { index += 1; break; } index += 1; }
-      push('protected', block); continue;
-    }
-    const tag = line.match(/<([A-Za-z][\w.-]*)\b/);
-    if (tag && (/^\s*</.test(line) || /^[A-Z]/.test(tag[1]))) {
-      flushMarkdown(); let block = line; index += 1;
-      const closing = new RegExp(`</${tag[1]}\\s*>`);
-      if (!line.includes('/>') && !closing.test(line)) {
-        const startsBlock = line.includes('>');
-        while (index < lines.length) {
-          block += lines[index];
-          const done = startsBlock ? closing.test(lines[index]) : lines[index].includes('/>');
-          index += 1;
-          if (done) break;
-        }
-      }
-      push('protected', block); continue;
-    }
-    markdown += line; index += 1;
-  }
-  flushMarkdown();
-  return segments.length ? segments : [{ id: 0, kind: 'markdown', content: '' }];
-}
-
-function RichTextEditor({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  const editor = useEditor({
-    extensions: [StarterKit.configure({ link: { openOnClick: false } }), Markdown],
-    content: value,
-    contentType: 'markdown',
-    immediatelyRender: false,
-    onUpdate: ({ editor }) => onChange(editor.getMarkdown()),
-  });
-
-  useEffect(() => {
-    if (editor && editor.getMarkdown() !== value) editor.commands.setContent(value, { contentType: 'markdown' });
-  }, [editor, value]);
+function RichTextEditor({ initialValue, onChange }: { initialValue: string; onChange: (value: string) => void }) {
+  const editor = useEditor({ ...richTextEditorOptions(initialValue, onChange), immediatelyRender: false });
 
   if (!editor) return null;
   const link = () => {
@@ -111,23 +57,24 @@ function RichTextEditor({ value, onChange }: { value: string; onChange: (value: 
   );
 }
 
-function BodyEditor({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  const [segments, setSegments] = useState(() => splitBody(value));
+function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange: (value: string) => void }) {
+  const [segments, setSegments] = useState(() => splitBody(initialValue));
+  const segmentsRef = useRef(segments);
   const update = (id: number, content: string) => {
-    setSegments((current) => {
-      const previous = current.find((segment) => segment.id === id)?.content || '';
-      const leading = previous.match(/^(?:\r?\n)+/)?.[0] || '';
-      const trailing = previous.match(/(?:\r?\n)+$/)?.[0] || '';
-      const bounded = `${content.startsWith('\n') ? '' : leading}${content}${content.endsWith('\n') ? '' : trailing}`;
-      const next = current.map((segment) => segment.id === id ? { ...segment, content: bounded } : segment);
-      onChange(next.map((segment) => segment.content).join(''));
-      return next;
-    });
+    const current = segmentsRef.current;
+    const previous = current.find((segment) => segment.id === id)?.content || '';
+    const leading = previous.match(/^(?:\r?\n)+/)?.[0] || '';
+    const trailing = previous.match(/(?:\r?\n)+$/)?.[0] || '';
+    const bounded = `${content.startsWith('\n') ? '' : leading}${content}${content.endsWith('\n') ? '' : trailing}`;
+    const next = current.map((segment) => segment.id === id ? { ...segment, content: bounded } : segment);
+    segmentsRef.current = next;
+    setSegments(next);
+    onChange(next.map((segment) => segment.content).join(''));
   };
   return <div className="body-editor">
     {segments.map((segment) => segment.kind === 'protected'
       ? <details className="protected-block" key={segment.id}><summary>Existing MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
-      : <RichTextEditor key={segment.id} value={segment.content} onChange={(content) => update(segment.id, content)} />)}
+      : <RichTextEditor key={segment.id} initialValue={segment.content} onChange={(content) => update(segment.id, content)} />)}
   </div>;
 }
 
@@ -139,6 +86,7 @@ export default function ProjectEditor() {
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [viewer, setViewer] = useState<string | null | undefined>(undefined);
+  const [bodyEditorSession, setBodyEditorSession] = useState(0);
 
   const sortedProjects = useMemo(() => [...projects].sort((a, b) => a.name.localeCompare(b.name)), [projects]);
 
@@ -177,7 +125,10 @@ export default function ProjectEditor() {
 
   const open = async (filename: string) => {
     setBusy(true); setError(''); setNotice('');
-    try { setProject(await api<Project>(`/api/projects/${encodeURIComponent(filename)}`)); }
+    try {
+      setProject(await api<Project>(`/api/projects/${encodeURIComponent(filename)}`));
+      setBodyEditorSession((session) => session + 1);
+    }
     catch (err) { setError((err as Error).message); }
     finally { setBusy(false); }
   };
@@ -185,6 +136,7 @@ export default function ProjectEditor() {
   const create = () => {
     setError(''); setNotice('');
     setProject({ filename: '', content: '', title: '', description: '', draft: true, body: '' });
+    setBodyEditorSession((session) => session + 1);
   };
 
   const save = async (publish: boolean) => {
@@ -236,7 +188,7 @@ export default function ProjectEditor() {
         <label>Title<input required value={project.title} onChange={(event) => setProject({ ...project, title: event.target.value })} /></label>
         <label>Description<textarea required rows={3} value={project.description} onChange={(event) => setProject({ ...project, description: event.target.value })} /></label>
         <label>Body</label>
-        <BodyEditor key={`${project.filename}:${project.sha || 'new'}`} value={project.body} onChange={(body) => setProject((current) => current ? { ...current, body } : current)} />
+        <BodyEditor key={bodyEditorSession} initialValue={project.body} onChange={(body) => setProject((current) => current ? { ...current, body } : current)} />
         <label className="checkbox"><input type="checkbox" checked={project.draft} onChange={(event) => setProject({ ...project, draft: event.target.checked })} /> Hide from site</label>
         <div className="actions"><button disabled={busy} type="button" onClick={() => save(false)}>Save draft</button><button disabled={busy} className="primary" type="button" onClick={() => save(true)}>Publish</button></div>
       </form>
