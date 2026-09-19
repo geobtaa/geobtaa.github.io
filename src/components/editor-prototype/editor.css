@@ -1,7 +1,7 @@
 :root { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #1e293b; background: #f8fafc; }
 * { box-sizing: border-box; }
 body { margin: 0; }
-button, input, textarea { font: inherit; }
+button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
 .editor-shell { width: min(820px, calc(100% - 2rem)); margin: 3rem auto; padding: 2rem; background: white; border: 1px solid #dbe3ec; border-radius: .75rem; box-shadow: 0 12px 36px rgb(15 23 42 / 8%); }
 h1 { margin: .2rem 0 1rem; }
@@ -18,7 +18,7 @@ input, textarea { width: 100%; padding: .7rem; border: 1px solid #94a3b8; border
 .checkbox input { width: auto; }
 .toolbar { display: flex; flex-wrap: wrap; gap: .35rem; padding: .5rem; background: #f1f5f9; border-bottom: 1px solid #cbd5e1; }
 .toolbar-separator { width: 1px; margin: .2rem .15rem; background: #94a3b8; }
-.toolbar button, .actions button, .primary, .back, .button { padding: .55rem .75rem; border: 1px solid #94a3b8; border-radius: .35rem; background: white; color: #0f172a; }
+.toolbar button, .toolbar select, .actions button, .primary, .back, .button { padding: .55rem .75rem; border: 1px solid #94a3b8; border-radius: .35rem; background: white; color: #0f172a; }
 .button { display: inline-block; text-decoration: none; }
 .link-button { padding: 0; border: 0; background: transparent; color: #075985; text-decoration: underline; }
 .toolbar button[aria-pressed="true"] { background: #cbd5e1; }
@@ -36,9 +36,15 @@ input, textarea { width: 100%; padding: .7rem; border: 1px solid #94a3b8; border
 .tiptap .selectedCell { background: #e0f2fe; }
 .tiptap th > :first-child, .tiptap td > :first-child { margin-top: 0; }
 .tiptap th > :last-child, .tiptap td > :last-child { margin-bottom: 0; }
+.tiptap blockquote { margin: 1rem 0; padding-left: 1rem; border-left: .25rem solid #94a3b8; color: #475569; }
+.tiptap pre { padding: .85rem 1rem; overflow-x: auto; border-radius: .35rem; background: #0f172a; color: #f8fafc; }
+.tiptap :not(pre) > code { padding: .1rem .25rem; border-radius: .2rem; background: #e2e8f0; }
+.tiptap hr { margin: 1.5rem 0; border: 0; border-top: 1px solid #94a3b8; }
 .message { padding: .8rem 1rem; border-radius: .35rem; }
 .error { color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; }
 .success { color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; }
 .back { margin-bottom: 1rem; border: 0; padding-left: 0; color: #075985; }
-button:disabled { cursor: wait; opacity: .55; }
+.actions button:disabled { cursor: wait; }
+.toolbar button:disabled { cursor: not-allowed; }
+button:disabled { opacity: .55; }
 code { font-size: .9em; }

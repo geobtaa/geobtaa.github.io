@@ -33,11 +33,25 @@ function RichTextEditor({ initialValue, onChange }: { initialValue: string; onCh
   const editor = useEditor({ ...richTextEditorOptions(initialValue, onChange), immediatelyRender: false });
   const active = useEditorState({
     editor,
-    selector: ({ editor }) => ({
-      bold: editor?.isActive('bold') ?? false,
-      italic: editor?.isActive('italic') ?? false,
-      table: editor?.isActive('table') ?? false,
-    }),
+    selector: ({ editor }) => {
+      const headingLevel = ([1, 2, 3, 4, 5, 6] as const).find((level) => editor?.isActive('heading', { level }));
+      return {
+        textStyle: headingLevel ? `heading-${headingLevel}` : 'paragraph',
+        bold: editor?.isActive('bold') ?? false,
+        italic: editor?.isActive('italic') ?? false,
+        underline: editor?.isActive('underline') ?? false,
+        strike: editor?.isActive('strike') ?? false,
+        code: editor?.isActive('code') ?? false,
+        link: editor?.isActive('link') ?? false,
+        blockquote: editor?.isActive('blockquote') ?? false,
+        codeBlock: editor?.isActive('codeBlock') ?? false,
+        bulletList: editor?.isActive('bulletList') ?? false,
+        orderedList: editor?.isActive('orderedList') ?? false,
+        table: editor?.isActive('table') ?? false,
+        canUndo: editor?.can().undo() ?? false,
+        canRedo: editor?.can().redo() ?? false,
+      };
+    },
   });
 
   if (!editor) return null;
@@ -48,17 +62,39 @@ function RichTextEditor({ initialValue, onChange }: { initialValue: string; onCh
     if (!href) editor.chain().focus().unsetLink().run();
     else editor.chain().focus().extendMarkRange('link').setLink({ href }).run();
   };
+  const setTextStyle = (value: string) => {
+    if (value === 'paragraph') return editor.chain().focus().setParagraph().run();
+    const level = Number(value.replace('heading-', '')) as 1 | 2 | 3 | 4 | 5 | 6;
+    return editor.chain().focus().setHeading({ level }).run();
+  };
 
   return (
     <div className="rich-editor">
-      <div className="toolbar" role="toolbar" aria-label="Text formatting">
-        <button type="button" onClick={() => editor.chain().focus().setParagraph().run()}>Paragraph</button>
-        <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>Heading</button>
+      <div className="toolbar" role="toolbar" aria-label="Rich text formatting">
+        <button type="button" disabled={!active?.canUndo} onClick={() => editor.chain().focus().undo().run()}>Undo</button>
+        <button type="button" disabled={!active?.canRedo} onClick={() => editor.chain().focus().redo().run()}>Redo</button>
+        <span className="toolbar-separator" aria-hidden="true" />
+        <select aria-label="Text style" value={active?.textStyle || 'paragraph'} onChange={(event) => setTextStyle(event.target.value)}>
+          <option value="paragraph">Paragraph</option>
+          <option value="heading-1">Heading 1</option>
+          <option value="heading-2">Heading 2</option>
+          <option value="heading-3">Heading 3</option>
+          <option value="heading-4">Heading 4</option>
+          <option value="heading-5">Heading 5</option>
+          <option value="heading-6">Heading 6</option>
+        </select>
         <button type="button" aria-pressed={active?.bold} onClick={() => editor.chain().focus().toggleBold().run()}><strong>Bold</strong></button>
         <button type="button" aria-pressed={active?.italic} onClick={() => editor.chain().focus().toggleItalic().run()}><em>Italic</em></button>
-        <button type="button" onClick={link}>Link</button>
-        <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()}>Bullets</button>
-        <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()}>Numbered</button>
+        <button type="button" aria-pressed={active?.underline} onClick={() => editor.chain().focus().toggleUnderline().run()}><u>Underline</u></button>
+        <button type="button" aria-pressed={active?.strike} onClick={() => editor.chain().focus().toggleStrike().run()}><s>Strike</s></button>
+        <button type="button" aria-pressed={active?.code} onClick={() => editor.chain().focus().toggleCode().run()}><code>Code</code></button>
+        <button type="button" aria-pressed={active?.link} onClick={link}>Link</button>
+        <button type="button" aria-pressed={active?.bulletList} onClick={() => editor.chain().focus().toggleBulletList().run()}>Bullets</button>
+        <button type="button" aria-pressed={active?.orderedList} onClick={() => editor.chain().focus().toggleOrderedList().run()}>Numbered</button>
+        <button type="button" aria-pressed={active?.blockquote} onClick={() => editor.chain().focus().toggleBlockquote().run()}>Quote</button>
+        <button type="button" aria-pressed={active?.codeBlock} onClick={() => editor.chain().focus().toggleCodeBlock().run()}>Code block</button>
+        <button type="button" onClick={() => editor.chain().focus().setHorizontalRule().run()}>Divider</button>
+        <button type="button" onClick={() => editor.chain().focus().setHardBreak().run()}>Line break</button>
         <button type="button" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>Insert table</button>
         {active?.table && <>
           <span className="toolbar-separator" aria-hidden="true" />

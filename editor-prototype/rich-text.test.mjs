@@ -59,6 +59,89 @@ test('typing remains continuous after bold is turned on and off', () => {
   editor.destroy();
 });
 
+test('StarterKit provides every configured node, mark, and behavior', () => {
+  const { editor } = openEditor();
+  const extensions = new Set(editor.extensionManager.extensions.map((extension) => extension.name));
+  for (const name of [
+    'blockquote', 'bulletList', 'codeBlock', 'doc', 'hardBreak', 'heading', 'horizontalRule',
+    'listItem', 'orderedList', 'paragraph', 'text', 'bold', 'code', 'italic', 'link', 'strike',
+    'underline', 'dropCursor', 'gapCursor', 'undoRedo', 'listKeymap', 'trailingNode',
+  ]) assert.ok(extensions.has(name), `${name} extension is enabled`);
+  editor.destroy();
+});
+
+test('undo and redo update the live Markdown without reinitializing the editor', () => {
+  const { editor, externalMarkdown } = openEditor('Before ');
+  const instance = editor;
+  type(editor, 'after');
+  assert.equal(externalMarkdown(), 'Before after');
+  assert.equal(editor.commands.undo(), true);
+  assert.equal(externalMarkdown(), 'Before ');
+  assert.equal(editor.commands.redo(), true);
+  assert.equal(externalMarkdown(), 'Before after');
+  assert.equal(editor, instance);
+  editor.destroy();
+});
+
+test('StarterKit formatting and block commands serialize to Markdown', () => {
+  for (const { command, mark, pattern } of [
+    { command: 'toggleUnderline', mark: 'underline', pattern: /\+\+Formatted\+\+/ },
+    { command: 'toggleStrike', mark: 'strike', pattern: /~~Formatted~~/ },
+    { command: 'toggleCode', mark: 'code', pattern: /`Formatted`/ },
+  ]) {
+    const inline = openEditor('Formatted');
+    inline.editor.commands.selectAll();
+    assert.equal(inline.editor.commands[command](), true);
+    assert.equal(inline.editor.isActive(mark), true);
+    assert.match(inline.editor.getMarkdown(), pattern);
+    inline.editor.destroy();
+  }
+
+  const blocks = openEditor('Quoted');
+  assert.equal(blocks.editor.commands.toggleBlockquote(), true);
+  assert.match(blocks.editor.getMarkdown(), /^> Quoted/);
+  assert.equal(blocks.editor.commands.setHorizontalRule(), true);
+  assert.match(blocks.editor.getMarkdown(), /---/);
+  blocks.editor.destroy();
+
+  const codeBlock = openEditor('const value = 1;');
+  assert.equal(codeBlock.editor.commands.toggleCodeBlock(), true);
+  assert.match(codeBlock.editor.getMarkdown(), /^```/);
+  codeBlock.editor.destroy();
+});
+
+test('StarterKit headings, lists, links, and hard breaks serialize to Markdown', () => {
+  for (const level of [1, 2, 3, 4, 5, 6]) {
+    const heading = openEditor('Heading');
+    assert.equal(heading.editor.commands.setHeading({ level }), true);
+    assert.match(heading.editor.getMarkdown(), new RegExp(`^#{${level}} Heading`));
+    heading.editor.destroy();
+  }
+
+  const bullet = openEditor('Item');
+  assert.equal(bullet.editor.commands.toggleBulletList(), true);
+  assert.match(bullet.editor.getMarkdown(), /^- Item/);
+  bullet.editor.destroy();
+
+  const ordered = openEditor('Item');
+  assert.equal(ordered.editor.commands.toggleOrderedList(), true);
+  assert.match(ordered.editor.getMarkdown(), /^1\. Item/);
+  ordered.editor.destroy();
+
+  const link = openEditor('Tiptap');
+  link.editor.commands.selectAll();
+  assert.equal(link.editor.commands.setLink({ href: 'https://tiptap.dev' }), true);
+  assert.equal(link.editor.getMarkdown(), '[Tiptap](https://tiptap.dev)');
+  link.editor.destroy();
+
+  const hardBreak = openEditor('First');
+  assert.equal(hardBreak.editor.commands.setHardBreak(), true);
+  type(hardBreak.editor, 'Second');
+  assert.ok(hardBreak.editor.getJSON().content?.[0].content?.some((node) => node.type === 'hardBreak'));
+  assert.equal(hardBreak.editor.getMarkdown(), 'First  \nSecond');
+  hardBreak.editor.destroy();
+});
+
 test('Markdown tables parse, edit, and serialize as one pipe table', () => {
   const markdown = '| Name | Status |\n| --- | --- |\n| Project A | Active |';
   const { editor, externalMarkdown } = openEditor(markdown);
