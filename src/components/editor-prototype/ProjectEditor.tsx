@@ -331,7 +331,7 @@ export default function ProjectEditor() {
       <header><p className="eyebrow">Staging</p><h1>Content editor</h1><p>Signed in as <strong>{viewer}</strong>. Files are read from <code>{branch}</code>{branch === 'main' ? ' until the prototype branch is created by the first save' : ''}.</p><button className="link-button" type="button" onClick={logout}>Sign out</button></header>
       {error && <p className="message error" role="alert">{error}</p>}
       <label className="area-selector">Content area<select value={area} onChange={(event) => selectArea(event.target.value as AreaName)}>{Object.entries(CONTENT_AREAS).map(([name, item]) => <option key={name} value={name}>{item.label}</option>)}</select></label>
-      <div className="list-heading"><h2>{config.label}</h2>{config.create && <button className="primary" type="button" onClick={create}>New Project</button>}</div>
+      <div className="list-heading"><h2>{config.label}</h2>{config.create && <button className="primary" type="button" onClick={create}>New {config.itemLabel}</button>}</div>
       {busy ? <p>Loading…</p> : <ul className="project-list">{sortedProjects.map((item) => <li key={item.path}><button type="button" onClick={() => open(item.name)}>{item.name.replace(/\.mdx?$/, '')}</button></li>)}</ul>}
     </main>
   );
@@ -339,7 +339,7 @@ export default function ProjectEditor() {
   return (
     <main className="editor-shell">
       <button className="back" type="button" onClick={() => { setProject(null); setNotice(''); setError(''); }}>← All {config.label}</button>
-      <h1>{project.sha ? `Edit ${config.label}` : 'New Project'}</h1>
+      <h1>{project.sha ? `Edit ${config.itemLabel}` : `New ${config.itemLabel}`}</h1>
       {notice && <p className="message success" role="status">{notice}</p>}
       {error && <p className="message error" role="alert">{error}</p>}
       <form onSubmit={(event) => event.preventDefault()}>

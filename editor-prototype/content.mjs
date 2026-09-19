@@ -50,10 +50,14 @@ export function serializeProject(original, project) {
 }
 
 export function newProject(project) {
+  return newContent(project, { description: true, draft: true });
+}
+
+export function newContent(entry, options = {}) {
   const yaml = [
-    `title: ${yamlScalar(project.title)}`,
-    `description: ${yamlScalar(project.description)}`,
-    `draft: ${project.draft ? 'true' : 'false'}`,
+    `title: ${yamlScalar(entry.title)}`,
+    ...(options.description ? [`description: ${yamlScalar(entry.description)}`] : []),
+    ...(options.draft ? [`draft: ${entry.draft ? 'true' : 'false'}`] : []),
   ].join('\n');
-  return `---\n${yaml}\n---\n\n${String(project.body ?? '').replace(/^\n/, '')}`;
+  return `---\n${yaml}\n---\n\n${String(entry.body ?? '').replace(/^\n/, '')}`;
 }

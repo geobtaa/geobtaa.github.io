@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { glob } from 'node:fs/promises';
-import { newProject, parseContent, parseProject, serializeContent, serializeProject } from './content.mjs';
+import { newContent, newProject, parseContent, parseProject, serializeContent, serializeProject } from './content.mjs';
 import { CONTENT_AREAS } from './contentAreas.mjs';
 import { splitBody } from '../src/components/editor-prototype/bodySegments.ts';
 
@@ -22,6 +22,24 @@ test('does not reformat unchanged managed frontmatter', () => {
 test('creates a Markdown-compatible Project', () => {
   const saved = newProject({ title: 'Prototype', description: 'Test', draft: false, body: 'A [link](https://example.com).' });
   assert.deepEqual(parseProject(saved), { title: 'Prototype', description: 'Test', draft: false, body: 'A [link](https://example.com).' });
+});
+
+test('every enabled content area allows new documents', () => {
+  for (const [area, config] of Object.entries(CONTENT_AREAS)) {
+    assert.equal(config.create, true, area);
+    assert.ok(config.itemLabel, `${area} needs a singular item label`);
+  }
+});
+
+test('new content includes only frontmatter managed by its content area', () => {
+  const entry = { title: 'New page', description: 'Summary', draft: false, body: 'Body.' };
+  const ordinary = newContent(entry, { description: true, draft: false });
+  assert.equal(ordinary, '---\ntitle: "New page"\ndescription: "Summary"\n---\n\nBody.');
+  assert.doesNotMatch(ordinary, /^draft:/m);
+
+  const workgroup = newContent(entry, { description: false, draft: false });
+  assert.equal(workgroup, '---\ntitle: "New page"\n---\n\nBody.');
+  assert.doesNotMatch(workgroup, /^(description|draft):/m);
 });
 
 test('all existing Project bodies and unrelated frontmatter survive serialization', async () => {

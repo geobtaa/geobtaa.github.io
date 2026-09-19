@@ -1,4 +1,4 @@
-import { newProject, parseContent, serializeContent } from '../../editor-prototype/content.mjs';
+import { newContent, parseContent, serializeContent } from '../../editor-prototype/content.mjs';
 import { CONTENT_AREAS, contentArea, contentDirectory, encodeContentPath, validateContentPath } from '../../editor-prototype/contentAreas.mjs';
 import { IMAGE_DIRECTORY, imageContentType, validateImagePath, validateImageUpload } from '../../editor-prototype/imageAssets.mjs';
 const SESSION_COOKIE = 'editor_session';
@@ -244,7 +244,9 @@ async function contentApi(request, env, pathname) {
     if (!input.title?.trim() || (config.description && !input.description?.trim())) throw new HttpError(400, `Title${config.description ? ' and description are' : ' is'} required.`);
     if (!input.sha && !config.create) throw new HttpError(400, 'New files are not enabled for this content directory.');
     const entry = { title: input.title.trim(), description: input.description?.trim() ?? '', draft: config.publishing ? !input.publish : false, body: input.body ?? '' };
-    const content = input.sha ? serializeContent(input.originalContent, entry, { description: config.description, draft: config.publishing }) : newProject(entry);
+    const content = input.sha
+      ? serializeContent(input.originalContent, entry, { description: config.description, draft: config.publishing })
+      : newContent(entry, { description: config.description, draft: config.publishing });
     const saved = await github.saveContent({ area, filename, content, sha: input.sha, publish: config.publishing && Boolean(input.publish) });
     return json({ ...saved, content, ...parseContent(content) });
   }

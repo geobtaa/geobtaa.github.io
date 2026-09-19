@@ -1,6 +1,6 @@
 import http from 'node:http';
 import { createGitHubClient, GitHubConflictError } from './github.mjs';
-import { newProject, parseContent, serializeContent } from './content.mjs';
+import { newContent, parseContent, serializeContent } from './content.mjs';
 import { CONTENT_AREAS, contentArea, validateContentPath } from './contentAreas.mjs';
 import { imageContentType, validateImagePath, validateImageUpload } from './imageAssets.mjs';
 
@@ -93,7 +93,9 @@ const server = http.createServer(async (request, response) => {
         if (!input.title?.trim() || (config.description && !input.description?.trim())) throw Object.assign(new Error(`Title${config.description ? ' and description are' : ' is'} required.`), { status: 400 });
         const entry = { title: input.title.trim(), description: input.description?.trim() ?? '', draft: config.publishing ? !input.publish : false, body: input.body ?? '' };
         if (!input.sha && !config.create) throw Object.assign(new Error('New files are not enabled for this content directory.'), { status: 400 });
-        const content = input.sha ? serializeContent(input.originalContent, entry, { description: config.description, draft: config.publishing }) : newProject(entry);
+        const content = input.sha
+          ? serializeContent(input.originalContent, entry, { description: config.description, draft: config.publishing })
+          : newContent(entry, { description: config.description, draft: config.publishing });
         const saved = await github.saveContent({ area, filename, content, sha: input.sha, publish: config.publishing && Boolean(input.publish) });
         return respond(response, 200, { ...saved, content, ...parseContent(content) }, origin);
       }
