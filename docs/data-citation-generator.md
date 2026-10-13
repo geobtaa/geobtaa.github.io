@@ -2,20 +2,17 @@
 
 ## What it does
 
-The BTAA Geospatial Data Citation Generator helps people turn basic dataset
-information into a citation. It supports APA, MLA, and Chicago styles. A user
+The BTAA Geospatial Data Citation Generator helps users turn dataset
+metadata into a citation. It supports APA, MLA, and Chicago styles. A user
 can copy the finished citation or download it as an RIS or BibTeX file for use
 in citation-management software.
 
-Users can begin in three ways:
+Users can generate a citation in three ways:
 
 - enter the information manually
 - enter a DOI and retrieve available metadata
 - enter a BTAA Geoportal resource page and retrieve its metadata
 
-After autofill, every field remains editable,
-and users should review the result against the source record and any local
-style requirements.
 
 ## Technology stack
 
@@ -49,16 +46,14 @@ created in the browser from the same form values.
 - User-facing page: `src/content/docs/guides/data-cite.mdx`
 - Generator logic and interface: `src/components/DataCitation.tsx`
 - Styling: `src/styles/data-citation.css`
-- Detailed autofill mapping: `docs/data-citation-autofill-crosswalk.md`
+- Autofill mapping: `docs/data-citation-autofill-crosswalk.md`
 
 ## Development acknowledgment
 
-The generator is a BTAA Geospatial Information Network project. OpenAI Codex
-was used as a coding assistant during development and documentation; people
+The generator is a BTAA Geospatial Information Network project. 
+
+OpenAI Codex was used as a coding assistant during development and documentation; people
 directed the work and reviewed the resulting code and content. 
-
-No generative AI is used to create citations or retrieve metadata when someone uses the tool.
-
 
 Suggested reference:
 
