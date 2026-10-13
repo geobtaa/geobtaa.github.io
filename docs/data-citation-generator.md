@@ -9,11 +9,11 @@ in citation-management software.
 
 Users can begin in three ways:
 
-- enter the information manually;
-- enter a DOI and retrieve available metadata; or
-- enter a BTAA Geoportal resource page and retrieve its metadata.
+- enter the information manually
+- enter a DOI and retrieve available metadata
+- enter a BTAA Geoportal resource page and retrieve its metadata
 
-Autofilled information is only a starting point. Every field remains editable,
+After autofill, every field remains editable,
 and users should review the result against the source record and any local
 style requirements.
 
@@ -35,14 +35,13 @@ does not store the citation information entered in the form.
 
 When a DOI is supplied, the generator requests metadata from DataCite. If
 DataCite has no usable record, it tries Crossref. For a BTAA Geoportal URL, it
-requests the associated GeoBlacklight metadata from the Geoportal API. The
+requests the metadata from the Geoportal API. The
 generator maps the returned values into common fields such as creator, title,
 publisher, publication year, version, format, URL, and temporal coverage.
 
 As the user edits those fields, the component applies its own formatting rules
 to update the citation preview immediately. RIS and BibTeX downloads are also
-created in the browser from the same form values. No generative AI is used to
-create citations or retrieve metadata when someone uses the tool.
+created in the browser from the same form values.
 
 
 ## Where it is maintained
@@ -56,8 +55,9 @@ create citations or retrieve metadata when someone uses the tool.
 
 The generator is a BTAA Geospatial Information Network project. OpenAI Codex
 was used as a coding assistant during development and documentation; people
-directed the work and reviewed the resulting code and content. Codex is not
-part of the live citation-generation process.
+directed the work and reviewed the resulting code and content. 
+
+No generative AI is used to create citations or retrieve metadata when someone uses the tool.
 
 
 Suggested reference:
