@@ -63,3 +63,11 @@ input, textarea, .area-selector select { width: 100%; padding: .7rem; border: 1p
 .toolbar button:disabled { cursor: not-allowed; }
 button:disabled { opacity: .55; }
 code { font-size: .9em; }
+.editor-fields { min-width: 0; margin: 0; padding: 0; border: 0; }
+.metadata-group { min-width: 0; margin: 1.25rem 0; padding: 1rem; border: 1px solid #cbd5e1; border-radius: .35rem; }
+.metadata-group legend { font-weight: 650; }
+.metadata-group > p { color: #64748b; font-size: .85rem; }
+.metadata-row { display: flex; align-items: end; gap: .5rem; margin-bottom: .75rem; }
+.metadata-row label { flex: 1; min-width: 0; margin-top: .5rem; }
+.metadata-row button { margin-bottom: .5rem; }
+@media (max-width: 540px) { .metadata-row { flex-wrap: wrap; } .editor-shell { padding: 1rem; } }

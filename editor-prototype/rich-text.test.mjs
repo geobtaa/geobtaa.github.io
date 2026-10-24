@@ -416,3 +416,23 @@ test('React integration has no live-content rehydration and remounts only for en
   assert.doesNotMatch(source, /<BodyEditor key=\{`\$\{project\.filename\}:\$\{project\.sha/);
   assert.match(source, />Insert → Link Card<\/button>/);
 });
+
+test('blog layout blocks protect nested components, multiline attributes, and imports while nearby Markdown remains editable', () => {
+  const component = '<CenterLayout\n  class="layout > wide"\n>\n  <CenterLayout>\n  Inner content\n  </CenterLayout>\n  Outer content\n</CenterLayout>\n';
+  const imports = "import {\n  Card,\n  CardGrid\n} from '@astrojs/starlight/components';\n";
+  const body = `${imports}\nBefore\n\n${component}\nAfter `;
+  const segments = splitBody(body);
+  assert.equal(segments.map((segment) => segment.content).join(''), body);
+  const protectedText = segments.filter((segment) => segment.kind === 'protected').map((segment) => segment.content).join('');
+  assert.ok(protectedText.includes(component));
+  assert.ok(protectedText.includes(imports));
+  const editable = segments.at(-1);
+  assert.equal(editable.kind, 'markdown');
+  const { editor } = openEditor(editable.content);
+  type(editor, 'edited');
+  const saved = segments.map((segment) => segment === editable ? editor.getMarkdown() : segment.content).join('');
+  assert.ok(saved.includes(component));
+  assert.ok(saved.includes(imports));
+  assert.ok(saved.includes('After edited'));
+  editor.destroy();
+});

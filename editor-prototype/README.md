@@ -1,8 +1,25 @@
 # Project editor prototype
 
-This isolated prototype is available at `/editor/`. It edits a conservative allowlist of content directories under `src/content/docs` and writes through the GitHub Contents API directly to the `custom-cms` staging branch. Decap `/admin` is unchanged.
+This isolated prototype is available at `/editor/`. It edits a conservative allowlist of content directories under `src/content/docs` and writes through the GitHub API directly to the `custom-cms` staging branch. Decap `/admin` is unchanged.
 
-The enabled directories are `about`, `conference`, `guides`, `library`, `metadata`, `projects`, `scholarship`, `team`, and `workgroups`. Files can be created in each enabled directory. Draft/published state remains limited to Projects; other directories edit titles, descriptions (where present), and bodies while preserving all other frontmatter.
+The enabled directories are `about`, `conference`, `guides`, `library`, `metadata`, `posts`, `projects`, `scholarship`, `team`, and `workgroups`. Files can be created in each enabled directory. Blog Posts have the metadata controls described below. Projects retain their existing draft/publish controls; other directories edit titles, descriptions (where present), and bodies while preserving all other frontmatter. Program updates are not enabled.
+
+## Blog posts
+
+Choose **Blog Posts** in the content-area selector, then open an existing post or choose **New Blog Post**.
+
+- Title is required. New posts start with today's local calendar date and **Hide from site** checked. The date is editable; changing it does not rename the post.
+- Excerpt, authors, tags, and cover are optional. Authors use the existing list of named author objects, tags remain a list of strings, and covers retain the existing image/alt/caption structure. Existing string authors, extra author properties, and light/dark covers are also preserved.
+- Dates display their written `YYYY-MM-DD` portion without timezone conversion. Unchanged dates retain their original YAML value. When an existing timestamp's calendar date changes, its time and offset remain intact. New dates use the existing unquoted YAML date format.
+- A short title-based filename is generated on first save, with no automatic date prefix. If its URL is occupied, the editor suggests an available suffix and asks you to use that alternative. The filename is permanent after creation, including when the title, date, or metadata changes. Existing filenames and extensions are retained. Intentional URL changes and redirects can be made manually through GitHub.
+- Standard Markdown, images, tables, and supported LinkCards use the existing body editor. Complex MDX components, nested layouts, and imports stay in protected, read-only blocks. Unchanged frontmatter is preserved; editing an optional field changes only that field.
+- Cover images can use the same repository picker and uploads as body images, or an image URL/path. Uploads commit immediately and separately from the post. Unused uploads are not removed automatically.
+
+**Save changes** commits to staging; it does not publish to the live site. Uncheck **Hide from site** when the post should be eligible for publication, then use the repository's review and merge process to move the content to `main`. Existing production builds omit drafts, including their direct URLs, so hosted draft previews are not available. Saving does not mean the staging deployment is ready; check the Cloudflare deployment before reviewing its rendered page.
+
+The editor warns before discarding unsaved changes. Failed saves and expired sessions leave your work in the open editor. Use **Download recovery copy** before reloading or signing in again; the JSON includes the current body, metadata, and loaded source for manual recovery. There is no automatic browser storage or recovery-file import. For conflicts, keep a recovery copy, reopen the latest post, and reapply your edits. Do not repeatedly submit a stale version.
+
+Both API implementations share blog serialization and creation logic. Updates use the loaded blob SHA and authoritative repository frontmatter. New posts use a Git tree snapshot and a fast-forward-only branch update so competing writes cannot overwrite an existing file or create an equivalent route unnoticed. If staging changes during creation, save again to recheck availability.
 
 ## Local setup
 
@@ -24,7 +41,7 @@ npm run dev
 
 Open `http://localhost:4321/editor/`. The local gateway uses the token only on the server and presents a local-development session to the UI.
 
-Existing Projects contain Astro/MDX imports, components, directives, and HTML. The editor displays those as read-only protected blocks and preserves their text verbatim; surrounding ordinary Markdown remains visually editable. New content produced by the editor is ordinary Markdown and does not introduce MDX syntax.
+Existing pages and posts contain Astro/MDX imports, components, directives, and HTML. The editor displays unsupported syntax as read-only protected blocks and preserves its text verbatim; surrounding ordinary Markdown remains visually editable. The editor can insert supported LinkCards with their required MDX import, while other new body content uses Markdown.
 
 ## Hosted staging on Cloudflare Pages
 

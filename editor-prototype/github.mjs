@@ -1,5 +1,6 @@
 import { contentDirectory, encodeContentPath } from './contentAreas.mjs';
 import { IMAGE_DIRECTORY } from './imageAssets.mjs';
+import { createBlogCommit } from './blogStorage.mjs';
 
 export class GitHubConflictError extends Error {}
 
@@ -82,6 +83,9 @@ export function createGitHubClient({
   }
 
   return {
+    createBlog(input) {
+      return createBlogCommit({ request: (path, options) => request(`${api}${path}`, options), ensureBranch, branch, ...input });
+    },
     async listContent(area = 'projects') {
       const ref = await readRef();
       return { branch: ref, entries: await listDirectory(contentDirectory(area), ref) };

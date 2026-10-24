@@ -3,6 +3,7 @@ import { createGitHubClient, GitHubConflictError } from './github.mjs';
 import { newContent, parseContent, serializeContent } from './content.mjs';
 import { CONTENT_AREAS, contentArea, validateContentPath } from './contentAreas.mjs';
 import { imageContentType, validateImagePath, validateImageUpload } from './imageAssets.mjs';
+import { parseBlog, saveBlog } from './blog.mjs';
 
 const host = '127.0.0.1';
 const port = Number(process.env.PROJECT_EDITOR_PORT || 8787);
@@ -11,11 +12,6 @@ const allowedOrigins = new Set([
   'http://127.0.0.1:4321',
   ...(process.env.PROJECT_EDITOR_ORIGIN ? [process.env.PROJECT_EDITOR_ORIGIN] : []),
 ]);
-const github = createGitHubClient({
-  token: process.env.GITHUB_TOKEN,
-  owner: process.env.PROJECT_EDITOR_OWNER,
-  repo: process.env.PROJECT_EDITOR_REPO,
-});
 
 function contentRoute(pathname) {
   const match = pathname.match(/^\/api\/content\/([^/]+)(?:\/(.+))?$/);
@@ -41,7 +37,7 @@ async function readJson(request) {
   return JSON.parse(raw || '{}');
 }
 
-const server = http.createServer(async (request, response) => {
+export const createEditorServer = (github) => http.createServer(async (request, response) => {
   const origin = request.headers.origin;
   if (origin && !allowedOrigins.has(origin)) return respond(response, 403, { error: 'Origin is not allowed.' });
   if (request.method === 'OPTIONS') {
@@ -81,14 +77,16 @@ const server = http.createServer(async (request, response) => {
     const route = contentRoute(url.pathname);
     if (route) {
       const { area, filename } = route;
+      if (area === 'posts' && request.method === 'POST' && !filename) return respond(response, 201, await saveBlog(github, null, await readJson(request)), origin);
       if (request.method === 'GET' && !filename) return respond(response, 200, await github.listContent(area), origin);
       if (!filename) throw Object.assign(new Error('Content filename is required.'), { status: 400 });
       if (request.method === 'GET') {
         const file = await github.getContent(area, filename);
-        return respond(response, 200, { ...file, ...parseContent(file.content) }, origin);
+        return respond(response, 200, { ...file, ...(area === 'posts' ? parseBlog(file.content) : parseContent(file.content)) }, origin);
       }
       if (request.method === 'PUT') {
         const input = await readJson(request);
+        if (area === 'posts') return respond(response, 200, await saveBlog(github, filename, input), origin);
         const config = contentArea(area);
         if (!input.title?.trim() || (config.description && !input.description?.trim())) throw Object.assign(new Error(`Title${config.description ? ' and description are' : ' is'} required.`), { status: 400 });
         const entry = { title: input.title.trim(), description: input.description?.trim() ?? '', draft: config.publishing ? !input.publish : false, body: input.body ?? '' };
@@ -103,10 +101,17 @@ const server = http.createServer(async (request, response) => {
     respond(response, 404, { error: 'Not found.' }, origin);
   } catch (error) {
     const status = error instanceof GitHubConflictError ? 409 : (error.status || 500);
-    respond(response, status, { error: error.message || 'Unexpected server error.' }, origin);
+    respond(response, status, { error: error.message || 'Unexpected server error.', ...(error.suggestedFilename ? { suggestedFilename: error.suggestedFilename } : {}) }, origin);
   }
 });
 
-server.listen(port, host, () => {
-  console.log(`Project editor GitHub API listening on http://${host}:${port}`);
-});
+if (import.meta.main) {
+  const github = createGitHubClient({
+    token: process.env.GITHUB_TOKEN,
+    owner: process.env.PROJECT_EDITOR_OWNER,
+    repo: process.env.PROJECT_EDITOR_REPO,
+  });
+  createEditorServer(github).listen(port, host, () => {
+    console.log(`Project editor GitHub API listening on http://${host}:${port}`);
+  });
+}

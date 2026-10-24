@@ -6,6 +6,7 @@ export const CONTENT_AREAS = Object.freeze({
   guides: { label: 'Guides', itemLabel: 'Guide', description: true, create: true, publishing: false },
   library: { label: 'Library', itemLabel: 'Library document', description: true, create: true, publishing: false },
   metadata: { label: 'Metadata', itemLabel: 'Metadata page', description: true, create: true, publishing: false },
+  posts: { label: 'Blog Posts', itemLabel: 'Blog Post', description: false, create: true, publishing: false },
   projects: { label: 'Projects', itemLabel: 'Project', description: true, create: true, publishing: true },
   scholarship: { label: 'Scholarship', itemLabel: 'Scholarship page', description: true, create: true, publishing: false },
   team: { label: 'Team', itemLabel: 'Team page', description: true, create: true, publishing: false },

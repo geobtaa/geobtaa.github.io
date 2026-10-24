@@ -17,7 +17,15 @@ export function splitBody(body: string): BodySegment[] {
   for (let index = 0; index < lines.length;) {
     const line = lines[index];
     if (/^\s*(import|export)\s/.test(line)) {
-      flushMarkdown(); push('protected', line); index += 1; continue;
+      flushMarkdown(); let block = line; index += 1;
+      // Multiline imports must not expose the imported names as Markdown.
+      if (/^\s*import\b/.test(line) && !/\bfrom\s*['"]|^\s*import\s*['"]/.test(line)) {
+        while (index < lines.length) {
+          const next = lines[index++]; block += next;
+          if (/\bfrom\s*['"]/.test(next)) break;
+        }
+      }
+      push('protected', block); continue;
     }
     if (/^\s*:::/.test(line)) {
       flushMarkdown(); let block = line; index += 1;
@@ -45,15 +53,17 @@ export function splitBody(body: string): BodySegment[] {
     const tag = line.match(/<([A-Za-z][\w.-]*)\b/);
     if (tag && (/^\s*</.test(line) || /^[A-Z]/.test(tag[1]))) {
       flushMarkdown(); let block = line; index += 1;
-      const closing = new RegExp(`</${tag[1]}\\s*>`);
-      if (!line.includes('/>') && !closing.test(line)) {
-        const startsBlock = line.includes('>');
-        while (index < lines.length) {
-          block += lines[index];
-          const done = startsBlock ? closing.test(lines[index]) : lines[index].includes('/>');
-          index += 1;
-          if (done) break;
-        }
+      const name = tag[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const tags = new RegExp(`<(/?)${name}(?=[\\s/>])(?:[^>"']|"[^"]*"|'[^']*')*>`, 'g');
+      const complete = () => {
+        const matches = [...block.matchAll(tags)];
+        if (!matches.length) return false;
+        let depth = 0;
+        for (const match of matches) depth += match[1] ? -1 : /\/\s*>$/.test(match[0]) ? 0 : 1;
+        return depth === 0;
+      };
+      while (!complete() && index < lines.length) {
+        block += lines[index++];
       }
       push('protected', block); continue;
     }

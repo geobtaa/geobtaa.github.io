@@ -1,4 +1,6 @@
 import { newContent, parseContent, serializeContent } from '../../editor-prototype/content.mjs';
+import { parseBlog, saveBlog } from '../../editor-prototype/blog.mjs';
+import { createBlogCommit } from '../../editor-prototype/blogStorage.mjs';
 import { CONTENT_AREAS, contentArea, contentDirectory, encodeContentPath, validateContentPath } from '../../editor-prototype/contentAreas.mjs';
 import { IMAGE_DIRECTORY, imageContentType, validateImagePath, validateImageUpload } from '../../editor-prototype/imageAssets.mjs';
 const SESSION_COOKIE = 'editor_session';
@@ -127,6 +129,7 @@ function createGitHubClient(env, token) {
     return output;
   }
   return {
+    createBlog(input) { return createBlogCommit({ request, ensureBranch, branch, ...input }); },
     async listContent(area) {
       const ref = await readRef();
       return { branch: ref, entries: await listDirectory(contentDirectory(area), ref) };
@@ -232,14 +235,16 @@ async function contentApi(request, env, pathname) {
   const route = contentRoute(pathname);
   if (!route) throw new HttpError(404, 'Not found.');
   const { area, filename } = route;
+  if (area === 'posts' && request.method === 'POST' && !filename) return json(await saveBlog(github, null, await request.json()), 201);
   if (request.method === 'GET' && !filename) return json(await github.listContent(area));
   if (!filename) throw new HttpError(400, 'Content filename is required.');
   if (request.method === 'GET') {
     const file = await github.getContent(area, filename);
-    return json({ ...file, ...parseContent(file.content) });
+    return json({ ...file, ...(area === 'posts' ? parseBlog(file.content) : parseContent(file.content)) });
   }
   if (request.method === 'PUT') {
     const input = await request.json();
+    if (area === 'posts') return json(await saveBlog(github, filename, input));
     const config = contentArea(area);
     if (!input.title?.trim() || (config.description && !input.description?.trim())) throw new HttpError(400, `Title${config.description ? ' and description are' : ' is'} required.`);
     if (!input.sha && !config.create) throw new HttpError(400, 'New files are not enabled for this content directory.');
@@ -288,6 +293,6 @@ export async function onRequest({ request, env }) {
     return await contentApi(request, env, url.pathname);
   } catch (error) {
     const status = error instanceof GitHubConflictError ? 409 : (error.status || 500);
-    return json({ error: error.message || 'Unexpected server error.' }, status);
+    return json({ error: error.message || 'Unexpected server error.', ...(error.suggestedFilename ? { suggestedFilename: error.suggestedFilename } : {}) }, status);
   }
 }
