@@ -8,8 +8,10 @@
     <link rel="stylesheet" href="/admin/admin.css" />
   </head>
   <body>
+    <!-- Retry a publish when a just-saved editorial-workflow branch has a newer head. -->
+    <script src="/admin/github-publish-retry.js"></script>
     <!-- Include the script that builds the page and powers Decap CMS -->
-    <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    <script src="https://unpkg.com/decap-cms@3.15.1/dist/decap-cms.js"></script>
     <script>
       (function () {
         function getAdminView(hash) {
@@ -29,11 +31,245 @@
 
         let listViewObserver = null;
         let forcedListHash = "";
+        let editorViewObserver = null;
+        let editorUiFrame = 0;
+
+
+        const standardEntryMetadata = {
+          about: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          conference: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          guides: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          projects: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          scholarship: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          team: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          library: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Description", key: "description", column: "main" },
+            { label: "Year", key: "year", column: "side" },
+            { label: "Tags", key: "tags", column: "side" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+          blog: [
+            { label: "Title", key: "title", column: "main" },
+            { label: "Excerpt", key: "summary", column: "main" },
+            { label: "Authors", key: "authors", column: "main", style: "compound" },
+            { label: "Cover", key: "cover", column: "main", style: "compound" },
+            { label: "Tags", key: "tags", column: "side" },
+            { label: "Publication Date", key: "date", column: "side", style: "compound" },
+            { label: "Hide from site", key: "visibility", column: "side", style: "compact" },
+          ],
+        };
 
         function stopListViewObserver() {
           if (!listViewObserver) return;
           listViewObserver.disconnect();
           listViewObserver = null;
+        }
+
+        function stopEditorViewObserver() {
+          if (editorViewObserver) {
+            editorViewObserver.disconnect();
+            editorViewObserver = null;
+          }
+
+          if (editorUiFrame) {
+            window.cancelAnimationFrame(editorUiFrame);
+            editorUiFrame = 0;
+          }
+        }
+
+        function normalizedText(element) {
+          return (element && element.textContent ? element.textContent : "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .toLocaleLowerCase();
+        }
+
+        function findEditorLabel(text) {
+          const expected = text.toLocaleLowerCase();
+          const candidates = document.querySelectorAll(
+            '#nc-root label, #nc-root [class*="FieldLabel"], #nc-root [class*="ObjectControlLabel"], #nc-root [class*="ListControlLabel"]',
+          );
+
+          return (
+            Array.from(candidates).find((candidate) => normalizedText(candidate) === expected) ||
+            Array.from(candidates).find((candidate) =>
+              normalizedText(candidate).startsWith(`${expected} `),
+            )
+          );
+        }
+
+        function findControlContainer(label) {
+          if (!(label instanceof HTMLElement)) return null;
+          return label.closest('[class*="ControlContainer"]');
+        }
+
+        function clearStandardEntryEditor() {
+          document.getElementById("entry-meta-heading")?.remove();
+          document.getElementById("entry-body-heading")?.remove();
+
+          document.querySelectorAll("[data-entry-meta]").forEach((element) => {
+            delete element.dataset.entryMeta;
+            delete element.dataset.entryMetaColumn;
+            delete element.dataset.entryMetaStyle;
+          });
+          document
+            .querySelectorAll("[data-entry-meta-label]")
+            .forEach((element) => delete element.dataset.entryMetaLabel);
+          document
+            .querySelectorAll("[data-entry-meta-boundary]")
+            .forEach((element) => delete element.dataset.entryMetaBoundary);
+          document
+            .querySelectorAll("[data-entry-optional-marker]")
+            .forEach((element) => {
+              delete element.dataset.entryOptionalMarker;
+              element.removeAttribute("aria-hidden");
+            });
+          document
+            .querySelectorAll("[data-entry-fields]")
+            .forEach((element) => delete element.dataset.entryFields);
+          document
+            .querySelectorAll("[data-entry-body]")
+            .forEach((element) => delete element.dataset.entryBody);
+          document
+            .querySelectorAll("[data-entry-body-label]")
+            .forEach((element) => delete element.dataset.entryBodyLabel);
+        }
+
+        function initStandardEntryEditor() {
+          const collection = getCollectionName(window.location.hash || "");
+          const metadataFields = standardEntryMetadata[collection];
+          if (!metadataFields) return true;
+
+          clearStandardEntryEditor();
+
+          const bodyLabel = findEditorLabel("Body");
+          const bodyControl = findControlContainer(bodyLabel);
+          if (!(bodyControl instanceof HTMLElement)) return false;
+
+          let firstControl = null;
+          let fieldsContainer = null;
+          let ready = true;
+
+          metadataFields.forEach(
+            ({ label: labelText, key, column = "main", style = "standard" }) => {
+              const label = findEditorLabel(labelText);
+              const control = findControlContainer(label);
+              if (!(label instanceof HTMLElement) || !(control instanceof HTMLElement)) {
+                ready = false;
+                return;
+              }
+
+              if (!firstControl) {
+                firstControl = control;
+                fieldsContainer = control.parentElement;
+              }
+
+              control.dataset.entryMeta = key;
+              control.dataset.entryMetaColumn = column;
+              control.dataset.entryMetaStyle = style;
+              label.dataset.entryMetaLabel = "true";
+
+              if (key === "visibility") {
+                label.querySelectorAll("span, small").forEach((element) => {
+                  if (["optional", "(optional)"].includes(normalizedText(element))) {
+                    element.dataset.entryOptionalMarker = "true";
+                    element.setAttribute("aria-hidden", "true");
+                  }
+                });
+              }
+
+              if (label instanceof HTMLLabelElement) {
+                const widgetBoundary = document.getElementById(label.htmlFor);
+                if (widgetBoundary instanceof HTMLElement) {
+                  widgetBoundary.dataset.entryMetaBoundary = key;
+                }
+              }
+            },
+          );
+
+          if (!ready || !(firstControl instanceof HTMLElement) || !(fieldsContainer instanceof HTMLElement)) {
+            return false;
+          }
+
+          fieldsContainer.dataset.entryFields = "true";
+          bodyControl.dataset.entryBody = "true";
+          if (bodyLabel instanceof HTMLElement) bodyLabel.dataset.entryBodyLabel = "true";
+
+          if (!document.getElementById("entry-meta-heading")) {
+            const heading = document.createElement("div");
+            heading.id = "entry-meta-heading";
+            heading.innerHTML =
+              "<strong>Page details</strong><span>Title, publishing information, and display settings</span>";
+            firstControl.before(heading);
+          }
+
+          if (!document.getElementById("entry-body-heading")) {
+            const heading = document.createElement("div");
+            heading.id = "entry-body-heading";
+            heading.textContent = "Page content";
+            bodyControl.before(heading);
+          }
+
+          return true;
+        }
+
+        function scheduleStandardEntryEditor() {
+          if (editorUiFrame) return;
+          editorUiFrame = window.requestAnimationFrame(() => {
+            editorUiFrame = 0;
+            const collection = getCollectionName(window.location.hash || "");
+            if (collection === "updates") return;
+
+            const initialized = initStandardEntryEditor();
+            if (initialized && editorViewObserver) {
+              editorViewObserver.disconnect();
+              editorViewObserver = null;
+            }
+          });
+        }
+
+        function watchStandardEntryEditor() {
+          stopEditorViewObserver();
+
+          const hash = window.location.hash || "";
+          if (
+            getAdminView(hash) !== "entry-editor" ||
+            getCollectionName(hash) === "updates"
+          ) {
+            return;
+          }
+
+          scheduleStandardEntryEditor();
+          editorViewObserver = new MutationObserver(scheduleStandardEntryEditor);
+          editorViewObserver.observe(document.getElementById("nc-root") || document.body, {
+            childList: true,
+            subtree: true,
+          });
         }
 
         function forceListView() {
@@ -78,6 +314,10 @@
 
           window.requestAnimationFrame(() => {
             window.requestAnimationFrame(initCustomSortControl);
+          });
+
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(watchStandardEntryEditor);
           });
         }
 
@@ -186,6 +426,10 @@
         const escapedComponentTagPattern =
           /&lt;\/?[A-Z][A-Za-z0-9._:-]*(?:\s+[^&<>]*)?&gt;/;
 
+        const programUpdateBody = `import ProgramUpdateStructured from 'src/components/ProgramUpdateStructured.astro';
+
+<ProgramUpdateStructured data={frontmatter.programUpdate} />`;
+
         function validateMdxBody(body) {
           const errors = [];
           const lines = body.split(/\r?\n/);
@@ -242,7 +486,18 @@
           name: "preSave",
           handler: ({ entry }) => {
             const data = entry.get("data");
-            const body = data && data.get ? data.get("body") : "";
+            if (!data || typeof data.get !== "function") return data;
+
+            const body = data.get("body");
+            const programUpdate = data.get("programUpdate");
+
+            // Decap occasionally omits a markdown default while recreating a draft.
+            // Keep the field optional in the form, but always write the renderer that
+            // turns the structured fields into the published Program Update page.
+            if (programUpdate && (typeof body !== "string" || body.trim().length === 0)) {
+              return data.set("body", programUpdateBody);
+            }
+
             if (typeof body !== "string" || body.length === 0) return data;
 
             const errors = validateMdxBody(body);

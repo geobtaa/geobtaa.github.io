@@ -19,6 +19,8 @@ content and is processed by Astro and Starlight into published pages.
 
 ## Feature documentation
 
+- [Cloudflare content editor prototype](CLOUDFLARE_EDITOR_PROTOTYPE.md): current
+  architecture, implemented features, safeguards, and prototype limitations
 - [Data Citation Generator overview](data-citation-generator.md): purpose,
   technology stack, architecture, safeguards, and development acknowledgment
 - [Data Citation Generator autofill crosswalk](data-citation-autofill-crosswalk.md):

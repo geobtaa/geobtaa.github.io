@@ -1,10 +1,13 @@
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
 import { docsLoader } from '@astrojs/starlight/loaders';
 import { docsSchema } from '@astrojs/starlight/schema';
 import { blogSchema } from 'src/content/BlogSchema';
 import { videosSchema } from 'starlight-videos/schemas';
 
 const programUpdateSchema = z.object({
+  // Narrative fields now save as Markdown strings. Keep accepting the former
+  // string arrays so older entries remain buildable during content migration.
   programUpdate: z
     .object({
       highlight: z
@@ -20,17 +23,17 @@ const programUpdateSchema = z.object({
         .optional(),
       committees: z
         .object({
-          technology: z.array(z.string()).optional(),
-          communityEngagement: z.array(z.string()).optional(),
-          knowledge: z.array(z.string()).optional(),
-          coordination: z.array(z.string()).optional(),
+          technology: z.union([z.string(), z.array(z.string())]).optional(),
+          communityEngagement: z.union([z.string(), z.array(z.string())]).optional(),
+          knowledge: z.union([z.string(), z.array(z.string())]).optional(),
+          coordination: z.union([z.string(), z.array(z.string())]).optional(),
         })
         .optional(),
       workgroups: z
         .array(
           z.object({
             name: z.string(),
-            updates: z.array(z.string()).optional(),
+            updates: z.union([z.string(), z.array(z.string())]).optional(),
           }),
         )
         .optional(),
@@ -67,7 +70,7 @@ const programUpdateSchema = z.object({
         .optional(),
       webDevelopment: z
         .object({
-          updates: z.array(z.string()).optional(),
+          updates: z.union([z.string(), z.array(z.string())]).optional(),
           moreDetailsUrl: z.string().optional(),
           moreDetailsLabel: z.string().optional(),
         })
@@ -79,18 +82,19 @@ const programUpdateSchema = z.object({
 export const collections = {
   docs: defineCollection({
     loader: docsLoader(),
-    schema: docsSchema({
-      extend: (context) =>
-        blogSchema(context)
-          .and(videosSchema)
-          .and(programUpdateSchema)
-          .and(
-            z.object({
-              // Optional 4-digit year; accepts number or string and coerces to number
-              year: z.coerce.number().int().min(1800).max(2100).optional(),
-              hidePageTitle: z.boolean().optional(),
-            }),
-          ),
-    }),
+    // Keep the existing intersection validation. Starlight 0.42's `extend`
+    // deep-merges object schemas and does not accept Zod intersections.
+    schema: (context) =>
+      docsSchema()(context)
+        .and(blogSchema(context))
+        .and(videosSchema)
+        .and(programUpdateSchema)
+        .and(
+          z.object({
+            // Optional 4-digit year; accepts number or string and coerces to number
+            year: z.coerce.number().int().min(1800).max(2100).optional(),
+            hidePageTitle: z.boolean().optional(),
+          }),
+        ),
   }),
 };

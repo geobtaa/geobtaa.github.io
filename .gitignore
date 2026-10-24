@@ -22,6 +22,9 @@ Thumbs.db
 # Logs
 *.log
 
+# Local runtime state created by Cloudflare
+.wrangler/
+
 # Local fonts (if applicable)
 # For example, if you have a 'public/fonts' directory with local font files that are not part of your Git repository
 # public/fonts/

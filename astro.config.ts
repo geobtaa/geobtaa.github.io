@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import starlight from '@astrojs/starlight';
 import starlightFullViewMode from 'starlight-fullview-mode';
 import starlightLinksValidator from 'starlight-links-validator';
@@ -17,7 +18,13 @@ type SidebarItem = NonNullable<StarlightUserConfig['sidebar']>[number];
 const mapAutogenerateEntry = (entry: NavSidebarAutogenerate): SidebarItem => ({
   label: entry.label,
   collapsed: entry.collapsed ?? true,
-  autogenerate: { directory: entry.directory },
+  items: [{
+    autogenerate: {
+      directory: entry.directory,
+      // Preserve the inherited subgroup collapse state from Starlight <0.39.
+      collapsed: entry.collapsed ?? true,
+    },
+  }],
 });
 
 const mapLinkEntry = (entry: NavSidebarLink): SidebarItem => ({
@@ -55,8 +62,11 @@ const starlightSidebar: StarlightUserConfig['sidebar'] = NAV_GROUPS.flatMap((gro
 
 export default defineConfig({
   site: 'https://gin.btaa.org',
+  compressHTML: true,
   markdown: {
-    remarkPlugins: [remarkAccessibleTaskLists, remarkCenterLayoutImages],
+    processor: unified({
+      remarkPlugins: [remarkAccessibleTaskLists, remarkCenterLayoutImages],
+    }),
   },
   redirects: {
     '/updates/': '/blog/',
