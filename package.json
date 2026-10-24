@@ -8,6 +8,7 @@
     "decap": "BIND_HOST=127.0.0.1 decap-server",
     "editor": "node --env-file-if-exists=.env.local editor-prototype/server.mjs",
     "test:editor": "node --test editor-prototype/*.test.mjs",
+    "test:editor:browser": "node --test editor-prototype/*.browser.mjs",
     "test:navigation": "node --test tests/site-navigation.test.mjs",
     "build": "astro build",
     "preview": "astro preview",

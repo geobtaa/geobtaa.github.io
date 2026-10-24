@@ -1,5 +1,5 @@
 import { isMap, parseDocument, stringify } from 'yaml';
-import { parseContent } from './content.mjs';
+import { contentVisibility, parseContent } from './content.mjs';
 
 const FRONTMATTER = /^(---\r?\n)([\s\S]*?)(\r?\n---\r?\n(?:\r?\n)?)([\s\S]*)$/;
 const fields = ['title', 'date', 'draft', 'excerpt', 'authors', 'tags', 'cover'];
@@ -108,7 +108,7 @@ export async function saveBlog(github, filename, input) {
   if (!filename) {
     const content = newBlog(input);
     const saved = await github.createBlog({ title: input.title, suggestedFilename: input.suggestedFilename, content });
-    return { ...saved, content, ...parseBlog(content) };
+    return { ...saved, content, ...parseBlog(content), ...contentVisibility(content) };
   }
   if (!input.sha) throw invalid('An existing post SHA is required. Create new posts through the blog collection.');
   const loaded = await github.getContent('posts', filename);
@@ -116,5 +116,5 @@ export async function saveBlog(github, filename, input) {
   // Use authoritative frontmatter, never a client-supplied originalContent.
   const content = serializeBlog(loaded.content, { ...parseBlog(loaded.content), ...input });
   const saved = await github.saveContent({ area: 'posts', filename, content, sha: input.sha });
-  return { ...saved, filename, content, ...parseBlog(content) };
+  return { ...saved, filename, content, ...parseBlog(content), ...contentVisibility(content) };
 }

@@ -20,6 +20,10 @@ function repository() {
     const path = url.pathname.replace('/repos/geobtaa/geobtaa.github.io', '');
     const payload = options.body ? JSON.parse(options.body) : null;
     if (path.startsWith('/git/ref/heads/')) return Response.json({ object: { sha: head } });
+    if (path.startsWith('/git/blobs/')) {
+      const file = [...files.values()].find((item) => item.sha === path.slice('/git/blobs/'.length));
+      return file ? Response.json({ content: Buffer.from(file.content).toString('base64') }) : Response.json({ message: 'Not found' }, { status: 404 });
+    }
     if (path === `/git/commits/${head}`) return Response.json({ tree: { sha: 'base-tree' } });
     if (path === '/git/trees/base-tree') return Response.json({ tree: [...files.keys()].map((name) => ({ path: `src/content/docs/posts/${name}`, type: 'blob' })) });
     if (path === '/git/trees' && method === 'POST') {
@@ -115,7 +119,11 @@ for (const mode of ['local', 'hosted']) {
       assert.equal(collision.status, 409);
       assert.equal(collision.body.suggestedFilename, 'a-new-post-2.mdx');
       assert.equal((await call('POST', '/api/content/posts', { ...minimal, suggestedFilename: collision.body.suggestedFilename })).status, 201);
-      assert.equal((await call('GET', '/api/content/posts')).body.entries.length, 3);
+      const listing = (await call('GET', '/api/content/posts')).body.entries;
+      assert.equal(listing.length, 3);
+      assert.ok(listing.every((item) => item.visibilityKnown === true));
+      assert.equal(listing.find((item) => item.name === 'existing.md').draft, false);
+      assert.equal(listing.find((item) => item.name === 'a-new-post.mdx').draft, true);
       const reloaded = await call('GET', '/api/content/posts/a-new-post.mdx');
       assert.equal(reloaded.body.title, minimal.title);
       assert.equal((await call('PUT', '/api/content/posts/a-new-post.mdx', { ...reloaded.body, title: 'Renamed', date: '2027-01-01', draft: false })).status, 200);

@@ -1,4 +1,4 @@
-import { newContent, parseContent, serializeContent } from '../../editor-prototype/content.mjs';
+import { contentVisibility, newContent, parseContent, serializeContent, withContentVisibility } from '../../editor-prototype/content.mjs';
 import { parseBlog, saveBlog } from '../../editor-prototype/blog.mjs';
 import { createBlogCommit } from '../../editor-prototype/blogStorage.mjs';
 import { CONTENT_AREAS, contentArea, contentDirectory, encodeContentPath, validateContentPath } from '../../editor-prototype/contentAreas.mjs';
@@ -132,7 +132,12 @@ function createGitHubClient(env, token) {
     createBlog(input) { return createBlogCommit({ request, ensureBranch, branch, ...input }); },
     async listContent(area) {
       const ref = await readRef();
-      return { branch: ref, entries: await listDirectory(contentDirectory(area), ref) };
+      const files = await listDirectory(contentDirectory(area), ref);
+      const entries = await withContentVisibility(files, async (file) => {
+        const blob = await request(`/git/blobs/${encodeURIComponent(file.sha)}`);
+        return new TextDecoder().decode(base64ToBytes(blob.content.replace(/\s/g, '')));
+      });
+      return { branch: ref, entries };
     },
     async getContent(area, filename) {
       const ref = await readRef();
@@ -240,7 +245,7 @@ async function contentApi(request, env, pathname) {
   if (!filename) throw new HttpError(400, 'Content filename is required.');
   if (request.method === 'GET') {
     const file = await github.getContent(area, filename);
-    return json({ ...file, ...(area === 'posts' ? parseBlog(file.content) : parseContent(file.content)) });
+    return json({ ...file, ...(area === 'posts' ? parseBlog(file.content) : parseContent(file.content)), ...contentVisibility(file.content) });
   }
   if (request.method === 'PUT') {
     const input = await request.json();
@@ -253,7 +258,7 @@ async function contentApi(request, env, pathname) {
       ? serializeContent(input.originalContent, entry, { description: config.description, draft: config.publishing })
       : newContent(entry, { description: config.description, draft: config.publishing });
     const saved = await github.saveContent({ area, filename, content, sha: input.sha, publish: config.publishing && Boolean(input.publish) });
-    return json({ ...saved, content, ...parseContent(content) });
+    return json({ ...saved, content, ...parseContent(content), ...contentVisibility(content) });
   }
   throw new HttpError(405, 'Method not allowed.');
 }

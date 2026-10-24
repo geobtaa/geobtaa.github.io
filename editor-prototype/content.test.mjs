@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { glob } from 'node:fs/promises';
-import { newContent, newProject, parseContent, parseProject, serializeContent, serializeProject } from './content.mjs';
+import { contentVisibility, withContentVisibility, newContent, newProject, parseContent, parseProject, serializeContent, serializeProject } from './content.mjs';
 import { CONTENT_AREAS } from './contentAreas.mjs';
 import { splitBody } from '../src/components/editor-prototype/bodySegments.ts';
 
@@ -71,4 +71,28 @@ test('non-Project saves preserve specialized frontmatter and existing draft stat
   const saved = serializeContent(original, { ...parseContent(original), title: 'Renamed', draft: false, body: 'Edited' });
   assert.match(saved, /committee: Steering\nmembers:\n  - One\ndraft: true/);
   assert.deepEqual(parseContent(saved), { title: 'Renamed', description: '', draft: true, body: 'Edited' });
+});
+
+test('draft visibility and sidebar-only hiding are separate settings', () => {
+  assert.deepEqual(contentVisibility('---\ntitle: Draft\ndraft: true\n---\n\nBody'), { draft: true, sidebarHidden: false });
+  assert.deepEqual(contentVisibility('---\ntitle: Unlisted\ndraft: false\nsidebar:\n  hidden: true\n---\n\nBody'), { draft: false, sidebarHidden: true });
+  assert.deepEqual(contentVisibility('---\ntitle: Both\ndraft: true\nsidebar:\n  hidden: true\n---\n\nBody'), { draft: true, sidebarHidden: true });
+  assert.deepEqual(contentVisibility('---\ntitle: Ordinary\n---\n\nBody'), { draft: false, sidebarHidden: false });
+});
+
+test('content listings retain order and mark unreadable visibility as unknown', async () => {
+  const entries = ['draft', 'sidebar', 'unreadable', 'invalid', 'ready'].map((name) => ({ name, sha: `${name}-sha` }));
+  const result = await withContentVisibility(entries, async ({ name }) => {
+    if (name === 'unreadable') throw new Error('GitHub request failed');
+    if (name === 'invalid') return '---\ntitle: [broken\n---\n\nBody';
+    return `---\ntitle: ${name}\ndraft: ${name === 'draft'}\nsidebar:\n  hidden: ${name === 'sidebar'}\n---\n\nBody`;
+  });
+  assert.deepEqual(result.map((item) => item.name), entries.map((item) => item.name));
+  assert.equal(result[0].draft, true);
+  assert.equal(result[1].draft, false);
+  assert.equal(result[1].sidebarHidden, true);
+  assert.deepEqual(result[2], { ...entries[2], visibilityKnown: false });
+  assert.deepEqual(result[3], { ...entries[3], visibilityKnown: false });
+  assert.equal(result[4].draft, false);
+  assert.equal(result[4].visibilityKnown, true);
 });

@@ -119,3 +119,21 @@ test('uploads an image as a new custom-cms GitHub file without a replacement SHA
   assert.equal(payload.sha, undefined);
   assert.equal(Buffer.from(payload.content, 'base64').toString('hex'), '010203');
 });
+
+test('content lists read visibility from the listed immutable blob SHA', async () => {
+  const paths = [];
+  const client = createGitHubClient({ token: 'server-only', fetchImpl: async (url) => {
+    paths.push(url);
+    if (url.includes('/git/ref/heads/')) return response(200, { object: { sha: 'head' } });
+    if (url.includes('/contents/src/content/docs/library')) return response(200, [
+      { name: 'report.mdx', path: 'src/content/docs/library/report.mdx', sha: 'listed-sha', type: 'file' },
+    ]);
+    if (url.endsWith('/git/blobs/listed-sha')) return response(200, { content: Buffer.from('---\ntitle: Report\ndraft: true\nsidebar:\n  hidden: true\n---\n\nBody').toString('base64') });
+    throw new Error(`Unexpected ${url}`);
+  }});
+  const { entries } = await client.listContent('library');
+  assert.equal(entries[0].draft, true);
+  assert.equal(entries[0].sidebarHidden, true);
+  assert.equal(entries[0].visibilityKnown, true);
+  assert.ok(paths.some((path) => path.endsWith('/git/blobs/listed-sha')));
+});

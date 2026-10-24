@@ -1,6 +1,6 @@
 import http from 'node:http';
 import { createGitHubClient, GitHubConflictError } from './github.mjs';
-import { newContent, parseContent, serializeContent } from './content.mjs';
+import { contentVisibility, newContent, parseContent, serializeContent } from './content.mjs';
 import { CONTENT_AREAS, contentArea, validateContentPath } from './contentAreas.mjs';
 import { imageContentType, validateImagePath, validateImageUpload } from './imageAssets.mjs';
 import { parseBlog, saveBlog } from './blog.mjs';
@@ -82,7 +82,7 @@ export const createEditorServer = (github) => http.createServer(async (request, 
       if (!filename) throw Object.assign(new Error('Content filename is required.'), { status: 400 });
       if (request.method === 'GET') {
         const file = await github.getContent(area, filename);
-        return respond(response, 200, { ...file, ...(area === 'posts' ? parseBlog(file.content) : parseContent(file.content)) }, origin);
+        return respond(response, 200, { ...file, ...(area === 'posts' ? parseBlog(file.content) : parseContent(file.content)), ...contentVisibility(file.content) }, origin);
       }
       if (request.method === 'PUT') {
         const input = await readJson(request);
@@ -95,7 +95,7 @@ export const createEditorServer = (github) => http.createServer(async (request, 
           ? serializeContent(input.originalContent, entry, { description: config.description, draft: config.publishing })
           : newContent(entry, { description: config.description, draft: config.publishing });
         const saved = await github.saveContent({ area, filename, content, sha: input.sha, publish: config.publishing && Boolean(input.publish) });
-        return respond(response, 200, { ...saved, content, ...parseContent(content) }, origin);
+        return respond(response, 200, { ...saved, content, ...parseContent(content), ...contentVisibility(content) }, origin);
       }
     }
     respond(response, 404, { error: 'Not found.' }, origin);

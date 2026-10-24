@@ -1,6 +1,7 @@
 import { contentDirectory, encodeContentPath } from './contentAreas.mjs';
 import { IMAGE_DIRECTORY } from './imageAssets.mjs';
 import { createBlogCommit } from './blogStorage.mjs';
+import { withContentVisibility } from './content.mjs';
 
 export class GitHubConflictError extends Error {}
 
@@ -88,7 +89,12 @@ export function createGitHubClient({
     },
     async listContent(area = 'projects') {
       const ref = await readRef();
-      return { branch: ref, entries: await listDirectory(contentDirectory(area), ref) };
+      const files = await listDirectory(contentDirectory(area), ref);
+      const entries = await withContentVisibility(files, async (file) => {
+        const blob = await request(`${api}/git/blobs/${encodeURIComponent(file.sha)}`);
+        return Buffer.from(blob.content, 'base64').toString('utf8');
+      });
+      return { branch: ref, entries };
     },
 
     async getContent(area, filename) {

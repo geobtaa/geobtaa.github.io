@@ -9,7 +9,7 @@ import { CONTENT_AREAS } from '../../../editor-prototype/contentAreas.mjs';
 const API = import.meta.env.PUBLIC_PROJECT_EDITOR_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8787' : '');
 const CONFLICT = 'This page has changed in GitHub since you opened it. Reload the latest version before saving.';
 
-type ProjectListItem = { name: string; path: string; sha: string };
+type ProjectListItem = { name: string; path: string; sha: string; draft?: boolean; sidebarHidden?: boolean; visibilityKnown?: boolean };
 type ImageListItem = { name: string; path: string; sha: string; size?: number };
 type AreaName = keyof typeof CONTENT_AREAS;
 type Project = {
@@ -19,6 +19,7 @@ type Project = {
   title: string;
   description: string;
   draft: boolean;
+  sidebarHidden?: boolean;
   body: string;
   branch?: string;
   date?: string;
@@ -33,6 +34,14 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw Object.assign(new Error(data.error || `Request failed (${response.status}).`), { suggestedFilename: data.suggestedFilename });
   return data;
+}
+
+function VisibilityBadges({ draft, sidebarHidden, known = true }: { draft?: boolean; sidebarHidden?: boolean; known?: boolean }) {
+  if (!known) return <span className="visibility-badge status-unknown">Status unavailable</span>;
+  return <>
+    <span className={`visibility-badge ${draft ? 'status-draft' : 'status-ready'}`}>{draft ? 'Draft' : 'Published'}</span>
+    {sidebarHidden && <span className="visibility-badge status-navigation" title="Excluded from automatically generated sidebar navigation; the page URL remains accessible unless it is a draft.">Hidden from navigation</span>}
+  </>;
 }
 
 function slugify(value: string) {
@@ -297,7 +306,7 @@ function BlogMetadata({ project, onChange }: { project: Project; onChange: (proj
 export default function ProjectEditor() {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [project, setProject] = useState<Project | null>(null);
-  const [area, setArea] = useState<AreaName>('projects');
+  const [area, setArea] = useState<AreaName | null>(null);
   const [branch, setBranch] = useState('custom-cms');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
@@ -314,12 +323,12 @@ export default function ProjectEditor() {
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
-  const canLeave = () => !dirty || window.confirm('Discard unsaved changes? Download a recovery copy first if you need to keep them.');
+  const canLeave = () => !dirty || window.confirm('Discard unsaved changes? Choose Cancel to return to the editor and save your work.');
 
   const sortedProjects = useMemo(() => [...projects].sort((a, b) => a.name.localeCompare(b.name)), [projects]);
 
-  const config = CONTENT_AREAS[area];
-  const loadList = async (nextArea: AreaName = area) => {
+  const config = area ? CONTENT_AREAS[area] : null;
+  const loadList = async (nextArea: AreaName) => {
     setBusy(true); setError('');
     try {
       const data = await api<{ entries: ProjectListItem[]; branch: string }>(`/api/content/${nextArea}`);
@@ -332,7 +341,6 @@ export default function ProjectEditor() {
     void api<{ authenticated: boolean; login?: string }>('/api/session')
       .then((session) => {
         setViewer(session.authenticated ? (session.login || 'GitHub user') : null);
-        if (session.authenticated) void loadList();
       })
       .catch((err) => { setViewer(null); setError((err as Error).message); });
   }, []);
@@ -340,7 +348,7 @@ export default function ProjectEditor() {
   const logout = async () => {
     if (!canLeave()) return;
     await api('/api/auth/logout', { method: 'POST' });
-    setProject(null); setProjects([]); setViewer(null); setNotice(''); setError('');
+    setArea(null); setProject(null); setProjects([]); setViewer(null); setNotice(''); setError('');
   };
 
   if (viewer === undefined) return <main className="editor-shell"><p>Checking GitHub sign-in…</p></main>;
@@ -354,6 +362,7 @@ export default function ProjectEditor() {
   );
 
   const open = async (filename: string) => {
+    if (!area || busy) return;
     setBusy(true); setError(''); setNotice('');
     try {
       const loaded = await api<Project>(`/api/content/${area}/${encodeURIComponent(filename)}`);
@@ -365,25 +374,28 @@ export default function ProjectEditor() {
   };
 
   const create = () => {
+    if (!area || busy) return;
     setError(''); setNotice('');
     setProject({ filename: '', content: '', title: '', description: '', draft: isBlog, body: '', ...(isBlog ? { date: todayCalendar(), excerpt: '', authors: [], tags: [], cover: null } : {}) });
     setSuggestedFilename(''); setSavedSnapshot('');
     setBodyEditorSession((session) => session + 1);
   };
 
-  const selectArea = (nextArea: AreaName) => {
-    if (!canLeave()) return;
+  const selectArea = (nextArea: AreaName | null) => {
+    if (busy || !canLeave()) return false;
     setArea(nextArea); setProject(null); setProjects([]); setNotice(''); setError('');
-    void loadList(nextArea);
+    if (nextArea) void loadList(nextArea);
+    return true;
   };
 
-  const save = async (publish: boolean, alternative?: string) => {
-    if (!project) return;
+  const save = async (alternative?: string) => {
+    if (!project || !area || !config || busy) return;
     if (!project.title.trim()) return setError('Title is required.');
     const slug = project.sha ? project.filename.replace(/\.mdx?$/, '') : slugify(project.filename || project.title);
     if (!isBlog && !slug) return setError('Enter a title or filename before saving.');
     const filename = project.sha ? project.filename : `${slug}.mdx`;
     const creatingBlog = isBlog && !project.sha;
+    const publish = config.publishing && !project.draft;
     setBusy(true); setError(''); setNotice('');
     try {
       const saved = await api<Project & { commitSha: string }>(creatingBlog ? '/api/content/posts' : `/api/content/${area}/${encodeURIComponent(filename)}`, {
@@ -402,8 +414,8 @@ export default function ProjectEditor() {
       const next = { ...project, ...saved, filename: saved.filename || filename, draft: config.publishing ? !publish : project.draft };
       setProject(next); setSavedSnapshot(JSON.stringify(next)); setSuggestedFilename('');
       setBranch(saved.branch || 'custom-cms');
-      setNotice(`${config.publishing ? (publish ? 'Published' : 'Draft saved') : 'Changes saved'} on custom-cms (commit ${saved.commitSha.slice(0, 7)}).`);
-      await loadList();
+      setNotice(`Changes saved to staging (commit ${saved.commitSha.slice(0, 7)}).`);
+      await loadList(area);
     } catch (err) {
       setSuggestedFilename((err as Error & { suggestedFilename?: string }).suggestedFilename || '');
       const message = (err as Error).message;
@@ -411,41 +423,86 @@ export default function ProjectEditor() {
     } finally { setBusy(false); }
   };
 
+  const accountHeader = <header className="editor-header">
+    <div><p className="eyebrow">Staging</p><h1>{area ? 'Content editor' : 'Editor dashboard'}</h1><p>Signed in as <strong>{viewer}</strong>.</p></div>
+    <button className="link-button" type="button" disabled={busy} onClick={logout}>Sign out</button>
+  </header>;
+
+  if (!area || !config) return (
+    <main className="editor-shell">
+      {accountHeader}
+      <p className="dashboard-intro">Choose a content area to create a page or edit existing content.</p>
+      {error && <p className="message error" role="alert">{error}</p>}
+      <nav className="dashboard-grid" aria-label="Content areas">
+        {Object.entries(CONTENT_AREAS).map(([name, item]) => <button className="dashboard-card" type="button" key={name} onClick={() => selectArea(name as AreaName)}>
+          <span className="dashboard-card-title">{item.label}<span aria-hidden="true"> →</span></span>
+          <span>Browse and edit {item.label.toLowerCase()}</span>
+        </button>)}
+      </nav>
+    </main>
+  );
+
+  const backToList = () => {
+    if (busy || !canLeave()) return;
+    setProject(null); setNotice(''); setError(''); setSuggestedFilename('');
+    window.scrollTo({ top: 0 });
+  };
+  const backToDashboard = () => { if (selectArea(null)) window.scrollTo({ top: 0 }); };
+
   if (!project) return (
     <main className="editor-shell">
-      <header><p className="eyebrow">Staging</p><h1>Content editor</h1><p>Signed in as <strong>{viewer}</strong>. Files are read from <code>{branch}</code>{branch === 'main' ? ' until the prototype branch is created by the first save' : ''}.</p><button className="link-button" type="button" onClick={logout}>Sign out</button></header>
+      <nav className="editor-navigation" aria-label="Editor navigation">
+        <button className="back" type="button" disabled={busy} onClick={backToDashboard}>← Back to dashboard</button>
+        <span className="navigation-location">{config.label}</span>
+      </nav>
+      {accountHeader}
+      <p>Files are read from <code>{branch}</code>{branch === 'main' ? ' until the prototype branch is created by the first save' : ''}.</p>
       {error && <p className="message error" role="alert">{error}</p>}
-      <label className="area-selector">Content area<select value={area} onChange={(event) => selectArea(event.target.value as AreaName)}>{Object.entries(CONTENT_AREAS).map(([name, item]) => <option key={name} value={name}>{item.label}</option>)}</select></label>
-      <div className="list-heading"><h2>{config.label}</h2>{config.create && <button className="primary" type="button" onClick={create}>New {config.itemLabel}</button>}</div>
-      {busy ? <p>Loading…</p> : <ul className="project-list">{sortedProjects.map((item) => <li key={item.path}><button type="button" onClick={() => open(item.name)}>{item.name.replace(/\.mdx?$/, '')}</button></li>)}</ul>}
+      <label className="area-selector">Content area<select disabled={busy} value={area} onChange={(event) => selectArea((event.target.value || null) as AreaName | null)}><option value="">Dashboard — choose a content area</option>{Object.entries(CONTENT_AREAS).map(([name, item]) => <option key={name} value={name}>{item.label}</option>)}</select></label>
+      <div className="list-heading"><h2>{config.label}</h2>{config.create && <button className="primary" type="button" disabled={busy} onClick={create}>New {config.itemLabel}</button>}</div>
+      {busy ? <p role="status">Loading…</p> : <ul className="project-list">{sortedProjects.map((item) => <li className={item.draft && item.visibilityKnown ? 'draft-entry' : ''} key={item.path}><button type="button" onClick={() => open(item.name)}>
+        <span className="content-name">{item.name.replace(/\.mdx?$/, '')}</span>
+        {item.draft && item.visibilityKnown === true && <span className="visibility-badge status-draft">Draft</span>}
+      </button></li>)}</ul>}
     </main>
   );
 
   return (
     <main className="editor-shell">
-      <button className="back" type="button" disabled={busy} onClick={() => { if (!canLeave()) return; setProject(null); setNotice(''); setError(''); }}>← All {config.label}</button>
+      <nav className="editor-navigation" aria-label="Editor navigation">
+        <button className="back" type="button" disabled={busy} onClick={backToList}>← Back to {config.label}</button>
+        <div className="navigation-actions"><button className="dashboard-link" type="button" disabled={busy} onClick={backToDashboard}>Dashboard</button><button className="primary top-save" type="button" disabled={busy} onClick={() => save()}>{busy ? 'Saving…' : 'Save changes'}</button></div>
+      </nav>
       <h1>{project.sha ? `Edit ${config.itemLabel}` : `New ${config.itemLabel}`}</h1>
+      <section className={`visibility-panel ${project.draft ? 'is-draft' : 'is-ready'}`} aria-label="Page visibility" aria-live="polite">
+        <div className="visibility-heading">
+          <div className="content-badges">{config.publishing || isBlog ? <>
+            <button className="visibility-control visibility-switch" type="button" role="switch" aria-label="Published" aria-checked={!project.draft} disabled={busy} onClick={() => setProject({ ...project, draft: !project.draft })} onKeyDown={(event) => {
+              if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                event.preventDefault();
+                setProject({ ...project, draft: event.key === 'ArrowLeft' });
+              }
+            }}><span className="draft-label" aria-hidden="true">Draft</span><span className="published-label" aria-hidden="true">Published</span></button>
+            {project.sidebarHidden && <span className="visibility-badge status-navigation">Hidden from navigation</span>}
+          </> : <VisibilityBadges draft={project.draft} sidebarHidden={project.sidebarHidden} />}</div>
+          <span className="save-state">{busy ? 'Saving…' : !project.sha ? 'Not saved yet' : dirty ? 'Unsaved changes' : 'No unsaved changes'}</span>
+        </div>
+      </section>
       {notice && <p className="message success" role="status">{notice}</p>}
       {error && <p className="message error" role="alert">{error}</p>}
-      {isBlog && <p>{project.sha ? `Saved URL: /posts/${project.filename.replace(/\.mdx?$/, '').replace(/\/index$/, '')}/` : 'The URL is generated from the title on first save and stays permanent.'} Saves go to staging. Publishing to the live site requires review and merge.</p>}
-      {suggestedFilename && !project.sha && <button type="button" disabled={busy} onClick={() => save(false, suggestedFilename)}>Create as {suggestedFilename.replace(/\.mdx$/, '')}</button>}
+      {isBlog && project.sha && <p>Saved URL: /posts/{project.filename.replace(/\.mdx?$/, '').replace(/\/index$/, '')}/</p>}
+      {suggestedFilename && !project.sha && <button type="button" disabled={busy} onClick={() => save(suggestedFilename)}>Create as {suggestedFilename.replace(/\.mdx$/, '')}</button>}
       <form onSubmit={(event) => event.preventDefault()}>
         <fieldset className="editor-fields" disabled={busy}>
         {!project.sha && !isBlog && <label>Filename <span>(optional; generated from title)</span><input value={project.filename} onChange={(event) => setProject({ ...project, filename: slugify(event.target.value) })} placeholder="example-project" /></label>}
-        {(config.publishing || isBlog) && <label className="checkbox"><input type="checkbox" checked={project.draft} onChange={(event) => setProject({ ...project, draft: event.target.checked })} /> Hide from site</label>}
         <label>Title<input required value={project.title} onChange={(event) => setProject({ ...project, title: event.target.value })} /></label>
         {config.description && <label>Description<textarea required rows={3} value={project.description} onChange={(event) => setProject({ ...project, description: event.target.value })} /></label>}
         {isBlog && <BlogMetadata project={project} onChange={setProject} />}
         <label>Body</label>
         <div inert={busy}><BodyEditor key={bodyEditorSession} initialValue={project.body} onChange={(body) => setProject((current) => current ? { ...current, body } : current)} /></div>
-        <div className="actions">{config.publishing ? <><button disabled={busy} type="button" onClick={() => save(false)}>Save draft</button><button disabled={busy} className="primary" type="button" onClick={() => save(true)}>Publish</button></> : <button disabled={busy} className="primary" type="button" onClick={() => save(false)}>Save changes</button>}</div>
+        <div className="actions editor-actions"><button className="back" disabled={busy} type="button" onClick={backToList}>← Back to {config.label}</button><button disabled={busy} className="primary" type="button" onClick={() => save()}>{busy ? 'Saving…' : 'Save changes'}</button></div>
         </fieldset>
       </form>
-      {isBlog && <button type="button" onClick={() => {
-        const url = URL.createObjectURL(new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' }));
-        const link = document.createElement('a'); link.href = url; link.download = 'blog-recovery.json'; link.click(); URL.revokeObjectURL(url);
-      }}>Download recovery copy</button>}
-
     </main>
   );
 }
