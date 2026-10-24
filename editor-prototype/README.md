@@ -2,7 +2,7 @@
 
 This isolated prototype is available at `/editor/`. It edits a conservative allowlist of content directories under `src/content/docs` and writes through the GitHub Contents API directly to the `custom-cms` staging branch. Decap `/admin` is unchanged.
 
-The enabled directories are `about`, `conference`, `guides`, `library`, `metadata`, `projects`, `scholarship`, `team`, and `workgroups`. Creating files and changing draft/published state remain limited to Projects; other directories edit existing titles, descriptions (where present), and bodies while preserving all other frontmatter.
+The enabled directories are `about`, `conference`, `guides`, `library`, `metadata`, `projects`, `scholarship`, `team`, and `workgroups`. Files can be created in each enabled directory. Draft/published state remains limited to Projects; other directories edit titles, descriptions (where present), and bodies while preserving all other frontmatter.
 
 ## Local setup
 
