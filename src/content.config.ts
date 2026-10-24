@@ -1,4 +1,5 @@
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
 import { docsLoader } from '@astrojs/starlight/loaders';
 import { docsSchema } from '@astrojs/starlight/schema';
 import { blogSchema } from 'src/content/BlogSchema';
@@ -81,18 +82,19 @@ const programUpdateSchema = z.object({
 export const collections = {
   docs: defineCollection({
     loader: docsLoader(),
-    schema: docsSchema({
-      extend: (context) =>
-        blogSchema(context)
-          .and(videosSchema)
-          .and(programUpdateSchema)
-          .and(
-            z.object({
-              // Optional 4-digit year; accepts number or string and coerces to number
-              year: z.coerce.number().int().min(1800).max(2100).optional(),
-              hidePageTitle: z.boolean().optional(),
-            }),
-          ),
-    }),
+    // Keep the existing intersection validation. Starlight 0.42's `extend`
+    // deep-merges object schemas and does not accept Zod intersections.
+    schema: (context) =>
+      docsSchema()(context)
+        .and(blogSchema(context))
+        .and(videosSchema)
+        .and(programUpdateSchema)
+        .and(
+          z.object({
+            // Optional 4-digit year; accepts number or string and coerces to number
+            year: z.coerce.number().int().min(1800).max(2100).optional(),
+            hidePageTitle: z.boolean().optional(),
+          }),
+        ),
   }),
 };

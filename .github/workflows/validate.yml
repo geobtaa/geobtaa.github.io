@@ -1,0 +1,38 @@
+name: Validate Astro site
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "editor-prototype/**"
+      - "functions/**"
+      - "tests/**"
+      - "astro.config.ts"
+      - "navigation.config.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - ".node-version"
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+          cache: npm
+      - run: npm ci
+      - run: npm run astro -- sync
+      - run: npm run astro -- check
+      - run: npm run test:editor
+      - run: npm run build -- --timings
+      - run: npm run test:navigation

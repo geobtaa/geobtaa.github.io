@@ -9,12 +9,13 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "src/content/**"
+      - "src/**"
       - "public/**"
       - "astro.config.ts"
       - "package.json"
       - "package-lock.json"
       - "tsconfig.json"
+      - ".node-version"
       - "navigation.config.ts"
       - ".github/workflows/astro.yml"
 
@@ -65,7 +66,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: ".node-version"
           cache: ${{ steps.detect-package-manager.outputs.manager }}
           cache-dependency-path: ${{ env.BUILD_PATH }}/${{ steps.detect-package-manager.outputs.lockfile }}
       - name: Setup Pages

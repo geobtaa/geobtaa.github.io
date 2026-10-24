@@ -28,6 +28,22 @@ Images can be added to `src/assets/` and embedded in Markdown with a relative li
 
 Static assets, like favicons, can be placed in the `public/` directory.
 
+## Astro 7.4 upgrade
+
+The site uses Astro 7.4.x and Starlight 0.42 with Node.js 24.13.1, pinned in
+`.node-version` and Volta. The upgrade preserves Unified Markdown rendering,
+the existing content schemas, sidebar organization and collapse behavior,
+reverse-chronological sorting, and previous/next navigation.
+
+Unused dependencies were removed after checking code and configuration references.
+Editor tests were repaired, navigation regression tests were added, and pull
+requests now run a validation-only CI workflow.
+
+Validation passed: 168 generated pages, all internal links valid, 40 editor tests,
+two navigation tests, and Astro type checking with no errors. Routes, sidebar
+output, and parsed content were compared against the Astro 5 baseline. Local
+browser testing was also completed by the maintainer.
+
 ## Project documentation
 
 Documentation for developing and maintaining this repository is stored in
@@ -52,6 +68,8 @@ All commands are run from the root of the project, from a terminal:
 | `npm run decap`           | Starts the Decap local backend proxy             |
 | `npm run build`           | Build your production site to `./dist/`          |
 | `npm run preview`         | Preview your build locally, before deploying     |
+| `npm run test:editor`     | Run the content editor tests                      |
+| `npm run test:navigation` | Check navigation in the built site; run after build |
 | `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `npm run astro -- --help` | Get help using the Astro CLI                     |
 

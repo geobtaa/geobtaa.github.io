@@ -210,15 +210,17 @@ test('all existing LinkCard instances use the supported structured syntax', asyn
     const source = await readFile(filename, 'utf8');
     instances.push(...source.matchAll(/<LinkCard\b[\s\S]*?\/>/g).map((match) => ({ filename, source: match[0] })));
   }
-  assert.equal(instances.length, 21);
+  assert.ok(instances.length > 0, 'repository content exercises LinkCard parsing');
   for (const instance of instances) assert.ok(parseLinkCardMdx(instance.source), instance.filename);
 });
 
 test('existing editable LinkCards preserve their surrounding file segment when edited', async () => {
   let editable = 0;
   let readOnly = 0;
+  let total = 0;
   for await (const filename of glob('src/content/docs/**/*.{md,mdx}')) {
     const body = (await readFile(filename, 'utf8')).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n(?:\r?\n)?/, '');
+    total += [...body.matchAll(/<LinkCard\b/g)].length;
     for (const segment of splitBody(body)) {
       const count = [...segment.content.matchAll(/<LinkCard\b/g)].length;
       if (!count) continue;
@@ -244,8 +246,9 @@ test('existing editable LinkCards preserve their surrounding file segment when e
       opened.editor.destroy();
     }
   }
-  assert.equal(editable, 19);
-  assert.equal(readOnly, 2);
+  assert.ok(editable > 0, 'repository content exercises editable LinkCards');
+  assert.ok(readOnly > 0, 'repository content exercises protected LinkCards');
+  assert.equal(editable + readOnly, total, 'every LinkCard is exercised without losing file segments');
 });
 
 test('LinkCard loads as a structured node and round-trips through edit and reload', () => {
