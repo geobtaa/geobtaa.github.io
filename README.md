@@ -9,11 +9,12 @@ Inside of your Astro + Starlight project, you'll see the following folders and f
 
 ```
 .
+├── docs/                     # Internal project and maintenance guides
 ├── public/
 ├── src/
 │   ├── assets/
 │   ├── content/
-│   │   └── docs/
+│   │   └── docs/             # Content published on the website
 │   └── content.config.ts
 ├── astro.config.ts
 ├── navigation.config.ts
@@ -26,6 +27,18 @@ Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. 
 Images can be added to `src/assets/` and embedded in Markdown with a relative link.
 
 Static assets, like favicons, can be placed in the `public/` directory.
+
+## Project documentation
+
+Documentation for developing and maintaining this repository is stored in
+[`docs/`](docs/README.md). It is separate from `src/content/docs/`, which holds
+content published on the website.
+
+- [Local setup](docs/LOCAL_SETUP.md)
+- [Local Decap CMS testing](docs/DECAP_LOCAL.md)
+- [Conference map gallery maintenance](docs/how-to-update-conf-map-gallery.md)
+- [Data Citation Generator overview](docs/data-citation-generator.md)
+- [Data Citation Generator autofill crosswalk](docs/data-citation-autofill-crosswalk.md)
 
 ## 🧞 Commands
 
@@ -51,7 +64,7 @@ For local Decap CMS evaluation, use two terminals:
 
 The exact admin URL matters here: use `/admin/index.html` during local development.
 
-See [DECAP_LOCAL.md](/Users/olive/GitHub/geobtaa.github.io/DECAP_LOCAL.md) for the full workflow.
+See [Local Decap CMS testing](docs/DECAP_LOCAL.md) for the full workflow.
 
 ## 🔄 Updating Navigation
 

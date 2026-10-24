@@ -47,19 +47,17 @@ main h1 {
 }
 
 main h2 {
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   font-weight: 600;
-  border-bottom: 2px solid var(--sl-color-primary);
-  padding-bottom: 0.25rem;
   margin-top: 0rem;
   color: var(--sl-color-headings);
 }
 
 main h3 {
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 600;
   margin-top: 1.5rem;
-  color: var(--sl-color-headings);
+  color: var(--btaa-med-blue);
 }
 
 main h4 {
@@ -203,6 +201,10 @@ color: #FFFFFF;
 /* --sl-icon-color: var(--btaa-white); */
 --div-backgrounds: var(--btaa-dark-gray);
 --btaa-banner: var(--btaa-green);
+
+main h3 {
+  color: var(--btaa-blue);
+}
 
 .starlight-aside__title {
 color: var(--btaa-white);

@@ -4,22 +4,22 @@ This document is for BTAA-GIN Team members maintaining the conference map galler
 
 This gallery is driven by two things:
 
-- submission metadata in [submissions.csv](src/content/docs/conference/map-gallery/submissions.csv)
-- thumbnail images in [public/map-gallery](public/map-gallery)
+- submission metadata in [submissions.csv](../src/content/docs/conference/map-gallery/submissions.csv)
+- thumbnail images in [public/map-gallery](../public/map-gallery)
 
-The map gallery file is at [conference/map-gallery/index.mdx](src/content/docs/conference/map-gallery/index.mdx), which renders the gallery component.
+The map gallery file is at [conference/map-gallery/index.mdx](../src/content/docs/conference/map-gallery/index.mdx), which renders the gallery component.
 
 ## Files and folders
 
-- Metadata CSV: [src/content/docs/conference/map-gallery/submissions.csv](src/content/docs/conference/map-gallery/submissions.csv)
-- Gallery page: [src/content/docs/conference/map-gallery/index.mdx](src/content/docs/conference/map-gallery/index.mdx)
-- Submission guidelines page: [src/content/docs/conference/map-gallery/submission-guidelines.mdx](src/content/docs/conference/map-gallery/submission-guidelines.mdx)
-- Thumbnail directory: [public/map-gallery](public/map-gallery)
-- Thumbnail optimization script: [scripts/optimize-gallery.mjs](scripts/optimize-gallery.mjs)
+- Metadata CSV: [src/content/docs/conference/map-gallery/submissions.csv](../src/content/docs/conference/map-gallery/submissions.csv)
+- Gallery page: [src/content/docs/conference/map-gallery/index.mdx](../src/content/docs/conference/map-gallery/index.mdx)
+- Submission guidelines page: [src/content/docs/conference/map-gallery/submission-guidelines.mdx](../src/content/docs/conference/map-gallery/submission-guidelines.mdx)
+- Thumbnail directory: [public/map-gallery](../public/map-gallery)
+- Thumbnail optimization script: [scripts/optimize-gallery.mjs](../scripts/optimize-gallery.mjs)
 
 ## Updating `submissions.csv`
 
-Add or update rows in [submissions.csv](src/content/docs/conference/map-gallery/submissions.csv).
+Add or update rows in [submissions.csv](../src/content/docs/conference/map-gallery/submissions.csv).
 
 Important columns:
 
@@ -38,7 +38,7 @@ Notes:
 
 ## Adding thumbnails
 
-Place gallery thumbnails in [public/map-gallery](public/map-gallery).
+Place gallery thumbnails in [public/map-gallery](../public/map-gallery).
 
 Guidelines:
 
@@ -97,7 +97,7 @@ Recommended workflow for thumbnails:
 
 For new annual entries, you can upload thumbnails and add CSV rows before they are public.
 
-1. Add the new rows to [submissions.csv](src/content/docs/conference/map-gallery/submissions.csv).
+1. Add the new rows to [submissions.csv](../src/content/docs/conference/map-gallery/submissions.csv).
 2. Set `publish_status` to `draft`.
 3. Commit and deploy.
 4. Review the hidden entries using:
@@ -121,9 +121,9 @@ After deployment, that year will appear in the public year filter automatically.
 
 ## Typical update checklist
 
-1. Add or update thumbnails in [public/map-gallery](public/map-gallery).
+1. Add or update thumbnails in [public/map-gallery](../public/map-gallery).
 2. Run `npm run optimize-gallery`.
-3. Add or update the matching rows in [submissions.csv](src/content/docs/conference/map-gallery/submissions.csv).
+3. Add or update the matching rows in [submissions.csv](../src/content/docs/conference/map-gallery/submissions.csv).
 4. Use `draft` for entries that should not yet be public.
 5. Build locally if needed with `npm run build`.
 6. Commit and deploy.

@@ -1,5 +1,8 @@
 # Data citation autofill crosswalk
 
+For a short, nontechnical description of the complete tool, see
+[`data-citation-generator.md`](data-citation-generator.md).
+
 `src/components/DataCitation.tsx` opens in manual-entry mode. A user can instead
 prefill the citation form from either a DOI or a BTAA Geoportal resource landing
 page. Autofill values are starting points only; every form field remains
