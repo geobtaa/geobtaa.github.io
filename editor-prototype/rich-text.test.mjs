@@ -5,6 +5,8 @@ import { Editor } from '@tiptap/core';
 import { parseHTML } from 'linkedom';
 import { splitBody } from '../src/components/editor-prototype/bodySegments.ts';
 import { richTextEditorOptions } from '../src/components/editor-prototype/richTextEditor.ts';
+import { SIMPLE_KINDS, SIMPLE_COMPONENTS, createSimpleComponentMdx, emptySimpleFields, ensureSimpleComponentImport, parseSimpleComponentMdx } from '../src/components/editor-prototype/simpleComponents.ts';
+import { createLinkButtonMdx, ensureLinkButtonImport, parseLinkButtonMdx, updateLinkButtonMdx } from '../src/components/editor-prototype/linkButtonMdx.ts';
 import { createLinkCardMdx, ensureLinkCardImport, LINK_CARD_IMPORT, parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor-prototype/linkCardMdx.ts';
 
 const { window } = parseHTML('<!doctype html><html><body></body></html>');
@@ -414,7 +416,6 @@ test('React integration has no live-content rehydration and remounts only for en
   assert.doesNotMatch(source, /commands\.setContent|setContent\s*\(/);
   assert.match(source, /<BodyEditor key=\{bodyEditorSession\} initialValue=\{project\.body\}/);
   assert.doesNotMatch(source, /<BodyEditor key=\{`\$\{project\.filename\}:\$\{project\.sha/);
-  assert.match(source, />Insert → Link Card<\/button>/);
 });
 
 test('blog layout blocks protect nested components, multiline attributes, and imports while nearby Markdown remains editable', () => {
@@ -435,4 +436,196 @@ test('blog layout blocks protect nested components, multiline attributes, and im
   assert.ok(saved.includes(imports));
   assert.ok(saved.includes('After edited'));
   editor.destroy();
+});
+
+test('images with and without captions insert, edit, and reopen as standard Markdown', () => {
+  for (const title of ['', 'A "quoted" caption \\ with brackets [here]']) {
+    const { editor } = openEditor();
+    editor.commands.setImage({ src: '@images/original.png', alt: 'Original [map]', title });
+    const firstSave = editor.getMarkdown();
+    assert.doesNotMatch(firstSave, /<figure|<img|width=/);
+    const reopened = openEditor(firstSave);
+    const image = reopened.editor.state.doc.firstChild;
+    assert.equal(image.type.name, 'image');
+    assert.equal(image.attrs.title || '', title);
+    assert.equal(image.attrs.alt, 'Original [map]');
+    reopened.editor.commands.setNodeSelection(0);
+    reopened.editor.commands.updateAttributes('image', { src: '@images/replacement.png', alt: 'Replacement map', title: 'Replacement caption' });
+    const saved = reopened.editor.getMarkdown();
+    assert.match(saved, /!\[Replacement map\]\(@images\/replacement.png "Replacement caption"\)/);
+    const final = openEditor(saved);
+    assert.equal(final.editor.state.doc.firstChild.attrs.title, 'Replacement caption');
+    assert.equal(final.editor.state.doc.firstChild.attrs.src, '@images/replacement.png');
+    final.editor.commands.setNodeSelection(0);
+    final.editor.commands.updateAttributes('image', { title: '' });
+    assert.match(final.editor.getMarkdown(), /!\[Replacement map\]\(@images\/replacement.png\)/);
+    for (const instance of [editor, reopened.editor, final.editor]) instance.destroy();
+  }
+});
+
+test('unrelated text edits retain original image syntax, titles, paths, and protected MDX', () => {
+  const body = `import CenterLayout from '/src/components/CenterLayout.astro';\n\n![Original alt](@images//map.png 'Original title')\n\nBefore\n\n<CenterLayout class="legacy">\n![Protected](@images/private.png "Do not change")\n<Other value={expression} />\n</CenterLayout>\n`;
+  const segments = splitBody(body);
+  const markdown = segments.find((segment) => segment.kind === 'markdown');
+  const opened = openEditor(markdown.content);
+  type(opened.editor, ' edited');
+  assert.ok(opened.editor.getMarkdown().includes("![Original alt](@images//map.png 'Original title')"));
+  const saved = segments.map((segment) => segment === markdown ? `${opened.editor.getMarkdown()}\n\n` : segment.content).join('');
+  assert.ok(saved.includes('<CenterLayout class="legacy">\n![Protected](@images/private.png "Do not change")\n<Other value={expression} />\n</CenterLayout>'));
+  assert.ok(saved.includes("import CenterLayout from '/src/components/CenterLayout.astro';"));
+  opened.editor.destroy();
+});
+
+test('repository preview resolves legacy paths without changing stored source', () => {
+  for (const src of ['@images//folder/map.png', '../../assets/images/folder/map.png', '/src/assets/images/folder/map.png']) {
+    const markdown = `![Map](${src} "Map caption")`;
+    const opened = openEditor(markdown);
+    assert.equal(opened.editor.view.dom.querySelector('img').getAttribute('src'), '/api/images/file/folder/map.png');
+    assert.equal(opened.editor.view.dom.querySelector('figcaption').textContent, 'Map caption');
+    assert.equal(opened.editor.getMarkdown().trim(), markdown);
+    opened.editor.destroy();
+  }
+});
+
+
+test('LinkButtons round-trip and targeted edits preserve quotes, spacing, and surrounding content', () => {
+  for (const source of ["<LinkButton href='/original'>Original label</LinkButton>", '<LinkButton\r\n  href="/original"\r\n  variant="secondary"\r\n>\r\n  Original label\r\n</LinkButton>']) {
+    const parsed = parseLinkButtonMdx(source);
+    assert.ok(parsed);
+    assert.equal(updateLinkButtonMdx(source, parsed), source);
+    assert.equal(updateLinkButtonMdx(source, { ...parsed, text: 'Updated label' }), source.replace('Original label', 'Updated label'));
+    const opened = openEditor(`Before\n\n${source}\n\nAfter`);
+    assert.ok(opened.editor.getMarkdown().includes(source.replace(/\r\n/g, '\n')));
+    let position;
+    opened.editor.state.doc.descendants((node, pos) => { if (node.type.name === 'linkButtonBlock') position = pos; });
+    opened.editor.commands.setNodeSelection(position);
+    opened.editor.commands.updateAttributes('linkButtonBlock', { text: 'New label', href: '/changed', variant: 'minimal' });
+    const saved = opened.editor.getMarkdown();
+    assert.match(saved, /New label/);
+    assert.match(saved, /href=['"]\/changed['"]/);
+    assert.match(saved, /variant="minimal"/);
+    const reloaded = openEditor(saved);
+    const button = reloaded.editor.getJSON().content.find(node => node.type === 'linkButtonBlock');
+    assert.equal(button.attrs.text, 'New label');
+    assert.equal(button.attrs.href, '/changed');
+    assert.equal(button.attrs.variant, 'minimal');
+    opened.editor.destroy(); reloaded.editor.destroy();
+  }
+});
+
+test('new LinkButtons escape literal labels and serialize as supported Starlight MDX', () => {
+  const fields = { text: 'Maps & {data} [links] **text** <more>', href: '/maps/?a=1&b=2', variant: 'secondary' };
+  const raw = createLinkButtonMdx(fields);
+  assert.deepEqual(parseLinkButtonMdx(raw), { ...fields, raw });
+  const opened = openEditor('Before');
+  assert.equal(opened.editor.commands.insertContentAt(opened.editor.state.selection.to, { type: 'linkButtonBlock', attrs: { ...fields, raw } }), true);
+  const saved = opened.editor.getMarkdown();
+  assert.ok(saved.includes(raw));
+  const reloaded = openEditor(saved);
+  assert.equal(reloaded.editor.getJSON().content.find(node => node.type === 'linkButtonBlock').attrs.text, fields.text);
+  opened.editor.destroy(); reloaded.editor.destroy();
+});
+
+test('unsupported LinkButtons and buttons inside legacy layouts remain protected verbatim', () => {
+  for (const source of [
+    '<LinkButton href={url}>Label</LinkButton>\n',
+    '<LinkButton href="/" icon="external">Label</LinkButton>\n',
+    '<LinkButton href="/" variant="other">Label</LinkButton>\n',
+    '<LinkButton href="/">**Formatted**</LinkButton>\n',
+    '<LinkButton href="/">{label}</LinkButton>\n',
+    '<LinkButton href="/">Read <Icon name="external" /></LinkButton>\n',
+    '<LinkButton href="/" href="/two">Duplicate</LinkButton>\n',
+    '<CenterLayout>\n<LinkButton href="/">Nested</LinkButton>\n</CenterLayout>\n',
+  ]) {
+    assert.equal(parseLinkButtonMdx(source), null);
+    const segments = splitBody(source);
+    assert.equal(segments.map(segment => segment.content).join(''), source);
+    assert.ok(segments.every(segment => segment.kind === 'protected'));
+  }
+  const raw = '<LinkButton href="/">Editable</LinkButton>\n';
+  assert.equal(splitBody(raw)[0].kind, 'structured');
+});
+
+test('LinkButton imports preserve complete existing imports and avoid duplicates or binding conflicts', () => {
+  for (const imports of ["import { Card, LinkButton } from '@astrojs/starlight/components';\n", "import {\n  Card,\n  LinkButton,\n} from '@astrojs/starlight/components';\n"]) {
+    const source = `${imports}\nBody`;
+    assert.equal(ensureLinkButtonImport(source).content, source);
+    assert.equal(ensureLinkButtonImport(source).added, false);
+  }
+  const source = "import {\n  Card,\n} from '@astrojs/starlight/components';\n\nBody";
+  const added = ensureLinkButtonImport(source);
+  assert.ok(added.content.startsWith(source.split('\n\n')[0]));
+  assert.ok(added.content.includes("import { LinkButton } from '@astrojs/starlight/components';"));
+  assert.equal(ensureLinkButtonImport(added.content).content, added.content);
+  const conflict = "import LinkButton from './Custom.astro';\n\nBody";
+  assert.ok(ensureLinkButtonImport(conflict).error);
+  assert.equal(ensureLinkButtonImport(conflict).content, conflict);
+});
+
+test('LinkButton examples in fenced Markdown stay code rather than editable components', () => {
+  const example = '```mdx\nimport { LinkButton } from \'@astrojs/starlight/components\';\n<LinkButton href="/">Example</LinkButton>\n```\n';
+  const segments = splitBody(example);
+  assert.equal(segments.length, 1);
+  assert.equal(segments[0].kind, 'markdown');
+  assert.equal(segments[0].content, example);
+  assert.equal(ensureLinkButtonImport(example).added, true, 'example imports are not runtime imports');
+});
+
+
+for (const kind of SIMPLE_KINDS) {
+  test(`new ${kind} inserts, edits and reopens using its narrow Starlight format`, () => {
+    const fields = { ...emptySimpleFields(), title: kind === 'badge' ? '' : 'Maps & <literal title>', text: kind === 'badge' ? 'New & useful' : 'Message with {expressions} and <components>.\n1. A literal line, not a list.\n::: not a callout', ...(kind === 'badge' ? { variant: 'success', size: 'medium' } : kind === 'callout' ? { type: 'tip' } : {}) };
+    const raw = createSimpleComponentMdx(kind, fields);
+    assert.deepEqual(parseSimpleComponentMdx(raw)?.fields, fields);
+    const opened = openEditor('Before');
+    assert.equal(opened.editor.commands.insertContentAt(opened.editor.state.selection.to, { type: SIMPLE_COMPONENTS[kind].node, attrs: { ...fields, raw } }), true);
+    const saved = opened.editor.getMarkdown();
+    assert.ok(saved.includes(raw));
+    const reloaded = openEditor(saved);
+    let position;
+    reloaded.editor.state.doc.descendants((node, pos) => { if (node.type.name === SIMPLE_COMPONENTS[kind].node) position = pos; });
+    assert.notEqual(position, undefined);
+    reloaded.editor.commands.setNodeSelection(position);
+    reloaded.editor.commands.updateAttributes(SIMPLE_COMPONENTS[kind].node, { text: 'Revised & literal <text>' });
+    const changed = reloaded.editor.getMarkdown();
+    const component = splitBody(changed).find(segment => segment.kind === 'structured');
+    assert.equal(parseSimpleComponentMdx(component.content)?.fields.text, 'Revised & literal <text>');
+    const final = openEditor(changed);
+    assert.equal(final.editor.getMarkdown(), changed);
+    opened.editor.destroy(); reloaded.editor.destroy(); final.editor.destroy();
+  });
+}
+
+test('existing badges, callouts, cards, and unsupported new-format syntax remain protected', () => {
+  const fields = { ...emptySimpleFields(), title: 'Title', text: 'Message' };
+  for (const source of [
+    '<Badge text="Existing" />\n',
+    '<Aside type="tip">Existing plain message</Aside>\n',
+    '<Card title="Existing">Existing plain message</Card>\n',
+    createSimpleComponentMdx('badge', fields).replace('size="small"', 'size="small" class="custom"') + '\n',
+    createSimpleComponentMdx('callout', fields).replace('Message', '<Other dynamic={value} />') + '\n',
+    createSimpleComponentMdx('card', fields).replace('Message', '**Rich Markdown**') + '\n',
+    '<CardGrid>\n' + createSimpleComponentMdx('card', fields) + '\n</CardGrid>\n',
+  ]) {
+    assert.equal(parseSimpleComponentMdx(source), null);
+    assert.equal(splitBody(source).map(segment => segment.content).join(''), source);
+    assert.ok(splitBody(source).every(segment => segment.kind === 'protected'));
+  }
+});
+
+test('new component aliases preserve legacy imports, avoid duplicates, and detect conflicts', () => {
+  const original = "import { Card, Aside, Badge } from '@astrojs/starlight/components';\n\n<Card title=\"Old\">Keep me</Card>\n";
+  let source = original;
+  for (const kind of SIMPLE_KINDS) {
+    const result = ensureSimpleComponentImport(source, kind);
+    assert.equal(result.added, true);
+    assert.ok(result.content.includes('<Card title="Old">Keep me</Card>'));
+    assert.ok(result.content.includes(original.split('\n')[0]));
+    source = result.content;
+    assert.equal(ensureSimpleComponentImport(source, kind).content, source);
+    assert.equal(ensureSimpleComponentImport(source, kind).added, false);
+    const conflict = `import ${SIMPLE_COMPONENTS[kind].binding} from './Custom.astro';\n`;
+    assert.ok(ensureSimpleComponentImport(conflict, kind).error);
+    assert.equal(ensureSimpleComponentImport(conflict, kind).content, conflict);
+  }
 });

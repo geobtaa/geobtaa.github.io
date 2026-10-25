@@ -16,7 +16,7 @@ for (const candidate of candidates) {
 }
 
 // Run browser tests against an isolated fixture without accessing GitHub.
-export async function withEditorBrowser(fixtureCode, run) {
+export async function withEditorBrowser(fixtureCode, run, { images = {} } = {}) {
   assert.ok(chrome, 'Chrome/Chromium is required.');
   const fixtureName = `.editor-browser-fixture-${process.pid}.tsx`;
   const fixture = join(root, 'editor-prototype', fixtureName);
@@ -26,9 +26,16 @@ export async function withEditorBrowser(fixtureCode, run) {
     await writeFile(fixture, fixtureCode, { flag: 'wx' });
     server = await createServer({
       root, configFile: false, logLevel: 'error', cacheDir: join(profile, 'vite'), esbuild: { jsx: 'automatic' }, server: { host: '127.0.0.1', port: 0 },
+      define: Object.keys(images).length ? { 'import.meta.env.PUBLIC_PROJECT_EDITOR_API_URL': JSON.stringify('/__mock-gateway') } : {},
       plugins: [{
         name: 'editor-test-page',
         configureServer(vite) {
+          vite.middlewares.use('/__mock-gateway/api/images/file/', (request, response) => {
+            const image = images[decodeURIComponent(request.url.split('?')[0].replace(/^\//, ''))];
+            response.statusCode = image ? 200 : 404;
+            response.setHeader('Content-Type', image ? 'image/png' : 'text/plain');
+            response.end(image || 'Image not found');
+          });
           vite.middlewares.use('/__editor-test', async (_request, response) => {
             response.setHeader('Content-Type', 'text/html');
             response.end(await vite.transformIndexHtml('/__editor-test', `<html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="root"></div><script type="module" src="/editor-prototype/${fixtureName}"></script></body></html>`));
@@ -93,4 +100,14 @@ export async function withEditorBrowser(fixtureCode, run) {
     await rm(fixture, { force: true });
     await rm(profile, { recursive: true, force: true, maxRetries: 4, retryDelay: 100 });
   }
+}
+
+// Exercise the visible side menu rather than clicking buttons in closed details.
+export async function openNewBlockMenu({ evaluate, waitFor }, label, row) {
+  if (!['Text', 'Link Card', 'Link Button', 'Badge', 'Callout', 'Card'].includes(label)) return;
+  const target = row || (label === 'Text' ? 'document.querySelector(".block-row:last-child")' : '(document.querySelector(".rich-editor")?.closest(".block-row") || document.querySelector(".block-row:last-child"))');
+  const menu = `(${target}).querySelector('.block-inserter-menu')`;
+  await evaluate(`if (!${menu}.open) ${menu}.querySelector('summary').click()`);
+  await waitFor(`${menu}.open && [...${menu}.querySelectorAll('button')].some(button => button.textContent === ${JSON.stringify(label)} && button.offsetWidth > 0)`);
+  return menu;
 }

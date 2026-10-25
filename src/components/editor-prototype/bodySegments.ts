@@ -1,3 +1,5 @@
+import { parseSimpleComponentMdx } from './simpleComponents.ts';
+import { matchLinkButtonBlock, parseLinkButtonMdx } from './linkButtonMdx.ts';
 import { matchLinkCardBlock, parseLinkCardMdx } from './linkCardMdx.ts';
 
 export type BodySegment = { id: number; kind: 'markdown' | 'protected' | 'structured'; content: string };
@@ -16,6 +18,16 @@ export function splitBody(body: string): BodySegment[] {
 
   for (let index = 0; index < lines.length;) {
     const line = lines[index];
+    const fence = line.match(/^ {0,3}(`{3,}|~{3,})/);
+    if (fence) {
+      markdown += line; index += 1;
+      const closing = new RegExp(`^ {0,3}${fence[1][0]}{${fence[1].length},}[ \\t]*(?:\\r?\\n)?$`);
+      while (index < lines.length) {
+        const next = lines[index++]; markdown += next;
+        if (closing.test(next)) break;
+      }
+      continue;
+    }
     if (/^\s*(import|export)\s/.test(line)) {
       flushMarkdown(); let block = line; index += 1;
       // Multiline imports must not expose the imported names as Markdown.
@@ -65,7 +77,9 @@ export function splitBody(body: string): BodySegment[] {
       while (!complete() && index < lines.length) {
         block += lines[index++];
       }
-      push('protected', block); continue;
+      if (parseSimpleComponentMdx(block) || (tag[1] === 'LinkButton' && matchLinkButtonBlock(block) === block && parseLinkButtonMdx(block))) push('structured', block);
+      else push('protected', block);
+      continue;
     }
     markdown += line; index += 1;
   }

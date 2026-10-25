@@ -1,4 +1,5 @@
 import { createElement, useEffect, useState, type ChangeEvent } from 'react';
+import { LinkAddressField } from './LinkAddressField.ts';
 import { Node } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
 import { createLinkCardMdx, matchLinkCardBlock, parseLinkCardMdx, updateLinkCardMdx } from './linkCardMdx.ts';
@@ -27,7 +28,7 @@ function LinkCardEditor({ node, updateAttributes }: NodeViewProps) {
       rows: 2, value: fields.description,
       onChange: (event: ChangeEvent<HTMLTextAreaElement>) => change('description', event.target.value),
     })),
-    input('URL', 'href', 'url'),
+    createElement(LinkAddressField, { value: fields.href, onChange: (value: string) => change('href', value) }),
   );
 }
 

@@ -101,9 +101,9 @@ You need to download the post again after each editor save if you want to see th
 
 8. **Test the optional fields and images.**
 
-   Add an excerpt, an author, a tag, and a cover image. For the first image test, choose an existing repository image rather than uploading a new one. You can also insert an existing image into the body with the toolbar.
+   Add an excerpt, an author, a tag, and a cover image. For the first image test, choose an existing repository image rather than uploading a new one. You can also insert an existing image into the body with **Image**. Enter alt text and a **Caption (optional)**, then insert another image without a caption. Click a body image and choose the **Edit image** button that appears on it to replace it or change its source, alt text, or caption. **Apply Changes** updates the unsaved post; **Cancel** leaves the image unchanged. Captions appear below images in the editor and are stored as ordinary Markdown image titles.
 
-   Save, return to the post list, and reopen the post to check the fields. Repeat the download commands from step 7 and refresh the rendered post to check its appearance.
+   Save, return to the post list, and reopen the post to check the fields. Repeat the download commands from step 7 and refresh the rendered post to check its appearance. Body images should be centered with any captions beneath them. Check the same post on Cloudflare staging after deployment; drafts are omitted from staging builds. Existing MDX components such as `CenterLayout` remain protected and read-only.
 
    Newly uploaded images need to be downloaded separately before the local website can display them. For example, if the selected image path is `@images/my-test-image.png`, run:
 
@@ -113,6 +113,12 @@ You need to download the post again after each editor save if you want to see th
    ```
 
    Replace the example with the exact image filename shown in the picker or cover field. Uploads are saved to GitHub immediately, separately from saving the post.
+
+   For links, cards, and buttons, enter a website address such as `example.com/maps`; the editor adds `https://` automatically. Use a path such as `/guides/help/` for another page on this site. Existing links stay unchanged unless you edit their address.
+
+   For a call-to-action button, choose **Add block → Link Button** from the menu beside the relevant block (below it on small screens). Enter button text and a URL, then select Primary, Secondary, or Minimal appearance. Cards and buttons appear as standalone property forms without a formatting toolbar. After insertion, use the button's property form to edit those fields. Use **Add block → Text** to continue with ordinary content after a component, or its **Remove** action to delete it. Save and reopen to verify they persist. Buttons containing rich content or unsupported attributes remain protected MDX.
+
+   You can also choose **Add block → Badge**, **Add block → Callout**, or **Add block → Card**. Badges have text, style, and size controls. Callouts have a type, optional title, and message; cards have a title and message. Messages are plain text with line breaks. These insertions create standalone property forms without a blank text editor. Edit the fields, save, and reopen to check that they persist. Existing badges, callouts, and cards remain protected and read-only. Use **Add block → Text** when you want ordinary Markdown after a component.
 
 9. **Optionally check the blog listing.**
 

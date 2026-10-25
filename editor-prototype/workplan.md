@@ -29,6 +29,9 @@ Support creating and editing blog posts with the existing fields and Markdown/MD
 - [x] Check proposed slugs against existing content IDs and routes, including drafts, `.md`/`.mdx` variants, and equivalent index paths; suggest an available alternative such as `example-title-2` when occupied
 - [x] Enforce collision protection on the server in both APIs: create without a replacement SHA, reject occupied routes and filenames, and handle concurrent creation conflicts without overwriting existing content; suggest another unique alternative while preserving the user's work
 - [x] Add server-side validation; preserve unmanaged frontmatter, multiline YAML, existing author and cover metadata, and unsupported MDX when saving
+- [x] Separate controls within a text block from a responsive side menu for adding new blocks after any existing block; avoid automatic empty blocks
+- [x] Add insertion and property forms for new badges, plain-text callouts, and plain-text cards, using existing Starlight components; keep legacy components protected
+- [x] Add LinkButton insertion and property editing for plain button text, URL, and appearance; preserve unsupported buttons as protected MDX
 - [x] Use the existing rich-text body editor, image uploads, tables, editable LinkCards, and protected MDX blocks for blog content
 - [x] Preserve custom component imports and entire protected blocks verbatim, including nested content; keep surrounding Markdown editable
 - [ ] Improve navigation, saving, and previews for the blog workflow
@@ -36,6 +39,7 @@ Support creating and editing blog posts with the existing fields and Markdown/MD
 - [x] Add matching Save buttons at the top and bottom; distinguish unsaved changes from visibility, highlight saved drafts in content lists, and label navigation-only hiding separately
 - [x] Warn before leaving unsaved changes and preserve work in the open editor after failed saves, expired sessions, and stale-file conflicts; document how to copy unsaved changes before reloading
 - [ ] Distinguish unsaved changes, saved commits, deployment in progress, and a preview ready to view; ensure preview links show the intended saved version and explain whether unsaved content is included
+- [x] Improve ordinary Markdown image insertion and editing with source, alt text, and optional captions stored as image titles; show centered images and captions in the existing editor, preserve unchanged image syntax, and keep legacy MDX protected
 - [ ] Verify image selection, upload, alt text, and cover images in blog posts; document that uploads commit separately and decide how unused uploads are handled
 - [ ] Check keyboard navigation, field labels, dialog focus, error messages, and usability on smaller screens
 

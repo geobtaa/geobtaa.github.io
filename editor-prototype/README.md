@@ -26,7 +26,7 @@ The editing view separately shows **Not saved yet**, **Unsaved changes**, **Savi
 - Excerpt, authors, tags, and cover are optional. Authors use the existing list of named author objects, tags remain a list of strings, and covers retain the existing image/alt/caption structure. Existing string authors, extra author properties, and light/dark covers are also preserved.
 - Dates display their written `YYYY-MM-DD` portion without timezone conversion. Unchanged dates retain their original YAML value. When an existing timestamp's calendar date changes, its time and offset remain intact. New dates use the existing unquoted YAML date format.
 - A short title-based filename is generated on first save, with no automatic date prefix. If its URL is occupied, the editor suggests an available suffix and asks you to use that alternative. The filename is permanent after creation, including when the title, date, or metadata changes. Existing filenames and extensions are retained. Intentional URL changes and redirects can be made manually through GitHub.
-- Standard Markdown, images, tables, and supported LinkCards use the existing body editor. Complex MDX components, nested layouts, and imports stay in protected, read-only blocks. Unchanged frontmatter is preserved; editing an optional field changes only that field.
+- Standard Markdown, images, and tables use the existing body editor; supported LinkCards, LinkButtons, and newly inserted badges, callouts, and cards have standalone property forms. Complex MDX components, nested layouts, and imports stay in protected, read-only blocks. Unchanged frontmatter is preserved; editing an optional field changes only that field.
 - Cover images can use the same repository picker and uploads as body images, or an image URL/path. Uploads commit immediately and separately from the post. Unused uploads are not removed automatically.
 
 **Save changes** commits to staging; it does not publish to the live site. Switch from **Draft** to **Published** when the post should be eligible for publication, then use the repository's review and merge process to move the content to `main`. Existing production builds omit drafts, including their direct URLs, so hosted draft previews are not available. Saving does not mean the staging deployment is ready; check the Cloudflare deployment before reviewing its rendered page.
@@ -35,7 +35,7 @@ The editor warns before discarding unsaved changes. Choose **Cancel** to return 
 
 Both API implementations share blog serialization and creation logic. Updates use the loaded blob SHA and authoritative repository frontmatter. New posts use a Git tree snapshot and a fast-forward-only branch update so competing writes cannot overwrite an existing file or create an equivalent route unnoticed. If staging changes during creation, save again to recheck availability.
 
-Run `npm run test:editor` for editor regression tests. Run `npm run test:editor:browser` to check Link Card cursor behavior, dashboard/back navigation, unsaved-change prompts, mobile layout, visibility indicators, and both Save buttons using isolated headless Chrome profiles and temporary local test pages. These browser tests use no GitHub credentials or content saves. They find Chrome in common macOS/Linux locations; set `CHROME_BIN` to your Chrome/Chromium executable if needed. They skip when no browser is installed.
+Run `npm run test:editor` for editor regression tests. Run `npm run test:editor:browser` to check component insertion and property forms, image editing, link-address handling, Link Card cursor behavior, dashboard/back navigation, unsaved-change prompts, mobile layout, visibility indicators, and both Save buttons using isolated headless Chrome profiles and temporary local test pages. These browser tests use no GitHub credentials or content saves. They find Chrome in common macOS/Linux locations; set `CHROME_BIN` to your Chrome/Chromium executable if needed. They skip when no browser is installed.
 
 ## Local setup
 
@@ -59,7 +59,7 @@ npm run dev
 
 Open `http://localhost:4321/editor/`. The local gateway uses the token only on the server and presents a local-development session to the UI.
 
-Existing pages and posts contain Astro/MDX imports, components, directives, and HTML. The editor displays unsupported syntax as read-only protected blocks and preserves its text verbatim; surrounding ordinary Markdown remains visually editable. The editor can insert supported LinkCards with their required MDX import, while other new body content uses Markdown.
+Existing pages and posts contain Astro/MDX imports, components, directives, and HTML. The editor displays unsupported syntax as read-only protected blocks and preserves its text verbatim; surrounding ordinary Markdown remains visually editable. The editor can insert supported LinkCards, LinkButtons, badges, plain-text callouts, and plain-text cards with their required MDX imports. Ordinary body content uses Markdown.
 
 ## Hosted staging on Cloudflare Pages
 
@@ -92,3 +92,7 @@ Optional hosted variables are `GITHUB_OWNER` and `GITHUB_REPO`; their defaults a
 The hosted editor reads from and commits directly to `custom-cms`, so each save triggers the branch-connected Cloudflare Pages deployment. Every update includes the blob SHA loaded by the editor. GitHub 409/422 responses are reported as conflicts and are never retried as overwrites.
 
 The existing Decap Worker at `decap-auth.geobtaa.workers.dev` uses a different GitHub OAuth callback and returns credentials in the protocol expected by Decap. Its source is not in this repository, so it is not reused. No `public/admin` files or `config.yml` changes are required.
+
+New badges, callouts, and cards use the existing Starlight components imported as `CmsBadge`, `CmsCallout`, and `CmsCard`. These aliases identify the CMS's narrow generated format after reopening; legacy `Badge`, `Aside`, and `Card` blocks stay protected. Callout/card messages are literal text with Markdown hard breaks. Unrecognized attributes or nested syntax in generated blocks also stay protected. No new Astro components are required.
+
+Each content block has an **Add block** menu beside it on desktop and below it on narrow screens. Text, Link Card, Link Button, Badge, Callout, and Card create a block after that block. Formatting, Image, and Table controls stay inside the Markdown editor and change its existing content. Component insertion does not split a text block at the cursor or add an empty text editor.

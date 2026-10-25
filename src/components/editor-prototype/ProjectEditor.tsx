@@ -1,8 +1,13 @@
 import { useEditor, useEditorState, EditorContent } from '@tiptap/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { SimpleComponentFields } from './SimpleComponentBlock';
+import { SIMPLE_COMPONENTS, SIMPLE_KINDS, createSimpleComponentMdx, emptySimpleFields, ensureSimpleComponentImport, simpleKindForNode, type SimpleKind } from './simpleComponents';
+import { LinkAddressField } from './LinkAddressField';
+import { normalizeLinkAddress } from './linkAddress';
 import { splitBody } from './bodySegments';
 import { richTextEditorOptions } from './richTextEditor';
 import { createLinkCardMdx, ensureLinkCardImport } from './linkCardMdx';
+import { createLinkButtonMdx, ensureLinkButtonImport, type LinkButtonFields } from './linkButtonMdx';
 import { todayCalendar } from '../../../editor-prototype/blog.mjs';
 import { CONTENT_AREAS } from '../../../editor-prototype/contentAreas.mjs';
 
@@ -48,12 +53,16 @@ function slugify(value: string) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-function RepositoryImagePicker({ onSelect, onClose }: { onSelect: (src: string, alt: string) => void; onClose: () => void }) {
+type ImageFields = { src: string; alt: string; title?: string | null };
+
+function RepositoryImagePicker({ initialImage, showCaption = true, onSelect, onClose }: { initialImage?: ImageFields; showCaption?: boolean; onSelect: (src: string, alt: string, title: string) => void; onClose: () => void }) {
   const [images, setImages] = useState<ImageListItem[]>([]);
   const [imageQuery, setImageQuery] = useState('');
-  const [selectedImage, setSelectedImage] = useState('');
-  const [imageAlt, setImageAlt] = useState('');
-  const [decorative, setDecorative] = useState(false);
+  const [imagePage, setImagePage] = useState(0);
+  const [imageSource, setImageSource] = useState(initialImage?.src || '');
+  const [imageAlt, setImageAlt] = useState(initialImage?.alt || '');
+  const [imageCaption, setImageCaption] = useState(initialImage?.title || '');
+  const [decorative, setDecorative] = useState(initialImage ? !initialImage.alt : false);
   const [imageBusy, setImageBusy] = useState(false);
   const [imageError, setImageError] = useState('');
   const imageUrl = (path: string) => `${API}/api/images/file/${path.split('/').map(encodeURIComponent).join('/')}`;
@@ -81,14 +90,14 @@ function RepositoryImagePicker({ onSelect, onClose }: { onSelect: (src: string, 
         body: JSON.stringify({ filename: file.name, mimeType: file.type, content: dataUrl.slice(dataUrl.indexOf(',') + 1) }),
       });
       setImages((current) => [...current.filter((image) => image.name !== uploaded.path), { ...uploaded, name: uploaded.path }].sort((a, b) => a.name.localeCompare(b.name)));
-      setSelectedImage(uploaded.path); setImageQuery(uploaded.path);
+      setImageSource(`@images/${uploaded.path}`); setImageQuery(uploaded.path);
     } catch (err) { setImageError((err as Error).message); }
     finally { setImageBusy(false); }
   };
   const insertImage = () => {
-    if (!selectedImage) return setImageError('Select or upload an image.');
+    if (!imageSource.trim()) return setImageError('Select, upload, or enter an image source.');
     if (!decorative && !imageAlt.trim()) return setImageError('Enter alt text, or mark the image as decorative.');
-    onSelect(`@images/${selectedImage}`, decorative ? '' : imageAlt.trim());
+    onSelect(imageSource, decorative ? '' : imageAlt, imageCaption);
     onClose();
   };
   useEffect(() => { void openImagePicker(); }, []);
@@ -99,6 +108,10 @@ function RepositoryImagePicker({ onSelect, onClose }: { onSelect: (src: string, 
     return () => previous?.focus();
   }, []);
   const visibleImages = images.filter((image) => image.name.toLowerCase().includes(imageQuery.toLowerCase()));
+  const pageCount = Math.max(1, Math.ceil(visibleImages.length / 6));
+  const currentPage = Math.min(imagePage, pageCount - 1);
+  const pageImages = visibleImages.slice(currentPage * 6, (currentPage + 1) * 6);
+  useEffect(() => { setImagePage(0); }, [imageQuery]);
   return (
       <div ref={dialogRef} className="image-picker" onKeyDown={(event) => {
         if (event.key === 'Escape') { event.preventDefault(); onClose(); }
@@ -109,27 +122,148 @@ function RepositoryImagePicker({ onSelect, onClose }: { onSelect: (src: string, 
           else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
         }
       }} role="dialog" aria-modal="true" aria-labelledby="image-picker-title">
-        <div className="image-picker-header"><h3 id="image-picker-title">Insert repository image</h3><button type="button" onClick={() => onClose()} aria-label="Close image picker">×</button></div>
-        <label>Upload a new image <span>PNG, JPEG, GIF, or WebP; maximum 5 MB</span><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" disabled={imageBusy} onChange={(event) => void uploadImage(event.target.files?.[0])} /></label>
-        <label>Find an existing image<input type="search" value={imageQuery} onChange={(event) => setImageQuery(event.target.value)} placeholder="Filter by filename" /></label>
-        {imageBusy && <p>Loading images…</p>}
-        {!imageBusy && <div className="image-grid">{visibleImages.map((image) => <button type="button" className={selectedImage === image.name ? 'selected' : ''} key={image.path} onClick={() => setSelectedImage(image.name)}><img loading="lazy" src={imageUrl(image.name)} alt="" /><span>{image.name}</span></button>)}</div>}
-        <label>Alt text<input value={imageAlt} disabled={decorative} onChange={(event) => setImageAlt(event.target.value)} /></label>
-        <label className="checkbox"><input type="checkbox" checked={decorative} onChange={(event) => setDecorative(event.target.checked)} /> This image is decorative</label>
+        <div className="image-picker-header"><h3 id="image-picker-title">{initialImage ? 'Edit image' : 'Insert repository image'}</h3><button type="button" onClick={() => onClose()} aria-label="Close image picker">×</button></div>
+        <div className="image-picker-body">
+          <section className="image-picker-fields" aria-label="Image details">
+            <label>Image source<input value={imageSource} onChange={(event) => setImageSource(event.target.value)} placeholder="@images/example.png or https://…" /></label>
+            {showCaption && <label>Caption (optional)<input value={imageCaption} onChange={(event) => setImageCaption(event.target.value)} /></label>}
+            <label>Alt text<input value={imageAlt} disabled={decorative} onChange={(event) => setImageAlt(event.target.value)} /></label>
+            <label className="checkbox"><input type="checkbox" checked={decorative} onChange={(event) => setDecorative(event.target.checked)} /> This image is decorative</label>
+          </section>
+          <section className="image-picker-library" aria-label="Choose image">
+            <label>Upload a new image <span>PNG, JPEG, GIF, or WebP; maximum 5 MB</span><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" disabled={imageBusy} onChange={(event) => void uploadImage(event.target.files?.[0])} /></label>
+            <label>Find an existing image<input type="search" value={imageQuery} onChange={(event) => setImageQuery(event.target.value)} placeholder="Filter by filename" /></label>
+            {imageBusy && <p>Loading images…</p>}
+            {!imageBusy && <div className="image-grid">{pageImages.map((image) => <button type="button" className={imageSource === `@images/${image.name}` ? 'selected' : ''} key={image.path} onClick={() => setImageSource(`@images/${image.name}`)}><img loading="lazy" src={imageUrl(image.name)} alt="" /><span>{image.name}</span></button>)}</div>}
+            {!imageBusy && !visibleImages.length && <p>No matching images.</p>}
+            {!imageBusy && pageCount > 1 && <nav className="image-pagination" aria-label="Image library pages">
+              <button type="button" disabled={currentPage === 0} onClick={() => setImagePage(currentPage - 1)}>Previous</button>
+              <span aria-live="polite">Page {currentPage + 1} of {pageCount}</span>
+              <button type="button" disabled={currentPage === pageCount - 1} onClick={() => setImagePage(currentPage + 1)}>Next</button>
+            </nav>}
+          </section>
+        </div>
         {imageError && <p className="message error" role="alert">{imageError}</p>}
-        <div className="actions"><button type="button" onClick={() => onClose()}>Cancel</button><button className="primary" type="button" disabled={imageBusy} onClick={insertImage}>Insert image</button></div>
+        <div className="actions image-picker-actions"><button type="button" onClick={() => onClose()}>Cancel</button><button className="primary" type="button" disabled={imageBusy} onClick={insertImage}>{initialImage ? 'Apply Changes' : 'Insert image'}</button></div>
       </div>
   );
 }
 
-function RichTextEditor({ initialValue, onChange, onLinkCardInserted }: { initialValue: string; onChange: (value: string) => void; onLinkCardInserted: () => void }) {
-  const editor = useEditor({ ...richTextEditorOptions(initialValue, onChange, API), immediatelyRender: false });
-  const [imagePicker, setImagePicker] = useState(false);
+type InsertedComponent = 'LinkCard' | 'LinkButton' | SimpleKind;
+
+function BlockInserter({ onInsert, onAddText }: { onInsert: (component: InsertedComponent, raw: string) => string | undefined; onAddText: () => void }) {
+  const menuRef = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    // Dismiss outside presses directly: Safari can blur a menu button with a
+    // null relatedTarget before firing its click, even for an inside press.
+    const dismissOutside = (event: PointerEvent) => {
+      const menu = menuRef.current;
+      if (menu?.open && !menu.contains(event.target as globalThis.Node)) menu.open = false;
+    };
+    document.addEventListener('pointerdown', dismissOutside);
+    return () => document.removeEventListener('pointerdown', dismissOutside);
+  }, []);
+  const [simpleDialog, setSimpleDialog] = useState<SimpleKind | null>(null);
+  const [simpleFields, setSimpleFields] = useState(emptySimpleFields);
+  const [simpleError, setSimpleError] = useState('');
+  const [linkButtonDialog, setLinkButtonDialog] = useState(false);
+  const [linkButtonFields, setLinkButtonFields] = useState<LinkButtonFields>({ text: '', href: '', variant: 'primary' });
+  const [linkButtonError, setLinkButtonError] = useState('');
   const [linkCardDialog, setLinkCardDialog] = useState(false);
   const [linkCardTitle, setLinkCardTitle] = useState('');
   const [linkCardDescription, setLinkCardDescription] = useState('');
   const [linkCardHref, setLinkCardHref] = useState('');
   const [linkCardError, setLinkCardError] = useState('');
+
+  const closeMenu = () => { if (menuRef.current) menuRef.current.open = false; };
+  const restoreFocus = () => menuRef.current?.querySelector('summary')?.focus({ preventScroll: true });
+  const closeSimple = () => { setSimpleDialog(null); restoreFocus(); };
+  const closeButton = () => { setLinkButtonDialog(false); restoreFocus(); };
+  const closeCard = () => { setLinkCardDialog(false); restoreFocus(); };
+  const insertSimpleComponent = () => {
+    if (!simpleDialog) return;
+    if (!simpleFields.text.trim() || (simpleDialog === 'card' && !simpleFields.title.trim())) return setSimpleError(simpleDialog === 'card' ? 'Enter a title and message.' : simpleDialog === 'badge' ? 'Enter badge text.' : 'Enter a message.');
+    const error = onInsert(simpleDialog, createSimpleComponentMdx(simpleDialog, simpleFields));
+    if (error) return setSimpleError(error);
+    setSimpleDialog(null); setSimpleFields(emptySimpleFields()); setSimpleError('');
+  };
+  const insertLinkButton = () => {
+    const fields = { ...linkButtonFields, text: linkButtonFields.text.trim(), href: normalizeLinkAddress(linkButtonFields.href) };
+    if (!fields.text || !fields.href) return setLinkButtonError('Enter button text and a URL.');
+    const error = onInsert('LinkButton', createLinkButtonMdx(fields));
+    if (error) return setLinkButtonError(error);
+    setLinkButtonDialog(false); setLinkButtonFields({ text: '', href: '', variant: 'primary' }); setLinkButtonError('');
+  };
+  const insertLinkCard = () => {
+    const fields = { title: linkCardTitle.trim(), description: linkCardDescription.trim(), href: normalizeLinkAddress(linkCardHref) };
+    if (!fields.title || !fields.href) return setLinkCardError('Enter a title and URL.');
+    const error = onInsert('LinkCard', createLinkCardMdx(fields));
+    if (error) return setLinkCardError(error);
+    setLinkCardDialog(false); setLinkCardTitle(''); setLinkCardDescription(''); setLinkCardHref(''); setLinkCardError('');
+  };
+  return <aside className="block-inserter" aria-label="Add a new block after this block">
+    <details ref={menuRef} name="add-content-block" className="block-inserter-menu" onKeyDown={(event) => {
+      if (event.key === 'Escape') { event.preventDefault(); closeMenu(); restoreFocus(); }
+    }} onBlur={(event) => { if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as globalThis.Node)) closeMenu(); }}>
+      <summary>＋ Add block</summary>
+      <div className="block-menu-list">
+        <button type="button" onClick={() => { closeMenu(); onAddText(); }}>Text</button>
+        <button type="button" onClick={() => { closeMenu(); setLinkCardDialog(true); setLinkCardError(''); }}>Link Card</button>
+        <button type="button" onClick={() => { closeMenu(); setLinkButtonDialog(true); setLinkButtonError(''); }}>Link Button</button>
+        {SIMPLE_KINDS.map((kind) => <button key={kind} type="button" onClick={() => { closeMenu(); setSimpleDialog(kind); setSimpleFields(emptySimpleFields()); setSimpleError(''); }}>{SIMPLE_COMPONENTS[kind].label}</button>)}
+      </div>
+    </details>
+      {simpleDialog && <div className="link-card-dialog simple-component-dialog" role="dialog" aria-modal="true" aria-labelledby="simple-component-dialog-title" onKeyDown={(event) => {
+        if (event.key === 'Escape') { event.preventDefault(); closeSimple(); }
+        if (event.key === 'Tab') {
+          const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button, input, select, textarea'));
+          if (event.shiftKey && document.activeElement === items[0]) { event.preventDefault(); items.at(-1)?.focus(); }
+          else if (!event.shiftKey && document.activeElement === items.at(-1)) { event.preventDefault(); items[0]?.focus(); }
+        }
+      }}>
+        <div className="dialog-header"><h3 id="simple-component-dialog-title">Insert {SIMPLE_COMPONENTS[simpleDialog].label}</h3><button type="button" onClick={closeSimple} aria-label="Close component dialog">×</button></div>
+        <SimpleComponentFields autoFocus kind={simpleDialog} fields={simpleFields} onChange={(key, value) => setSimpleFields((current) => ({ ...current, [key]: value }))} />
+        {simpleError && <p className="message error" role="alert">{simpleError}</p>}
+        <div className="actions"><button type="button" onClick={closeSimple}>Cancel</button><button className="primary" type="button" onClick={insertSimpleComponent}>Insert {SIMPLE_COMPONENTS[simpleDialog].label}</button></div>
+      </div>}
+      {linkButtonDialog && <div className="link-card-dialog" role="dialog" aria-modal="true" aria-labelledby="link-button-dialog-title" onKeyDown={(event) => {
+        if (event.key === 'Escape') { event.preventDefault(); closeButton(); }
+        if (event.key === 'Tab') {
+          const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button, input, select'));
+          if (event.shiftKey && document.activeElement === items[0]) { event.preventDefault(); items.at(-1)?.focus(); }
+          else if (!event.shiftKey && document.activeElement === items.at(-1)) { event.preventDefault(); items[0]?.focus(); }
+        }
+      }}>
+        <div className="dialog-header"><h3 id="link-button-dialog-title">Insert Link Button</h3><button type="button" onClick={closeButton} aria-label="Close Link Button dialog">×</button></div>
+        <label>Button text<input autoFocus required value={linkButtonFields.text} onChange={(event) => setLinkButtonFields({ ...linkButtonFields, text: event.target.value })} /></label>
+        <LinkAddressField required value={linkButtonFields.href} onChange={(href) => setLinkButtonFields((current) => ({ ...current, href }))} />
+        <label>Appearance<select value={linkButtonFields.variant} onChange={(event) => setLinkButtonFields({ ...linkButtonFields, variant: event.target.value as LinkButtonFields['variant'] })}>
+          <option value="primary">Primary</option><option value="secondary">Secondary</option><option value="minimal">Minimal</option>
+        </select></label>
+        {linkButtonError && <p className="message error" role="alert">{linkButtonError}</p>}
+        <div className="actions"><button type="button" onClick={closeButton}>Cancel</button><button className="primary" type="button" onClick={insertLinkButton}>Insert Link Button</button></div>
+      </div>}
+      {linkCardDialog && <div className="link-card-dialog" role="dialog" aria-modal="true" aria-labelledby="link-card-dialog-title" onKeyDown={(event) => {
+        if (event.key === 'Escape') { event.preventDefault(); closeCard(); }
+        if (event.key === 'Tab') {
+          const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button, input, textarea'));
+          if (event.shiftKey && document.activeElement === items[0]) { event.preventDefault(); items.at(-1)?.focus(); }
+          else if (!event.shiftKey && document.activeElement === items.at(-1)) { event.preventDefault(); items[0]?.focus(); }
+        }
+      }}>
+        <div className="dialog-header"><h3 id="link-card-dialog-title">Insert Link Card</h3><button type="button" onClick={closeCard} aria-label="Close Link Card dialog">×</button></div>
+        <label>Title<input autoFocus required value={linkCardTitle} onChange={(event) => setLinkCardTitle(event.target.value)} /></label>
+        <label>Description <span>(optional)</span><textarea rows={3} value={linkCardDescription} onChange={(event) => setLinkCardDescription(event.target.value)} /></label>
+        <LinkAddressField required value={linkCardHref} onChange={setLinkCardHref} />
+        {linkCardError && <p className="message error" role="alert">{linkCardError}</p>}
+        <div className="actions"><button type="button" onClick={closeCard}>Cancel</button><button className="primary" type="button" onClick={insertLinkCard}>Insert Link Card</button></div>
+      </div>}
+  </aside>;
+}
+
+function RichTextEditor({ initialValue, onChange, structured = false, onRemove }: { onRemove?: () => void; structured?: boolean; initialValue: string; onChange: (value: string) => void }) {
+  const [imagePicker, setImagePicker] = useState<{ image?: ImageFields; position?: number } | null>(null);
+  const editor = useEditor({ ...richTextEditorOptions(initialValue, onChange, API, (position, image) => setImagePicker({ position, image })), editable: !structured, immediatelyRender: false });
   const active = useEditorState({
     editor,
     selector: ({ editor }) => {
@@ -154,36 +288,24 @@ function RichTextEditor({ initialValue, onChange, onLinkCardInserted }: { initia
   });
 
   if (!editor) return null;
+  const simpleKind = simpleKindForNode(editor.state.doc.firstChild?.type.name || '');
   const link = () => {
     const previous = editor.getAttributes('link').href || '';
-    const href = window.prompt('Link URL', previous);
+    const href = window.prompt('Link URL (example.com or /path/)', previous);
     if (href === null) return;
     if (!href) editor.chain().focus().unsetLink().run();
-    else editor.chain().focus().extendMarkRange('link').setLink({ href }).run();
+    else editor.chain().focus().extendMarkRange('link').setLink({ href: href === previous ? href : normalizeLinkAddress(href) }).run();
   };
   const setTextStyle = (value: string) => {
     if (value === 'paragraph') return editor.chain().focus().setParagraph().run();
     const level = Number(value.replace('heading-', '')) as 1 | 2 | 3 | 4 | 5 | 6;
     return editor.chain().focus().setHeading({ level }).run();
   };
-  const insertLinkCard = () => {
-    const fields = {
-      title: linkCardTitle.trim(),
-      description: linkCardDescription.trim(),
-      href: linkCardHref.trim(),
-    };
-    if (!fields.title || !fields.href) return setLinkCardError('Enter a title and URL.');
-    const raw = createLinkCardMdx(fields);
-    const position = editor.state.selection.to;
-    const inserted = editor.chain().focus().insertContentAt(position, { type: 'linkCardBlock', attrs: { ...fields, raw } }).run();
-    if (!inserted) return setLinkCardError('The Link Card could not be inserted at this position.');
-    setLinkCardDialog(false); setLinkCardTitle(''); setLinkCardDescription(''); setLinkCardHref(''); setLinkCardError('');
-    onLinkCardInserted();
-  };
 
   return (
-    <div className="rich-editor">
-      <div className="toolbar" role="toolbar" aria-label="Rich text formatting">
+    <div className={structured ? 'component-editor' : 'rich-editor'}>
+      {!structured && <div className="toolbar" role="toolbar" aria-label="Rich text formatting">
+        <span className="toolbar-label">In this block</span>
         <button type="button" disabled={!active?.canUndo} onClick={() => editor.chain().focus().undo().run()}>Undo</button>
         <button type="button" disabled={!active?.canRedo} onClick={() => editor.chain().focus().redo().run()}>Redo</button>
         <span className="toolbar-separator" aria-hidden="true" />
@@ -208,9 +330,8 @@ function RichTextEditor({ initialValue, onChange, onLinkCardInserted }: { initia
         <button type="button" aria-pressed={active?.codeBlock} onClick={() => editor.chain().focus().toggleCodeBlock().run()}>Code block</button>
         <button type="button" onClick={() => editor.chain().focus().setHorizontalRule().run()}>Divider</button>
         <button type="button" onClick={() => editor.chain().focus().setHardBreak().run()}>Line break</button>
-        <button type="button" onClick={() => setImagePicker(true)}>Insert image</button>
-        <button type="button" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>Insert table</button>
-        <button type="button" onClick={() => { setLinkCardDialog(true); setLinkCardError(''); }}>Insert → Link Card</button>
+        <button type="button" onClick={() => setImagePicker({})}>Image</button>
+        <button type="button" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>Table</button>
         {active?.table && <>
           <span className="toolbar-separator" aria-hidden="true" />
           <button type="button" onClick={() => editor.chain().focus().addRowAfter().run()}>Add row</button>
@@ -219,17 +340,14 @@ function RichTextEditor({ initialValue, onChange, onLinkCardInserted }: { initia
           <button type="button" onClick={() => editor.chain().focus().deleteColumn().run()}>Delete column</button>
           <button type="button" onClick={() => editor.chain().focus().deleteTable().run()}>Delete table</button>
         </>}
-      </div>
-      <EditorContent editor={editor} />
-      {imagePicker && <RepositoryImagePicker onClose={() => setImagePicker(false)} onSelect={(src, alt) => editor.chain().focus().setImage({ src, alt }).run()} />}
-      {linkCardDialog && <div className="link-card-dialog" role="dialog" aria-modal="true" aria-labelledby="link-card-dialog-title">
-        <div className="dialog-header"><h3 id="link-card-dialog-title">Insert Link Card</h3><button type="button" onClick={() => setLinkCardDialog(false)} aria-label="Close Link Card dialog">×</button></div>
-        <label>Title<input required value={linkCardTitle} onChange={(event) => setLinkCardTitle(event.target.value)} /></label>
-        <label>Description <span>(optional)</span><textarea rows={3} value={linkCardDescription} onChange={(event) => setLinkCardDescription(event.target.value)} /></label>
-        <label>URL<input required value={linkCardHref} onChange={(event) => setLinkCardHref(event.target.value)} placeholder="https://… or /path/" /></label>
-        {linkCardError && <p className="message error" role="alert">{linkCardError}</p>}
-        <div className="actions"><button type="button" onClick={() => setLinkCardDialog(false)}>Cancel</button><button className="primary" type="button" onClick={insertLinkCard}>Insert Link Card</button></div>
       </div>}
+      <EditorContent editor={editor} />
+      {structured && <button type="button" className="link-button component-remove" onClick={onRemove}>Remove {simpleKind ? SIMPLE_COMPONENTS[simpleKind].label : editor.state.doc.firstChild?.type.name === 'linkButtonBlock' ? 'Link Button' : 'Link Card'}</button>}
+      {imagePicker && <RepositoryImagePicker initialImage={imagePicker.image} onClose={() => setImagePicker(null)} onSelect={(src, alt, title) => {
+        if (imagePicker.position !== undefined) editor.chain().focus().setNodeSelection(imagePicker.position).updateAttributes('image', { src, alt, title }).run();
+        else editor.chain().focus().insertContentAt(editor.state.selection.to, { type: 'image', attrs: { src, alt, title } }).run();
+      }} />}
+
     </div>
   );
 }
@@ -237,9 +355,11 @@ function RichTextEditor({ initialValue, onChange, onLinkCardInserted }: { initia
 function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange: (value: string) => void }) {
   const [segments, setSegments] = useState(() => splitBody(initialValue));
   const [segmentSession, setSegmentSession] = useState(0);
+  const [emptyEditorId, setEmptyEditorId] = useState<number | null>(initialValue.trim() ? null : 0);
   const segmentsRef = useRef(segments);
   const update = (id: number, content: string) => {
     const current = segmentsRef.current;
+    if (!content.trim() && current.find((segment) => segment.id === id)?.kind === 'markdown') setEmptyEditorId(id);
     const previous = current.find((segment) => segment.id === id)?.content || '';
     const leading = previous.match(/^(?:\r?\n)+/)?.[0] || '';
     const trailing = previous.match(/(?:\r?\n)+$/)?.[0] || '';
@@ -249,19 +369,43 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
     setSegments(next);
     onChange(next.map((segment) => segment.content).join(''));
   };
-  const finishLinkCardInsertion = () => {
-    const body = segmentsRef.current.map((segment) => segment.content).join('');
-    const ensured = ensureLinkCardImport(body);
+  const insertComponent = (afterId: number, component: InsertedComponent, raw: string): string | undefined => {
+    const current = segmentsRef.current;
+    const index = current.findIndex((segment) => segment.id === afterId);
+    const before = current.slice(0, index + 1).map((segment) => segment.content).join('');
+    const after = current.slice(index + 1).map((segment) => segment.content).join('');
+    const prefix = !before || before.endsWith('\n\n') ? '' : before.endsWith('\n') ? '\n' : '\n\n';
+    const suffix = after.startsWith('\n\n') ? '' : after.startsWith('\n') ? '\n' : '\n\n';
+    const body = `${before}${prefix}${raw}${suffix}${after}`;
+    const ensured = component === 'LinkButton' ? ensureLinkButtonImport(body) : component === 'LinkCard' ? ensureLinkCardImport(body) : ensureSimpleComponentImport(body, component);
+    if ('error' in ensured && typeof ensured.error === 'string') return ensured.error;
     const next = splitBody(ensured.content);
-    segmentsRef.current = next;
-    setSegments(next);
+    setEmptyEditorId(null); segmentsRef.current = next; setSegments(next);
     setSegmentSession((session) => session + 1);
     onChange(ensured.content);
   };
+  const removeComponent = (id: number) => {
+    const next = segmentsRef.current.filter((segment) => segment.id !== id);
+    segmentsRef.current = next; setSegments(next);
+    onChange(next.map((segment) => segment.content).join(''));
+  };
+  const addTextBlock = (afterId: number) => {
+    const current = segmentsRef.current;
+    const id = Math.max(-1, ...current.map((segment) => segment.id)) + 1;
+    const index = current.findIndex((segment) => segment.id === afterId);
+    const next = [...current.slice(0, index + 1), { id, kind: 'markdown' as const, content: current.length ? '\n\n' : '' }, ...current.slice(index + 1)];
+    segmentsRef.current = next; setSegments(next); setEmptyEditorId(id);
+  };
+  // Keep whitespace separators in the source without displaying them as empty editors.
+  const visibleSegments = segments.filter((segment) => segment.kind !== 'markdown' || segment.content.trim() || segment.id === emptyEditorId);
   return <div className="body-editor">
-    {segments.map((segment) => segment.kind === 'protected'
-      ? <details className="protected-block" key={`${segmentSession}:${segment.id}`}><summary>Existing MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
-      : <RichTextEditor key={`${segmentSession}:${segment.id}`} initialValue={segment.content} onChange={(content) => update(segment.id, content)} onLinkCardInserted={finishLinkCardInsertion} />)}
+    {visibleSegments.map((segment) => <div className="block-row" key={`${segmentSession}:${segment.id}`}>
+      {segment.kind === 'protected'
+        ? <details className="protected-block"><summary>Existing MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
+        : <RichTextEditor onRemove={() => removeComponent(segment.id)} structured={segment.kind === 'structured'} initialValue={segment.content} onChange={(content) => update(segment.id, content)} />}
+      <BlockInserter onInsert={(component, raw) => insertComponent(segment.id, component, raw)} onAddText={() => addTextBlock(segment.id)} />
+    </div>)}
+    {!visibleSegments.length && <BlockInserter onInsert={(component, raw) => insertComponent(-1, component, raw)} onAddText={() => addTextBlock(-1)} />}
   </div>;
 }
 
@@ -299,7 +443,7 @@ function BlogMetadata({ project, onChange }: { project: Project; onChange: (proj
       </> : <button type="button" onClick={() => onChange({ ...project, cover: { image: '', alt: '' } })}>Add cover image</button>}
       <p>Uploads are saved to staging immediately, even if you discard the post.</p>
     </fieldset>
-    {coverPicker && <RepositoryImagePicker onClose={() => setCoverPicker(null)} onSelect={(image, alt) => { onChange({ ...project, cover: { ...cover, [coverPicker]: image, alt } }); setCoverPicker(null); }} />}
+    {coverPicker && <RepositoryImagePicker showCaption={false} onClose={() => setCoverPicker(null)} onSelect={(image, alt) => { onChange({ ...project, cover: { ...cover, [coverPicker]: image, alt } }); setCoverPicker(null); }} />}
   </>;
 }
 
