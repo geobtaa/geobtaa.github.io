@@ -17,6 +17,20 @@ const CONFLICT = 'This page has changed in GitHub since you opened it. Reload th
 type ProjectListItem = { name: string; path: string; sha: string; draft?: boolean; sidebarHidden?: boolean; visibilityKnown?: boolean };
 type ImageListItem = { name: string; path: string; sha: string; size?: number };
 type AreaName = keyof typeof CONTENT_AREAS;
+type PageMetadata = {
+  year?: number | string | null;
+  committee?: string | null;
+  lead?: string | null;
+  members?: string[] | null;
+  dates_active?: string | null;
+  template?: string | null;
+  hidePageTitle?: boolean | null;
+  pagefind?: boolean | null;
+  tableOfContents?: boolean | { minHeadingLevel?: number; maxHeadingLevel?: number; [key: string]: unknown } | null;
+  sidebar?: { label?: string; order?: number; hidden?: boolean; [key: string]: unknown } | null;
+  banner?: { content: string; [key: string]: unknown } | null;
+  head?: { tag: string; attrs?: Record<string, string | number | boolean>; [key: string]: unknown }[] | null;
+};
 type Project = {
   filename: string;
   sha?: string;
@@ -27,6 +41,8 @@ type Project = {
   sidebarHidden?: boolean;
   body: string;
   branch?: string;
+  metadata?: PageMetadata;
+  frontmatterFields?: string[];
   date?: string;
   excerpt?: string;
   authors?: (string | { name: string; [key: string]: unknown })[];
@@ -41,13 +57,6 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
   return data;
 }
 
-function VisibilityBadges({ draft, sidebarHidden, known = true }: { draft?: boolean; sidebarHidden?: boolean; known?: boolean }) {
-  if (!known) return <span className="visibility-badge status-unknown">Status unavailable</span>;
-  return <>
-    <span className={`visibility-badge ${draft ? 'status-draft' : 'status-ready'}`}>{draft ? 'Draft' : 'Published'}</span>
-    {sidebarHidden && <span className="visibility-badge status-navigation" title="Excluded from automatically generated sidebar navigation; the page URL remains accessible unless it is a draft.">Hidden from navigation</span>}
-  </>;
-}
 
 function slugify(value: string) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -409,29 +418,38 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
   </div>;
 }
 
-function BlogMetadata({ project, onChange }: { project: Project; onChange: (project: Project) => void }) {
+function parseTagsInput(value: string) {
+  return value.split(',').map((tag) => tag.trim()).filter(Boolean);
+}
+
+function BlogMetadata({ project, onChange, fields, blog = false }: { project: Project; onChange: (project: Project) => void; fields: readonly string[]; blog?: boolean }) {
+  const show = (field: string) => fields.includes(field);
   const [coverPicker, setCoverPicker] = useState<string | null>(null);
   const authors = project.authors || [];
   const tags = project.tags || [];
+  const [tagsText, setTagsText] = useState(() => tags.join(', '));
+  const tagsKey = JSON.stringify(tags);
+  useEffect(() => {
+    // Preserve the draft's commas and spaces while typing so React does not
+    // remove the delimiter or move the caret between consecutive keystrokes.
+    setTagsText((current) => JSON.stringify(parseTagsInput(current)) === tagsKey ? current : tags.join(', '));
+  }, [tagsKey]);
   const cover = project.cover;
   return <>
-    <label>Publication date<input type="date" value={project.date || ''} onChange={(event) => onChange({ ...project, date: event.target.value })} /></label>
-    <label>Excerpt <span>(optional)</span><textarea rows={3} value={project.excerpt || ''} onChange={(event) => onChange({ ...project, excerpt: event.target.value })} /></label>
-    <fieldset className="metadata-group"><legend>Authors (optional)</legend>
+    {show('date') && <label>{blog ? 'Publication date' : 'Date (optional)'}<input type="date" value={project.date || ''} onChange={(event) => onChange({ ...project, date: event.target.value })} /></label>}
+    {show('excerpt') && <label>Excerpt <span>(optional)</span><textarea rows={3} value={project.excerpt || ''} onChange={(event) => onChange({ ...project, excerpt: event.target.value })} /></label>}
+    {show('authors') && <fieldset className="metadata-group"><legend>Authors (optional)</legend>
       {authors.map((author, index) => <div className="metadata-row" key={index}>
         <label>Author {index + 1}<input value={typeof author === 'string' ? author : author.name} onChange={(event) => onChange({ ...project, authors: authors.map((item, at) => at === index ? typeof item === 'string' ? event.target.value : { ...item, name: event.target.value } : item) })} /></label>
         <button type="button" onClick={() => onChange({ ...project, authors: authors.filter((_, at) => at !== index) })}>Remove author {index + 1}</button>
       </div>)}
       <button type="button" onClick={() => onChange({ ...project, authors: [...authors, { name: '' }] })}>Add author</button>
-    </fieldset>
-    <fieldset className="metadata-group"><legend>Tags (optional)</legend>
-      {tags.map((tag, index) => <div className="metadata-row" key={index}>
-        <label>Tag {index + 1}<input value={tag} onChange={(event) => onChange({ ...project, tags: tags.map((item, at) => at === index ? event.target.value : item) })} /></label>
-        <button type="button" onClick={() => onChange({ ...project, tags: tags.filter((_, at) => at !== index) })}>Remove tag {index + 1}</button>
-      </div>)}
-      <button type="button" onClick={() => onChange({ ...project, tags: [...tags, ''] })}>Add tag</button>
-    </fieldset>
-    <fieldset className="metadata-group"><legend>Cover image (optional)</legend>
+    </fieldset>}
+    {show('tags') && <label>Tags <span>(optional)</span><input value={tagsText} placeholder="maps, history, aerial imagery" onChange={(event) => {
+      setTagsText(event.target.value);
+      onChange({ ...project, tags: parseTagsInput(event.target.value) });
+    }} onBlur={() => setTagsText(tags.join(', '))} /><span>Separate tags with commas.</span></label>}
+    {show('cover') && <fieldset className="metadata-group"><legend>Cover image (optional)</legend>
       {cover ? <>
         {('light' in cover && !('image' in cover) ? ['light', 'dark'] : ['image']).map((field) => <div key={field}>
           <label>{field === 'image' ? 'Image' : `${field} image`} URL or repository path<input value={String(cover[field] || '')} placeholder="@images/example.png or https://…" onChange={(event) => onChange({ ...project, cover: { ...cover, [field]: event.target.value } })} /></label>
@@ -441,9 +459,70 @@ function BlogMetadata({ project, onChange }: { project: Project; onChange: (proj
         <label>Cover caption <span>(optional)</span><input value={cover.caption || ''} onChange={(event) => onChange({ ...project, cover: { ...cover, caption: event.target.value } })} /></label>
         <button type="button" onClick={() => onChange({ ...project, cover: null })}>Remove cover</button>
       </> : <button type="button" onClick={() => onChange({ ...project, cover: { image: '', alt: '' } })}>Add cover image</button>}
-      <p>Uploads are saved to staging immediately, even if you discard the post.</p>
-    </fieldset>
+      <p>Uploads are saved to staging immediately, even if you discard the page.</p>
+    </fieldset>}
     {coverPicker && <RepositoryImagePicker showCaption={false} onClose={() => setCoverPicker(null)} onSelect={(image, alt) => { onChange({ ...project, cover: { ...cover, [coverPicker]: image, alt } }); setCoverPicker(null); }} />}
+  </>;
+}
+
+function PageMetadataControls({ area, project, onChange }: { area: AreaName; project: Project; onChange: (project: Project) => void }) {
+  const metadata = project.metadata || {};
+  const sidebar = metadata.sidebar || {};
+  const toc = metadata.tableOfContents;
+  const set = <K extends keyof PageMetadata>(key: K, value: PageMetadata[K]) => onChange({ ...project, metadata: { ...metadata, [key]: value }, ...(key === 'sidebar' ? { sidebarHidden: (value as PageMetadata['sidebar'])?.hidden === true } : {}) });
+  const setSidebar = (key: 'label' | 'order' | 'hidden', value: string | number | boolean | undefined) => set('sidebar', { ...sidebar, [key]: value });
+  const isYearArea = ['library', 'scholarship'].includes(area) || metadata.year != null;
+  const sharing = (metadata.head || []).map((item, index) => ({ item, index })).filter(({ item }) => item.tag === 'meta' && (item.attrs?.property === 'og:image' || item.attrs?.name === 'twitter:image'));
+  return <>
+    {isYearArea && <label>Year (optional)<input type="number" min={1800} max={2100} value={metadata.year ?? ''} onChange={(event) => set('year', event.target.value === '' ? null : Number(event.target.value))} /></label>}
+    {(area === 'workgroups' || metadata.committee != null || metadata.members != null) && <fieldset className="metadata-group"><legend>Working group</legend>
+      <label>Committee<input value={metadata.committee || ''} onChange={(event) => set('committee', event.target.value || null)} /></label>
+      <label>Lead<input value={metadata.lead || ''} onChange={(event) => set('lead', event.target.value || null)} /></label>
+      <label>Active dates<input value={metadata.dates_active || ''} onChange={(event) => set('dates_active', event.target.value || null)} placeholder="May 2025 – October 2026" /></label>
+      {(metadata.members || []).map((member, index) => <div className="metadata-row" key={index}>
+        <label>Member {index + 1}<input value={member} onChange={(event) => set('members', metadata.members!.map((value, at) => at === index ? event.target.value : value))} /></label>
+        <button type="button" onClick={() => set('members', metadata.members!.filter((_, at) => at !== index))}>Remove member {index + 1}</button>
+      </div>)}
+      <button type="button" onClick={() => set('members', [...(metadata.members || []), ''])}>Add member</button>
+    </fieldset>}
+    <details className="metadata-group page-settings"><summary>Page settings</summary>
+      <label>Page layout<select value={metadata.template ?? ''} onChange={(event) => set('template', event.target.value || null)}>
+        <option value="">Site default</option><option value="doc">Document</option><option value="splash">Splash</option>
+      </select></label>
+      <label>Page heading<select value={metadata.hidePageTitle == null ? '' : String(metadata.hidePageTitle)} onChange={(event) => set('hidePageTitle', event.target.value === '' ? null : event.target.value === 'true')}>
+        <option value="">Site default</option><option value="false">Show</option><option value="true">Hide</option>
+      </select></label>
+      <label>Table of contents<select value={toc == null ? '' : typeof toc === 'object' ? 'custom' : String(toc)} onChange={(event) => set('tableOfContents', event.target.value === '' ? null : event.target.value === 'custom' ? { minHeadingLevel: 2, maxHeadingLevel: 3 } : event.target.value === 'true')}>
+        <option value="">Site default</option><option value="true">Show</option><option value="false">Hide</option><option value="custom">Choose heading levels</option>
+      </select></label>
+      {toc && typeof toc === 'object' && <div className="metadata-row">
+        <label>Minimum heading level<input type="number" min={1} max={6} value={toc.minHeadingLevel ?? 2} onChange={(event) => set('tableOfContents', { ...toc, minHeadingLevel: Number(event.target.value) })} /></label>
+        <label>Maximum heading level<input type="number" min={1} max={6} value={toc.maxHeadingLevel ?? 3} onChange={(event) => set('tableOfContents', { ...toc, maxHeadingLevel: Number(event.target.value) })} /></label>
+      </div>}
+      <label>Site search<select value={metadata.pagefind == null ? '' : String(metadata.pagefind)} onChange={(event) => set('pagefind', event.target.value === '' ? null : event.target.value === 'true')}>
+        <option value="">Site default</option><option value="true">Include</option><option value="false">Exclude</option>
+      </select></label>
+      <fieldset className="metadata-group"><legend>Navigation</legend>
+        <label>Navigation label<input value={sidebar.label ?? ''} onChange={(event) => setSidebar('label', event.target.value || undefined)} /></label>
+        <label>Navigation order<input type="number" value={sidebar.order ?? ''} onChange={(event) => setSidebar('order', event.target.value === '' ? undefined : Number(event.target.value))} /></label>
+        <label>Navigation visibility<select value={sidebar.hidden === undefined ? '' : String(sidebar.hidden)} onChange={(event) => setSidebar('hidden', event.target.value === '' ? undefined : event.target.value === 'true')}>
+          <option value="">Site default</option><option value="false">Show in navigation</option><option value="true">Hide from navigation</option>
+        </select></label>
+      </fieldset>
+      {(area === 'conference' || metadata.banner != null) && <fieldset className="metadata-group"><legend>Announcement banner</legend>
+        {metadata.banner ? <>
+          <label>Banner content (HTML supported)<textarea rows={3} value={metadata.banner.content} onChange={(event) => set('banner', { ...metadata.banner!, content: event.target.value })} /></label>
+          <button type="button" onClick={() => set('banner', null)}>Remove banner</button>
+        </> : <button type="button" onClick={() => set('banner', { content: '' })}>Add banner</button>}
+      </fieldset>}
+      {(area === 'conference' || sharing.length > 0) && <fieldset className="metadata-group"><legend>Social sharing images</legend>
+        {sharing.map(({ item, index }) => <div key={index}>
+          <label>{item.attrs?.property === 'og:image' ? 'Open Graph image URL' : 'Twitter image URL'}<input value={String(item.attrs?.content || '')} onChange={(event) => set('head', metadata.head!.map((tag, at) => at === index ? { ...tag, attrs: { ...tag.attrs, content: event.target.value } } : tag))} /></label>
+          <button type="button" onClick={() => set('head', metadata.head!.filter((_, at) => at !== index))}>Remove sharing image {index + 1}</button>
+        </div>)}
+        {!sharing.length && <button type="button" onClick={() => set('head', [...(metadata.head || []), { tag: 'meta', attrs: { property: 'og:image', content: '' } }, { tag: 'meta', attrs: { name: 'twitter:image', content: '' } }])}>Add social sharing images</button>}
+      </fieldset>}
+    </details>
   </>;
 }
 
@@ -520,7 +599,7 @@ export default function ProjectEditor() {
   const create = () => {
     if (!area || busy) return;
     setError(''); setNotice('');
-    setProject({ filename: '', content: '', title: '', description: '', draft: isBlog, body: '', ...(isBlog ? { date: todayCalendar(), excerpt: '', authors: [], tags: [], cover: null } : {}) });
+    setProject({ filename: '', content: '', title: '', description: '', draft: isBlog, body: '', date: isBlog ? todayCalendar() : '', excerpt: '', authors: [], tags: [], cover: null, metadata: {}, frontmatterFields: [] });
     setSuggestedFilename(''); setSavedSnapshot('');
     setBodyEditorSession((session) => session + 1);
   };
@@ -546,7 +625,8 @@ export default function ProjectEditor() {
         method: creatingBlog ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...(isBlog ? { date: project.date, excerpt: project.excerpt, authors: project.authors, tags: project.tags, cover: project.cover, draft: project.draft, suggestedFilename: alternative } : {}),
+          date: project.date ?? '', excerpt: project.excerpt ?? '', authors: project.authors ?? [], tags: project.tags ?? [], cover: project.cover ?? null, draft: project.draft, metadata: project.metadata,
+          ...(isBlog ? { suggestedFilename: alternative } : {}),
           title: project.title,
           description: project.description,
           body: project.body,
@@ -555,7 +635,7 @@ export default function ProjectEditor() {
           originalContent: project.content,
         }),
       });
-      const next = { ...project, ...saved, filename: saved.filename || filename, draft: config.publishing ? !publish : project.draft };
+      const next = { ...project, ...saved, filename: saved.filename || filename, draft: saved.draft ?? project.draft };
       setProject(next); setSavedSnapshot(JSON.stringify(next)); setSuggestedFilename('');
       setBranch(saved.branch || 'custom-cms');
       setNotice(`Changes saved to staging (commit ${saved.commitSha.slice(0, 7)}).`);
@@ -620,7 +700,7 @@ export default function ProjectEditor() {
       <h1>{project.sha ? `Edit ${config.itemLabel}` : `New ${config.itemLabel}`}</h1>
       <section className={`visibility-panel ${project.draft ? 'is-draft' : 'is-ready'}`} aria-label="Page visibility" aria-live="polite">
         <div className="visibility-heading">
-          <div className="content-badges">{config.publishing || isBlog ? <>
+          <div className="content-badges">
             <button className="visibility-control visibility-switch" type="button" role="switch" aria-label="Published" aria-checked={!project.draft} disabled={busy} onClick={() => setProject({ ...project, draft: !project.draft })} onKeyDown={(event) => {
               if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
                 event.preventDefault();
@@ -628,7 +708,7 @@ export default function ProjectEditor() {
               }
             }}><span className="draft-label" aria-hidden="true">Draft</span><span className="published-label" aria-hidden="true">Published</span></button>
             {project.sidebarHidden && <span className="visibility-badge status-navigation">Hidden from navigation</span>}
-          </> : <VisibilityBadges draft={project.draft} sidebarHidden={project.sidebarHidden} />}</div>
+          </div>
           <span className="save-state">{busy ? 'Saving…' : !project.sha ? 'Not saved yet' : dirty ? 'Unsaved changes' : 'No unsaved changes'}</span>
         </div>
       </section>
@@ -640,8 +720,9 @@ export default function ProjectEditor() {
         <fieldset className="editor-fields" disabled={busy}>
         {!project.sha && !isBlog && <label>Filename <span>(optional; generated from title)</span><input value={project.filename} onChange={(event) => setProject({ ...project, filename: slugify(event.target.value) })} placeholder="example-project" /></label>}
         <label>Title<input required value={project.title} onChange={(event) => setProject({ ...project, title: event.target.value })} /></label>
-        {config.description && <label>Description<textarea required rows={3} value={project.description} onChange={(event) => setProject({ ...project, description: event.target.value })} /></label>}
-        {isBlog && <BlogMetadata project={project} onChange={setProject} />}
+        {(config.description || project.frontmatterFields?.includes('description')) && <label>Description<textarea rows={3} value={project.description} onChange={(event) => setProject({ ...project, description: event.target.value })} /></label>}
+        <BlogMetadata project={project} onChange={setProject} blog={isBlog} fields={[...new Set([...config.metadataFields, ...(project.frontmatterFields || []).filter((field) => ['date', 'excerpt', 'authors', 'tags', 'cover'].includes(field))])]} />
+        <PageMetadataControls area={area} project={project} onChange={setProject} />
         <label>Body</label>
         <div inert={busy}><BodyEditor key={bodyEditorSession} initialValue={project.body} onChange={(body) => setProject((current) => current ? { ...current, body } : current)} /></div>
         <div className="actions editor-actions"><button className="back" disabled={busy} type="button" onClick={backToList}>← Back to {config.label}</button><button disabled={busy} className="primary" type="button" onClick={() => save()}>{busy ? 'Saving…' : 'Save changes'}</button></div>

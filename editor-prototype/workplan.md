@@ -28,6 +28,7 @@ Support creating and editing blog posts with the existing fields and Markdown/MD
 - [x] Generate and persist the title-based filename on first creation; reuse the exact saved filename and extension on every subsequent save, without regenerating it from metadata
 - [x] Check proposed slugs against existing content IDs and routes, including drafts, `.md`/`.mdx` variants, and equivalent index paths; suggest an available alternative such as `example-title-2` when occupied
 - [x] Enforce collision protection on the server in both APIs: create without a replacement SHA, reject occupied routes and filenames, and handle concurrent creation conflicts without overwriting existing content; suggest another unique alternative while preserving the user's work
+- [x] Extend frontmatter controls across all enabled areas using the blog patterns: area-specific metadata, navigation/layout settings, and Draft / Published; validate saves against authoritative GitHub content and preserve optional/unknown values
 - [x] Add server-side validation; preserve unmanaged frontmatter, multiline YAML, existing author and cover metadata, and unsupported MDX when saving
 - [x] Separate controls within a text block from a responsive side menu for adding new blocks after any existing block; avoid automatic empty blocks
 - [x] Add insertion and property forms for new badges, plain-text callouts, and plain-text cards, using existing Starlight components; keep legacy components protected

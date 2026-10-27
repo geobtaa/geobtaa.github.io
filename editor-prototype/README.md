@@ -2,7 +2,23 @@
 
 This isolated prototype is available at `/editor/`. It edits a conservative allowlist of content directories under `src/content/docs` and writes through the GitHub API directly to the `custom-cms` staging branch. Decap `/admin` is unchanged.
 
-The enabled directories are `about`, `conference`, `guides`, `library`, `metadata`, `posts`, `projects`, `scholarship`, `team`, and `workgroups`. Files can be created in each enabled directory. Blog Posts have the metadata controls described below. Blog Posts and Projects use the **Draft / Published** toggle to control draft state; other directories edit titles, descriptions (where present), and bodies while preserving all other frontmatter, including draft state. Program updates are not enabled.
+The enabled directories are `about`, `conference`, `guides`, `library`, `metadata`, `posts`, `projects`, `scholarship`, `team`, and `workgroups`. Files can be created in each enabled directory. Every enabled area has frontmatter controls, including the **Draft / Published** switch and page settings. The available fields follow each area's existing content conventions. Program updates are not enabled.
+
+## Metadata across content areas
+
+Title is required; descriptions and other page metadata are optional. Existing values load into the form. Saving an existing file keeps its filename and URL, preserves unknown frontmatter and protected MDX, and checks the current GitHub file SHA before committing. Both local and hosted APIs use the authoritative GitHub source, rather than trusting a copy sent by the browser.
+
+- **All areas:** Draft / Published, page layout, page heading visibility, table of contents (including heading levels), navigation label/order/visibility, and site-search indexing. Unset page settings inherit the site's existing defaults.
+- **Blog Posts:** publication date, excerpt, authors, tags, and cover images as described below. An existing description can also be edited.
+- **Library:** optional calendar date, year, authors, and tags.
+- **Guides:** tags.
+- **Scholarship:** year and tags.
+- **Workgroups:** committee, lead, members, active dates, and authors.
+- **Conference:** announcement banner and existing Open Graph/Twitter sharing-image metadata, under Page settings. Banner content retains Starlight's HTML convention.
+
+Existing date, excerpt, author, tag, and cover fields are also shown if present in other areas. Other configuration remains preserved even when there is no matching control. Additional author properties, light/dark cover variants, sidebar badges/attributes, and unrelated head tags survive edits.
+
+Non-blog dates remain optional and are not automatically added. Editing their calendar date preserves an existing timestamp's time and offset; clearing an optional date removes it. Blog date requirements and new-post defaults remain unchanged. New non-blog pages retain their previous draft defaults. Editing frontmatter does not regenerate duplicated information in the body.
 
 ## Blog posts
 
@@ -18,12 +34,12 @@ The compact visibility banner contains a horizontal Draft / Published switch and
 | **Published** | `draft: false` or no draft field | Eligible for production builds. This does not confirm that the version is live. |
 | **Hidden from navigation** | `sidebar.hidden: true` | Excluded from automatically generated sidebar navigation. This alone does not hide the page at its URL or remove it from manually configured navigation. |
 
-The switch selects **Draft** (`draft: true`) on the left and **Published** (`draft: false`) on the right. These labels describe the content setting; saving still updates staging, and the live site changes after review, merge, and deployment. Navigation-only hiding is a separate setting that is displayed in the editing view but preserved unchanged by the editor. A draft can also have that navigation setting. Drafts have an amber banner and highlighted list row, so their status is conveyed by both text and color.
+The switch selects **Draft** (`draft: true`) on the left and **Published** (`draft: false`) on the right. These labels describe the content setting; saving still updates staging, and the live site changes after review, merge, and deployment. Navigation-only hiding is a separate setting under **Page settings → Navigation**, alongside the navigation label and order. A draft can also have that navigation setting. Drafts have an amber banner and highlighted list row, so their status is conveyed by both text and color.
 
 The editing view separately shows **Not saved yet**, **Unsaved changes**, **Saving…**, or **No unsaved changes**. A checkbox change affects the current form immediately and takes effect on staging after saving. Content-list statuses describe saved metadata, read from each listed file's blob SHA. Updating the live site requires review, merge, and deployment.
 
 - Title is required. New posts start with today's local calendar date and the toggle set to **Draft**. The date is editable; changing it does not rename the post.
-- Excerpt, authors, tags, and cover are optional. Authors use the existing list of named author objects, tags remain a list of strings, and covers retain the existing image/alt/caption structure. Existing string authors, extra author properties, and light/dark covers are also preserved.
+- Excerpt, authors, tags, and cover are optional. Authors use the existing list of named author objects, tags use one comma-separated input and remain a list of strings, and covers retain the existing image/alt/caption structure. Existing string authors, extra author properties, and light/dark covers are also preserved.
 - Dates display their written `YYYY-MM-DD` portion without timezone conversion. Unchanged dates retain their original YAML value. When an existing timestamp's calendar date changes, its time and offset remain intact. New dates use the existing unquoted YAML date format.
 - A short title-based filename is generated on first save, with no automatic date prefix. If its URL is occupied, the editor suggests an available suffix and asks you to use that alternative. The filename is permanent after creation, including when the title, date, or metadata changes. Existing filenames and extensions are retained. Intentional URL changes and redirects can be made manually through GitHub.
 - Standard Markdown, images, and tables use the existing body editor; supported LinkCards, LinkButtons, and newly inserted badges, callouts, and cards have standalone property forms. Complex MDX components, nested layouts, and imports stay in protected, read-only blocks. Unchanged frontmatter is preserved; editing an optional field changes only that field.
@@ -35,7 +51,7 @@ The editor warns before discarding unsaved changes. Choose **Cancel** to return 
 
 Both API implementations share blog serialization and creation logic. Updates use the loaded blob SHA and authoritative repository frontmatter. New posts use a Git tree snapshot and a fast-forward-only branch update so competing writes cannot overwrite an existing file or create an equivalent route unnoticed. If staging changes during creation, save again to recheck availability.
 
-Run `npm run test:editor` for editor regression tests. Run `npm run test:editor:browser` to check component insertion and property forms, image editing, link-address handling, Link Card cursor behavior, dashboard/back navigation, unsaved-change prompts, mobile layout, visibility indicators, and both Save buttons using isolated headless Chrome profiles and temporary local test pages. These browser tests use no GitHub credentials or content saves. They find Chrome in common macOS/Linux locations; set `CHROME_BIN` to your Chrome/Chromium executable if needed. They skip when no browser is installed.
+Run `npm run test:editor` for editor regression tests. Run `npm run test:editor:browser` to check component insertion and property forms, image editing, link-address handling, Link Card cursor behavior, dashboard/back navigation, unsaved-change prompts, mobile layout, frontmatter controls across all enabled areas, visibility indicators, and both Save buttons using isolated headless Chrome profiles and temporary local test pages. These browser tests use no GitHub credentials or content saves. They find Chrome in common macOS/Linux locations; set `CHROME_BIN` to your Chrome/Chromium executable if needed. They skip when no browser is installed.
 
 ## Local setup
 

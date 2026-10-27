@@ -1,5 +1,6 @@
-import { contentVisibility, newContent, parseContent, serializeContent, withContentVisibility } from '../../editor-prototype/content.mjs';
-import { parseBlog, saveBlog } from '../../editor-prototype/blog.mjs';
+import { parsePage, savePage } from '../../editor-prototype/page.mjs';
+import { contentVisibility, withContentVisibility } from '../../editor-prototype/content.mjs';
+import { saveBlog } from '../../editor-prototype/blog.mjs';
 import { createBlogCommit } from '../../editor-prototype/blogStorage.mjs';
 import { CONTENT_AREAS, contentArea, contentDirectory, encodeContentPath, validateContentPath } from '../../editor-prototype/contentAreas.mjs';
 import { IMAGE_DIRECTORY, imageContentType, validateImagePath, validateImageUpload } from '../../editor-prototype/imageAssets.mjs';
@@ -245,20 +246,12 @@ async function contentApi(request, env, pathname) {
   if (!filename) throw new HttpError(400, 'Content filename is required.');
   if (request.method === 'GET') {
     const file = await github.getContent(area, filename);
-    return json({ ...file, ...(area === 'posts' ? parseBlog(file.content) : parseContent(file.content)), ...contentVisibility(file.content) });
+    return json({ ...file, ...parsePage(file.content), ...contentVisibility(file.content) });
   }
   if (request.method === 'PUT') {
     const input = await request.json();
     if (area === 'posts') return json(await saveBlog(github, filename, input));
-    const config = contentArea(area);
-    if (!input.title?.trim() || (config.description && !input.description?.trim())) throw new HttpError(400, `Title${config.description ? ' and description are' : ' is'} required.`);
-    if (!input.sha && !config.create) throw new HttpError(400, 'New files are not enabled for this content directory.');
-    const entry = { title: input.title.trim(), description: input.description?.trim() ?? '', draft: config.publishing ? !input.publish : false, body: input.body ?? '' };
-    const content = input.sha
-      ? serializeContent(input.originalContent, entry, { description: config.description, draft: config.publishing })
-      : newContent(entry, { description: config.description, draft: config.publishing });
-    const saved = await github.saveContent({ area, filename, content, sha: input.sha, publish: config.publishing && Boolean(input.publish) });
-    return json({ ...saved, content, ...parseContent(content), ...contentVisibility(content) });
+    return json(await savePage(github, area, filename, input));
   }
   throw new HttpError(405, 'Method not allowed.');
 }

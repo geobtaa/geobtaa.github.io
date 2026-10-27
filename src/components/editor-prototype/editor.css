@@ -171,3 +171,6 @@ code { font-size: .9em; }
 .badge-danger { background: #fee2e2; color: #991b1b; }
 .badge-size-medium { font-size: 1rem; }
 .badge-size-large { font-size: 1.2rem; }
+
+.page-settings > summary { cursor: pointer; font-weight: 650; }
+.page-settings select { width: 100%; padding: .7rem; border: 1px solid #94a3b8; border-radius: .35rem; background: white; }

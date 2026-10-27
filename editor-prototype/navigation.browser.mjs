@@ -163,7 +163,7 @@ test('visibility badges distinguish drafts from navigation-only hiding and both 
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
     await waitFor('!!document.querySelector(".visibility-panel.is-draft")');
-    assert.equal(await evaluate('document.querySelector(".visibility-control")'), null, 'read-only visibility areas do not gain a new draft control');
+    assert.equal(await evaluate('document.querySelector(".visibility-control").getAttribute("aria-checked")'), 'false', 'every enabled area can edit its draft state');
     assert.ok(await evaluate('document.querySelector(".visibility-panel").textContent.includes("Draft")'));
   });
 });

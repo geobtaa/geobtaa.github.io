@@ -1,16 +1,16 @@
 export const CONTENT_ROOT = 'src/content/docs';
 
 export const CONTENT_AREAS = Object.freeze({
-  about: { label: 'About', itemLabel: 'About page', description: true, create: true, publishing: false },
-  conference: { label: 'Conference', itemLabel: 'Conference page', description: true, create: true, publishing: false },
-  guides: { label: 'Guides', itemLabel: 'Guide', description: true, create: true, publishing: false },
-  library: { label: 'Library', itemLabel: 'Library document', description: true, create: true, publishing: false },
-  metadata: { label: 'Metadata', itemLabel: 'Metadata page', description: true, create: true, publishing: false },
-  posts: { label: 'Blog Posts', itemLabel: 'Blog Post', description: false, create: true, publishing: false },
-  projects: { label: 'Projects', itemLabel: 'Project', description: true, create: true, publishing: true },
-  scholarship: { label: 'Scholarship', itemLabel: 'Scholarship page', description: true, create: true, publishing: false },
-  team: { label: 'Team', itemLabel: 'Team page', description: true, create: true, publishing: false },
-  workgroups: { label: 'Workgroups', itemLabel: 'Workgroup', description: false, create: true, publishing: false },
+  about: { metadataFields: [], label: 'About', itemLabel: 'About page', description: true, create: true, publishing: false },
+  conference: { metadataFields: [], label: 'Conference', itemLabel: 'Conference page', description: true, create: true, publishing: false },
+  guides: { metadataFields: ['tags'], label: 'Guides', itemLabel: 'Guide', description: true, create: true, publishing: false },
+  library: { metadataFields: ['date', 'authors', 'tags'], label: 'Library', itemLabel: 'Library document', description: true, create: true, publishing: false },
+  metadata: { metadataFields: [], label: 'Metadata', itemLabel: 'Metadata page', description: true, create: true, publishing: false },
+  posts: { metadataFields: ['date', 'excerpt', 'authors', 'tags', 'cover'], label: 'Blog Posts', itemLabel: 'Blog Post', description: false, create: true, publishing: false },
+  projects: { metadataFields: [], label: 'Projects', itemLabel: 'Project', description: true, create: true, publishing: true },
+  scholarship: { metadataFields: ['tags'], label: 'Scholarship', itemLabel: 'Scholarship page', description: true, create: true, publishing: false },
+  team: { metadataFields: [], label: 'Team', itemLabel: 'Team page', description: true, create: true, publishing: false },
+  workgroups: { metadataFields: ['authors'], label: 'Workgroups', itemLabel: 'Workgroup', description: false, create: true, publishing: false },
 });
 
 export function contentArea(name) {

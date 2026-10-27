@@ -1,8 +1,9 @@
 import { isMap, parseDocument, stringify } from 'yaml';
+import { applyPageMetadata, parsePageMetadata } from './pageMetadata.mjs';
 import { contentVisibility, parseContent } from './content.mjs';
 
 const FRONTMATTER = /^(---\r?\n)([\s\S]*?)(\r?\n---\r?\n(?:\r?\n)?)([\s\S]*)$/;
-const fields = ['title', 'date', 'draft', 'excerpt', 'authors', 'tags', 'cover'];
+const fields = ['title', 'date', 'draft', 'description', 'excerpt', 'authors', 'tags', 'cover'];
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const invalid = (message) => Object.assign(new Error(message), { status: 400 });
 
@@ -47,6 +48,7 @@ export function validateBlog(input, existing) {
     const days = new Date(Date.UTC(year, month, 0)).getUTCDate();
     if (year < 1000 || month < 1 || month > 12 || day < 1 || day > days) throw invalid('Enter a valid publication date.');
   }
+  if (input.description !== undefined && typeof input.description !== 'string') throw invalid('Description must be text.');
   if (typeof input.excerpt !== 'string') throw invalid('Excerpt must be text.');
   if (!Array.isArray(input.authors) || input.authors.some((author) => typeof author === 'string' ? !author.trim() : !author || typeof author.name !== 'string' || !author.name.trim())) throw invalid('Each author needs a name.');
   if (!Array.isArray(input.tags) || input.tags.some((tag) => typeof tag !== 'string' || !tag.trim())) throw invalid('Each tag must be nonblank text.');
@@ -65,11 +67,12 @@ export function newBlog(input) {
   input = { date: todayCalendar(), draft: true, excerpt: '', authors: [], tags: [], cover: null, body: '', ...input };
   validateBlog(input);
   const data = { title: input.title.trim(), date: input.date, draft: input.draft };
+  if (input.description) data.description = input.description;
   if (input.excerpt) data.excerpt = input.excerpt;
   if (input.authors.length) data.authors = input.authors;
   if (input.tags.length) data.tags = input.tags;
   if (input.cover) data.cover = input.cover;
-  return `---\n${stringify(data)}---\n\n${input.body}`;
+  return applyPageMetadata(`---\n${stringify(data)}---\n\n${input.body}`, input.metadata);
 }
 
 export function serializeBlog(original, input) {
@@ -78,12 +81,13 @@ export function serializeBlog(original, input) {
   validateBlog(input, existing);
   const edits = [];
   for (const field of fields) {
+    if (field === 'description' && !Object.hasOwn(input, 'description')) continue;
     if (same(input[field], existing[field])) continue;
     let value = input[field];
     if (field === 'date' && typeof data.date === 'string') value += data.date.slice(10);
     if (field === 'authors' && !Array.isArray(data.authors) && data.authors != null && value.length === 1) value = value[0];
     const pair = doc.contents.items.find((item) => item.key?.value === field);
-    const empty = field === 'cover' ? value === null : ['excerpt', 'authors', 'tags'].includes(field) && value.length === 0;
+    const empty = field === 'cover' ? value === null : ['description', 'excerpt', 'authors', 'tags'].includes(field) && value.length === 0;
     // Replace only the changed field. Other YAML, comments, optional values, and
     // timestamp spelling remain byte-for-byte intact.
     const replacement = empty ? '' : stringify({ [field]: value });
@@ -97,7 +101,7 @@ export function serializeBlog(original, input) {
   let yaml = match[2];
   for (const edit of edits.sort((a, b) => b.start - a.start)) yaml = yaml.slice(0, edit.start) + edit.text + yaml.slice(edit.end);
   const newline = match[1].includes('\r\n') ? '\r\n' : '\n';
-  return `${match[1]}${yaml.replace(/\r?\n/g, newline)}${match[3]}${input.body}`;
+  return applyPageMetadata(`${match[1]}${yaml.replace(/\r?\n/g, newline)}${match[3]}${input.body}`, input.metadata);
 }
 
 export function postSlug(title) {
@@ -108,7 +112,7 @@ export async function saveBlog(github, filename, input) {
   if (!filename) {
     const content = newBlog(input);
     const saved = await github.createBlog({ title: input.title, suggestedFilename: input.suggestedFilename, content });
-    return { ...saved, content, ...parseBlog(content), ...contentVisibility(content) };
+    return { ...saved, content, ...parseBlog(content), ...parsePageMetadata(content), ...contentVisibility(content) };
   }
   if (!input.sha) throw invalid('An existing post SHA is required. Create new posts through the blog collection.');
   const loaded = await github.getContent('posts', filename);
@@ -116,5 +120,5 @@ export async function saveBlog(github, filename, input) {
   // Use authoritative frontmatter, never a client-supplied originalContent.
   const content = serializeBlog(loaded.content, { ...parseBlog(loaded.content), ...input });
   const saved = await github.saveContent({ area: 'posts', filename, content, sha: input.sha });
-  return { ...saved, filename, content, ...parseBlog(content), ...contentVisibility(content) };
+  return { ...saved, filename, content, ...parseBlog(content), ...parsePageMetadata(content), ...contentVisibility(content) };
 }
