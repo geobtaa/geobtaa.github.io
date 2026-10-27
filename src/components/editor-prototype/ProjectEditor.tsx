@@ -4,7 +4,7 @@ import { SimpleComponentFields } from './SimpleComponentBlock';
 import { SIMPLE_COMPONENTS, SIMPLE_KINDS, createSimpleComponentMdx, emptySimpleFields, ensureSimpleComponentImport, simpleKindForNode, type SimpleKind } from './simpleComponents';
 import { LinkAddressField } from './LinkAddressField';
 import { normalizeLinkAddress } from './linkAddress';
-import { splitBody } from './bodySegments';
+import { splitBody, visibleBodySegments, moveBodySegment } from './bodySegments';
 import { richTextEditorOptions } from './richTextEditor';
 import { createLinkCardMdx, ensureLinkCardImport } from './linkCardMdx';
 import { createLinkButtonMdx, ensureLinkButtonImport, type LinkButtonFields } from './linkButtonMdx';
@@ -366,6 +366,27 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
   const [segmentSession, setSegmentSession] = useState(0);
   const [emptyEditorId, setEmptyEditorId] = useState<number | null>(initialValue.trim() ? null : 0);
   const segmentsRef = useRef(segments);
+  const blockRows = useRef(new Map<number, HTMLDivElement>());
+  const pendingMove = useRef<{ id: number; direction: -1 | 1 } | null>(null);
+  const [moveNotice, setMoveNotice] = useState('');
+  useEffect(() => {
+    const moved = pendingMove.current;
+    if (!moved) return;
+    const row = blockRows.current.get(moved.id);
+    const button = row?.querySelector<HTMLButtonElement>(`[data-move="${moved.direction}"]`);
+    (button && !button.disabled ? button : row)?.focus({ preventScroll: true });
+    row?.scrollIntoView({ block: 'nearest' });
+    pendingMove.current = null;
+  }, [segments]);
+  const move = (id: number, direction: -1 | 1) => {
+    const next = moveBodySegment(segmentsRef.current, id, direction, emptyEditorId);
+    if (next === segmentsRef.current) return;
+    pendingMove.current = { id, direction };
+    segmentsRef.current = next; setSegments(next);
+    onChange(next.map((segment) => segment.content).join(''));
+    const visible = visibleBodySegments(next, emptyEditorId);
+    setMoveNotice(`Block moved ${direction === -1 ? 'up' : 'down'} to position ${visible.findIndex((segment) => segment.id === id) + 1} of ${visible.length}.`);
+  };
   const update = (id: number, content: string) => {
     const current = segmentsRef.current;
     if (!content.trim() && current.find((segment) => segment.id === id)?.kind === 'markdown') setEmptyEditorId(id);
@@ -406,13 +427,21 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
     segmentsRef.current = next; setSegments(next); setEmptyEditorId(id);
   };
   // Keep whitespace separators in the source without displaying them as empty editors.
-  const visibleSegments = segments.filter((segment) => segment.kind !== 'markdown' || segment.content.trim() || segment.id === emptyEditorId);
+  const visibleSegments = visibleBodySegments(segments, emptyEditorId);
   return <div className="body-editor">
-    {visibleSegments.map((segment) => <div className="block-row" key={`${segmentSession}:${segment.id}`}>
+    <p className="block-move-note">Move blocks with the arrow buttons. Adjacent text blocks may merge into one text block when you reopen the page; their content stays in order. Read-only blocks stay in place.</p>
+    <p className="block-move-status" role="status">{moveNotice}</p>
+    {visibleSegments.map((segment, index) => <div className="block-row" tabIndex={-1} ref={(row) => { if (row) blockRows.current.set(segment.id, row); else blockRows.current.delete(segment.id); }} key={`${segmentSession}:${segment.id}`}>
       {segment.kind === 'protected'
         ? <details className="protected-block"><summary>Existing MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
         : <RichTextEditor onRemove={() => removeComponent(segment.id)} structured={segment.kind === 'structured'} initialValue={segment.content} onChange={(content) => update(segment.id, content)} />}
-      <BlockInserter onInsert={(component, raw) => insertComponent(segment.id, component, raw)} onAddText={() => addTextBlock(segment.id)} />
+      <div className="block-controls">
+        {segment.kind !== 'protected' && <div className="block-move-buttons" role="group" aria-label={`Move block ${index + 1}`}>
+          <button type="button" data-move="-1" disabled={!visibleSegments[index - 1] || visibleSegments[index - 1].kind === 'protected'} onClick={() => move(segment.id, -1)}>↑ Move up</button>
+          <button type="button" data-move="1" disabled={!visibleSegments[index + 1] || visibleSegments[index + 1].kind === 'protected'} onClick={() => move(segment.id, 1)}>↓ Move down</button>
+        </div>}
+        <BlockInserter onInsert={(component, raw) => insertComponent(segment.id, component, raw)} onAddText={() => addTextBlock(segment.id)} />
+      </div>
     </div>)}
     {!visibleSegments.length && <BlockInserter onInsert={(component, raw) => insertComponent(-1, component, raw)} onAddText={() => addTextBlock(-1)} />}
   </div>;
@@ -486,27 +515,28 @@ function PageMetadataControls({ area, project, onChange }: { area: AreaName; pro
       <button type="button" onClick={() => set('members', [...(metadata.members || []), ''])}>Add member</button>
     </fieldset>}
     <details className="metadata-group page-settings"><summary>Page settings</summary>
+      <p>Options marked “site default” follow the site’s settings. Choosing the matching option without that label fixes the setting for this page, even if the site default changes.</p>
       <label>Page layout<select value={metadata.template ?? ''} onChange={(event) => set('template', event.target.value || null)}>
-        <option value="">Site default</option><option value="doc">Document</option><option value="splash">Splash</option>
+        <option value="">Document (site default)</option><option value="doc">Document</option><option value="splash">Splash</option>
       </select></label>
       <label>Page heading<select value={metadata.hidePageTitle == null ? '' : String(metadata.hidePageTitle)} onChange={(event) => set('hidePageTitle', event.target.value === '' ? null : event.target.value === 'true')}>
-        <option value="">Site default</option><option value="false">Show</option><option value="true">Hide</option>
+        <option value="">Show (site default)</option><option value="false">Show</option><option value="true">Hide</option>
       </select></label>
       <label>Table of contents<select value={toc == null ? '' : typeof toc === 'object' ? 'custom' : String(toc)} onChange={(event) => set('tableOfContents', event.target.value === '' ? null : event.target.value === 'custom' ? { minHeadingLevel: 2, maxHeadingLevel: 3 } : event.target.value === 'true')}>
-        <option value="">Site default</option><option value="true">Show</option><option value="false">Hide</option><option value="custom">Choose heading levels</option>
+        <option value="">{metadata.template === 'splash' ? 'Hide (splash layout)' : 'Show (site default)'}</option><option value="true">Show</option><option value="false">Hide</option><option value="custom">Choose heading levels</option>
       </select></label>
       {toc && typeof toc === 'object' && <div className="metadata-row">
         <label>Minimum heading level<input type="number" min={1} max={6} value={toc.minHeadingLevel ?? 2} onChange={(event) => set('tableOfContents', { ...toc, minHeadingLevel: Number(event.target.value) })} /></label>
         <label>Maximum heading level<input type="number" min={1} max={6} value={toc.maxHeadingLevel ?? 3} onChange={(event) => set('tableOfContents', { ...toc, maxHeadingLevel: Number(event.target.value) })} /></label>
       </div>}
       <label>Site search<select value={metadata.pagefind == null ? '' : String(metadata.pagefind)} onChange={(event) => set('pagefind', event.target.value === '' ? null : event.target.value === 'true')}>
-        <option value="">Site default</option><option value="true">Include</option><option value="false">Exclude</option>
+        <option value="">Include (site default)</option><option value="true">Include</option><option value="false">Exclude</option>
       </select></label>
       <fieldset className="metadata-group"><legend>Navigation</legend>
         <label>Navigation label<input value={sidebar.label ?? ''} onChange={(event) => setSidebar('label', event.target.value || undefined)} /></label>
         <label>Navigation order<input type="number" value={sidebar.order ?? ''} onChange={(event) => setSidebar('order', event.target.value === '' ? undefined : Number(event.target.value))} /></label>
         <label>Navigation visibility<select value={sidebar.hidden === undefined ? '' : String(sidebar.hidden)} onChange={(event) => setSidebar('hidden', event.target.value === '' ? undefined : event.target.value === 'true')}>
-          <option value="">Site default</option><option value="false">Show in navigation</option><option value="true">Hide from navigation</option>
+          <option value="">Show in navigation (site default)</option><option value="false">Show in navigation</option><option value="true">Hide from navigation</option>
         </select></label>
       </fieldset>
       {(area === 'conference' || metadata.banner != null) && <fieldset className="metadata-group"><legend>Announcement banner</legend>
@@ -660,7 +690,6 @@ export default function ProjectEditor() {
       <nav className="dashboard-grid" aria-label="Content areas">
         {Object.entries(CONTENT_AREAS).map(([name, item]) => <button className="dashboard-card" type="button" key={name} onClick={() => selectArea(name as AreaName)}>
           <span className="dashboard-card-title">{item.label}<span aria-hidden="true"> →</span></span>
-          <span>Browse and edit {item.label.toLowerCase()}</span>
         </button>)}
       </nav>
     </main>
@@ -692,7 +721,7 @@ export default function ProjectEditor() {
   );
 
   return (
-    <main className="editor-shell">
+    <main className="editor-shell editor-workspace">
       <nav className="editor-navigation" aria-label="Editor navigation">
         <button className="back" type="button" disabled={busy} onClick={backToList}>← Back to {config.label}</button>
         <div className="navigation-actions"><button className="dashboard-link" type="button" disabled={busy} onClick={backToDashboard}>Dashboard</button><button className="primary top-save" type="button" disabled={busy} onClick={() => save()}>{busy ? 'Saving…' : 'Save changes'}</button></div>

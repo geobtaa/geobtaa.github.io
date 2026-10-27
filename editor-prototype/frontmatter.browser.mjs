@@ -59,6 +59,10 @@ test('every content area edits and reopens metadata using the existing controls 
       await evaluate('document.querySelector(".project-list button").click()');
       await waitFor('!!document.querySelector(".editor-fields")');
       assert.equal(await evaluate('document.querySelector(".visibility-switch").getAttribute("aria-checked")'), 'true');
+      assert.equal(await evaluate(`${field('Page layout')}.selectedOptions[0].textContent`), area === 'conference' ? 'Splash' : 'Document (site default)');
+      assert.equal(await evaluate(`${field('Page heading')}.selectedOptions[0].textContent`), area === 'conference' ? 'Show' : 'Show (site default)');
+      assert.equal(await evaluate(`${field('Site search')}.selectedOptions[0].textContent`), 'Include (site default)');
+      assert.equal(await evaluate(`${field('Navigation visibility')}.selectedOptions[0].textContent`), 'Show in navigation (site default)');
       await fill('Title', `Revised ${area}`);
       await fill('Description', `Revised ${area} summary.\nSecond line.`);
       await evaluate('document.querySelector(".visibility-switch").click(); document.querySelector(".page-settings").open = true');
@@ -81,6 +85,12 @@ test('every content area edits and reopens metadata using the existing controls 
       const saved = await evaluate(`window.records[${JSON.stringify(area)}]`);
       assert.ok(saved.includes('<CenterLayout>Protected MDX.</CenterLayout>'));
       const entry = await evaluate(`window.writes.find(write => write.area === ${JSON.stringify(area)}).input`);
+      assert.equal(entry.metadata.pagefind, undefined);
+      if (area !== 'conference') {
+        assert.equal(entry.metadata.template, undefined);
+        assert.equal(entry.metadata.hidePageTitle, undefined);
+        assert.doesNotMatch(saved, /^(template|hidePageTitle|pagefind):/m);
+      }
       assert.equal(entry.metadata.sidebar.badge, 'Keep');
       assert.equal(entry.metadata.sidebar.attrs.class, 'keep-navigation');
       assert.equal(entry.draft, true);

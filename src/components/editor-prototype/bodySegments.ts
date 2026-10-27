@@ -95,3 +95,33 @@ export function splitBody(body: string): BodySegment[] {
   flushMarkdown();
   return segments.length ? segments : [{ id: 0, kind: 'markdown', content: '' }];
 }
+
+// Whitespace-only segments separate blocks but are not reorder targets.
+export function visibleBodySegments(segments: BodySegment[], emptyEditorId: number | null = null) {
+  return segments.filter((segment) => segment.kind !== 'markdown' || segment.content.trim() || segment.id === emptyEditorId);
+}
+
+export function moveBodySegment(segments: BodySegment[], id: number, direction: -1 | 1, emptyEditorId: number | null = null): BodySegment[] {
+  const visible = visibleBodySegments(segments, emptyEditorId);
+  const index = visible.findIndex((segment) => segment.id === id);
+  const current = visible[index];
+  const neighbor = visible[index + direction];
+  if (!current || !neighbor || current.kind === 'protected' || neighbor.kind === 'protected') return segments;
+  const next = [...segments];
+  const from = segments.indexOf(current), to = segments.indexOf(neighbor);
+  [next[from], next[to]] = [next[to], next[from]];
+  // Blocks can lose their original leading/trailing separator when moved.
+  // Add spacing to editable blocks only; protected source remains verbatim.
+  const newline = segments.some((segment) => segment.content.includes('\r\n')) ? '\r\n' : '\n';
+  for (let index = 1; index < next.length; index += 1) {
+    const previous = next[index - 1], current = next[index];
+    const trailing = previous.content.match(/(?:\r?\n)*$/)?.[0] || '';
+    const leading = current.content.match(/^(?:\r?\n)*/)?.[0] || '';
+    const count = ((trailing + leading).match(/\n/g) || []).length;
+    if (count >= 2) continue;
+    const padding = newline.repeat(2 - count);
+    if (previous.kind !== 'protected') next[index - 1] = { ...previous, content: previous.content + padding };
+    else if (current.kind !== 'protected') next[index] = { ...current, content: padding + current.content };
+  }
+  return next;
+}
