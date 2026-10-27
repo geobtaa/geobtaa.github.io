@@ -174,3 +174,19 @@ code { font-size: .9em; }
 
 .page-settings > summary { cursor: pointer; font-weight: 650; }
 .page-settings select { width: 100%; padding: .7rem; border: 1px solid #94a3b8; border-radius: .35rem; background: white; }
+/* Explicit image formatting is local to each image; defaults above stay unchanged. */
+.tiptap .editor-image[data-formatted="true"] { width: fit-content; max-width: 100%; }
+.tiptap .editor-image[data-align="left"] { margin-left: 0; margin-right: auto; }
+.tiptap .editor-image[data-align="right"] { margin-left: auto; margin-right: 0; }
+.tiptap .editor-image [data-resize-container] { max-width: 100%; }
+.tiptap .editor-image [data-resize-wrapper] { width: 100%; max-width: 100%; }
+.tiptap .editor-image[data-formatted="true"] img { width: 100%; }
+.tiptap .editor-image[data-formatted="false"] [data-resize-wrapper] { width: fit-content; margin: 0 auto; }
+.image-format-controls { display: none; flex-wrap: wrap; gap: .35rem; align-items: center; padding-top: .75rem; }
+.ProseMirror-selectednode .image-format-controls { display: flex; }
+.image-format-controls button { padding: .3rem .45rem; border: 1px solid #94a3b8; background: white; border-radius: .25rem; }
+.image-format-controls button[aria-pressed="true"] { background: #e0f2fe; border-color: #075985; }
+.image-format-controls label { display: flex; align-items: center; gap: .35rem; margin: 0; font-size: .85rem; }
+.image-format-controls input { width: 6rem; padding: .25rem; }
+.image-resize-handle { display: none; width: 16px; height: 16px; background: #075985; border: 2px solid white; border-radius: 3px; touch-action: none; }
+.ProseMirror-selectednode .image-resize-handle { display: block; }

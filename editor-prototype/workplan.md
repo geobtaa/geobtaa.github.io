@@ -41,6 +41,7 @@ Support creating and editing blog posts with the existing fields and Markdown/MD
 - [x] Warn before leaving unsaved changes and preserve work in the open editor after failed saves, expired sessions, and stale-file conflicts; document how to copy unsaved changes before reloading
 - [ ] Distinguish unsaved changes, saved commits, deployment in progress, and a preview ready to view; ensure preview links show the intended saved version and explain whether unsaved content is included
 - [x] Improve ordinary Markdown image insertion and editing with source, alt text, and optional captions stored as image titles; show centered images and captions in the existing editor, preserve unchanged image syntax, and keep legacy MDX protected
+- [x] Add compatible image resize handles, width entry, and left/center/right alignment to the existing editor; store formatting in a narrow HTML figure around the Markdown image, preserve captions and asset paths, and provide Reset formatting
 - [ ] Verify image selection, upload, alt text, and cover images in blog posts; document that uploads commit separately and decide how unused uploads are handled
 - [ ] Check keyboard navigation, field labels, dialog focus, error messages, and usability on smaller screens
 

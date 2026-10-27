@@ -12,6 +12,7 @@ import { createLinkCardMdx, ensureLinkCardImport, LINK_CARD_IMPORT, parseLinkCar
 const { window } = parseHTML('<!doctype html><html><body></body></html>');
 Object.assign(globalThis, {
   window,
+  HTMLElement: window.HTMLElement,
   document: window.document,
   DOMParser: window.DOMParser,
   MutationObserver: window.MutationObserver,
@@ -628,4 +629,75 @@ test('new component aliases preserve legacy imports, avoid duplicates, and detec
     assert.ok(ensureSimpleComponentImport(conflict, kind).error);
     assert.equal(ensureSimpleComponentImport(conflict, kind).content, conflict);
   }
+});
+
+test('image formatting preserves Markdown, saves explicit alignment/width, and resets without losing captions', () => {
+  const raw = "![Original alt](@images//original.png 'Original caption')";
+  const { editor } = openEditor(`${raw}\n\nAfter`);
+  editor.commands.setNodeSelection(0);
+  editor.commands.updateAttributes('image', { width: 320, align: 'right' });
+  const formatted = `<figure data-cms-image="true" data-align="right" data-width="320">\n\n${raw}\n\n</figure>`;
+  assert.equal(editor.getMarkdown(), `${formatted}\n\nAfter`);
+  const segments = splitBody(`${formatted}\n\nAfter`);
+  assert.equal(segments.length, 1);
+  assert.equal(segments[0].kind, 'markdown');
+  const reopened = openEditor(editor.getMarkdown()).editor;
+  assert.equal(reopened.state.doc.firstChild.attrs.width, 320);
+  assert.equal(reopened.state.doc.firstChild.attrs.align, 'right');
+  assert.equal(reopened.getMarkdown(), editor.getMarkdown());
+  reopened.commands.setNodeSelection(0);
+  reopened.commands.updateAttributes('image', { src: '@images/new.png', alt: 'New alt', title: 'New caption' });
+  assert.match(reopened.getMarkdown(), /!\[New alt\]\(@images\/new.png "New caption"\)/);
+  assert.match(reopened.getMarkdown(), /data-width="320"/);
+  reopened.commands.updateAttributes('image', { width: null, align: null });
+  assert.equal(reopened.getMarkdown(), '![New alt](@images/new.png "New caption")\n\nAfter');
+  reopened.destroy(); editor.destroy();
+});
+
+test('alignment without width and formatted images without captions round trip', () => {
+  for (const align of ['left', 'center', 'right']) {
+    const raw = `<figure data-cms-image="true" data-align="${align}">\n\n![Map](@images/map.png)\n\n</figure>`;
+    const { editor } = openEditor(raw);
+    assert.equal(editor.state.doc.firstChild.type.name, 'image');
+    assert.equal(editor.state.doc.firstChild.attrs.align, align);
+    assert.equal(editor.getMarkdown().trim(), raw);
+    editor.destroy();
+  }
+});
+
+test('unrecognized figures remain protected, while adjacent formatted images stay editable', () => {
+  const valid = '<figure data-cms-image="true" data-align="left" data-width="240">\n\n![Map](@images/map.png "Caption")\n\n</figure>';
+  for (const raw of [
+    valid.replace('data-align="left"', 'data-align={alignment}'),
+    valid.replace('data-width="240"', 'data-width="0"'),
+    valid.replace('<figure ', '<figure class="custom" '),
+    valid.replace('\n\n</figure>', '\n\n<Unknown />\n\n</figure>'),
+    '<CenterLayout>\n' + valid + '\n</CenterLayout>',
+  ]) {
+    const body = `${raw}\n\n${valid}\n\nAfter\n`;
+    const parts = splitBody(body);
+    assert.equal(parts.map(p => p.content).join(''), body);
+    assert.equal(parts[0].kind, 'protected');
+    assert.ok(parts[0].content.includes(raw));
+    assert.equal(parts.at(-1).kind, 'markdown');
+    const { editor } = openEditor(parts.at(-1).content);
+    type(editor, ' edited');
+    assert.ok(editor.getMarkdown().includes(valid));
+    editor.destroy();
+  }
+  const crlf = valid.replaceAll('\n', '\r\n') + '\r\n';
+  assert.equal(splitBody(crlf).map(p => p.content).join(''), crlf);
+});
+
+test('formatting a parenthesized Markdown destination produces an editable inline image on reopen', () => {
+  const { editor } = openEditor('![Map](https://example.org/map(1).png "Caption")\n\n![Unchanged](@images//other.png \'Keep\')');
+  editor.commands.setNodeSelection(0);
+  editor.commands.updateAttributes('image', { align: 'left' });
+  const saved = editor.getMarkdown();
+  assert.ok(saved.includes("![Unchanged](@images//other.png 'Keep')"));
+  assert.equal(splitBody(saved)[0].kind, 'markdown');
+  const reopened = openEditor(saved).editor;
+  assert.equal(reopened.state.doc.firstChild.type.name, 'image');
+  assert.equal(reopened.state.doc.firstChild.attrs.src, 'https://example.org/map(1).png');
+  reopened.destroy(); editor.destroy();
 });

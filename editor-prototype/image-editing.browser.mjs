@@ -33,7 +33,7 @@ createRoot(document.getElementById('root')).render(React.createElement(ProjectEd
 test('image controls insert, edit, cancel, render real images, and preserve Markdown through save/reopen', {
   skip: chrome ? false : 'Set CHROME_BIN to an installed Chrome/Chromium executable.', timeout: 45_000,
 }, async () => {
-  await withEditorBrowser(fixture, async ({ evaluate, waitFor, send }) => {
+  await withEditorBrowser(fixture, async ({ evaluate, waitFor, send, arrow }) => {
     const click = async (text, scope = 'document') => {
       await waitFor(`!![...${scope}.querySelectorAll('button')].find(button => button.textContent.trim() === ${JSON.stringify(text)} && !button.disabled)`);
       await evaluate(`[...${scope}.querySelectorAll('button')].find(button => button.textContent.trim() === ${JSON.stringify(text)}).click()`);
@@ -52,6 +52,7 @@ test('image controls insert, edit, cancel, render real images, and preserve Mark
     assert.equal(await evaluate('document.querySelector(".image-edit-action").offsetWidth'), 0, 'unselected images hide the action');
     // Select an image in the document and use its nearby editing action.
     const selectImage = async (index = 0) => {
+      await delay(550); // ProseMirror treats rapid clicks at the same coordinates as a double-click.
       const point = await evaluate(`(() => { const image = document.querySelectorAll('.editor-image img')[${index}]; image.scrollIntoView({ block: 'center' }); const r = image.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
       await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button: 'left', clickCount: 1 });
       await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button: 'left', clickCount: 1 });
@@ -106,16 +107,39 @@ test('image controls insert, edit, cancel, render real images, and preserve Mark
     await click('Apply Changes', 'document.querySelector(".image-picker")');
     await waitFor('document.querySelector(".editor-image img")?.naturalWidth > 0 && document.querySelector(".editor-image img").alt === "Replacement alt"');
     assert.equal(await evaluate('document.querySelector(".editor-image figcaption").textContent'), 'Replacement "caption"');
+    // Nearby formatting controls apply only to this image. Drag preserves its ratio.
+    await selectImage();
+    await click('Left', 'document.querySelector(".ProseMirror-selectednode")');
+    const resizeStart = await evaluate(`(() => { const r = document.querySelector('.ProseMirror-selectednode .image-resize-handle').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+    await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...resizeStart, button: 'left', clickCount: 1 });
+    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: resizeStart.x + 70, y: resizeStart.y + 44, button: 'left', buttons: 1 });
+    await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: resizeStart.x + 70, y: resizeStart.y + 44, button: 'left', clickCount: 1 });
+    await waitFor('Number(document.querySelector(".image-format-controls input").value) > 160');
+    const ratio = await evaluate(`(() => { const r = document.querySelector('.editor-image img').getBoundingClientRect(); return r.width / r.height; })()`);
+    assert.ok(Math.abs(ratio - 1.6) < .02, 'resizing preserves the image aspect ratio');
+    await evaluate('document.querySelector(".image-format-controls input").focus(); document.querySelector(".image-format-controls input").select()');
+    await send('Input.insertText', { text: '240' });
+    await arrow('Tab', 9);
+    await click('Right', 'document.querySelector(".ProseMirror-selectednode")');
+    await waitFor('document.querySelector(".editor-image").dataset.align === "right" && document.querySelector(".editor-image").style.width === "240px"');
     await click('Save changes', 'document.querySelector(".editor-navigation")');
     await waitFor('window.writes.length === 1');
     assert.ok((await evaluate('window.record.body')).includes(legacy));
     assert.match(await evaluate('window.record.body'), /!\[Replacement alt\]\(@images\/replacement.png "Replacement \\"caption\\""\)/);
     // Reopen through the actual page editor and gateway response.
+    await waitFor('!document.querySelector(".editor-navigation .back").disabled');
     await evaluate('document.querySelector(".editor-navigation .back").click()');
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
     await waitFor('document.querySelector(".editor-image img")?.alt === "Replacement alt"');
     assert.equal(await evaluate('document.querySelector(".editor-image figcaption").textContent'), 'Replacement "caption"');
+    assert.match(await evaluate('window.record.body'), /<figure data-cms-image="true" data-align="right" data-width="240">/);
+    assert.equal(await evaluate('document.querySelector(".editor-image").style.width'), '240px');
+    await selectImage();
+    await click('Center', 'document.querySelector(".ProseMirror-selectednode")');
+    await waitFor('document.querySelector(".editor-image").dataset.align === "center"');
+    await click('Reset formatting', 'document.querySelector(".ProseMirror-selectednode")');
+    await waitFor('document.querySelector(".editor-image").dataset.formatted === "false"');
     // Upload through the existing picker, then insert a second image without a caption.
     await click('Image');
     await evaluate(`(() => { const input = document.querySelector('.image-picker input[type=file]'); const data = new DataTransfer(); data.items.add(new File([Uint8Array.from(atob('${png.toString('base64')}'), c => c.charCodeAt(0))], 'uploaded.png', { type: 'image/png' })); input.files = data.files; input.dispatchEvent(new Event('change', { bubbles: true })); })()`);
@@ -136,12 +160,14 @@ test('image controls insert, edit, cancel, render real images, and preserve Mark
     assert.match(saved, /!\[Uploaded alt\]\(@images\/uploaded.png "Uploaded caption"\)/);
     assert.match(saved, /!\[No caption\]\(@images\/original.png\)/);
     assert.ok(saved.includes(legacy));
+    assert.equal(saved.includes('data-cms-image'), false, 'reset returns to ordinary Markdown');
+    await waitFor('!document.querySelector(".editor-navigation .back").disabled');
     await evaluate('document.querySelector(".editor-navigation .back").click()');
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
     await waitFor('document.querySelectorAll(".editor-image").length === 3 && [...document.querySelectorAll(".editor-image img")].every(image => image.complete && image.naturalWidth > 0)');
     assert.equal(await evaluate('[...document.querySelectorAll(".editor-image figcaption")].some(caption => caption.textContent === "Uploaded caption")'), true);
-    assert.equal(await evaluate(`document.querySelector('.editor-image img[alt="No caption"]').parentElement.querySelector('figcaption').hidden`), true);
+    assert.equal(await evaluate(`document.querySelector('.editor-image img[alt="No caption"]').closest('.editor-image').querySelector('figcaption').hidden`), true);
     assert.equal(await evaluate('[...document.querySelectorAll(".editor-image img")].every(image => image.complete && image.naturalWidth > 0)'), true);
   }, { images: Object.fromEntries([...libraryNames, 'uploaded.png'].map(name => [name, png])) });
 });

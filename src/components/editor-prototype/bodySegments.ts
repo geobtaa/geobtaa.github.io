@@ -1,3 +1,4 @@
+import { matchFormattedImage } from './formattedImage.ts';
 import { parseSimpleComponentMdx } from './simpleComponents.ts';
 import { matchLinkButtonBlock, parseLinkButtonMdx } from './linkButtonMdx.ts';
 import { matchLinkCardBlock, parseLinkCardMdx } from './linkCardMdx.ts';
@@ -60,6 +61,14 @@ export function splitBody(body: string): BodySegment[] {
       flushMarkdown();
       if (matchLinkCardBlock(block) === block && parseLinkCardMdx(block)) push('structured', block);
       else push('protected', block);
+      continue;
+    }
+    const formatted = line.startsWith('<figure data-cms-image="true"') ? matchFormattedImage(lines.slice(index).join('')) : null;
+    if (formatted) {
+      markdown += formatted.raw;
+      index += formatted.raw.split('\n').length;
+      // The match excludes the final line ending, which belongs to this line.
+      markdown += lines[index - 1]?.match(/\r?\n$/)?.[0] || '';
       continue;
     }
     const tag = line.match(/<([A-Za-z][\w.-]*)\b/);
