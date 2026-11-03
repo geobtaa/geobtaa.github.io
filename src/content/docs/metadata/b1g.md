@@ -101,7 +101,7 @@ sidebar:
 | Entry Guidelines | Do not enter manually. This value is assigned by GIN staff. |
 | Example Value | 05a-01 |
 | Controlled Vocabulary? | TRUE |
-| Vocabulary List | https://gin.btaa.org/metadata/codeNamingSchema/ |
+| Vocabulary List | https://gin.btaa.org/metadata/codenamingschema |
 | Field Type | String |
 | Multivalued? | FALSE |
 | Required? | FALSE |
