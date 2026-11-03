@@ -19,6 +19,9 @@ const remarkCenterLayoutImages: Plugin<[], Root> = () => {
     let needsImport = false;
 
     visitParents(tree, 'image', (node, ancestors) => {
+      if (node.data?.cmsFormatted) return;
+      // Owned image figures already have explicit formatting and captions.
+      if (ancestors.some(ancestor => ancestor.type === 'mdxJsxFlowElement' && ancestor.name === 'figure' && ancestor.attributes.some(attr => attr.type === 'mdxJsxAttribute' && attr.name === 'data-cms-image' && attr.value === 'true'))) return;
       const parent = ancestors.at(-1);
       const grandparent = ancestors.at(-2);
 

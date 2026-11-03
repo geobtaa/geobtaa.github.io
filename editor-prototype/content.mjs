@@ -1,6 +1,33 @@
-import { parseDocument } from 'yaml';
+import { isMap, parseDocument } from 'yaml';
 
 const FRONTMATTER = /^(---\r?\n)([\s\S]*?)(\r?\n---\r?\n(?:\r?\n)?)([\s\S]*)$/;
+
+export function contentVisibility(content) {
+  const match = content.match(FRONTMATTER);
+  if (!match) throw new Error('Content file does not have valid YAML frontmatter.');
+  const doc = parseDocument(match[2]);
+  if (doc.errors.length || !isMap(doc.contents)) throw new Error('Content file does not have valid YAML frontmatter.');
+  const data = doc.toJS() ?? {};
+  return { draft: data.draft === true, sidebarHidden: data.sidebar?.hidden === true };
+}
+
+// Fetch metadata from each listed blob, with bounded concurrency. A failed read
+// must not label a page as ready for the site when its visibility is unknown.
+export async function withContentVisibility(entries, readSource) {
+  const output = [...entries];
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(5, entries.length) }, async () => {
+    while (next < entries.length) {
+      const index = next++;
+      try {
+        output[index] = { ...entries[index], ...contentVisibility(await readSource(entries[index])), visibilityKnown: true };
+      } catch {
+        output[index] = { ...entries[index], visibilityKnown: false };
+      }
+    }
+  }));
+  return output;
+}
 
 export function parseContent(content) {
   const match = content.match(FRONTMATTER);

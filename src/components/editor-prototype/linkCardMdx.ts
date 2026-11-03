@@ -5,11 +5,11 @@ export const LINK_CARD_IMPORT = "import { LinkCard } from '@astrojs/starlight/co
 
 type Attribute = { name: string; quote: string; value: string; valueStart: number; valueEnd: number };
 
-function decodeAttribute(value: string) {
+export function decodeAttribute(value: string) {
   return value.replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 }
 
-function encodeAttribute(value: string, quote = '"') {
+export function encodeAttribute(value: string, quote = '"') {
   const encoded = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return quote === '"' ? encoded.replace(/"/g, '&quot;') : encoded.replace(/'/g, '&apos;');
 }

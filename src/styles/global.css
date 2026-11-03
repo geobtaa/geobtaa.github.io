@@ -1489,3 +1489,9 @@ color: var(--btaa-white);
     display: none;
   }
 }
+
+/* CMS formatted images retain Markdown asset resolution and shrink on small screens. */
+.sl-markdown-content figure[data-cms-image="true"] > p { margin: 0; }
+.sl-markdown-content figure[data-cms-image="true"] img { display: block; width: 100%; max-width: 100%; height: auto; margin: 0; }
+.sl-markdown-content figure[data-cms-image="true"] figcaption { margin-top: .5rem; overflow-wrap: anywhere; }
+.sl-markdown-content figure[data-cms-image="true"] figcaption p { margin: 0; }
