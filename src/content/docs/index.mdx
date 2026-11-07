@@ -6,8 +6,6 @@ hidePageTitle: true
 
 ---
 
-import celebrationImage from '../../assets/images/celebration.png';
-import celebrationWhiteImage from '../../assets/images/celebration-white.png';
 import geoportalLogo from '../../assets/images/btaa-geoportal.png';
 import geoportalHomepageImage from '../../assets/images/hp-geoportal2026.png';
 import sanbornThumbnail from '../../assets/images/sanborn-hp-thumb.png';
@@ -20,12 +18,21 @@ import sanbornThumbnail from '../../assets/images/sanborn-hp-thumb.png';
         <p>Learn about all of the ways we support the geospatial research community and foster connections among geospatial library professionals.</p>
         <div class="homepage-hero__actions">
           <a href="/about/about-us/" class="homepage-hero__button">About BTAA-GIN</a>
-        </div>
+        </div><br />
       </div>
     </div>
-    <div class="homepage-hero__media">
-      <img src={celebrationImage.src} alt="Celebrating 10 years" class="homepage-hero__image homepage-hero__image--light" />
-      <img src={celebrationWhiteImage.src} alt="Celebrating 10 years" class="homepage-hero__image homepage-hero__image--dark" />
+  <div
+      class="homepage-card homepage-card--conference"
+      style={{ backgroundColor: '#0b5e8d', marginTop: '2rem' }}
+    >
+      <div class="homepage-card__conference-text">
+        <h2 class="homepage-card__conference-heading">Save the date: Big Ten GIS Conference</h2>
+        <p class="homepage-card__conference-description">
+          <strong style={{ display: 'block', marginBottom: '0.5rem' }}>Friday, April 16, 2027</strong>
+          A free virtual conference for students, faculty, researchers, librarians, and GIS professionals. Open to everyone, whether or not you are affiliated with a Big Ten university.
+        </p>
+        <a href="/conference/" class="homepage-card__geoportal-button" style={{ backgroundColor: '#fff', color: '#0b3d5c', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, textDecoration: 'none' }}>Conference details</a>
+      </div>
     </div>
   </div>
 
