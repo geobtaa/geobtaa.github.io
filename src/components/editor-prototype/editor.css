@@ -1,3 +1,4 @@
+@import '../editor-blocks/metrics.css';
 :root { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #1e293b; background: #f8fafc; }
 * { box-sizing: border-box; }
 body { margin: 0; }
@@ -66,7 +67,7 @@ input, textarea, .area-selector select { width: 100%; padding: .7rem; border: 1p
 .collection-status { min-height: 1.2em; margin: .35rem 0; font-size: .85rem; color: #475569; }
 .editor-chip-preview { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; list-style: none; }
 .editor-chip-preview li { padding: .35rem .8rem; border: 1px solid #94a3b8; border-radius: 999px; background: white; overflow-wrap: anywhere; }
-.collection-chip-entries, .collection-card-entries { display: grid; gap: .75rem; margin: .75rem 0; min-width: 0; }
+.collection-chip-entries, .collection-card-entries, .collection-metric-entries { display: grid; gap: .75rem; margin: .75rem 0; min-width: 0; }
 .collection-card-entries { grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
 .collection-entry { min-width: 0; margin: 0; padding: .75rem; border: 1px solid #94a3b8; border-radius: .4rem; background: white; }
 .collection-entry label { margin: .25rem 0 .75rem; }

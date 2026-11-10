@@ -6,11 +6,19 @@ import { parseCollectionData } from '../editor-blocks/data.mjs';
 export const COLLECTION_BLOCKS = {
   chipList: { label: 'Chip List', binding: 'CmsChipList', property: 'items', node: 'chipListBlock', path: 'src/components/editor-blocks/ChipList.astro' },
   cardGrid: { label: 'Card Grid', binding: 'CmsCardGrid', property: 'cards', node: 'cardGridBlock', path: 'src/components/editor-blocks/CardGrid.astro' },
+  metrics: { label: 'Metrics', binding: 'CmsMetrics', property: 'items', node: 'metricsBlock', path: 'src/components/editor-blocks/Metrics.astro' },
 } as const;
 export type CollectionKind = keyof typeof COLLECTION_BLOCKS;
 export type GridCard = { title: string; body: string };
-export type CollectionData = string[] | GridCard[];
+export type Metric = { label: string; value: string };
+export type CollectionData = string[] | GridCard[] | Metric[];
 export const COLLECTION_KINDS = Object.keys(COLLECTION_BLOCKS) as CollectionKind[];
+
+export function emptyCollectionData(kind: CollectionKind): CollectionData {
+  if (kind === 'chipList') return [''];
+  if (kind === 'metrics') return [{ label: '', value: '' }];
+  return [{ title: '', body: '' }, { title: '', body: '' }];
+}
 
 // Keep unfamiliar card content protected rather than letting an editor drop it.
 const lexer = new MarkdownManager({ extensions: [] }).instance;

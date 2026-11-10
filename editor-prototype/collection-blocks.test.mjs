@@ -25,6 +25,20 @@ test('card grids preserve titled rich Markdown, arbitrary literal titles, and un
   assert.ok(updated.startsWith('\r\n') && updated.endsWith('\r\n'));
 });
 
+test('metrics preserve free-form labels/values, percentages, counts, Unicode, and literal markup', () => {
+  const items = [{ label: 'Visitors', value: '3,651' }, { label: 'Visits with Downloads', value: '10.4%' }, { label: 'Visits with Searches', value: '15.38%' }, { label: 'Pageviews', value: '13,774' }, { label: '地図 & <literal> {label}', value: 'About 5–10 million' }];
+  const raw = createCollectionMdx('metrics', items);
+  assert.deepEqual(parseCollectionMdx(raw).data, items);
+  assert.equal(updateCollectionMdx(raw, items), raw);
+  assert.equal(splitBody(raw)[0].kind, 'structured');
+  assert.deepEqual(parseCollectionMdx(updateCollectionMdx(raw, [...items].reverse())).data, [...items].reverse());
+  for (const value of [[{label: 'Keep strings', value: 123}], [{label: 'Keep extra data',value: '5',extra: true}]]) {
+    const source = createCollectionMdx('metrics',value);
+    assert.equal(parseCollectionMdx(source),null);
+    assert.equal(splitBody(source)[0].kind,'protected');
+  }
+});
+
 test('unfamiliar markup, extra fields, HTML, images and tables remain protected without losing source', () => {
   for (const source of [
     '<ChipList>\n- Legacy\n</ChipList>', '<CardGrid>\n<Card title="Legacy">Content.</Card>\n</CardGrid>',

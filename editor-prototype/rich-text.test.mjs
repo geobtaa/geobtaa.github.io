@@ -45,8 +45,8 @@ function assertSingleParagraph(editor, text) {
   assert.equal(document.content?.[0].content?.map((node) => node.text || '').join(''), text);
 }
 
-test('chip lists and card grids reopen as one editable atom and serialize row edits without changing neighboring content', () => {
-  for (const [kind, data] of [['chipList', ['One, two', 'Three']], ['cardGrid', [{ title: 'Committee', body: '**Formatted**\n\n- Update' }, { title: 'Second', body: 'Another paragraph.' }]]]) {
+test('collection blocks reopen as one editable atom and serialize row edits without changing neighboring content', () => {
+  for (const [kind, data] of [['chipList', ['One, two', 'Three']], ['cardGrid', [{ title: 'Committee', body: '**Formatted**\n\n- Update' }, { title: 'Second', body: 'Another paragraph.' }]], ['metrics', [{ label: 'Visitors', value: '3,651' }, { label: 'Downloads', value: '10.4%' }]]]) {
     const raw = createCollectionMdx(kind, data);
     const { editor } = openEditor(raw);
     assert.equal(editor.getJSON().content.length, 1);

@@ -17,7 +17,7 @@ import { todayCalendar } from '../../../editor-prototype/blog.mjs';
 import { parseContent } from '../../../editor-prototype/content.mjs';
 import { CONTENT_AREAS } from '../../../editor-prototype/contentAreas.mjs';
 import { PROGRAM_UPDATE_OUTLINE } from '../../../editor-prototype/programUpdates.mjs';
-import { COLLECTION_BLOCKS, COLLECTION_KINDS, collectionKindForNode, createCollectionMdx, ensureCollectionImport, type CollectionKind } from './collectionMdx';
+import { COLLECTION_BLOCKS, COLLECTION_KINDS, collectionKindForNode, createCollectionMdx, emptyCollectionData, ensureCollectionImport, type CollectionKind } from './collectionMdx';
 
 const API = import.meta.env.PUBLIC_PROJECT_EDITOR_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8787' : '');
 const CONFLICT = 'This page has changed in GitHub since you opened it. Reload the latest version before saving.';
@@ -203,7 +203,7 @@ function BlockInserter({ onInsert, onAddText }: { onInsert: (component: Inserted
         {SIMPLE_KINDS.map((kind) => <button key={kind} type="button" onClick={() => { closeMenu(); setSimpleDialog(kind); setSimpleFields(emptySimpleFields()); setSimpleError(''); }}>{SIMPLE_COMPONENTS[kind].label}</button>)}
         {COLLECTION_KINDS.map(kind => <button key={kind} type="button" onClick={() => {
           closeMenu();
-          const data = kind === 'chipList' ? [''] : [{ title: '', body: '' }, { title: '', body: '' }];
+          const data = emptyCollectionData(kind);
           setCollectionError(onInsert(kind, createCollectionMdx(kind, data)) || '');
         }}>{COLLECTION_BLOCKS[kind].label}</button>)}
       </div>

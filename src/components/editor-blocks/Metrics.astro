@@ -1,0 +1,11 @@
+---
+import { parseCollectionData } from './data.mjs';
+import './metrics.css';
+const items = (parseCollectionData('metrics', Astro.props.items) || []).filter(item => item.label.trim() || item.value.trim());
+---
+
+{items.length > 0 && <div class="cms-metrics-block not-content">
+  <dl class="cms-metrics">
+    {items.map(item => <div class="cms-metric"><dt class="cms-metric-label">{item.label}</dt><dd class="cms-metric-value">{item.value}</dd></div>)}
+  </dl>
+</div>}

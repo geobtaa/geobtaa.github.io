@@ -19,6 +19,7 @@ import { Card as CmsCard } from '@astrojs/starlight/components';
 import CmsChipList from 'src/components/editor-blocks/ChipList.astro';
 import { Badge as CmsBadge } from '@astrojs/starlight/components';
 import { LinkButton } from '@astrojs/starlight/components';
+import CmsMetrics from 'src/components/editor-blocks/Metrics.astro';
 
 ## Urban Base Layers: From Pilot to Scalable Practice
 
@@ -59,17 +60,7 @@ Urban Base Layers puts the warning raised in BTAA-GIN’s award-winning [Ephemer
 
 ![Sept 2026 monthly users](@images/2026-09-monthly-users.png "Geoportal users year over year, September 2021-2026")
 
-
-
-&nbsp;
-
-
-| Metric                | Value  |
-| --------------------- | ------ |
-| Visitors              | 3,651  |
-| Visits with Downloads | 10.4%  |
-| Visits with Searches  | 15.38% |
-| Pageviews             | 13,774 |
+<CmsMetrics items="[{&quot;label&quot;:&quot;Visitors&quot;,&quot;value&quot;:&quot;3,651&quot;},{&quot;label&quot;:&quot;Visits with Downloads&quot;,&quot;value&quot;:&quot;10.4%&quot;},{&quot;label&quot;:&quot;Visits with Searches&quot;,&quot;value&quot;:&quot;15.38%&quot;},{&quot;label&quot;:&quot;Pageviews&quot;,&quot;value&quot;:&quot;13,774&quot;}]" />
 
 
 <LinkCard

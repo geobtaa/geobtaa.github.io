@@ -10,7 +10,7 @@ import { createRoot } from 'react-dom/client';
 import ProjectEditor from '../src/components/editor-prototype/ProjectEditor.tsx';
 import '../src/components/editor-prototype/editor.css';
 window.record = { filename: 'blocks.mdx', sha: 'loaded', title: 'Blocks', description: '', draft: true, date: '2026-11-09', authors: [], tags: [], cover: null, body: ${JSON.stringify(originalBody)}, content: ${JSON.stringify('---\ntitle: Blocks\n---\n\n' + originalBody)} };
-${preview ? `window.record.conversion = { kind: 'legacy', error: null, body: ${JSON.stringify(`import CmsChipList from 'src/components/editor-blocks/ChipList.astro';\nimport CmsCardGrid from 'src/components/editor-blocks/CardGrid.astro';\n\n${createCollectionMdx('chipList', ['Preview chips'])}\n\n${createCollectionMdx('cardGrid', [{ title: 'Preview card', body: '**Read-only content.**' }])}`)} };` : ''}
+${preview ? `window.record.conversion = { kind: 'legacy', error: null, body: ${JSON.stringify(`import CmsChipList from 'src/components/editor-blocks/ChipList.astro';\nimport CmsCardGrid from 'src/components/editor-blocks/CardGrid.astro';\nimport CmsMetrics from 'src/components/editor-blocks/Metrics.astro';\n\n${createCollectionMdx('chipList', ['Preview chips'])}\n\n${createCollectionMdx('cardGrid', [{ title: 'Preview card', body: '**Read-only content.**' }])}\n\n${createCollectionMdx('metrics', [{ label: 'Preview visitors', value: '3,651' }])}`)} };` : ''}
 window.writes = [];
 window.confirm = () => true;
 window.prompt = () => 'example.com/maps';
@@ -146,9 +146,53 @@ test('conversion previews show chips and formatted cards without editable contro
     await browser.waitFor('!!document.querySelector(".conversion-preview-content .collection-cardGrid .tiptap")');
     assert.equal(await browser.evaluate('document.querySelector(".conversion-preview-content .collection-cardGrid .tiptap").getAttribute("contenteditable")'), 'false');
     assert.equal(await browser.evaluate('document.querySelector(".conversion-preview-content .editor-chip-preview").textContent'), 'Preview chips');
+    assert.equal(await browser.evaluate('document.querySelector(".conversion-preview-content .cms-metric-value").textContent'), '3,651');
     assert.equal(await browser.evaluate('document.querySelectorAll(".conversion-preview-content .collection-block input, .conversion-preview-content .collection-block button").length'), 0);
     await click(browser, button('Cancel preview'));
     assert.equal(await browser.evaluate('window.writes.length'), 0);
     assert.equal(await browser.evaluate('document.querySelector(".save-state").textContent'), 'No unsaved changes');
+  });
+});
+
+test('Metrics inserts editable free-form values, previews responsively, reorders and saves/reopens as a removable block', options, async () => {
+  await withEditorBrowser(fixture(), async browser => {
+    const { evaluate, waitFor, send } = browser;
+    await send('Emulation.setDeviceMetricsOverride', { width: 1400, height: 900, deviceScaleFactor: 1, mobile: false });
+    await open(browser); await insert(browser,'Metrics');
+    await waitFor('document.querySelectorAll(".collection-metrics .collection-entry").length === 1');
+    const input = label => `[...document.querySelectorAll('.collection-metrics input')].find(input=>input.getAttribute('aria-label')===${JSON.stringify(label)})`;
+    const items = [{ label:'Visitors',value:'3,651' },{label:'Visits with Downloads',value:'10.4%'},{label:'Visits with Searches',value:'15.38%'},{label:'Pageviews',value:'13,774'}];
+    for (const [index,item] of items.entries()) {
+      if (index) { await click(browser,button('Add metric','document.querySelector(".collection-metrics")')); await waitFor(`document.activeElement?.getAttribute('aria-label')==='Metric ${index+1} label'`); }
+      await fill(browser,input(`Metric ${index+1} label`),item.label); await fill(browser,input(`Metric ${index+1} value`),item.value);
+    }
+    assert.deepEqual(await evaluate('[...document.querySelectorAll(".collection-metrics dd")].map(item=>item.textContent)'),items.map(item=>item.value));
+    const columns = 'getComputedStyle(document.querySelector(".collection-metrics .cms-metrics")).gridTemplateColumns.split(/\\s+/).length';
+    for (const [width,count] of [[720,4],[520,2],[320,1]]) {
+      await evaluate(`document.querySelector('.collection-metrics .cms-metrics-block').style.width='${width}px'`);
+      await waitFor(`${columns}===${count}`);
+    }
+    const style = await evaluate(`(() => {const value=document.querySelector('.collection-metrics dd'),label=document.querySelector('.collection-metrics dt');return{size:parseFloat(getComputedStyle(value).fontSize),align:getComputedStyle(value).textAlign,above:value.getBoundingClientRect().top<label.getBoundingClientRect().top}})()`);
+    assert.ok(style.size>=28); assert.equal(style.align,'center'); assert.equal(style.above,true);
+    await evaluate('document.querySelector(".collection-metrics .cms-metrics-block").style.width=""');
+    await click(browser,labeledButton('Move metric 4 up'));
+    await waitFor('document.activeElement?.getAttribute("aria-label")==="Move metric 3 up"');
+    await click(browser,labeledButton('Remove metric 2'));
+    await click(browser,button('Add metric','document.querySelector(".collection-metrics")'));
+    await fill(browser,input('Metric 4 label'),'Maps & <literal> {label}');
+    await fill(browser,input('Metric 4 value'),'Approx. 5–10 million');
+    await save(browser,1);
+    const source = await evaluate('window.record.body'); const raw = source.split('\n').find(line=>line.startsWith('<CmsMetrics '));
+    const expected = [items[0],items[3],items[2],{label:'Maps & <literal> {label}',value:'Approx. 5–10 million'}];
+    assert.deepEqual(parseCollectionMdx(raw).data,expected); assert.ok(source.includes(legacy));
+    await evaluate('document.querySelector(".editor-navigation .back").click()'); await waitFor('!!document.querySelector(".project-list button")');
+    await evaluate('document.querySelector(".project-list button").click()'); await waitFor('document.querySelectorAll(".collection-metrics .collection-entry").length===4');
+    assert.deepEqual(await evaluate('[...document.querySelectorAll(".collection-metrics dd")].map(item=>item.textContent)'),expected.map(item=>item.value));
+    await save(browser,2); assert.equal(await evaluate('window.record.body'),source);
+    await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+    assert.equal(await evaluate('document.documentElement.scrollWidth<=window.innerWidth'),true);
+    await click(browser,button('Remove Metrics')); await waitFor('!document.querySelector(".collection-metrics")');
+    await save(browser,3); assert.ok(!(await evaluate('window.record.body')).includes('<CmsMetrics '));
+    assert.ok((await evaluate('window.record.body')).includes(legacy));
   });
 });

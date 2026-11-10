@@ -118,7 +118,7 @@ export async function withEditorBrowser(fixtureCode, run, { images = {}, initial
 
 // Exercise the visible side menu rather than clicking buttons in closed details.
 export async function openNewBlockMenu({ evaluate, waitFor }, label, row) {
-  if (!['Text', 'Link Card', 'Link Button', 'Badge', 'Callout', 'Card', 'Chip List', 'Card Grid'].includes(label)) return;
+  if (!['Text', 'Link Card', 'Link Button', 'Badge', 'Callout', 'Card', 'Chip List', 'Card Grid', 'Metrics'].includes(label)) return;
   const target = row || (label === 'Text' ? 'document.querySelector(".block-row:last-child")' : '(document.querySelector(".rich-editor")?.closest(".block-row") || document.querySelector(".block-row:last-child"))');
   const menu = `(${target}).querySelector('.block-inserter-menu')`;
   await evaluate(`if (!${menu}.open) ${menu}.querySelector('summary').click()`);

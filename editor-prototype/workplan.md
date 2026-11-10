@@ -1,4 +1,4 @@
-The prototype supports blog posts, the enabled documentation areas, Program Updates, image uploads and formatting, tables, editable content blocks, protected MDX, and hosted GitHub sign-in. Current saves still go to `custom-cms`. Program Updates now has an optional outline, a flexible article body, and conversion previews for older content. Chip List and Card Grid blocks and icon formatting toolbars are implemented across the editor.
+The prototype supports blog posts, the enabled documentation areas, Program Updates, image uploads and formatting, tables, editable content blocks, protected MDX, and hosted GitHub sign-in. Current saves still go to `custom-cms`. Program Updates now has an optional outline, a flexible article body, and conversion previews for older content. Chip List, Card Grid, and Metrics blocks and icon formatting toolbars are implemented across the editor.
 
 Review status (November 10, 2026): the editing features and local/automated checks are complete for the implemented prototype flows. The main unfinished work is the production publishing workflow in step 3, followed by hosted end-to-end validation and coworker testing. The newer publishing plan keeps release 1 focused on blog posts and enabled documentation; Program Updates editing is already implemented, but its production publishing rollout remains separate. Optional authenticated saved-draft previews are phase 2.
 
@@ -103,6 +103,7 @@ The separate Program Updates editing workflow is implemented and has local, API,
 - [x] Implement program update creation and editing, enable `updates` in both local and hosted APIs, and run the relevant regression and build checks
 - [x] Validate creating, editing, saving, and rendering representative program updates while preserving existing content
 - [x] Add optional Chip List and Card Grid blocks across content areas, including rich card content, entry reordering, source preservation, and save/reopen/rendering checks
+- [x] Add a responsive Metrics block with free-form label/value pairs, centered values, live preview, entry reordering, and save/reopen support; replace the September 2026 metrics table without changing its values
 
 6. Run coworker usability test and release
 
