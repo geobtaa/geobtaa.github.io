@@ -17,7 +17,7 @@ window.writes = [];
 window.confirm = () => true;
 for (const area of Object.keys(CONTENT_AREAS)) {
   const metadata = { title: area + ' title', description: '', draft: false, sidebar: { order: 2, badge: 'Keep', attrs: { class: 'keep-navigation' } }, tableOfContents: false, custom: { keep: true } };
-  if (area === 'library' || area === 'posts') Object.assign(metadata, { date: '2025-12-31T23:00:00.000-06:00', authors: [{ name: 'Staff', title: 'Keep author title' }], tags: ['Maps'] });
+  if (['library', 'posts', 'updates'].includes(area)) Object.assign(metadata, { date: '2025-12-31T23:00:00.000-06:00', authors: [{ name: 'Staff', title: 'Keep author title' }], tags: ['Maps'] });
   if (area === 'library' || area === 'scholarship') metadata.year = 2025;
   if (area === 'guides' || area === 'scholarship') metadata.tags = ['Maps'];
   if (area === 'workgroups') Object.assign(metadata, { committee: 'Steering', lead: 'Staff', members: ['One'], dates_active: 'May 2025 – October 2026' });
@@ -71,11 +71,11 @@ test('every content area edits and reopens metadata using the existing controls 
       await setValue('Navigation visibility', 'true');
       await setValue('Table of contents', 'true');
       if (area === 'library' || area === 'scholarship') await fill('Year (optional)', '2026');
-      if (area === 'library' || area === 'posts') {
-        await setValue(area === 'posts' ? 'Publication date' : 'Date (optional)', '2026-03-01');
+      if (['library', 'posts', 'updates'].includes(area)) {
+        await setValue(['posts', 'updates'].includes(area) ? 'Publication date' : 'Date (optional)', '2026-03-01');
         await fill('Author 1', 'Revised author');
       }
-      if (['guides', 'library', 'posts', 'scholarship'].includes(area)) await fill('Tags (optional)', 'Revised tag,  Another tag, , ');
+      if (['guides', 'library', 'posts', 'updates', 'scholarship'].includes(area)) await fill('Tags (optional)', 'Revised tag,  Another tag, , ');
       if (area === 'workgroups') {
         await fill('Committee', 'Metadata'); await fill('Lead', 'New lead'); await fill('Member 1', 'New member'); await fill('Active dates', 'October 2026 – present');
       }
@@ -94,8 +94,8 @@ test('every content area edits and reopens metadata using the existing controls 
       assert.equal(entry.metadata.sidebar.badge, 'Keep');
       assert.equal(entry.metadata.sidebar.attrs.class, 'keep-navigation');
       assert.equal(entry.draft, true);
-      if (['guides', 'library', 'posts', 'scholarship'].includes(area)) assert.deepEqual(entry.tags, ['Revised tag', 'Another tag']);
-      if (area === 'library' || area === 'posts') {
+      if (['guides', 'library', 'posts', 'updates', 'scholarship'].includes(area)) assert.deepEqual(entry.tags, ['Revised tag', 'Another tag']);
+      if (['library', 'posts', 'updates'].includes(area)) {
         assert.equal(entry.date, '2026-03-01');
         assert.equal(entry.authors[0].title, 'Keep author title');
         assert.ok(saved.includes('2026-03-01T23:00:00.000-06:00'));
@@ -109,7 +109,7 @@ test('every content area edits and reopens metadata using the existing controls 
       assert.equal(await evaluate(`${field('Description')}.value`), `Revised ${area} summary.\nSecond line.`);
       assert.equal(await evaluate(`${field('Navigation label')}.value`), `${area} navigation`);
       assert.equal(await evaluate(`${field('Navigation visibility')}.value`), 'true');
-      if (['guides', 'library', 'posts', 'scholarship'].includes(area)) assert.equal(await evaluate(`${field('Tags (optional)')}.value`), 'Revised tag, Another tag');
+      if (['guides', 'library', 'posts', 'updates', 'scholarship'].includes(area)) assert.equal(await evaluate(`${field('Tags (optional)')}.value`), 'Revised tag, Another tag');
       if (area === 'workgroups') assert.equal(await evaluate(`${field('Member 1')}.value`), 'New member');
       if (area === 'library' || area === 'scholarship') assert.equal(await evaluate(`${field('Year (optional)')}.value`), '2026');
       await evaluate('document.querySelector(".dashboard-link").click()');
@@ -124,7 +124,7 @@ test('every content area edits and reopens metadata using the existing controls 
     await fill('Title', 'New library document');
     await fill('Year (optional)', '2026');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 11 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor(`window.writes.length === ${Object.keys(CONTENT_AREAS).length + 1} && document.querySelector(".save-state").textContent === "No unsaved changes"`);
     assert.equal(await evaluate('window.writes.at(-1).input.date'), '');
     assert.doesNotMatch(await evaluate('window.records.library'), /^date:/m);
   });
@@ -139,7 +139,7 @@ test('comma-separated tags support continuous typing, mid-field edits, and clear
     await evaluate('[...document.querySelectorAll(".dashboard-card")].find(button => button.textContent.includes("Blog Posts")).click()');
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
-    const input = `([...document.querySelectorAll('.editor-fields label')].find(label => label.textContent.startsWith('Tags ')).querySelector('input'))`;
+    const input = `([...document.querySelectorAll('.editor-fields label')].find(label => label.textContent.startsWith('Tags '))?.querySelector('input'))`;
     await waitFor(`!!${input}`);
     await evaluate(`${input}.focus(); ${input}.select()`);
     for (const text of 'First, Second') await send('Input.insertText', { text });

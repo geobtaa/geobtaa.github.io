@@ -12,7 +12,7 @@ function figure(align, width, title = 'A caption & <literal text>') {
 }
 
 test('Astro formats owned figures across content areas and adds captions without double-centering blog images', () => {
-  for (const area of ['posts', 'guides']) {
+  for (const area of ['posts', 'updates', 'guides']) {
     for (const align of ['left', 'center', 'right']) {
       const node = figure(align, '320');
       const tree = { type: 'root', children: [node] };
@@ -32,6 +32,18 @@ test('Astro formats owned figures across content areas and adds captions without
   const node = figure('center', null, null);
   remarkFormattedImages()({ type: 'root', children: [node] });
   assert.equal(node.children.length, 1, 'captionless images have no empty figcaption');
+});
+
+test('ordinary update images render their captions while legacy layouts retain ownership', () => {
+  const paragraph = () => ({ type: 'paragraph', children: [{ type: 'image', url: '@images/map.png', alt: 'A map', title: 'Visible caption' }] });
+  const tree = { type: 'root', children: [paragraph()] };
+  remarkCenterLayoutImages()(tree, { path: '/src/content/docs/updates/example.mdx' });
+  assert.equal(tree.children[1].name, 'CenterLayout');
+  assert.equal(tree.children[1].children[0].children[1].children[0].children[0].children[0].value, 'Visible caption');
+  const legacy = { type: 'root', children: [{ type: 'mdxJsxFlowElement', name: 'TwoThirdsLayout', attributes: [], children: [paragraph()] }] };
+  const original = structuredClone(legacy);
+  remarkCenterLayoutImages()(legacy, { path: '/src/content/docs/updates/example.mdx' });
+  assert.deepEqual(legacy, original);
 });
 
 test('Astro leaves unfamiliar figures untouched', () => {

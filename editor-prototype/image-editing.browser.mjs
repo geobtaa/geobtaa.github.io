@@ -35,8 +35,8 @@ test('image controls insert, edit, cancel, render real images, and preserve Mark
 }, async () => {
   await withEditorBrowser(fixture, async ({ evaluate, waitFor, send, arrow }) => {
     const click = async (text, scope = 'document') => {
-      await waitFor(`!![...${scope}.querySelectorAll('button')].find(button => button.textContent.trim() === ${JSON.stringify(text)} && !button.disabled)`);
-      await evaluate(`[...${scope}.querySelectorAll('button')].find(button => button.textContent.trim() === ${JSON.stringify(text)}).click()`);
+      await waitFor(`!![...${scope}.querySelectorAll('button')].find(button => (button.getAttribute('aria-label') || button.textContent.trim()) === ${JSON.stringify(text)} && !button.disabled)`);
+      await evaluate(`[...${scope}.querySelectorAll('button')].find(button => (button.getAttribute('aria-label') || button.textContent.trim()) === ${JSON.stringify(text)}).click()`);
     };
     const fill = async (label, value) => {
       await waitFor(`!![...document.querySelectorAll('.image-picker label')].find(label => label.textContent.startsWith(${JSON.stringify(label)}))?.querySelector('input')`);

@@ -8,6 +8,7 @@ import { richTextEditorOptions } from '../src/components/editor-prototype/richTe
 import { SIMPLE_KINDS, SIMPLE_COMPONENTS, createSimpleComponentMdx, emptySimpleFields, ensureSimpleComponentImport, parseSimpleComponentMdx } from '../src/components/editor-prototype/simpleComponents.ts';
 import { createLinkButtonMdx, ensureLinkButtonImport, parseLinkButtonMdx, updateLinkButtonMdx } from '../src/components/editor-prototype/linkButtonMdx.ts';
 import { createLinkCardMdx, ensureLinkCardImport, LINK_CARD_IMPORT, parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor-prototype/linkCardMdx.ts';
+import { COLLECTION_BLOCKS, createCollectionMdx, parseCollectionMdx } from '../src/components/editor-prototype/collectionMdx.ts';
 
 const { window } = parseHTML('<!doctype html><html><body></body></html>');
 Object.assign(globalThis, {
@@ -43,6 +44,25 @@ function assertSingleParagraph(editor, text) {
   assert.equal(document.content?.[0].type, 'paragraph');
   assert.equal(document.content?.[0].content?.map((node) => node.text || '').join(''), text);
 }
+
+test('chip lists and card grids reopen as one editable atom and serialize row edits without changing neighboring content', () => {
+  for (const [kind, data] of [['chipList', ['One, two', 'Three']], ['cardGrid', [{ title: 'Committee', body: '**Formatted**\n\n- Update' }, { title: 'Second', body: 'Another paragraph.' }]]]) {
+    const raw = createCollectionMdx(kind, data);
+    const { editor } = openEditor(raw);
+    assert.equal(editor.getJSON().content.length, 1);
+    assert.equal(editor.state.doc.firstChild.type.name, COLLECTION_BLOCKS[kind].node);
+    assert.equal(editor.getMarkdown(), raw);
+    editor.commands.setNodeSelection(0);
+    const entries = editor.state.doc.firstChild.attrs.entries;
+    const next = [...entries].reverse();
+    assert.equal(editor.commands.updateAttributes(COLLECTION_BLOCKS[kind].node, { entries: next }), true);
+    assert.deepEqual(parseCollectionMdx(editor.getMarkdown()).data, [...data].reverse());
+    const reopened = openEditor(editor.getMarkdown());
+    assert.equal(reopened.editor.state.doc.firstChild.type.name, COLLECTION_BLOCKS[kind].node);
+    assert.deepEqual(parseCollectionMdx(reopened.editor.getMarkdown()).data, [...data].reverse());
+    editor.destroy(); reopened.editor.destroy();
+  }
+});
 
 test('consecutive characters stay in one paragraph immediately after opening', () => {
   const { editor, externalMarkdown } = openEditor('Existing ');

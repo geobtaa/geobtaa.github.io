@@ -9,7 +9,7 @@ const origin = 'https://geobtaa-editor-staging.pages.dev';
 const env = { GITHUB_CLIENT_ID: 'client', GITHUB_CLIENT_SECRET: 'secret', SESSION_SECRET: 'session-key-with-at-least-32-characters', ALLOWED_GITHUB_USERS: 'editor-user' };
 const original = newBlog({ title: 'Old post', date: '2026-10-24', draft: false, authors: [{ name: 'Staff', title: 'Editor' }], tags: ['Maps'], cover: { image: '@images/map.png', alt: 'Map', caption: 'Keep this' }, body: "import CenterLayout from '@components/CenterLayout.astro';\n\n<CenterLayout>\nUntouched.\n</CenterLayout>\n\nAfter.\n" });
 
-function repository() {
+function repository(area) {
   let head = 'head-1';
   let counter = 1;
   let pending;
@@ -25,11 +25,11 @@ function repository() {
       return file ? Response.json({ content: Buffer.from(file.content).toString('base64') }) : Response.json({ message: 'Not found' }, { status: 404 });
     }
     if (path === `/git/commits/${head}`) return Response.json({ tree: { sha: 'base-tree' } });
-    if (path === '/git/trees/base-tree') return Response.json({ tree: [...files.keys()].map((name) => ({ path: `src/content/docs/posts/${name}`, type: 'blob' })) });
+    if (path === '/git/trees/base-tree') return Response.json({ tree: [...files.keys()].map((name) => ({ path: `src/content/docs/${area}/${name}`, type: 'blob' })) });
     if (path === '/git/trees' && method === 'POST') {
       assert.equal(payload.base_tree, 'base-tree');
       const item = payload.tree[0];
-      pending = { filename: item.path.replace('src/content/docs/posts/', ''), content: item.content, sha: `blob-${++counter}` };
+      pending = { filename: item.path.replace(`src/content/docs/${area}/`, ''), content: item.content, sha: `blob-${++counter}` };
       return Response.json({ sha: 'new-tree', tree: [{ path: item.path, sha: pending.sha }] });
     }
     if (path === '/git/commits' && method === 'POST') {
@@ -43,9 +43,9 @@ function repository() {
       head = payload.sha;
       return Response.json({});
     }
-    if (path.startsWith('/contents/src/content/docs/posts')) {
-      const filename = decodeURIComponent(path.replace('/contents/src/content/docs/posts', '').replace(/^\//, ''));
-      if (!filename) return Response.json([...files].map(([name, file]) => ({ name, path: `src/content/docs/posts/${name}`, type: 'file', sha: file.sha })));
+    if (path.startsWith(`/contents/src/content/docs/${area}`)) {
+      const filename = decodeURIComponent(path.replace(`/contents/src/content/docs/${area}`, '').replace(/^\//, ''));
+      if (!filename) return Response.json([...files].map(([name, file]) => ({ name, path: `src/content/docs/${area}/${name}`, type: 'file', sha: file.sha })));
       const file = files.get(filename);
       if (method === 'GET') return file ? Response.json({ sha: file.sha, content: Buffer.from(file.content).toString('base64') }) : Response.json({ message: 'Not found' }, { status: 404 });
       assert.equal(method, 'PUT');
@@ -76,9 +76,9 @@ async function sessionCookie() {
   return callback.headers.getSetCookie().find((value) => value.startsWith('editor_session=')).split(';')[0];
 }
 
-for (const mode of ['local', 'hosted']) {
-  test(`${mode} API creates, lists, reloads, edits, protects collisions, and preserves post URLs`, async () => {
-    const repo = repository();
+for (const area of ['posts', 'updates']) for (const mode of ['local', 'hosted']) {
+  test(`${mode} ${area} API creates, lists, reloads, edits, protects collisions, and preserves URLs`, async () => {
+    const repo = repository(area);
     const savedFetch = globalThis.fetch;
     let call;
     let server;
@@ -100,38 +100,54 @@ for (const mode of ['local', 'hosted']) {
       };
     }
     try {
-      const loaded = await call('GET', '/api/content/posts/existing.md');
+      const loaded = await call('GET', `/api/content/${area}/existing.md`);
       assert.equal(loaded.status, 200);
       assert.equal(loaded.body.date, '2026-10-24');
-      const edited = await call('PUT', '/api/content/posts/existing.md', { ...loaded.body, title: 'Changed title', date: '2026-11-01', body: `${loaded.body.body}Extra paragraph.\n` });
+      const edited = await call('PUT', `/api/content/${area}/existing.md`, { ...loaded.body, title: 'Changed title', date: '2026-11-01', body: `${loaded.body.body}Extra paragraph.\n` });
       assert.equal(edited.status, 200);
       assert.equal(edited.body.filename, 'existing.md');
       assert.deepEqual(edited.body.cover, loaded.body.cover);
       assert.deepEqual(edited.body.authors, loaded.body.authors);
       assert.ok(edited.body.body.includes('<CenterLayout>\nUntouched.\n</CenterLayout>'));
-      assert.equal((await call('PUT', '/api/content/posts/existing.md', loaded.body)).status, 409);
+      assert.equal((await call('PUT', `/api/content/${area}/existing.md`, loaded.body)).status, 409);
       const minimal = { title: 'A new post', date: '2026-10-24', body: 'New body.' };
-      const created = await call('POST', '/api/content/posts', minimal);
+      const created = await call('POST', `/api/content/${area}`, minimal);
       assert.equal(created.status, 201);
       assert.equal(created.body.filename, 'a-new-post.mdx');
       assert.equal(created.body.draft, true);
-      const collision = await call('POST', '/api/content/posts', minimal);
+      const collision = await call('POST', `/api/content/${area}`, minimal);
       assert.equal(collision.status, 409);
       assert.equal(collision.body.suggestedFilename, 'a-new-post-2.mdx');
-      assert.equal((await call('POST', '/api/content/posts', { ...minimal, suggestedFilename: collision.body.suggestedFilename })).status, 201);
-      const listing = (await call('GET', '/api/content/posts')).body.entries;
+      assert.equal((await call('POST', `/api/content/${area}`, { ...minimal, suggestedFilename: collision.body.suggestedFilename })).status, 201);
+      const listing = (await call('GET', `/api/content/${area}`)).body.entries;
       assert.equal(listing.length, 3);
       assert.ok(listing.every((item) => item.visibilityKnown === true));
       assert.equal(listing.find((item) => item.name === 'existing.md').draft, false);
       assert.equal(listing.find((item) => item.name === 'a-new-post.mdx').draft, true);
-      const reloaded = await call('GET', '/api/content/posts/a-new-post.mdx');
+      const reloaded = await call('GET', `/api/content/${area}/a-new-post.mdx`);
       assert.equal(reloaded.body.title, minimal.title);
-      assert.equal((await call('PUT', '/api/content/posts/a-new-post.mdx', { ...reloaded.body, title: 'Renamed', date: '2027-01-01', draft: false })).status, 200);
+      assert.equal((await call('PUT', `/api/content/${area}/a-new-post.mdx`, { ...reloaded.body, title: 'Renamed', date: '2027-01-01', draft: false })).status, 200);
       assert.equal(parseBlog(repo.files.get('a-new-post.mdx').content).title, 'Renamed');
       assert.equal(repo.files.has('renamed.mdx'), false);
-      assert.equal((await call('PUT', '/api/content/posts/a-new-post.mdx', { title: 'Overwrite attempt' })).status, 400);
-      assert.equal((await call('POST', '/api/content/posts', { title: '' })).status, 400);
-      assert.equal((await call('GET', '/api/content/updates')).status, 404);
+      assert.equal((await call('PUT', `/api/content/${area}/a-new-post.mdx`, { title: 'Overwrite attempt' })).status, 400);
+      assert.equal((await call('POST', `/api/content/${area}`, { title: '' })).status, 400);
+      assert.equal((await call('GET', '/api/content/disabled')).status, 404);
+      if (area === 'updates') {
+        const content = "---\ntitle: Structured update\ndate: 2026-10-24T18:00:00-05:00\ncustom: keep\nprogramUpdate:\n  highlight:\n    intro: '**A rich highlight.**'\n---\n\nimport ProgramUpdateStructured from 'src/components/ProgramUpdateStructured.astro';\n\n<ProgramUpdateStructured data={frontmatter.programUpdate} />\n";
+        repo.files.set('structured.mdx', { content, sha: 'structured-blob' });
+        const structured = await call('GET', '/api/content/updates/structured.mdx');
+        assert.equal(structured.body.conversion.kind, 'structured');
+        const metadataOnly = await call('PUT', '/api/content/updates/structured.mdx', { ...structured.body, title: 'Revised update' });
+        assert.ok(metadataOnly.body.content.includes('programUpdate:'));
+        const converted = await call('PUT', '/api/content/updates/structured.mdx', { ...metadataOnly.body, convertProgramUpdate: true, body: metadataOnly.body.conversion.body });
+        assert.equal(converted.status, 200);
+        assert.equal(converted.body.conversion, null);
+        assert.ok(converted.body.body.includes('**A rich highlight.**'));
+        assert.ok(converted.body.content.includes('custom: keep'));
+        assert.ok(converted.body.content.includes('2026-10-24T18:00:00-05:00'));
+        assert.equal((await call('GET', '/api/content/updates/structured.mdx')).body.body, converted.body.body);
+        assert.equal((await call('PUT', '/api/content/updates/structured.mdx', structured.body)).status, 409);
+      }
     } finally {
       globalThis.fetch = savedFetch;
       server?.close();

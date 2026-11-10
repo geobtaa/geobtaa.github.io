@@ -4,7 +4,7 @@ import type { MdxjsEsm } from 'mdast-util-mdxjs-esm';
 import type { Plugin } from 'unified';
 import { visitParents } from 'unist-util-visit-parents';
 
-const BLOG_PATH_MATCH = /\/src\/content\/docs\/posts\//;
+const ARTICLE_PATH_MATCH = /\/src\/content\/docs\/(?:posts|updates)\//;
 
 const remarkCenterLayoutImages: Plugin<[], Root> = () => {
   return (tree, file) => {
@@ -14,12 +14,15 @@ const remarkCenterLayoutImages: Plugin<[], Root> = () => {
         : Array.isArray(file?.history) && typeof file.history[0] === 'string'
           ? file.history[0]
           : '';
-    if (!BLOG_PATH_MATCH.test(rawPath)) return;
+    if (!ARTICLE_PATH_MATCH.test(rawPath)) return;
 
     let needsImport = false;
 
     visitParents(tree, 'image', (node, ancestors) => {
       if (node.data?.cmsFormatted) return;
+      // Existing update layouts own their images. Only ordinary body images
+      // need automatic centering and visible Markdown-title captions.
+      if (/\/updates\//.test(rawPath) && ancestors.some(ancestor => ancestor.type === 'mdxJsxFlowElement')) return;
       // Owned image figures already have explicit formatting and captions.
       if (ancestors.some(ancestor => ancestor.type === 'mdxJsxFlowElement' && ancestor.name === 'figure' && ancestor.attributes.some(attr => attr.type === 'mdxJsxAttribute' && attr.name === 'data-cms-image' && attr.value === 'true'))) return;
       const parent = ancestors.at(-1);

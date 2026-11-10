@@ -1,3 +1,4 @@
+import { ToolbarButton } from './ToolbarButton';
 import { useEditor, useEditorState, EditorContent } from '@tiptap/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SimpleComponentFields } from './SimpleComponentBlock';
@@ -9,7 +10,10 @@ import { richTextEditorOptions } from './richTextEditor';
 import { createLinkCardMdx, ensureLinkCardImport } from './linkCardMdx';
 import { createLinkButtonMdx, ensureLinkButtonImport, type LinkButtonFields } from './linkButtonMdx';
 import { todayCalendar } from '../../../editor-prototype/blog.mjs';
+import { parseContent } from '../../../editor-prototype/content.mjs';
 import { CONTENT_AREAS } from '../../../editor-prototype/contentAreas.mjs';
+import { PROGRAM_UPDATE_OUTLINE } from '../../../editor-prototype/programUpdates.mjs';
+import { COLLECTION_BLOCKS, COLLECTION_KINDS, collectionKindForNode, createCollectionMdx, ensureCollectionImport, type CollectionKind } from './collectionMdx';
 
 const API = import.meta.env.PUBLIC_PROJECT_EDITOR_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8787' : '');
 const CONFLICT = 'This page has changed in GitHub since you opened it. Reload the latest version before saving.';
@@ -48,6 +52,8 @@ type Project = {
   authors?: (string | { name: string; [key: string]: unknown })[];
   tags?: string[];
   cover?: { image?: string; light?: string; dark?: string; alt: string; caption?: string; [key: string]: unknown } | null;
+  conversion?: { body: string | null; kind: string; error: string | null } | null;
+  convertProgramUpdate?: boolean;
 };
 
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
@@ -158,7 +164,7 @@ function RepositoryImagePicker({ initialImage, showCaption = true, onSelect, onC
   );
 }
 
-type InsertedComponent = 'LinkCard' | 'LinkButton' | SimpleKind;
+type InsertedComponent = 'LinkCard' | 'LinkButton' | SimpleKind | CollectionKind;
 
 function BlockInserter({ onInsert, onAddText }: { onInsert: (component: InsertedComponent, raw: string) => string | undefined; onAddText: () => void }) {
   const menuRef = useRef<HTMLDetailsElement>(null);
@@ -183,6 +189,7 @@ function BlockInserter({ onInsert, onAddText }: { onInsert: (component: Inserted
   const [linkCardDescription, setLinkCardDescription] = useState('');
   const [linkCardHref, setLinkCardHref] = useState('');
   const [linkCardError, setLinkCardError] = useState('');
+  const [collectionError, setCollectionError] = useState('');
 
   const closeMenu = () => { if (menuRef.current) menuRef.current.open = false; };
   const restoreFocus = () => menuRef.current?.querySelector('summary')?.focus({ preventScroll: true });
@@ -224,8 +231,14 @@ function BlockInserter({ onInsert, onAddText }: { onInsert: (component: Inserted
         <button type="button" onClick={() => { closeMenu(); setLinkCardDialog(true); setLinkCardError(''); }}>Link Card</button>
         <button type="button" onClick={() => { closeMenu(); setLinkButtonDialog(true); setLinkButtonError(''); }}>Link Button</button>
         {SIMPLE_KINDS.map((kind) => <button key={kind} type="button" onClick={() => { closeMenu(); setSimpleDialog(kind); setSimpleFields(emptySimpleFields()); setSimpleError(''); }}>{SIMPLE_COMPONENTS[kind].label}</button>)}
+        {COLLECTION_KINDS.map(kind => <button key={kind} type="button" onClick={() => {
+          closeMenu();
+          const data = kind === 'chipList' ? [''] : [{ title: '', body: '' }, { title: '', body: '' }];
+          setCollectionError(onInsert(kind, createCollectionMdx(kind, data)) || '');
+        }}>{COLLECTION_BLOCKS[kind].label}</button>)}
       </div>
     </details>
+      {collectionError && <p className="message error" role="alert">{collectionError}</p>}
       {simpleDialog && <div className="link-card-dialog simple-component-dialog" role="dialog" aria-modal="true" aria-labelledby="simple-component-dialog-title" onKeyDown={(event) => {
         if (event.key === 'Escape') { event.preventDefault(); closeSimple(); }
         if (event.key === 'Tab') {
@@ -302,6 +315,7 @@ function RichTextEditor({ initialValue, onChange, structured = false, onRemove }
 
   if (!editor) return null;
   const simpleKind = simpleKindForNode(editor.state.doc.firstChild?.type.name || '');
+  const collectionKind = collectionKindForNode(editor.state.doc.firstChild?.type.name || '');
   const link = () => {
     const previous = editor.getAttributes('link').href || '';
     const href = window.prompt('Link URL (example.com or /path/)', previous);
@@ -318,9 +332,8 @@ function RichTextEditor({ initialValue, onChange, structured = false, onRemove }
   return (
     <div className={structured ? 'component-editor' : 'rich-editor'}>
       {!structured && <div className="toolbar" role="toolbar" aria-label="Rich text formatting">
-        <span className="toolbar-label">In this block</span>
-        <button type="button" disabled={!active?.canUndo} onClick={() => editor.chain().focus().undo().run()}>Undo</button>
-        <button type="button" disabled={!active?.canRedo} onClick={() => editor.chain().focus().redo().run()}>Redo</button>
+        <ToolbarButton action="Undo" disabled={!active?.canUndo} onClick={() => editor.chain().focus().undo().run()} />
+        <ToolbarButton action="Redo" disabled={!active?.canRedo} onClick={() => editor.chain().focus().redo().run()} />
         <span className="toolbar-separator" aria-hidden="true" />
         <select aria-label="Text style" value={active?.textStyle || 'paragraph'} onChange={(event) => setTextStyle(event.target.value)}>
           <option value="paragraph">Paragraph</option>
@@ -331,31 +344,31 @@ function RichTextEditor({ initialValue, onChange, structured = false, onRemove }
           <option value="heading-5">Heading 5</option>
           <option value="heading-6">Heading 6</option>
         </select>
-        <button type="button" aria-pressed={active?.bold} onClick={() => editor.chain().focus().toggleBold().run()}><strong>Bold</strong></button>
-        <button type="button" aria-pressed={active?.italic} onClick={() => editor.chain().focus().toggleItalic().run()}><em>Italic</em></button>
-        <button type="button" aria-pressed={active?.underline} onClick={() => editor.chain().focus().toggleUnderline().run()}><u>Underline</u></button>
-        <button type="button" aria-pressed={active?.strike} onClick={() => editor.chain().focus().toggleStrike().run()}><s>Strike</s></button>
-        <button type="button" aria-pressed={active?.code} onClick={() => editor.chain().focus().toggleCode().run()}><code>Code</code></button>
-        <button type="button" aria-pressed={active?.link} onClick={link}>Link</button>
-        <button type="button" aria-pressed={active?.bulletList} onClick={() => editor.chain().focus().toggleBulletList().run()}>Bullets</button>
-        <button type="button" aria-pressed={active?.orderedList} onClick={() => editor.chain().focus().toggleOrderedList().run()}>Numbered</button>
-        <button type="button" aria-pressed={active?.blockquote} onClick={() => editor.chain().focus().toggleBlockquote().run()}>Quote</button>
-        <button type="button" aria-pressed={active?.codeBlock} onClick={() => editor.chain().focus().toggleCodeBlock().run()}>Code block</button>
-        <button type="button" onClick={() => editor.chain().focus().setHorizontalRule().run()}>Divider</button>
-        <button type="button" onClick={() => editor.chain().focus().setHardBreak().run()}>Line break</button>
-        <button type="button" onClick={() => setImagePicker({})}>Image</button>
-        <button type="button" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>Table</button>
+        <ToolbarButton action="Bold" aria-pressed={active?.bold} onClick={() => editor.chain().focus().toggleBold().run()} />
+        <ToolbarButton action="Italic" aria-pressed={active?.italic} onClick={() => editor.chain().focus().toggleItalic().run()} />
+        <ToolbarButton action="Underline" aria-pressed={active?.underline} onClick={() => editor.chain().focus().toggleUnderline().run()} />
+        <ToolbarButton action="Strike" aria-pressed={active?.strike} onClick={() => editor.chain().focus().toggleStrike().run()} />
+        <ToolbarButton action="Code" aria-pressed={active?.code} onClick={() => editor.chain().focus().toggleCode().run()} />
+        <ToolbarButton action="Link" aria-pressed={active?.link} onClick={link} />
+        <ToolbarButton action="Bullets" aria-pressed={active?.bulletList} onClick={() => editor.chain().focus().toggleBulletList().run()} />
+        <ToolbarButton action="Numbered" aria-pressed={active?.orderedList} onClick={() => editor.chain().focus().toggleOrderedList().run()} />
+        <ToolbarButton action="Quote" aria-pressed={active?.blockquote} onClick={() => editor.chain().focus().toggleBlockquote().run()} />
+        <ToolbarButton action="Code block" aria-pressed={active?.codeBlock} onClick={() => editor.chain().focus().toggleCodeBlock().run()} />
+        <ToolbarButton action="Divider" onClick={() => editor.chain().focus().setHorizontalRule().run()} />
+        <ToolbarButton action="Line break" onClick={() => editor.chain().focus().setHardBreak().run()} />
+        <ToolbarButton action="Image" onClick={() => setImagePicker({})} />
+        <ToolbarButton action="Table" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} />
         {active?.table && <>
           <span className="toolbar-separator" aria-hidden="true" />
-          <button type="button" onClick={() => editor.chain().focus().addRowAfter().run()}>Add row</button>
-          <button type="button" onClick={() => editor.chain().focus().deleteRow().run()}>Delete row</button>
-          <button type="button" onClick={() => editor.chain().focus().addColumnAfter().run()}>Add column</button>
-          <button type="button" onClick={() => editor.chain().focus().deleteColumn().run()}>Delete column</button>
-          <button type="button" onClick={() => editor.chain().focus().deleteTable().run()}>Delete table</button>
+          <ToolbarButton action="Add row" onClick={() => editor.chain().focus().addRowAfter().run()} />
+          <ToolbarButton action="Delete row" onClick={() => editor.chain().focus().deleteRow().run()} />
+          <ToolbarButton action="Add column" onClick={() => editor.chain().focus().addColumnAfter().run()} />
+          <ToolbarButton action="Delete column" onClick={() => editor.chain().focus().deleteColumn().run()} />
+          <ToolbarButton action="Delete table" onClick={() => editor.chain().focus().deleteTable().run()} />
         </>}
       </div>}
       <EditorContent editor={editor} />
-      {structured && <button type="button" className="link-button component-remove" onClick={onRemove}>Remove {simpleKind ? SIMPLE_COMPONENTS[simpleKind].label : editor.state.doc.firstChild?.type.name === 'linkButtonBlock' ? 'Link Button' : 'Link Card'}</button>}
+      {structured && <button type="button" className="link-button component-remove" onClick={onRemove}>Remove {collectionKind ? COLLECTION_BLOCKS[collectionKind].label : simpleKind ? SIMPLE_COMPONENTS[simpleKind].label : editor.state.doc.firstChild?.type.name === 'linkButtonBlock' ? 'Link Button' : 'Link Card'}</button>}
       {imagePicker && <RepositoryImagePicker initialImage={imagePicker.image} onClose={() => setImagePicker(null)} onSelect={(src, alt, title) => {
         if (imagePicker.position !== undefined) editor.chain().focus().setNodeSelection(imagePicker.position).updateAttributes('image', { src, alt, title }).run();
         else editor.chain().focus().insertContentAt(editor.state.selection.to, { type: 'image', attrs: { src, alt, title } }).run();
@@ -411,7 +424,7 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
     const prefix = !before || before.endsWith('\n\n') ? '' : before.endsWith('\n') ? '\n' : '\n\n';
     const suffix = after.startsWith('\n\n') ? '' : after.startsWith('\n') ? '\n' : '\n\n';
     const body = `${before}${prefix}${raw}${suffix}${after}`;
-    const ensured = component === 'LinkButton' ? ensureLinkButtonImport(body) : component === 'LinkCard' ? ensureLinkCardImport(body) : ensureSimpleComponentImport(body, component);
+    const ensured = COLLECTION_KINDS.includes(component as CollectionKind) ? ensureCollectionImport(body, component as CollectionKind) : component === 'LinkButton' ? ensureLinkButtonImport(body) : component === 'LinkCard' ? ensureLinkCardImport(body) : ensureSimpleComponentImport(body, component as SimpleKind);
     if ('error' in ensured && typeof ensured.error === 'string') return ensured.error;
     const next = splitBody(ensured.content);
     setEmptyEditorId(null); segmentsRef.current = next; setSegments(next);
@@ -449,6 +462,13 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
     </div>)}
     {!visibleSegments.length && <BlockInserter onInsert={(component, raw) => insertComponent(-1, component, raw)} onAddText={() => addTextBlock(-1)} />}
   </div>;
+}
+
+function ConversionPreviewBlock({ content, protectedBlock }: { content: string; protectedBlock: boolean }) {
+  const editor = useEditor({ ...richTextEditorOptions(protectedBlock ? '' : content, () => {}, API, undefined, true), editable: false, immediatelyRender: false });
+  return protectedBlock
+    ? <details className="protected-block"><summary>Existing MDX block (will remain read-only)</summary><pre>{content}</pre></details>
+    : <div className="rich-editor"><EditorContent editor={editor} /></div>;
 }
 
 function parseTagsInput(value: string) {
@@ -572,8 +592,12 @@ export default function ProjectEditor() {
   const [bodyEditorSession, setBodyEditorSession] = useState(0);
   const [savedSnapshot, setSavedSnapshot] = useState('');
   const [suggestedFilename, setSuggestedFilename] = useState('');
+  const [showUpdateStarter, setShowUpdateStarter] = useState(false);
+  const [showConversionPreview, setShowConversionPreview] = useState(false);
   const dirty = project !== null && JSON.stringify(project) !== savedSnapshot;
   const isBlog = area === 'posts';
+  const isUpdate = area === 'updates';
+  const isArticle = isBlog || isUpdate;
   useEffect(() => {
     if (!dirty) return;
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); };
@@ -624,6 +648,7 @@ export default function ProjectEditor() {
     try {
       const loaded = await api<Project>(`/api/content/${area}/${encodeURIComponent(filename)}`);
       setProject(loaded); setSavedSnapshot(JSON.stringify(loaded)); setSuggestedFilename('');
+      setShowUpdateStarter(false); setShowConversionPreview(false);
       setBodyEditorSession((session) => session + 1);
     }
     catch (err) { setError((err as Error).message); }
@@ -633,7 +658,8 @@ export default function ProjectEditor() {
   const create = () => {
     if (!area || busy) return;
     setError(''); setNotice('');
-    setProject({ filename: '', content: '', title: '', description: '', draft: isBlog, body: '', date: isBlog ? todayCalendar() : '', excerpt: '', authors: [], tags: [], cover: null, metadata: {}, frontmatterFields: [] });
+    setProject({ filename: '', content: '', title: '', description: '', draft: isArticle, body: '', date: isArticle ? todayCalendar() : '', excerpt: '', authors: isUpdate ? [{ name: 'BTAA-GIN Staff' }] : [], tags: isUpdate ? ['Program Updates'] : [], cover: null, metadata: {}, frontmatterFields: [] });
+    setShowUpdateStarter(isUpdate); setShowConversionPreview(false);
     setSuggestedFilename(''); setSavedSnapshot('');
     setBodyEditorSession((session) => session + 1);
   };
@@ -649,18 +675,19 @@ export default function ProjectEditor() {
     if (!project || !area || !config || busy) return;
     if (!project.title.trim()) return setError('Title is required.');
     const slug = project.sha ? project.filename.replace(/\.mdx?$/, '') : slugify(project.filename || project.title);
-    if (!isBlog && !slug) return setError('Enter a title or filename before saving.');
+    if (!isArticle && !slug) return setError('Enter a title or filename before saving.');
     const filename = project.sha ? project.filename : `${slug}.mdx`;
-    const creatingBlog = isBlog && !project.sha;
+    const creatingArticle = isArticle && !project.sha;
     const publish = config.publishing && !project.draft;
     setBusy(true); setError(''); setNotice('');
     try {
-      const saved = await api<Project & { commitSha: string }>(creatingBlog ? '/api/content/posts' : `/api/content/${area}/${encodeURIComponent(filename)}`, {
-        method: creatingBlog ? 'POST' : 'PUT',
+      const saved = await api<Project & { commitSha: string }>(creatingArticle ? `/api/content/${area}` : `/api/content/${area}/${encodeURIComponent(filename)}`, {
+        method: creatingArticle ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           date: project.date ?? '', excerpt: project.excerpt ?? '', authors: project.authors ?? [], tags: project.tags ?? [], cover: project.cover ?? null, draft: project.draft, metadata: project.metadata,
-          ...(isBlog ? { suggestedFilename: alternative } : {}),
+          ...(isArticle ? { suggestedFilename: alternative } : {}),
+          ...(isUpdate ? { convertProgramUpdate: project.convertProgramUpdate === true } : {}),
           title: project.title,
           description: project.description,
           body: project.body,
@@ -671,13 +698,14 @@ export default function ProjectEditor() {
       });
       const next = { ...project, ...saved, filename: saved.filename || filename, draft: saved.draft ?? project.draft };
       setProject(next); setSavedSnapshot(JSON.stringify(next)); setSuggestedFilename('');
+      setShowConversionPreview(false); setShowUpdateStarter(false);
       setBranch(saved.branch || 'custom-cms');
       setNotice(`Changes saved to staging (commit ${saved.commitSha.slice(0, 7)}).`);
       await loadList(area);
     } catch (err) {
       setSuggestedFilename((err as Error & { suggestedFilename?: string }).suggestedFilename || '');
       const message = (err as Error).message;
-      setError(!isBlog && message.includes('changed in GitHub') ? CONFLICT : message);
+      setError(!isArticle && message.includes('changed in GitHub') ? CONFLICT : message);
     } finally { setBusy(false); }
   };
 
@@ -747,17 +775,43 @@ export default function ProjectEditor() {
       </section>
       {notice && <p className="message success" role="status">{notice}</p>}
       {error && <p className="message error" role="alert">{error}</p>}
-      {isBlog && project.sha && <p>Saved URL: /posts/{project.filename.replace(/\.mdx?$/, '').replace(/\/index$/, '')}/</p>}
+      {isArticle && project.sha && <p>Saved URL: /{area}/{project.filename.replace(/\.mdx?$/, '').replace(/\/index$/, '')}/</p>}
       {suggestedFilename && !project.sha && <button type="button" disabled={busy} onClick={() => save(suggestedFilename)}>Create as {suggestedFilename.replace(/\.mdx$/, '')}</button>}
       <form onSubmit={(event) => event.preventDefault()}>
         <fieldset className="editor-fields" disabled={busy}>
-        {!project.sha && !isBlog && <label>Filename <span>(optional; generated from title)</span><input value={project.filename} onChange={(event) => setProject({ ...project, filename: slugify(event.target.value) })} placeholder="example-project" /></label>}
+        {!project.sha && !isArticle && <label>Filename <span>(optional; generated from title)</span><input value={project.filename} onChange={(event) => setProject({ ...project, filename: slugify(event.target.value) })} placeholder="example-project" /></label>}
         <label>Title<input required value={project.title} onChange={(event) => setProject({ ...project, title: event.target.value })} /></label>
         {(config.description || project.frontmatterFields?.includes('description')) && <label>Description<textarea rows={3} value={project.description} onChange={(event) => setProject({ ...project, description: event.target.value })} /></label>}
-        <BlogMetadata project={project} onChange={setProject} blog={isBlog} fields={[...new Set([...config.metadataFields, ...(project.frontmatterFields || []).filter((field) => ['date', 'excerpt', 'authors', 'tags', 'cover'].includes(field))])]} />
+        <BlogMetadata project={project} onChange={setProject} blog={isArticle} fields={[...new Set([...config.metadataFields, ...(project.frontmatterFields || []).filter((field) => ['date', 'excerpt', 'authors', 'tags', 'cover'].includes(field))])]} />
         <PageMetadataControls area={area} project={project} onChange={setProject} />
         <label>Body</label>
-        <div inert={busy}><BodyEditor key={bodyEditorSession} initialValue={project.body} onChange={(body) => setProject((current) => current ? { ...current, body } : current)} /></div>
+        {isUpdate && <p className="update-help">Use headings, text, links, images, lists, and tables. Include only the sections you need; all headings and their order are editable.</p>}
+        {isUpdate && showUpdateStarter && <section className="update-options" aria-label="Choose an update starting point">
+          <p>Start with familiar monthly headings or write your own update.</p>
+          <div className="actions"><button type="button" onClick={() => {
+            setProject({ ...project, body: PROGRAM_UPDATE_OUTLINE }); setShowUpdateStarter(false); setBodyEditorSession((session) => session + 1);
+          }}>Start with monthly outline</button><button type="button" onClick={() => setShowUpdateStarter(false)}>Start blank</button></div>
+        </section>}
+        {isUpdate && project.conversion && !project.convertProgramUpdate && <section className="update-options" aria-label="Existing update conversion">
+          {project.conversion.error ? <p>{project.conversion.error} You can still edit metadata and the editable text below. Existing MDX stays preserved.</p> : <>
+            <p>This update uses an older layout. Preview a single-column version to make its supported content editable. Unfamiliar components will stay read-only.</p>
+            <button type="button" disabled={showConversionPreview} onClick={() => {
+              if (project.body !== parseContent(project.content).body) return setError('Save your text changes before previewing a conversion so they are included.');
+              setError(''); setShowConversionPreview(true);
+            }}>Preview editable version</button>
+          </>}
+        </section>}
+        {showConversionPreview && project.conversion?.body != null ? <section className="update-conversion-preview" aria-label="Conversion preview">
+          <h2>Conversion preview</h2>
+          <p>Cards become headings, search chips become lists, and chart layouts become a single column. Text, links, images, captions, and tables are retained. This preview has not changed the file.</p>
+          <div className="actions"><button className="primary" type="button" onClick={() => {
+            setProject({ ...project, body: project.conversion!.body!, convertProgramUpdate: true }); setShowConversionPreview(false); setBodyEditorSession((session) => session + 1);
+          }}>Use editable version</button><button type="button" onClick={() => setShowConversionPreview(false)}>Cancel preview</button></div>
+          <fieldset disabled className="conversion-preview-content" aria-label="Read-only converted content">{splitBody(project.conversion.body).filter((segment) => segment.content.trim()).map((segment) => <ConversionPreviewBlock key={segment.id} content={segment.content} protectedBlock={segment.kind === 'protected'} />)}</fieldset>
+        </section> : <>
+          {project.convertProgramUpdate && <p className="message" role="status">The editable version is ready. Save changes to keep this conversion.</p>}
+          <div inert={busy}><BodyEditor key={bodyEditorSession} initialValue={project.body} onChange={(body) => { setShowUpdateStarter(false); setProject((current) => current ? { ...current, body } : current); }} /></div>
+        </>}
         <div className="actions editor-actions"><button className="back" disabled={busy} type="button" onClick={backToList}>← Back to {config.label}</button><button disabled={busy} className="primary" type="button" onClick={() => save()}>{busy ? 'Saving…' : 'Save changes'}</button></div>
         </fieldset>
       </form>

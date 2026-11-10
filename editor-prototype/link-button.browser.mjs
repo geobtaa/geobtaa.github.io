@@ -28,8 +28,8 @@ test('LinkButton inserts, edits without cursor jumps, and saves/reopens with pro
   await withEditorBrowser(fixture, async ({ evaluate, waitFor, send, arrow }) => {
     const click = async (text, scope = 'document') => {
       if (scope === 'document') scope = await openNewBlockMenu({ evaluate, waitFor }, text) || scope;
-      await waitFor(`!!${scope} && [...${scope}.querySelectorAll('button')].some(button => button.textContent.trim() === ${JSON.stringify(text)} && !button.disabled)`);
-      await evaluate(`[...${scope}.querySelectorAll('button')].find(button => button.textContent.trim() === ${JSON.stringify(text)}).click()`);
+      await waitFor(`!!${scope} && [...${scope}.querySelectorAll('button')].some(button => (button.getAttribute('aria-label') || button.textContent.trim()) === ${JSON.stringify(text)} && !button.disabled)`);
+      await evaluate(`[...${scope}.querySelectorAll('button')].find(button => (button.getAttribute('aria-label') || button.textContent.trim()) === ${JSON.stringify(text)}).click()`);
     };
     const fill = async (selector, text) => {
       await evaluate(`${selector}.focus(); ${selector}.select()`);
@@ -91,8 +91,8 @@ for (const first of ['Link Card', 'Link Button']) {
     await withEditorBrowser(emptyFixture, async ({ evaluate, waitFor, send }) => {
       const click = async (text, scope = 'document') => {
       if (scope === 'document') scope = await openNewBlockMenu({ evaluate, waitFor }, text) || scope;
-        await waitFor(`!!${scope} && [...${scope}.querySelectorAll('button')].some(button => button.textContent.trim() === ${JSON.stringify(text)} && !button.disabled)`);
-        await evaluate(`[...${scope}.querySelectorAll('button')].find(button => button.textContent.trim() === ${JSON.stringify(text)}).click()`);
+        await waitFor(`!!${scope} && [...${scope}.querySelectorAll('button')].some(button => (button.getAttribute('aria-label') || button.textContent.trim()) === ${JSON.stringify(text)} && !button.disabled)`);
+        await evaluate(`[...${scope}.querySelectorAll('button')].find(button => (button.getAttribute('aria-label') || button.textContent.trim()) === ${JSON.stringify(text)}).click()`);
       };
       const insert = async (name) => {
         await click(`${name}`);
@@ -152,8 +152,8 @@ test('bare website addresses work for links, cards, and buttons while existing a
   await withEditorBrowser(addressFixture, async ({ evaluate, waitFor, send }) => {
     const click = async (text, scope = 'document') => {
       if (scope === 'document') scope = await openNewBlockMenu({ evaluate, waitFor }, text) || scope;
-      await waitFor(`!!${scope} && [...${scope}.querySelectorAll('button')].some(button => button.textContent.trim() === ${JSON.stringify(text)} && !button.disabled)`);
-      await evaluate(`[...${scope}.querySelectorAll('button')].find(button => button.textContent.trim() === ${JSON.stringify(text)}).click()`);
+      await waitFor(`!!${scope} && [...${scope}.querySelectorAll('button')].some(button => (button.getAttribute('aria-label') || button.textContent.trim()) === ${JSON.stringify(text)} && !button.disabled)`);
+      await evaluate(`[...${scope}.querySelectorAll('button')].find(button => (button.getAttribute('aria-label') || button.textContent.trim()) === ${JSON.stringify(text)}).click()`);
     };
     const fill = async (selector, text) => {
       await evaluate(`${selector}.focus(); ${selector}.select()`);

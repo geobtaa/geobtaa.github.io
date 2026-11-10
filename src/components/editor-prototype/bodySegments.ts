@@ -2,17 +2,18 @@ import { matchFormattedImage } from './formattedImage.ts';
 import { parseSimpleComponentMdx } from './simpleComponents.ts';
 import { matchLinkButtonBlock, parseLinkButtonMdx } from './linkButtonMdx.ts';
 import { matchLinkCardBlock, parseLinkCardMdx } from './linkCardMdx.ts';
+import { parseCollectionMdx } from './collectionMdx.ts';
 
 export type BodySegment = { id: number; kind: 'markdown' | 'protected' | 'structured'; content: string };
 
-export function splitBody(body: string): BodySegment[] {
+export function splitBody(body: string, { mergeProtected = true } = {}): BodySegment[] {
   const lines = body.match(/[^\n]*\n|[^\n]+$/g) || [];
   const segments: BodySegment[] = [];
   let markdown = '';
   const push = (kind: BodySegment['kind'], content: string) => {
     if (!content) return;
     const previous = segments.at(-1);
-    if (kind !== 'structured' && previous?.kind === kind) previous.content += content;
+    if (kind !== 'structured' && (kind !== 'protected' || mergeProtected) && previous?.kind === kind) previous.content += content;
     else segments.push({ id: segments.length, kind, content });
   };
   const flushMarkdown = () => { push('markdown', markdown); markdown = ''; };
@@ -86,7 +87,7 @@ export function splitBody(body: string): BodySegment[] {
       while (!complete() && index < lines.length) {
         block += lines[index++];
       }
-      if (parseSimpleComponentMdx(block) || (tag[1] === 'LinkButton' && matchLinkButtonBlock(block) === block && parseLinkButtonMdx(block))) push('structured', block);
+      if (parseSimpleComponentMdx(block) || parseCollectionMdx(block) || (tag[1] === 'LinkButton' && matchLinkButtonBlock(block) === block && parseLinkButtonMdx(block))) push('structured', block);
       else push('protected', block);
       continue;
     }

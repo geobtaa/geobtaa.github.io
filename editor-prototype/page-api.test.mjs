@@ -11,7 +11,7 @@ const original = '---\ntitle: Original\ndescription: ""\ndate: 2025-12-31T23:00:
 const data = source => parse(source.match(/^---\n([\s\S]*?)\n---/)[1]);
 function repository() {
   let sequence = 0;
-  const files = new Map(Object.keys(CONTENT_AREAS).filter(area => area !== 'posts').map(area => [`${area}/existing.mdx`, { content: original, sha: `loaded-${area}` }]));
+  const files = new Map(Object.keys(CONTENT_AREAS).filter(area => !['posts', 'updates'].includes(area)).map(area => [`${area}/existing.mdx`, { content: original, sha: `loaded-${area}` }]));
   const fetchImpl = async (input, options = {}) => {
     const path = new URL(String(input)).pathname.replace('/repos/geobtaa/geobtaa.github.io', '');
     if (path.startsWith('/git/ref/heads/')) return Response.json({ object: { sha: 'head' } });
@@ -62,7 +62,7 @@ for (const mode of ['local', 'hosted']) {
           return { status: response.status, body: await response.json() };
         };
       }
-      for (const area of Object.keys(CONTENT_AREAS).filter(area => area !== 'posts')) {
+      for (const area of Object.keys(CONTENT_AREAS).filter(area => !['posts', 'updates'].includes(area))) {
         const path = `/api/content/${area}/existing.mdx`;
         const loaded = await call('GET', path);
         assert.equal(loaded.status, 200);

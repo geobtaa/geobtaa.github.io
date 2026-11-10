@@ -2,7 +2,7 @@
 
 This isolated prototype is available at `/editor/`. It edits a conservative allowlist of content directories under `src/content/docs` and writes through the GitHub API directly to the `custom-cms` staging branch. Decap `/admin` is unchanged.
 
-The enabled directories are `about`, `conference`, `guides`, `library`, `metadata`, `posts`, `projects`, `scholarship`, `team`, and `workgroups`. Files can be created in each enabled directory. Every enabled area has frontmatter controls, including the **Draft / Published** switch and page settings. The available fields follow each area's existing content conventions. Program updates are not enabled.
+The enabled directories are `about`, `conference`, `guides`, `library`, `metadata`, `posts`, `projects`, `scholarship`, `team`, `updates`, and `workgroups`. Files can be created in each enabled directory. Every enabled area has frontmatter controls, including the **Draft / Published** switch and page settings. The available fields follow each area's existing content conventions. Program Updates supports the simpler article workflow described below.
 
 ## Metadata across content areas
 
@@ -53,6 +53,33 @@ The editor warns before discarding unsaved changes. Choose **Cancel** to return 
 Both API implementations share blog serialization and creation logic. Updates use the loaded blob SHA and authoritative repository frontmatter. New posts use a Git tree snapshot and a fast-forward-only branch update so competing writes cannot overwrite an existing file or create an equivalent route unnoticed. If staging changes during creation, save again to recheck availability.
 
 Run `npm run test:editor` for editor regression tests. Run `npm run test:editor:browser` to check component insertion and property forms, image editing, link-address handling, Link Card cursor behavior, dashboard/back navigation, unsaved-change prompts, mobile layout, frontmatter controls across all enabled areas, visibility indicators, and both Save buttons using isolated headless Chrome profiles and temporary local test pages. These browser tests use no GitHub credentials or content saves. They find Chrome in common macOS/Linux locations; set `CHROME_BIN` to your Chrome/Chromium executable if needed. They skip when no browser is installed.
+
+## Chip List and Card Grid blocks
+
+Both blocks are available in **Add block** across every enabled content area. Selecting one inserts an editable block immediately after the current block. Their contents are optional and can be changed freely; empty collections do not produce placeholders on the public site.
+
+- **Chip List:** starts with one blank term. Enter each term in its own field; commas remain part of that term. Use **Add chip**, **Remove chip**, and the arrow buttons to manage and reorder terms. A live preview shows the chips. Long terms wrap on smaller screens.
+- **Card Grid:** starts with two blank cards. Each card has an editable title and its own visual content editor, supporting paragraphs, bold, italic, links, and bulleted/numbered lists. Use **Add card**, **Remove card**, and the arrow buttons to manage cards. Moving a card keeps its title, content, and editor together. The site uses its existing responsive CardGrid styling.
+
+Use the block-level arrows to move the complete collection, and **Remove Chip List** or **Remove Card Grid** to remove the whole block. Adding, removing, moving, or editing marks the page unsaved. Save and reopen work like the other blocks. Conversion previews display both blocks read-only.
+
+New blocks use dedicated `CmsChipList` and `CmsCardGrid` Astro imports with quoted JSON attributes. Chip terms and card titles are literal text; card bodies are stored as Markdown and rendered by the site's Markdown processor. Imports are added once, existing imports are preserved, and conflicting bindings produce an error. Existing ChipList/CardGrid layouts and unsupported manually modified formats remain protected. Program Update conversion continues to simplify older layouts into ordinary content; these optional blocks can be inserted wherever the author wants the richer presentation. Card-body images, tables, raw HTML, and custom components are not editable in this version; unfamiliar saved card content remains protected rather than being discarded.
+
+## Program updates
+
+Choose **Program Updates → New Program Update** on the dashboard. New entries start as **Draft**, with today's editable publication date, the author **BTAA-GIN Staff**, and the tag **Program Updates**. Title and a valid publication date are required for new entries; summary, authors, tags, and cover image are optional. Existing authors, tags, timestamps, draft states, filenames, and URLs are retained.
+
+Choose **Start with monthly outline** for ordinary editable headings covering the highlight, committees, workgroups, Geoportal activity, collections, harvesting, and development. Choose **Start blank** to write any announcement. Rename, remove, or reorder headings and add any other content. There are no required report sections, committee names, metric labels, search terms, or collection totals. The body uses the existing visual editor for rich text, links, images and captions, lists, and tables. Optional Chip List and Card Grid blocks are available from **Add block**. New updates use a single-column article layout and derive their table of contents from actual headings. A new update's short title-based filename becomes permanent on its first save, using the same collision and concurrency protection as Blog Posts.
+
+Existing updates open in their original format. Opening an entry or saving metadata does not convert it. **Preview editable version** displays a read-only conversion; **Cancel preview** returns without changing anything. **Use editable version** replaces the body in the open editor and marks it unsaved. Edit it, then choose **Save changes** to commit the conversion to staging. Save any body edits before previewing so the conversion includes them. Conversion previews show the proposed article content rather than the complete production page styling.
+
+- Newer structured `programUpdate` entries become ordinary body content. Conversion includes rich narratives, images and captions, metric tables, search terms (including terms containing commas), collection totals, harvesting tables or Markdown, development links, and historical priority-project links. The analytics and harvesting dashboard links formerly supplied by the renderer are retained. The old `programUpdate` field and renderer invocation are removed only when the conversion is saved; unrelated frontmatter stays intact.
+- Older MDX updates convert recognized cards, layout wrappers, chip lists, record totals, and callouts into headings, text, lists, and links. Existing CSV-backed Table components, embedded presentations, unfamiliar wrappers, and other unsupported components retain their source and stay read-only. The preview identifies those protected blocks. Card grids and chart columns become a single column; search chips become lists.
+- Unrecognized structured fields or a custom structured-renderer invocation prevent conversion and show a manual-review message. Metadata and surrounding editable text can still be saved without changing that data. Existing entries are never migrated in bulk.
+
+Use the custom editor for new and converted updates; Decap's Program Updates form continues to target the older structured format. Saving still commits to `custom-cms`; review, merge, deployment, image-upload behavior, and draft-preview limitations are the same as for Blog Posts.
+
+Program Update regressions are included in `npm run test:editor` and `npm run test:editor:browser`. Coverage includes unchanged existing files, structured and legacy conversions, harvesting content, unknown-component preservation, both API implementations, defaults and optional outline selection, preview cancellation, failed-save recovery, and saving/reopening without URL changes.
 
 ## Local setup
 
@@ -112,6 +139,6 @@ The existing Decap Worker at `decap-auth.geobtaa.workers.dev` uses a different G
 
 New badges, callouts, and cards use the existing Starlight components imported as `CmsBadge`, `CmsCallout`, and `CmsCard`. These aliases identify the CMS's narrow generated format after reopening; legacy `Badge`, `Aside`, and `Card` blocks stay protected. Callout/card messages are literal text with Markdown hard breaks. Unrecognized attributes or nested syntax in generated blocks also stay protected. No new Astro components are required.
 
-Each content block has an **Add block** menu beside it on desktop and below it on narrow screens. Text, Link Card, Link Button, Badge, Callout, and Card create a block after that block. Formatting, Image, and Table controls stay inside the Markdown editor and change its existing content. Component insertion does not split a text block at the cursor or add an empty text editor.
+Each content block has an **Add block** menu beside it on desktop and below it on narrow screens. Text, Link Card, Link Button, Badge, Callout, Card, Chip List, and Card Grid create a block after that block. Formatting, Image, and Table controls stay inside the Markdown editor and change its existing content. Formatting toolbars use icons in both the main editor and card contents; hover for a tooltip. Every icon button has an accessible name, and active/disabled states remain visible. The text-style dropdown retains its paragraph and heading labels. Component insertion does not split a text block at the cursor or add an empty text editor.
 
 Editable body blocks have **Move up** and **Move down** buttons beside **Add block**. Each move swaps neighboring editable blocks and marks the page as unsaved. Read-only MDX, imports, and exports stay anchored; blocks cannot move across them. Keyboard focus follows the moved block, and its position is announced. Adjacent text blocks may merge into one editor when reopened, with their content order preserved.

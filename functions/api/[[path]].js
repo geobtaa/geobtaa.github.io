@@ -1,6 +1,7 @@
 import { parsePage, savePage } from '../../editor-prototype/page.mjs';
 import { contentVisibility, withContentVisibility } from '../../editor-prototype/content.mjs';
 import { saveBlog } from '../../editor-prototype/blog.mjs';
+import { parseProgramUpdate, saveProgramUpdate } from '../../editor-prototype/programUpdates.mjs';
 import { createBlogCommit } from '../../editor-prototype/blogStorage.mjs';
 import { CONTENT_AREAS, contentArea, contentDirectory, encodeContentPath, validateContentPath } from '../../editor-prototype/contentAreas.mjs';
 import { IMAGE_DIRECTORY, imageContentType, validateImagePath, validateImageUpload } from '../../editor-prototype/imageAssets.mjs';
@@ -242,15 +243,17 @@ async function contentApi(request, env, pathname) {
   if (!route) throw new HttpError(404, 'Not found.');
   const { area, filename } = route;
   if (area === 'posts' && request.method === 'POST' && !filename) return json(await saveBlog(github, null, await request.json()), 201);
+  if (area === 'updates' && request.method === 'POST' && !filename) return json(await saveProgramUpdate(github, null, await request.json()), 201);
   if (request.method === 'GET' && !filename) return json(await github.listContent(area));
   if (!filename) throw new HttpError(400, 'Content filename is required.');
   if (request.method === 'GET') {
     const file = await github.getContent(area, filename);
-    return json({ ...file, ...parsePage(file.content), ...contentVisibility(file.content) });
+    return json({ ...file, ...(area === 'updates' ? parseProgramUpdate(file.content) : parsePage(file.content)), ...contentVisibility(file.content) });
   }
   if (request.method === 'PUT') {
     const input = await request.json();
     if (area === 'posts') return json(await saveBlog(github, filename, input));
+    if (area === 'updates') return json(await saveProgramUpdate(github, filename, input));
     return json(await savePage(github, area, filename, input));
   }
   throw new HttpError(405, 'Method not allowed.');

@@ -43,8 +43,11 @@ test('side menus add blocks after their owner, keep text intact, and fit desktop
     await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
     const geometry = await evaluate(`(() => { const row = document.querySelector('.block-row'); return { editor: row.querySelector('.rich-editor').getBoundingClientRect().right, aside: row.querySelector('.block-inserter').getBoundingClientRect().left }; })()`);
     assert.ok(geometry.aside >= geometry.editor, 'new-block controls sit beside the editor');
-    const palette = await evaluate('[...document.querySelectorAll(".toolbar button")].map(button => button.textContent)');
+    const palette = await evaluate('[...document.querySelectorAll(".toolbar button")].map(button => button.getAttribute("aria-label") || button.textContent)');
     assert.ok(palette.includes('Image') && palette.includes('Table'));
+    const toolbarButtons = await evaluate('[...document.querySelectorAll(".toolbar button")].map(button => ({ label: button.getAttribute("aria-label"), tooltip: button.title, text: button.textContent.trim(), icon: button.querySelector("svg")?.getAttribute("aria-hidden") }))');
+    assert.ok(toolbarButtons.every(button => button.label && button.tooltip === button.label && button.text === '' && button.icon === 'true'), 'icon-only buttons retain accessible names and tooltips');
+    assert.ok(palette.includes('Bulleted list') && palette.includes('Numbered list'));
     assert.ok(!palette.some(label => ['Link Card', 'Link Button', 'Badge', 'Callout', 'Card', 'Text'].includes(label)));
     // Put the caret in the first paragraph: adding a page block must still leave both paragraphs together.
     await evaluate(`(() => { const p = document.querySelector('.tiptap p'); const range = document.createRange(); range.selectNodeContents(p); range.collapse(false); const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range); })()`);

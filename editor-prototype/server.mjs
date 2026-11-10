@@ -5,6 +5,7 @@ import { contentVisibility } from './content.mjs';
 import { CONTENT_AREAS, contentArea, validateContentPath } from './contentAreas.mjs';
 import { imageContentType, validateImagePath, validateImageUpload } from './imageAssets.mjs';
 import { saveBlog } from './blog.mjs';
+import { parseProgramUpdate, saveProgramUpdate } from './programUpdates.mjs';
 
 const host = '127.0.0.1';
 const port = Number(process.env.PROJECT_EDITOR_PORT || 8787);
@@ -79,15 +80,17 @@ export const createEditorServer = (github) => http.createServer(async (request, 
     if (route) {
       const { area, filename } = route;
       if (area === 'posts' && request.method === 'POST' && !filename) return respond(response, 201, await saveBlog(github, null, await readJson(request)), origin);
+      if (area === 'updates' && request.method === 'POST' && !filename) return respond(response, 201, await saveProgramUpdate(github, null, await readJson(request)), origin);
       if (request.method === 'GET' && !filename) return respond(response, 200, await github.listContent(area), origin);
       if (!filename) throw Object.assign(new Error('Content filename is required.'), { status: 400 });
       if (request.method === 'GET') {
         const file = await github.getContent(area, filename);
-        return respond(response, 200, { ...file, ...parsePage(file.content), ...contentVisibility(file.content) }, origin);
+        return respond(response, 200, { ...file, ...(area === 'updates' ? parseProgramUpdate(file.content) : parsePage(file.content)), ...contentVisibility(file.content) }, origin);
       }
       if (request.method === 'PUT') {
         const input = await readJson(request);
         if (area === 'posts') return respond(response, 200, await saveBlog(github, filename, input), origin);
+        if (area === 'updates') return respond(response, 200, await saveProgramUpdate(github, filename, input), origin);
         return respond(response, 200, await savePage(github, area, filename, input), origin);
       }
     }

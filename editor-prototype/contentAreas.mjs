@@ -10,6 +10,7 @@ export const CONTENT_AREAS = Object.freeze({
   projects: { metadataFields: [], label: 'Projects', itemLabel: 'Project', description: true, create: true, publishing: true },
   scholarship: { metadataFields: ['tags'], label: 'Scholarship', itemLabel: 'Scholarship page', description: true, create: true, publishing: false },
   team: { metadataFields: [], label: 'Team', itemLabel: 'Team page', description: true, create: true, publishing: false },
+  updates: { metadataFields: ['date', 'excerpt', 'authors', 'tags', 'cover'], label: 'Program Updates', itemLabel: 'Program Update', description: false, create: true, publishing: false },
   workgroups: { metadataFields: ['authors'], label: 'Workgroups', itemLabel: 'Workgroup', description: false, create: true, publishing: false },
 });
 

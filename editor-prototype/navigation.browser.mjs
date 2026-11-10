@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { CONTENT_AREAS } from './contentAreas.mjs';
 import { chrome, withEditorBrowser } from './browserHarness.mjs';
 
 // Mock only the gateway; render the real dashboard, content list, and editor.
@@ -29,7 +30,7 @@ test('dashboard starts without an area, back buttons navigate safely, and naviga
     await waitFor('document.querySelector("h1")?.textContent === "Editor dashboard"');
     assert.deepEqual(await evaluate('window.requests.map(item => item.path)'), ['/api/session']);
     assert.equal(await evaluate('document.querySelector(".area-selector")'), null);
-    assert.equal(await evaluate('document.querySelectorAll(".dashboard-card").length'), 10);
+    assert.equal(await evaluate('document.querySelectorAll(".dashboard-card").length'), Object.keys(CONTENT_AREAS).length);
     await evaluate('[...document.querySelectorAll(".dashboard-card")].find(button => button.textContent.includes("Blog Posts")).click()');
     await waitFor('!!document.querySelector(".project-list button")');
     assert.equal(await evaluate('document.querySelector(".area-selector select").value'), 'posts');

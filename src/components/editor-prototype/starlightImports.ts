@@ -1,4 +1,12 @@
 export function ensureStarlightImport(source: string, component: string, binding = component) {
+  return ensureImport(source, component, binding);
+}
+
+export function ensureDefaultComponentImport(source: string, binding: string, modulePath: string) {
+  return ensureImport(source, binding, binding, modulePath);
+}
+
+function ensureImport(source: string, component: string, binding: string, modulePath?: string) {
   // Ignore imports shown in code examples, preserving offsets into the original source.
   let fence = '';
   const importSource = (source.match(/[^\n]*\n|[^\n]+$/g) || []).map((line) => {
@@ -14,6 +22,7 @@ export function ensureStarlightImport(source: string, component: string, binding
   const imports = [...importSource.matchAll(/^[ \t]*import\s+(?:(['"])[^'"\r\n]+\1|[\s\S]*?\bfrom\s*(['"])[^'"\r\n]+\2)[ \t]*;?[ \t]*(?:\r?\n|$)/gm)];
   if (imports.some(([statement]) => {
     if (/^\s*import\s+type\b/.test(statement)) return false;
+    if (modulePath) return statement.trim().replace(/;$/, '') === `import ${binding} from '${modulePath}'` || statement.trim().replace(/;$/, '') === `import ${binding} from "${modulePath}"`;
     const bindings = statement.match(/\{([^}]*)\}\s*from\s*['"]@astrojs\/starlight\/components['"]/);
     return bindings?.[1].split(',').some((named) => new RegExp(`^${component}${binding === component ? `(?:\\s+as\\s+${binding})?` : `\\s+as\\s+${binding}`}$`).test(named.trim()));
   })) return { content: source, added: false };
@@ -22,7 +31,7 @@ export function ensureStarlightImport(source: string, component: string, binding
     return statement.match(/\{([^}]*)\}/)?.[1].split(',').some((named) => new RegExp(`^(?:${binding}|\\w+\\s+as\\s+${binding})$`).test(named.trim()));
   }) || new RegExp(`^\\s*export\\s+(?:const|let|var|function|class)\\s+${binding}\\b`, 'm').test(importSource);
   if (conflict) return { content: source, added: false, error: `This page already uses the name ${binding} for another import or definition. Rename it in GitHub before inserting this component.` };
-  const declaration = `import { ${component}${component === binding ? '' : ` as ${binding}`} } from '@astrojs/starlight/components';`;
+  const declaration = modulePath ? `import ${binding} from '${modulePath}';` : `import { ${component}${component === binding ? '' : ` as ${binding}`} } from '@astrojs/starlight/components';`;
   const newline = source.includes('\r\n') ? '\r\n' : '\n';
   const last = imports.at(-1);
   const offset = last ? last.index! + last[0].length : 0;

@@ -7,6 +7,7 @@ import { mergeAttributes, ResizableNodeView, type Editor, type EditorOptions } f
 import { SimpleComponentBlocks } from './SimpleComponentBlock.ts';
 import { LinkButtonBlock } from './LinkButtonBlock.ts';
 import { LinkCardBlock } from './LinkCardBlock.ts';
+import { CollectionBlocks } from './CollectionBlockViews.ts';
 
 type EditImage = (position: number, image: { src: string; alt: string; title: string }) => void;
 
@@ -154,15 +155,16 @@ export function imagePreviewUrl(source: string, previewBase = ''): string {
   return `${previewBase}/api/images/file/${path}`;
 }
 
-export function richTextEditorOptions(initialContent: string, onChange: (markdown: string) => void, previewBase = '', onEditImage?: EditImage): Partial<EditorOptions> {
+export function richTextEditorOptions(initialContent: string, onChange: (markdown: string) => void, previewBase = '', onEditImage?: EditImage, readOnlyPreview = false): Partial<EditorOptions> {
   return {
     extensions: [
-      StarterKit.configure({ link: { openOnClick: false }, trailingNode: { notAfter: ['linkCardBlock', 'linkButtonBlock', ...SimpleComponentBlocks.map((block) => block.name)] } }),
+      StarterKit.configure({ link: { openOnClick: false }, trailingNode: { notAfter: ['linkCardBlock', 'linkButtonBlock', ...SimpleComponentBlocks.map((block) => block.name), ...CollectionBlocks.map(block => block.name)] } }),
       TableKit,
       repositoryImage(previewBase, onEditImage),
       LinkCardBlock,
       LinkButtonBlock,
       ...SimpleComponentBlocks,
+      ...CollectionBlocks.map(block => block.configure({ readOnly: readOnlyPreview })),
       Markdown.configure({ markedOptions: { gfm: true } }),
     ],
     content: initialContent,

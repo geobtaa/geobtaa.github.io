@@ -1,4 +1,4 @@
-The prototype already supports several content directories, image uploads, tables, editable LinkCards, protected MDX blocks, and hosted GitHub sign-in. Saves go to `custom-cms`; `posts` is now enabled. Continue refining and validating blog posts first, then enable program updates before the coworker usability test in step 6. Coworker rollout and version 1 release follow that test.
+The prototype already supports several content directories, image uploads, tables, editable LinkCards, protected MDX blocks, and hosted GitHub sign-in. Saves go to `custom-cms`; `posts` and `updates` are now enabled. Program updates use optional starter headings and a flexible article body, with opt-in conversion previews for existing structured and MDX entries. Continue hosted validation before the coworker usability test in step 6. Coworker rollout and version 1 release follow that test.
 
 Implementation note: blog saves commit to staging. Production builds still omit drafts, so hosted draft previews and deployment-status tracking remain separate work. Unsaved-change warnings and failed-save handling keep work in the open editor; before reloading, editors can copy unsaved text and field changes into a separate document.
 
@@ -79,13 +79,14 @@ Validate representative blog editing tasks and resolve issues before moving on t
 
 Treat program updates as a separate content model and editor workflow. Enable and validate them before showing the editor to coworkers.
 
-- [ ] Audit update frontmatter, older MDX bodies, and newer `programUpdate` data rendered by `ProgramUpdateStructured`
-- [ ] Design the simplified program update template and decide whether it uses Markdown, structured fields, or a combination
-- [ ] Define required and optional fields, compatibility with existing updates, and any migration needed
-- [ ] Plan update-specific controls, rendering, validation, and tests before enabling `updates` in the editor
-- [ ] Revisit editable MDX attributes beyond the existing LinkCard support if the update workflow needs them
-- [ ] Implement program update creation and editing, enable `updates` in both local and hosted APIs, and run the relevant regression and build checks
-- [ ] Validate creating, editing, saving, and rendering representative program updates while preserving existing content
+- [x] Audit update frontmatter, older MDX bodies, and newer `programUpdate` data rendered by `ProgramUpdateStructured`
+- [x] Design the simplified program update template and decide whether it uses Markdown, structured fields, or a combination
+- [x] Define required and optional fields, compatibility with existing updates, and any migration needed
+- [x] Plan update-specific controls, rendering, validation, and tests before enabling `updates` in the editor
+- [x] Review MDX requirements: reuse current rich-text controls, convert supported legacy layouts, and keep unfamiliar components protected
+- [x] Implement program update creation and editing, enable `updates` in both local and hosted APIs, and run the relevant regression and build checks
+- [x] Validate creating, editing, saving, and rendering representative program updates while preserving existing content
+- [x] Add optional Chip List and Card Grid blocks across content areas, including rich card content, entry reordering, source preservation, and save/reopen/rendering checks
 
 6. Run coworker usability test and release
 
