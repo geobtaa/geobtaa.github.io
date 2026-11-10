@@ -215,7 +215,11 @@ function BlockInserter({ onInsert, onAddText }: { onInsert: (component: Inserted
       if (event.key === 'Escape') { event.preventDefault(); closeMenu(); restoreFocus(); }
     }} onBlur={(event) => { if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as globalThis.Node)) closeMenu(); }}>
       <summary>＋ Add block</summary>
-      <div className="block-menu-list">
+      <div className="block-menu-list" onMouseDown={(event) => {
+        // WebKit can return focus to the text editor before an option's click.
+        // Keep focus here so onBlur does not close the menu before activation.
+        event.preventDefault();
+      }}>
         <button type="button" onClick={() => { closeMenu(); onAddText(); }}>Text</button>
         <button type="button" onClick={() => { closeMenu(); setLinkCardDialog(true); setLinkCardError(''); }}>Link Card</button>
         <button type="button" onClick={() => { closeMenu(); setLinkButtonDialog(true); setLinkButtonError(''); }}>Link Button</button>

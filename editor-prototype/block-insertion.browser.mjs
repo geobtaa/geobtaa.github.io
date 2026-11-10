@@ -163,3 +163,42 @@ test('menu options remain clickable when pointer activation blurs focus with no 
     assert.equal(await evaluate('window.writes.length'), 0, 'opening dialogs does not save content');
   });
 });
+
+test('pointer selection survives WebKit returning focus to the text editor', {
+  skip: chrome ? false : 'Set CHROME_BIN to an installed Chrome/Chromium executable.', timeout: 30_000,
+}, async () => {
+  await withEditorBrowser(fixture, async ({ evaluate, waitFor, send }) => {
+    const click = async (selector) => {
+      await evaluate(`${selector}.scrollIntoView({ block: 'center' })`);
+      const point = await evaluate(`(() => { const r = ${selector}.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+      await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button: 'left', clickCount: 1 });
+      await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button: 'left', clickCount: 1 });
+    };
+    await waitFor('!!document.querySelector(".dashboard-card")');
+    await evaluate('[...document.querySelectorAll(".dashboard-card")].find(button => button.textContent.includes("Blog Posts")).click()');
+    await waitFor('!!document.querySelector(".project-list button")');
+    await evaluate('document.querySelector(".project-list button").click()');
+    await waitFor('!!document.querySelector(".block-inserter-menu")');
+    // In WebKit a menu press can focus the previous contenteditable before
+    // mouseup, closing the menu through onBlur and losing the option's click.
+    await evaluate(`document.addEventListener('mousedown', event => {
+      if (event.target.closest?.('.block-menu-list button') && !event.defaultPrevented) {
+        document.querySelector('.tiptap').focus();
+      }
+    })`);
+    for (const label of ['Link Card', 'Link Button', 'Badge', 'Callout', 'Card', 'Text']) {
+      await click('document.querySelector(".block-inserter-menu summary")');
+      await waitFor('document.querySelector(".block-inserter-menu").open');
+      await evaluate('document.querySelector(".block-inserter-menu summary").focus()');
+      await click(`[...document.querySelectorAll('.block-menu-list button')].find(button => button.textContent === ${JSON.stringify(label)})`);
+      if (label === 'Text') {
+        await waitFor('document.querySelectorAll(".rich-editor").length === 2');
+      } else {
+        await waitFor(`document.querySelector('.link-card-dialog h3')?.textContent === ${JSON.stringify(`Insert ${label}`)}`);
+        await evaluate('[...document.querySelectorAll(".link-card-dialog button")].find(button => button.textContent === "Cancel").click()');
+        await waitFor('!document.querySelector(".link-card-dialog")');
+      }
+    }
+    assert.equal(await evaluate('window.writes.length'), 0, 'insertion does not save automatically');
+  });
+});
