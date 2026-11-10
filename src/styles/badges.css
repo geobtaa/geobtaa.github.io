@@ -1,8 +1,11 @@
 /* Keep article badges and their editor previews visually consistent. */
 :is(.sl-markdown-content .sl-badge, .badge-preview) {
   display: inline-block;
-  max-width: 100%;
-  padding: .3em .8em;
+  box-sizing: border-box;
+  max-width: calc(100% - .5rem);
+  margin-block: .65rem;
+  margin-inline-end: .5rem;
+  padding: .4em .9em;
   border: 1px solid #b8d5e5;
   border-radius: 999px;
   background: #e8f3fa;
