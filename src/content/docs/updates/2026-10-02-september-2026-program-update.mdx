@@ -13,6 +13,13 @@ date: 2026-10-02T14:19:00.000-05:00
 draft: false
 
 ---
+import CmsCardGrid from 'src/components/editor-blocks/CardGrid.astro';
+import { LinkCard } from '@astrojs/starlight/components';
+import { Card as CmsCard } from '@astrojs/starlight/components';
+import CmsChipList from 'src/components/editor-blocks/ChipList.astro';
+import { Badge as CmsBadge } from '@astrojs/starlight/components';
+import { LinkButton } from '@astrojs/starlight/components';
+
 ## Urban Base Layers: From Pilot to Scalable Practice
 
 More than two years ago, BTAA-GIN began developing the workflows and infrastructure needed to archive geospatial data itself. A series of pilots allowed the program to test approaches to acquiring, processing, documenting, and preserving datasets.
@@ -29,29 +36,14 @@ Urban Base Layers puts the warning raised in BTAA-GIN’s award-winning [Ephemer
 
 *BTAA-GIN Urban Base Layers Cities as of Oct 2026*
 
+
+
 ## Program Activities
 
 ### Committees
 
-#### TECHnology
+<CmsCardGrid cards="[{&quot;title&quot;:&quot;Technology&quot;,&quot;body&quot;:&quot;- Collections Policy working group met and is asking for more member participation\n- Completed mini-sprint evaluating IIIF resources\n\n&quot;},{&quot;title&quot;:&quot;Community Engagement&quot;,&quot;body&quot;:&quot;- Planning and promoting a Nov 2 Live Demo: Geoportal Search Techniques (1pm CT)\n- Lightning talk planned for Nov 12th meeting: focused on AI\n\n&quot;},{&quot;title&quot;:&quot;Knowledge&quot;,&quot;body&quot;:&quot;- Plan to present research survey results at October Program Team meeting\n- Discussions continue about an AI Community of Practice\n\n&quot;},{&quot;title&quot;:&quot;Coordination&quot;,&quot;body&quot;:&quot;- In-depth conversations on committee work plans\n- Discussed possibilities of communities of practice\n\n&quot;}]" />
 
-- Collections Policy working group met and is asking for more member participation
-- Completed mini-sprint evaluating IIIF resources
-
-#### Community Engagement
-
-- Planning and promoting a Nov 2 Live Demo: Geoportal Search Techniques (1pm CT)
-- Lightning talk planned for Nov 12th meeting: focused on AI
-
-#### Knowledge
-
-- Plan to present research survey results at October Program Team meeting
-- Discussions continue about an AI Community of Practice
-
-#### Coordination
-
-- In-depth conversations on committee work plans
-- Discussed possibilities of communities of practice
 
 ### Workgroups
 
@@ -59,13 +51,15 @@ Urban Base Layers puts the warning raised in BTAA-GIN’s award-winning [Ephemer
 
 - Working to complete an article
 
+
+
 ## BTAA Geoportal
 
 ### This month by the numbers
 
-![September total monthly visits year over year](<@images/2026-09-monthly-users.png>)
+![Sept 2026 monthly users](@images/2026-09-monthly-users.png "Geoportal users year over year, September 2021-2026")
 
-*September total monthly visits year over year*
+
 
 
 | Metric                | Value  |
@@ -76,43 +70,56 @@ Urban Base Layers puts the warning raised in BTAA-GIN’s award-winning [Ephemer
 | Pageviews             | 13,774 |
 
 
-[View the analytics dashboard for additional reporting.](https://tableau.umn.edu/t/UL/views/BTAAGeoportalusageMatomo/Monthlycharts)
+<LinkCard
+  title="More Geoportal stats"
+  href="https://tableau.umn.edu/t/UL/views/BTAAGeoportalusageMatomo/Monthlycharts?%3Aembed=y&amp;%3AisGuestRedirectFromVizportal=y"
+  description="View the analytics dashboard for additional reporting"
+/>
 
-### Top Google searches leading to the Geoportal
+<CmsCard title="Top Google searches leading to the Geoportal">
 
-- btaa geoportal
-- columbus school district map
-- school district map columbus ohio
-- franklin county lines
-- warren county ohio gis
-- allegheny county school district map
-- Waifinder
-- preble county gis
-- red lake reservation map
-- ohio physiographic regions
+btaa geoportal  
+  
+columbus school district map  
+  
+school district map columbus ohio  
+  
+franklin county lines  
+  
+warren county ohio gis  
+  
+allegheny county school district map  
+  
+Waifinder  
+  
+preble county gis  
+  
+red lake reservation map  
+  
+ohio physiographic regions
+
+</CmsCard>
+
 
 ### Top internal search keywords
 
-- Sanborn
-- hunterdon county new jersey
-- fire insurance maps
-- Chesapeake
-- michigan
-- pottstown
-- minneapolis
-- comparative
+<CmsChipList items="[&quot;Sanborn&quot;,&quot;hunterdon county new jersey&quot;,&quot;fire insurance maps &quot;,&quot;Chesapeake&quot;,&quot;michigan&quot;,&quot;pottstown&quot;,&quot;minneapolis&quot;,&quot;comparative&quot;]" />
+
 
 ## Collections
 
-Total records as of September 2026: 147,851
+<CmsBadge text="Total records as of September 2026: 147,851" variant="success" size="medium" />
+
 
 ### Harvesting Activities
 
-[View current harvest operations dashboard.](https://gin.btaa.org/harvest-operations/)
+[.](https://gin.btaa.org/harvest-operations/)
+
+<LinkButton href="https://gin.btaa.org/harvest-operations/latest/retrospective/" variant="primary">View current harvest operations dashboard</LinkButton>
 
 ## Web Development
 
 - Released new Geoportal analytics dashboard showing all human and bot traffic to the API. There are views for month-to-month comparisons, popular content, searches, and by performance of individual institutional collections.
 - Progressed with the new GEOMGv2 metadata application to include  Resource editing, Sources, Sets, and a calendar for tracking our work.
 
-[View current harvest operations dashboard](https://gin.btaa.org/harvest-operations/)
+
