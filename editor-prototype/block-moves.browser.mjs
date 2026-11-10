@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { chrome, withEditorBrowser } from './browserHarness.mjs';
+import { chrome, withEditorBrowser, openNewBlockMenu } from './browserHarness.mjs';
 
 const body = `import { LinkCard } from '@astrojs/starlight/components';
 
@@ -80,5 +80,91 @@ test('moves preserve edits, focus, protected content and saved order; adjacent t
     assert.ok(text.indexOf('First paragraph.') < text.indexOf('Last paragraph.'));
     await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
     assert.equal(await evaluate('document.documentElement.scrollWidth > innerWidth'), false);
+  });
+});
+
+test('Text blocks have explicit removal and undo; saved removals preserve neighboring blocks and imports', {
+  skip: chrome ? false : 'Chrome/Chromium is required.', timeout: 30_000,
+}, async () => {
+  await withEditorBrowser(fixture, async browser => {
+    const { evaluate, waitFor, send } = browser;
+    await waitFor('!!document.querySelector(".dashboard-card")');
+    await evaluate('[...document.querySelectorAll(".dashboard-card")].find(button => button.textContent.includes("Blog Posts")).click()');
+    await waitFor('!!document.querySelector(".project-list button")');
+    await evaluate('document.querySelector(".project-list button").click()');
+    await waitFor('document.querySelectorAll(".text-block-footer button").length === 3');
+    assert.equal(await evaluate('document.querySelectorAll(".protected-block button").length'), 0);
+    // Remove an uncleared block using its actual keyboard-accessible control.
+    await evaluate('document.querySelector(".text-block-footer button").focus()');
+    await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, text: '\r' });
+    await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+    await waitFor('document.querySelectorAll(".rich-editor").length === 2');
+    assert.equal(await evaluate('document.activeElement.classList.contains("block-row")'), true);
+    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'Unsaved changes');
+    assert.match(await evaluate('document.querySelector(".block-removal-notice").textContent'), /Text block removed/);
+    // Editing another block must survive undoing the removal.
+    await evaluate('document.querySelector(".rich-editor .tiptap").focus()');
+    await send('Input.insertText', { text: 'Kept edit. ' });
+    await evaluate('document.querySelector(".block-removal-notice button").click()');
+    await waitFor('document.querySelectorAll(".rich-editor").length === 3');
+    assert.equal(await evaluate('document.querySelector(".rich-editor .tiptap").textContent'), 'First paragraph.');
+    assert.match(await evaluate('document.querySelectorAll(".rich-editor .tiptap")[1].textContent'), /Kept edit/);
+    await evaluate('document.querySelector(".text-block-footer button").click()');
+    await waitFor('document.querySelectorAll(".rich-editor").length === 2');
+    await evaluate('document.querySelector(".top-save").click()');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    const saved = await evaluate('window.saved');
+    assert.ok(!saved.includes('First paragraph.'));
+    assert.ok(saved.includes('Kept edit.'));
+    assert.ok(saved.includes('<Unknown>Keep me</Unknown>'));
+    assert.ok(saved.includes('Anchored text.'));
+    assert.match(saved, /import \{ LinkCard \} from '@astrojs\/starlight\/components';\n{2,}<LinkCard/);
+    await evaluate('document.querySelector(".editor-navigation .back").click()');
+    await waitFor('!!document.querySelector(".project-list button")');
+    await evaluate('document.querySelector(".project-list button").click()');
+    await waitFor('document.querySelectorAll(".rich-editor").length === 2');
+    assert.ok(!(await evaluate('document.querySelector(".body-editor").textContent')).includes('First paragraph.'));
+    assert.ok((await evaluate('document.querySelector(".body-editor").textContent')).includes('Kept edit.'));
+  });
+});
+
+test('empty and final Text blocks can be removed immediately, restored, and replaced without reloading', {
+  skip: chrome ? false : 'Chrome/Chromium is required.', timeout: 30_000,
+}, async () => {
+  const single = '---\ntitle: Blocks\ndraft: true\n---\n\nOnly text.';
+  await withEditorBrowser(fixture.replace(JSON.stringify(content), JSON.stringify(single)), async browser => {
+    const { evaluate, waitFor, send } = browser;
+    await waitFor('!!document.querySelector(".dashboard-card")');
+    await evaluate('[...document.querySelectorAll(".dashboard-card")].find(button => button.textContent.includes("Blog Posts")).click()');
+    await waitFor('!!document.querySelector(".project-list button")');
+    await evaluate('document.querySelector(".project-list button").click()');
+    await waitFor('!!document.querySelector(".text-block-footer button")');
+    await evaluate(`(() => {
+      const editor = document.querySelector('.rich-editor .tiptap'); editor.focus();
+      const range = document.createRange(); range.selectNodeContents(editor);
+      const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range);
+    })()`);
+    await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
+    await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
+    await waitFor('document.querySelector(".text-block-empty")?.textContent === "Empty Text block."');
+    await evaluate('document.querySelector(".text-block-footer button").click()');
+    await waitFor('!!document.querySelector(".empty-body") && !document.querySelector(".rich-editor")');
+    assert.equal(await evaluate('document.activeElement.tagName'), 'SUMMARY');
+    await evaluate('document.querySelector(".block-removal-notice button").click()');
+    await waitFor('!!document.querySelector(".rich-editor") && !!document.querySelector(".text-block-empty")');
+    await evaluate('document.querySelector(".text-block-footer button").click()');
+    await waitFor('!!document.querySelector(".empty-body")');
+    await evaluate('document.querySelector(".top-save").click()');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    assert.equal((await evaluate('window.writes[0].body')).trim(), '');
+    const menu = await openNewBlockMenu(browser, 'Text', 'document.querySelector(".empty-body")');
+    await evaluate(`[...${menu}.querySelectorAll('button')].find(button => button.textContent === 'Text').click()`);
+    await waitFor('!!document.querySelector(".rich-editor .tiptap")');
+    assert.equal(await evaluate('document.querySelector(".block-removal-notice")'), null, 'adding another block ends the previous removal undo');
+    await evaluate('document.querySelector(".rich-editor .tiptap").focus()');
+    await send('Input.insertText', { text: 'Replacement text.' });
+    await evaluate('document.querySelector(".top-save").click()');
+    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    assert.equal((await evaluate('window.writes[1].body')).trim(), 'Replacement text.');
   });
 });

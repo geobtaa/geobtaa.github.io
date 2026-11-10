@@ -84,6 +84,7 @@ export function createGitHubClient({
   }
 
   return {
+    workspace: `${owner}/${repo}#${branch}`,
     createBlog(input) {
       return createBlogCommit({ request: (path, options) => request(`${api}${path}`, options), ensureBranch, branch, ...input });
     },

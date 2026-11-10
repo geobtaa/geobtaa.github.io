@@ -40,8 +40,30 @@ test('hosted OAuth uses state, PKCE, an encrypted HttpOnly session, and reposito
     assert.ok(!sessionCookie.includes('github-user-token'));
 
     const session = await onRequest({ request: new Request('https://geobtaa-editor-staging.pages.dev/api/session', { headers: { Cookie: sessionCookie.split(';')[0] } }), env });
-    assert.deepEqual(await session.json(), { authenticated: true, login: 'editor-user' });
+    assert.deepEqual(await session.json(), { authenticated: true, login: 'editor-user', workspace: 'geobtaa/geobtaa.github.io#custom-cms' });
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test('sign-in preserves editor deep links and rejects external or non-editor return destinations', async () => {
+  const origin = 'https://geobtaa-editor-staging.pages.dev';
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async input => {
+    const url = String(input);
+    if (url === 'https://github.com/login/oauth/access_token') return Response.json({ access_token: 'test-token' });
+    if (url.endsWith('/user')) return Response.json({ login: 'editor-user' });
+    return Response.json({ permissions: { push: true } });
+  };
+  try {
+    for (const [requested, expected] of [['/editor/?area=posts&file=nested%2Fentry.mdx', '/editor/?area=posts&file=nested%2Fentry.mdx'], ['https://outside.example/editor/', '/editor/'], ['//outside.example/editor/', '/editor/'], ['/api/content/posts', '/editor/']]) {
+      const login = await onRequest({ request: new Request(`${origin}/api/auth/login?returnTo=${encodeURIComponent(requested)}`), env });
+      const state = new URL(login.headers.get('location')).searchParams.get('state');
+      const cookies = login.headers.getSetCookie().map(cookie => cookie.split(';')[0]).join('; ');
+      const callback = await onRequest({ request: new Request(`${origin}/api/auth/callback?code=test&state=${state}`, { headers: { Cookie: cookies } }), env });
+      assert.equal(callback.status, 302);
+      assert.equal(callback.headers.get('location'), origin + expected);
+      assert.ok(callback.headers.getSetCookie().some(cookie => cookie.startsWith('editor_oauth_return=') && cookie.includes('Max-Age=0')));
+    }
+  } finally { globalThis.fetch = previousFetch; }
 });

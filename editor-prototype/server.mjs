@@ -55,7 +55,7 @@ export const createEditorServer = (github) => http.createServer(async (request, 
   try {
     const url = new URL(request.url, `http://${request.headers.host}`);
     if (request.method === 'GET' && url.pathname === '/api/session') {
-      return respond(response, 200, { authenticated: true, login: 'local development' }, origin);
+      return respond(response, 200, { authenticated: true, login: 'local development', workspace: github.workspace || 'geobtaa/geobtaa.github.io#custom-cms' }, origin);
     }
     if (request.method === 'POST' && url.pathname === '/api/auth/logout') {
       return respond(response, 200, { ok: true }, origin);

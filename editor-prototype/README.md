@@ -22,7 +22,7 @@ Non-blog dates remain optional and are not automatically added. Editing their ca
 
 ## Blog posts
 
-The editor opens on a dashboard with no content area selected. Choose **Blog Posts** on the dashboard, then open an existing post or choose **New Blog Post**. Each content list has a prominent **Back to dashboard** button. Editing views have **Back to Blog Posts** (or the current content area) at the top and beside the save controls, plus a **Dashboard** button. The top navigation stays visible while scrolling. Leaving an unsaved entry still prompts before discarding changes.
+Opening `/editor/` without a query opens the dashboard with no content area selected; editor links can open a list or entry directly. Choose **Blog Posts** on the dashboard, then open an existing post or choose **New Blog Post**. Each content list has a prominent **Back to dashboard** button. Editing views have **Back to Blog Posts** (or the current content area) at the top and beside the save controls, plus a **Dashboard** button. The top navigation stays visible while scrolling. Leaving an unsaved entry prompts first; confirmed navigation keeps a local recovery copy when browser storage is available.
 
 Every editing view has **Save changes** at the top and bottom. Both buttons perform the same save and honor the Draft / Published switch. Projects now use these buttons too, replacing the older Save draft/Publish actions. Saves still commit to staging.
 
@@ -48,11 +48,32 @@ The editing view separately shows **Not saved yet**, **Unsaved changes**, **Savi
 
 **Save changes** commits to staging; it does not publish to the live site. Switch from **Draft** to **Published** when the post should be eligible for publication, then use the repository's review and merge process to move the content to `main`. Existing production builds omit drafts, including their direct URLs, so hosted draft previews are not available. Saving does not mean the staging deployment is ready; check the Cloudflare deployment before reviewing its rendered page.
 
-The editor warns before discarding unsaved changes. Choose **Cancel** to return to the editor and save your work. Failed saves and expired sessions leave your work in the open editor, but there is no automatic browser storage. Before reloading or signing in again, copy any unsaved text and field changes into a separate document. For conflicts, reopen the latest post and reapply those edits. Do not repeatedly submit a stale version.
+The editor warns before leaving unsaved changes. Choose **Cancel** to keep editing. Failed saves leave your work in the open editor, and local recovery copies support returning after navigation, reload, or sign-in. Recovery is separate from saving to GitHub; see the navigation and recovery details below. For repository conflicts, keep/download the recovery copy and reconcile against the latest version rather than repeatedly submitting a stale file.
 
 Both API implementations share blog serialization and creation logic. Updates use the loaded blob SHA and authoritative repository frontmatter. New posts use a Git tree snapshot and a fast-forward-only branch update so competing writes cannot overwrite an existing file or create an equivalent route unnoticed. If staging changes during creation, save again to recheck availability.
 
 Run `npm run test:editor` for editor regression tests. Run `npm run test:editor:browser` to check component insertion and property forms, image editing, link-address handling, Link Card cursor behavior, dashboard/back navigation, unsaved-change prompts, mobile layout, frontmatter controls across all enabled areas, visibility indicators, and both Save buttons using isolated headless Chrome profiles and temporary local test pages. These browser tests use no GitHub credentials or content saves. They find Chrome in common macOS/Linux locations; set `CHROME_BIN` to your Chrome/Chromium executable if needed. They skip when no browser is installed.
+
+## Browser navigation and local recovery
+
+Editor screens have their own URLs while remaining in the same application:
+
+- `/editor/` opens the dashboard.
+- `/editor/?area=posts` opens a content list.
+- `/editor/?area=posts&file=example.mdx` opens the current repository version of an entry. Nested filenames are URL-encoded.
+- `/editor/?area=posts&new=<unique-id>` identifies a particular never-saved entry, including after a reload. The first successful save replaces this URL with the saved filename without adding a second history entry.
+
+Browser **Back** and **Forward** follow these screens. Leaving an entry with unsaved document changes prompts, using the same guard as the editor's own navigation. Cancel restores the original history entry, URL, and editor state without adding dummy history entries. Navigation waits while a save or restoration is pending; ordinary list/document loading can be left. A directly opened editor link can still lead back outside the editor. Reloading, closing a tab, or leaving the page requests the browser's standard warning when changes are unsaved or a save is pending. Browsers do not guarantee that warning in every situation.
+
+Changed document fields and body content receive a local recovery copy after a short typing pause, with immediate flushes before confirmed navigation and when the page becomes hidden or unloads. **Recovery copy saved on this device** describes local storage only; **Save changes** still saves to GitHub. An untouched new form does not create a recovery copy. Dialog values are included after their **Insert** or **Apply** action adds them to the document.
+
+On returning, the editor loads the repository version and offers **Restore unsaved edits**, **Download recovery copy**, and **Discard recovery copy**. Restore rechecks the repository file SHA at the time of the action. If it changed, the latest version stays open and the recovery copy is retained for download and manual comparison; recovery never silently overwrites a newer repository version. If edits are already open, download the earlier copy for comparison instead of replacing them. A successful restore remains unsaved until **Save changes** succeeds. Successful saves clear this editing session's recovery copy; failed saves retain it.
+
+Recovery copies are scoped by signed-in account, backend/workspace, and document. Separate editing sessions use independent records, so another tab's copy is not overwritten. Deletion/cleanup checks the specific recovery revision and does not delete a newer copy. Multiple copies of an entry can be selected by timestamp. Dashboard and content lists offer links to entries with local recovery copies. Copies remain available after sign-out to the same account. Hosted sign-in returns to the editor link originally requested; external or non-editor return URLs are rejected.
+
+These copies live in this browser on this device, are not synchronized to another device, and can be removed by clearing browser storage or private-browsing policies. If storage is blocked/full, the editor shows an explicit warning and offers **Download unsaved edits**; it does not claim that recovery was saved. Downloaded JSON includes document metadata, body content, and the base repository SHA for comparison, without authentication credentials. No automatic publishing or server-side autosave is introduced.
+
+Automated coverage includes direct links, Back/Forward and canceled navigation, immediate reload recovery, unsaved new entries, failed and pending saves, stale versions checked at restore time, storage failure, account/workspace isolation, and safe sign-in return URLs.
 
 ## Chip List and Card Grid blocks
 
@@ -142,3 +163,5 @@ New badges, callouts, and cards use the existing Starlight components imported a
 Each content block has an **Add block** menu beside it on desktop and below it on narrow screens. Text, Link Card, Link Button, Badge, Callout, Card, Chip List, and Card Grid create a block after that block. Formatting, Image, and Table controls stay inside the Markdown editor and change its existing content. Formatting toolbars use icons in both the main editor and card contents; hover for a tooltip. Every icon button has an accessible name, and active/disabled states remain visible. The text-style dropdown retains its paragraph and heading labels. Component insertion does not split a text block at the cursor or add an empty text editor.
 
 Editable body blocks have **Move up** and **Move down** buttons beside **Add block**. Each move swaps neighboring editable blocks and marks the page as unsaved. Read-only MDX, imports, and exports stay anchored; blocks cannot move across them. Keyboard focus follows the moved block, and its position is announced. Adjacent text blocks may merge into one editor when reopened, with their content order preserved.
+
+Each Text block also has **Remove Text block** beneath its editor, including when it is empty. Removal closes that editor immediately and removes its contents, including any images or tables in that block; use **Save changes** to keep the change. **Undo removal** restores the most recently removed block without discarding edits made in other blocks. Adding or moving a block clears that removal undo; removing another block replaces it. Removing the last visible block leaves **Add block** available. Empty Text blocks are labeled while editing; blank editor placeholders are not stored as separate blocks in Markdown.

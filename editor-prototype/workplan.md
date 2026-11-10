@@ -1,6 +1,6 @@
 The prototype supports blog posts, the enabled documentation areas, Program Updates, image uploads and formatting, tables, editable content blocks, protected MDX, and hosted GitHub sign-in. Current saves still go to `custom-cms`. Program Updates now has an optional outline, a flexible article body, and conversion previews for older content. Chip List and Card Grid blocks and icon formatting toolbars are implemented across the editor.
 
-Review status (November 9, 2026): the editing features and local/automated checks are complete for the implemented prototype flows. The main unfinished work is the production publishing workflow in step 3, followed by hosted end-to-end validation and coworker testing. The newer publishing plan keeps release 1 focused on blog posts and enabled documentation; Program Updates editing is already implemented, but its production publishing rollout remains separate. Optional authenticated saved-draft previews are phase 2.
+Review status (November 10, 2026): the editing features and local/automated checks are complete for the implemented prototype flows. The main unfinished work is the production publishing workflow in step 3, followed by hosted end-to-end validation and coworker testing. The newer publishing plan keeps release 1 focused on blog posts and enabled documentation; Program Updates editing is already implemented, but its production publishing rollout remains separate. Optional authenticated saved-draft previews are phase 2.
 
 Implementation note: existing blog saves still commit to staging. The agreed direction is separate Save Draft and Publish actions, shared per-document working branches, narrow automatic publishing PRs, and verified production deployment. Optional authenticated previews are phase 2. See the [publishing implementation plan](../docs/CMS_PUBLISHING_PLAN.md) for design, safeguards, transition, and launch prerequisites. Completed checkboxes below record prototype behavior; step 3 supersedes the editorial visibility switch and shared staging publication model.
 
@@ -51,6 +51,10 @@ Support creating and editing blog posts with the existing fields and Markdown/MD
 - [ ] Complete cover-image picker/upload/removal and save/reopen checks in the browser and hosted workflow
 - [x] Check representative keyboard interactions, labels, focus behavior, error feedback, and smaller-screen layouts with the automated prototype browser suite
 - [x] Replace formatting-toolbar words with icons in both main and card-content editors, retaining tooltips, accessible names, focus indicators, and active/disabled states
+- [x] Add explicit Text block removal, empty-block labels, undo for the most recent block removal, and keyboard focus handling; preserve neighboring content/imports and allow adding content after removing the last block
+- [x] Add editor URLs and browser Back/Forward history for dashboard, lists, existing entries, and uniquely identified new entries; protect unsaved changes and preserve the URL/editor when navigation is canceled
+- [x] Add debounced local document recovery with lifecycle/navigation flushes, account/workspace isolation, independent session copies, restore/download/discard controls, repository SHA rechecks, and visible storage-failure handling
+- [x] Preserve requested editor URLs through hosted sign-in and reject external return destinations
 - [ ] Complete manual keyboard and assistive-technology review alongside coworker usability testing
 
 3. Finalize publishing
@@ -82,6 +86,7 @@ Validate representative editing tasks against the completed prototype, then exer
 - [x] Run `npm run test:editor`, Astro sync/check, `npm run build`, and `npm run test:navigation` against representative blog posts
 - [ ] Exercise phase 1 hosted workflow: sign in, create/reopen a draft, edit an existing entry, upload an image, save, publish through required checks, and verify the deployed live page and listings; add optional preview testing in phase 2
 - [x] Test unsaved-navigation cancellation/discard, stale-save rejection, and retention of open edits after a simulated failed conversion save
+- [x] Test Back/Forward, direct links, immediate reload recovery, new-entry recovery, failed/pending saves, stale-copy preservation, unavailable storage, and account/workspace isolation with an isolated local browser; live hosted verification remains pending
 - [ ] Exercise expired-session/reauthentication, network uncertainty, failed validation/build/deployment, refresh/relogin, and concurrent publication recovery through the real hosted workflow; prototype tests do not establish these release guarantees
 - [ ] Resolve remaining issues discovered during hosted publishing/recovery validation
 - [x] Update `editor-prototype/README.md` with blog post fields, supported body content, preview behavior, publishing responsibilities, and recovery instructions

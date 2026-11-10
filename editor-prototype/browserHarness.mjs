@@ -16,7 +16,7 @@ for (const candidate of candidates) {
 }
 
 // Run browser tests against an isolated fixture without accessing GitHub.
-export async function withEditorBrowser(fixtureCode, run, { images = {} } = {}) {
+export async function withEditorBrowser(fixtureCode, run, { images = {}, initialSearch = '' } = {}) {
   assert.ok(chrome, 'Chrome/Chromium is required.');
   const fixtureName = `.editor-browser-fixture-${process.pid}.tsx`;
   const fixture = join(root, 'editor-prototype', fixtureName);
@@ -61,8 +61,13 @@ export async function withEditorBrowser(fixtureCode, run, { images = {} } = {}) 
     await once(socket, 'open');
     let sequence = 0;
     const pending = new Map();
+    const listeners = new Map();
     socket.addEventListener('message', (event) => {
       const message = JSON.parse(event.data);
+      if (message.method) {
+        for (const listener of listeners.get(message.method) || []) listener(message.params);
+        return;
+      }
       const item = pending.get(message.id);
       if (!item) return;
       clearTimeout(item.timer); pending.delete(message.id);
@@ -82,7 +87,12 @@ export async function withEditorBrowser(fixtureCode, run, { images = {} } = {}) 
     };
     const waitFor = async (expression) => {
       for (let attempt = 0; attempt < 100; attempt += 1) {
-        if (await evaluate(expression)) return;
+        try { if (await evaluate(expression)) return; }
+        catch (error) {
+          // A real reload briefly destroys the previous JavaScript context.
+          // Retry that transition; syntax errors and other failures still fail.
+          if (!/Inspected target navigated or closed|Execution context was destroyed|Cannot find (?:default execution context|context with specified id)/.test(error.message)) throw error;
+        }
         await delay(50);
       }
       assert.fail(`Browser condition did not become true: ${expression}`);
@@ -91,8 +101,12 @@ export async function withEditorBrowser(fixtureCode, run, { images = {} } = {}) 
       await send('Input.dispatchKeyEvent', { type: 'keyDown', key, code: key, windowsVirtualKeyCode: code });
       await send('Input.dispatchKeyEvent', { type: 'keyUp', key, code: key, windowsVirtualKeyCode: code });
     };
-    await send('Page.navigate', { url: `http://127.0.0.1:${server.httpServer.address().port}/__editor-test` });
-    await run({ evaluate, waitFor, send, arrow });
+    const onEvent = (method, listener) => {
+      const handlers = listeners.get(method) || new Set(); handlers.add(listener); listeners.set(method, handlers);
+      return () => handlers.delete(listener);
+    };
+    await send('Page.navigate', { url: `http://127.0.0.1:${server.httpServer.address().port}/__editor-test${initialSearch}` });
+    await run({ evaluate, waitFor, send, arrow, onEvent });
   } finally {
     socket?.close();
     if (browser && browser.exitCode === null) { const exited = once(browser, 'exit'); browser.kill(); await exited; }

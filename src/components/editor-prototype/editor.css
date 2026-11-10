@@ -194,6 +194,22 @@ code { font-size: .9em; }
 .component-editor .structured-link-card { margin: 0; }
 
 .component-remove { margin-top: .5rem; }
+.text-block-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: .5rem 1rem; border-top: 1px solid #cbd5e1; background: #f8fafc; }
+.text-block-footer .component-remove { min-height: 44px; margin: 0; }
+.text-block-empty { margin: 0; color: #64748b; font-size: .85rem; }
+.block-removal-notice { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; padding: .75rem 1rem; border: 1px solid #94a3b8; border-radius: .35rem; background: #f0f9ff; }
+.block-removal-notice button { min-height: 44px; padding: .4rem .75rem; border: 1px solid #94a3b8; border-radius: .35rem; background: white; color: #075985; }
+.empty-body { padding: 1rem; border: 1px dashed #94a3b8; border-radius: .4rem; }
+.recovery-panel { margin: 1rem 0; padding: 1rem; border: 1px solid #b45309; border-radius: .4rem; background: #fffbeb; }
+.recovery-panel h2 { font-size: 1.1rem; }
+.recovery-panel .actions { justify-content: flex-start; flex-wrap: wrap; margin-top: .75rem; }
+.recovery-panel ul { display: grid; gap: .75rem; padding-left: 1.25rem; }
+.recovery-panel li > span { display: block; color: #64748b; font-size: .85rem; }
+.recovery-panel li > button { padding: .35rem 0; border: 0; background: transparent; color: #075985; text-decoration: underline; text-align: left; overflow-wrap: anywhere; }
+.recovery-copy-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .35rem; }
+.recovery-copy-actions button { min-height: 44px; padding: .35rem .6rem; border: 1px solid #94a3b8; border-radius: .35rem; background: white; color: #075985; }
+.recovery-status { display: flex; flex-wrap: wrap; gap: .4rem; margin: .75rem 0; color: #475569; font-size: .85rem; }
+.message .link-button { display: block; margin-top: .5rem; }
 
 .structured-simple-component { padding: 1rem; border: 2px solid #64748b; border-radius: .5rem; background: #f8fafc; }
 .structured-simple-component > strong { display: block; margin-bottom: .5rem; color: #334155; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; }

@@ -8,6 +8,15 @@ import { IMAGE_DIRECTORY, imageContentType, validateImagePath, validateImageUplo
 const SESSION_COOKIE = 'editor_session';
 const STATE_COOKIE = 'editor_oauth_state';
 const VERIFIER_COOKIE = 'editor_oauth_verifier';
+const RETURN_COOKIE = 'editor_oauth_return';
+
+function editorReturnPath(value, origin) {
+  try {
+    const url = new URL(value || '/editor/', origin);
+    if (url.origin === origin && url.pathname === '/editor/' && !url.username && !url.password) return url.pathname + url.search + url.hash;
+  } catch { /* Use the dashboard for invalid or external destinations. */ }
+  return '/editor/';
+}
 
 class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -195,6 +204,7 @@ async function login(request, env) {
   const headers = new Headers({ Location: authorize.toString(), 'Cache-Control': 'no-store' });
   headers.append('Set-Cookie', cookie(STATE_COOKIE, state, 'SameSite=Lax; Max-Age=600'));
   headers.append('Set-Cookie', cookie(VERIFIER_COOKIE, verifier, 'SameSite=Lax; Max-Age=600'));
+  headers.append('Set-Cookie', cookie(RETURN_COOKIE, editorReturnPath(url.searchParams.get('returnTo'), url.origin), 'SameSite=Lax; Max-Age=600'));
   return new Response(null, { status: 302, headers });
 }
 
@@ -214,10 +224,11 @@ async function callback(request, env) {
   const allowed = (env.ALLOWED_GITHUB_USERS || '').split(',').map((value) => value.trim().toLowerCase()).filter(Boolean);
   if (!repository.permissions?.push || (allowed.length && !allowed.includes(user.login.toLowerCase()))) throw new HttpError(403, 'This GitHub account is not allowed to edit this repository.');
   const session = await sealSession({ token: tokenData.access_token, login: user.login, exp: Date.now() + 8 * 60 * 60 * 1000 }, env.SESSION_SECRET);
-  const headers = new Headers({ Location: `${url.origin}/editor/`, 'Cache-Control': 'no-store' });
+  const headers = new Headers({ Location: url.origin + editorReturnPath(cookies[RETURN_COOKIE], url.origin), 'Cache-Control': 'no-store' });
   headers.append('Set-Cookie', cookie(SESSION_COOKIE, session, 'SameSite=Strict; Max-Age=28800'));
   headers.append('Set-Cookie', cookie(STATE_COOKIE, '', 'SameSite=Lax; Max-Age=0'));
   headers.append('Set-Cookie', cookie(VERIFIER_COOKIE, '', 'SameSite=Lax; Max-Age=0'));
+  headers.append('Set-Cookie', cookie(RETURN_COOKIE, '', 'SameSite=Lax; Max-Age=0'));
   return new Response(null, { status: 302, headers });
 }
 
@@ -288,7 +299,8 @@ export async function onRequest({ request, env }) {
     }
     if (request.method === 'GET' && url.pathname === '/api/session') {
       const session = await openSession(parseCookies(request)[SESSION_COOKIE] || '', env.SESSION_SECRET);
-      return json(session ? { authenticated: true, login: session.login } : { authenticated: false });
+      const { owner, repo, branch } = repoSettings(env);
+      return json(session ? { authenticated: true, login: session.login, workspace: `${owner}/${repo}#${branch}` } : { authenticated: false });
     }
     if (url.pathname === '/api/images' || url.pathname.startsWith('/api/images/file/')) return await imageApi(request, env, url.pathname);
     return await contentApi(request, env, url.pathname);

@@ -1,3 +1,7 @@
+import type { Project, PageMetadata } from './editorTypes';
+import { useEditorNavigation, routeKey, type EditorRoute } from './editorNavigation';
+import { useEditorRecovery, type EditorRecovery } from './useEditorRecovery';
+import { downloadRecovery, parseRecovery, recoveryKey, restoreRecovery, type RecoveryCopy } from './editorRecovery';
 import { ToolbarButton } from './ToolbarButton';
 import { useEditor, useEditorState, EditorContent } from '@tiptap/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -5,7 +9,7 @@ import { SimpleComponentFields } from './SimpleComponentBlock';
 import { SIMPLE_COMPONENTS, SIMPLE_KINDS, createSimpleComponentMdx, emptySimpleFields, ensureSimpleComponentImport, simpleKindForNode, type SimpleKind } from './simpleComponents';
 import { LinkAddressField } from './LinkAddressField';
 import { normalizeLinkAddress } from './linkAddress';
-import { splitBody, visibleBodySegments, moveBodySegment } from './bodySegments';
+import { splitBody, visibleBodySegments, moveBodySegment, type BodySegment } from './bodySegments';
 import { richTextEditorOptions } from './richTextEditor';
 import { createLinkCardMdx, ensureLinkCardImport } from './linkCardMdx';
 import { createLinkButtonMdx, ensureLinkButtonImport, type LinkButtonFields } from './linkButtonMdx';
@@ -21,40 +25,6 @@ const CONFLICT = 'This page has changed in GitHub since you opened it. Reload th
 type ProjectListItem = { name: string; path: string; sha: string; draft?: boolean; sidebarHidden?: boolean; visibilityKnown?: boolean };
 type ImageListItem = { name: string; path: string; sha: string; size?: number };
 type AreaName = keyof typeof CONTENT_AREAS;
-type PageMetadata = {
-  year?: number | string | null;
-  committee?: string | null;
-  lead?: string | null;
-  members?: string[] | null;
-  dates_active?: string | null;
-  template?: string | null;
-  hidePageTitle?: boolean | null;
-  pagefind?: boolean | null;
-  tableOfContents?: boolean | { minHeadingLevel?: number; maxHeadingLevel?: number; [key: string]: unknown } | null;
-  sidebar?: { label?: string; order?: number; hidden?: boolean; [key: string]: unknown } | null;
-  banner?: { content: string; [key: string]: unknown } | null;
-  head?: { tag: string; attrs?: Record<string, string | number | boolean>; [key: string]: unknown }[] | null;
-};
-type Project = {
-  filename: string;
-  sha?: string;
-  content: string;
-  title: string;
-  description: string;
-  draft: boolean;
-  sidebarHidden?: boolean;
-  body: string;
-  branch?: string;
-  metadata?: PageMetadata;
-  frontmatterFields?: string[];
-  date?: string;
-  excerpt?: string;
-  authors?: (string | { name: string; [key: string]: unknown })[];
-  tags?: string[];
-  cover?: { image?: string; light?: string; dark?: string; alt: string; caption?: string; [key: string]: unknown } | null;
-  conversion?: { body: string | null; kind: string; error: string | null } | null;
-  convertProgramUpdate?: boolean;
-};
 
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API}${path}`, options);
@@ -295,6 +265,7 @@ function RichTextEditor({ initialValue, onChange, structured = false, onRemove }
     selector: ({ editor }) => {
       const headingLevel = ([1, 2, 3, 4, 5, 6] as const).find((level) => editor?.isActive('heading', { level }));
       return {
+        empty: editor?.isEmpty ?? true,
         textStyle: headingLevel ? `heading-${headingLevel}` : 'paragraph',
         bold: editor?.isActive('bold') ?? false,
         italic: editor?.isActive('italic') ?? false,
@@ -368,6 +339,10 @@ function RichTextEditor({ initialValue, onChange, structured = false, onRemove }
         </>}
       </div>}
       <EditorContent editor={editor} />
+      {!structured && <div className="text-block-footer">
+        {active?.empty && <p className="text-block-empty">Empty Text block.</p>}
+        <button type="button" className="link-button component-remove" title="Remove this Text block and all its content" onClick={onRemove}>Remove Text block</button>
+      </div>}
       {structured && <button type="button" className="link-button component-remove" onClick={onRemove}>Remove {collectionKind ? COLLECTION_BLOCKS[collectionKind].label : simpleKind ? SIMPLE_COMPONENTS[simpleKind].label : editor.state.doc.firstChild?.type.name === 'linkButtonBlock' ? 'Link Button' : 'Link Card'}</button>}
       {imagePicker && <RepositoryImagePicker initialImage={imagePicker.image} onClose={() => setImagePicker(null)} onSelect={(src, alt, title) => {
         if (imagePicker.position !== undefined) editor.chain().focus().setNodeSelection(imagePicker.position).updateAttributes('image', { src, alt, title }).run();
@@ -383,8 +358,11 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
   const [segmentSession, setSegmentSession] = useState(0);
   const [emptyEditorId, setEmptyEditorId] = useState<number | null>(initialValue.trim() ? null : 0);
   const segmentsRef = useRef(segments);
+  const bodyRoot = useRef<HTMLDivElement>(null);
   const blockRows = useRef(new Map<number, HTMLDivElement>());
   const pendingMove = useRef<{ id: number; direction: -1 | 1 } | null>(null);
+  const pendingRemovalFocus = useRef<{ id: number | null } | null>(null);
+  const [removedBlock, setRemovedBlock] = useState<{ segment: BodySegment } | null>(null);
   const [moveNotice, setMoveNotice] = useState('');
   useEffect(() => {
     const moved = pendingMove.current;
@@ -395,9 +373,19 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
     row?.scrollIntoView({ block: 'nearest' });
     pendingMove.current = null;
   }, [segments]);
+  useEffect(() => {
+    const focus = pendingRemovalFocus.current;
+    if (!focus) return;
+    pendingRemovalFocus.current = null;
+    const row = focus.id === null ? null : blockRows.current.get(focus.id);
+    const target = row || bodyRoot.current?.querySelector<HTMLElement>('.empty-body summary');
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: 'nearest' });
+  }, [segments]);
   const move = (id: number, direction: -1 | 1) => {
     const next = moveBodySegment(segmentsRef.current, id, direction, emptyEditorId);
     if (next === segmentsRef.current) return;
+    setRemovedBlock(null);
     pendingMove.current = { id, direction };
     segmentsRef.current = next; setSegments(next);
     onChange(next.map((segment) => segment.content).join(''));
@@ -426,32 +414,65 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
     const body = `${before}${prefix}${raw}${suffix}${after}`;
     const ensured = COLLECTION_KINDS.includes(component as CollectionKind) ? ensureCollectionImport(body, component as CollectionKind) : component === 'LinkButton' ? ensureLinkButtonImport(body) : component === 'LinkCard' ? ensureLinkCardImport(body) : ensureSimpleComponentImport(body, component as SimpleKind);
     if ('error' in ensured && typeof ensured.error === 'string') return ensured.error;
+    setRemovedBlock(null);
     const next = splitBody(ensured.content);
     setEmptyEditorId(null); segmentsRef.current = next; setSegments(next);
+    setMoveNotice('Block added.');
     setSegmentSession((session) => session + 1);
     onChange(ensured.content);
   };
-  const removeComponent = (id: number) => {
-    const next = segmentsRef.current.filter((segment) => segment.id !== id);
+  const removeBlock = (id: number) => {
+    const current = segmentsRef.current;
+    const index = current.findIndex(segment => segment.id === id);
+    const segment = current[index];
+    if (!segment || segment.kind === 'protected') return;
+    const visible = visibleBodySegments(current, emptyEditorId);
+    const visibleIndex = visible.findIndex(segment => segment.id === id);
+    const neighbor = visible[visibleIndex + 1] || visible[visibleIndex - 1];
+    pendingRemovalFocus.current = { id: neighbor?.id ?? null };
+    setRemovedBlock({ segment });
+    if (emptyEditorId === id) setEmptyEditorId(null);
+    // Preserve a Markdown separator so imports, components, and paragraphs on
+    // either side cannot run together when the removed block held their spacing.
+    const newline = current.some(segment => segment.content.includes('\r\n')) ? '\r\n' : '\n';
+    const next = current.map(segment => segment.id === id ? { id, kind: 'markdown' as const, content: newline.repeat(2) } : segment);
     segmentsRef.current = next; setSegments(next);
+    setMoveNotice(`${segment.kind === 'markdown' ? 'Text block' : 'Block'} removed. Undo removal is available.`);
+    onChange(next.map((segment) => segment.content).join(''));
+  };
+  const undoRemoval = () => {
+    if (!removedBlock) return;
+    const current = segmentsRef.current;
+    const { segment } = removedBlock;
+    const next = current.map(currentSegment => currentSegment.id === segment.id ? segment : currentSegment);
+    if (segment.kind === 'markdown' && !segment.content.trim()) setEmptyEditorId(segment.id);
+    pendingRemovalFocus.current = { id: segment.id };
+    segmentsRef.current = next; setSegments(next); setRemovedBlock(null);
+    setMoveNotice('Block restored.');
     onChange(next.map((segment) => segment.content).join(''));
   };
   const addTextBlock = (afterId: number) => {
     const current = segmentsRef.current;
+    setRemovedBlock(null);
     const id = Math.max(-1, ...current.map((segment) => segment.id)) + 1;
     const index = current.findIndex((segment) => segment.id === afterId);
     const next = [...current.slice(0, index + 1), { id, kind: 'markdown' as const, content: current.length ? '\n\n' : '' }, ...current.slice(index + 1)];
     segmentsRef.current = next; setSegments(next); setEmptyEditorId(id);
+    setMoveNotice('Text block added.');
   };
   // Keep whitespace separators in the source without displaying them as empty editors.
   const visibleSegments = visibleBodySegments(segments, emptyEditorId);
-  return <div className="body-editor">
+  return <div className="body-editor" ref={bodyRoot}>
     <p className="block-move-note">Move blocks with the arrow buttons. Adjacent text blocks may merge into one text block when you reopen the page; their content stays in order. Read-only blocks stay in place.</p>
     <p className="block-move-status" role="status">{moveNotice}</p>
+    {removedBlock && <div className="block-removal-notice">
+      <span>{removedBlock.segment.kind === 'markdown' ? 'Text block' : 'Block'} removed.</span>
+      <button type="button" onClick={undoRemoval}>Undo removal</button>
+    </div>}
     {visibleSegments.map((segment, index) => <div className="block-row" tabIndex={-1} ref={(row) => { if (row) blockRows.current.set(segment.id, row); else blockRows.current.delete(segment.id); }} key={`${segmentSession}:${segment.id}`}>
       {segment.kind === 'protected'
         ? <details className="protected-block"><summary>Existing MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
-        : <RichTextEditor onRemove={() => removeComponent(segment.id)} structured={segment.kind === 'structured'} initialValue={segment.content} onChange={(content) => update(segment.id, content)} />}
+        : <RichTextEditor onRemove={() => removeBlock(segment.id)} structured={segment.kind === 'structured'} initialValue={segment.content} onChange={(content) => update(segment.id, content)} />}
       <div className="block-controls">
         {segment.kind !== 'protected' && <div className="block-move-buttons" role="group" aria-label={`Move block ${index + 1}`}>
           <button type="button" data-move="-1" disabled={!visibleSegments[index - 1] || visibleSegments[index - 1].kind === 'protected'} onClick={() => move(segment.id, -1)}>↑ Move up</button>
@@ -460,7 +481,10 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
         <BlockInserter onInsert={(component, raw) => insertComponent(segment.id, component, raw)} onAddText={() => addTextBlock(segment.id)} />
       </div>
     </div>)}
-    {!visibleSegments.length && <BlockInserter onInsert={(component, raw) => insertComponent(-1, component, raw)} onAddText={() => addTextBlock(-1)} />}
+    {!visibleSegments.length && <div className="empty-body">
+      <p>No content blocks. Add a block to continue.</p>
+      <BlockInserter onInsert={(component, raw) => insertComponent(-1, component, raw)} onAddText={() => addTextBlock(-1)} />
+    </div>}
   </div>;
 }
 
@@ -580,15 +604,28 @@ function PageMetadataControls({ area, project, onChange }: { area: AreaName; pro
   </>;
 }
 
+function freshEntry(area: AreaName): Project {
+  const article = area === 'posts' || area === 'updates';
+  return { filename: '', content: '', title: '', description: '', draft: article, body: '', date: article ? todayCalendar() : '', excerpt: '', authors: area === 'updates' ? [{ name: 'BTAA-GIN Staff' }] : [], tags: area === 'updates' ? ['Program Updates'] : [], cover: null, metadata: {}, frontmatterFields: [] };
+}
+
 export default function ProjectEditor() {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [project, setProject] = useState<Project | null>(null);
   const [area, setArea] = useState<AreaName | null>(null);
   const [branch, setBranch] = useState('custom-cms');
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusyState] = useState(false);
+  const busyRef = useRef(false);
+  const setBusy = (value: boolean) => { busyRef.current = value; setBusyState(value); };
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [viewer, setViewer] = useState<string | null | undefined>(undefined);
+  const [workspace, setWorkspace] = useState('');
+  const [route, setRoute] = useState<EditorRoute>({ area: null });
+  const [baseline, setBaseline] = useState<Project | null>(null);
+  const [selectedRecovery, setSelectedRecovery] = useState('');
+  const recoveryRef = useRef<EditorRecovery | null>(null);
+  const requestSequence = useRef(0);
   const [bodyEditorSession, setBodyEditorSession] = useState(0);
   const [savedSnapshot, setSavedSnapshot] = useState('');
   const [suggestedFilename, setSuggestedFilename] = useState('');
@@ -598,13 +635,48 @@ export default function ProjectEditor() {
   const isBlog = area === 'posts';
   const isUpdate = area === 'updates';
   const isArticle = isBlog || isUpdate;
+  const canLeave = () => {
+    if (busyRef.current && project) return false;
+    const backedUp = recoveryRef.current?.flush();
+    if (!dirty) return true;
+    if (!recoveryRef.current?.hasChanges) return window.confirm('Leave this new entry? Nothing has been saved to GitHub. Choose Cancel to keep editing.');
+    return window.confirm(backedUp
+      ? 'Leave this entry? Your changes have not been saved to GitHub. A recovery copy is kept in this browser. Choose Cancel to keep editing.'
+      : 'Leave this entry? Unsaved changes may be lost because a recovery copy could not be saved. Choose Cancel to keep editing.');
+  };
+  const activateRoute = async (next: EditorRoute) => {
+    const sequence = ++requestSequence.current;
+    setArea(next.area); setRoute(next); setProject(null); setBaseline(null); setProjects([]);
+    setNotice(''); setError(''); setSuggestedFilename(''); setSelectedRecovery(''); setShowConversionPreview(false); setShowUpdateStarter(false);
+    if (!next.area) { setBusy(false); return; }
+    setBusy(true);
+    try {
+      const [list, loaded] = await Promise.all([
+        api<{ entries: ProjectListItem[]; branch: string }>(`/api/content/${next.area}`),
+        next.filename ? api<Project>(`/api/content/${next.area}/${encodeURIComponent(next.filename)}`) : Promise.resolve(null),
+      ]);
+      if (sequence !== requestSequence.current) return;
+      setProjects(list.entries); setBranch(list.branch);
+      const entry = loaded || (next.draftId ? freshEntry(next.area) : null);
+      if (entry) {
+        setProject(entry); setBaseline(entry); setSavedSnapshot(loaded ? JSON.stringify(entry) : '');
+        setShowUpdateStarter(!loaded && next.area === 'updates');
+        setBodyEditorSession(session => session + 1);
+      }
+    } catch (error) { if (sequence === requestSequence.current) setError((error as Error).message); }
+    finally { if (sequence === requestSequence.current) setBusy(false); }
+  };
+  const navigation = useEditorNavigation({ enabled: typeof viewer === 'string', activate: next => { void activateRoute(next); }, canLeave, onError: setError });
+  const recoveryScope = typeof viewer === 'string' ? JSON.stringify([API, workspace, viewer.toLowerCase()]) : null;
+  const recovery = useEditorRecovery({ scope: recoveryScope, route, project, baseline });
+  recoveryRef.current = recovery;
   useEffect(() => {
-    if (!dirty) return;
-    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); };
+    if (!dirty && !(busy && project)) return;
+    // returnValue also supports browsers that still require the legacy signal.
+    const warn = (event: BeforeUnloadEvent) => { recoveryRef.current?.flush(); event.preventDefault(); event.returnValue = true; };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
-  }, [dirty]);
-  const canLeave = () => !dirty || window.confirm('Discard unsaved changes? Choose Cancel to return to the editor and save your work.');
+  }, [dirty, busy, !!project]);
 
   const sortedProjects = useMemo(() => [...projects].sort((a, b) => a.name.localeCompare(b.name)), [projects]);
 
@@ -619,8 +691,9 @@ export default function ProjectEditor() {
   };
 
   useEffect(() => {
-    void api<{ authenticated: boolean; login?: string }>('/api/session')
+    void api<{ authenticated: boolean; login?: string; workspace?: string }>('/api/session')
       .then((session) => {
+        setWorkspace(session.workspace || 'geobtaa/geobtaa.github.io#custom-cms');
         setViewer(session.authenticated ? (session.login || 'GitHub user') : null);
       })
       .catch((err) => { setViewer(null); setError((err as Error).message); });
@@ -628,8 +701,10 @@ export default function ProjectEditor() {
 
   const logout = async () => {
     if (!canLeave()) return;
-    await api('/api/auth/logout', { method: 'POST' });
-    setArea(null); setProject(null); setProjects([]); setViewer(null); setNotice(''); setError('');
+    try { await api('/api/auth/logout', { method: 'POST' }); }
+    catch (error) { setError((error as Error).message); return; }
+    navigation.replace({ area: null });
+    setArea(null); setRoute({ area: null }); setProject(null); setBaseline(null); setProjects([]); setViewer(null); setNotice(''); setError('');
   };
 
   if (viewer === undefined) return <main className="editor-shell"><p>Checking GitHub sign-in…</p></main>;
@@ -638,38 +713,13 @@ export default function ProjectEditor() {
       <p className="eyebrow">Staging</p><h1>Content editor</h1>
       <p>Sign in with a GitHub account that can write to <code>geobtaa/geobtaa.github.io</code>.</p>
       {error && <p className="message error" role="alert">{error}</p>}
-      <a className="button primary" href={`${API}/api/auth/login`}>Sign in with GitHub</a>
+      <a className="button primary" href={`${API}/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)}`}>Sign in with GitHub</a>
     </main>
   );
 
-  const open = async (filename: string) => {
-    if (!area || busy) return;
-    setBusy(true); setError(''); setNotice('');
-    try {
-      const loaded = await api<Project>(`/api/content/${area}/${encodeURIComponent(filename)}`);
-      setProject(loaded); setSavedSnapshot(JSON.stringify(loaded)); setSuggestedFilename('');
-      setShowUpdateStarter(false); setShowConversionPreview(false);
-      setBodyEditorSession((session) => session + 1);
-    }
-    catch (err) { setError((err as Error).message); }
-    finally { setBusy(false); }
-  };
-
-  const create = () => {
-    if (!area || busy) return;
-    setError(''); setNotice('');
-    setProject({ filename: '', content: '', title: '', description: '', draft: isArticle, body: '', date: isArticle ? todayCalendar() : '', excerpt: '', authors: isUpdate ? [{ name: 'BTAA-GIN Staff' }] : [], tags: isUpdate ? ['Program Updates'] : [], cover: null, metadata: {}, frontmatterFields: [] });
-    setShowUpdateStarter(isUpdate); setShowConversionPreview(false);
-    setSuggestedFilename(''); setSavedSnapshot('');
-    setBodyEditorSession((session) => session + 1);
-  };
-
-  const selectArea = (nextArea: AreaName | null) => {
-    if (busy || !canLeave()) return false;
-    setArea(nextArea); setProject(null); setProjects([]); setNotice(''); setError('');
-    if (nextArea) void loadList(nextArea);
-    return true;
-  };
+  const open = (filename: string) => { if (area) navigation.navigate({ area, filename }); };
+  const create = () => { if (area) navigation.navigate({ area, draftId: crypto.randomUUID() }); };
+  const selectArea = (nextArea: AreaName | null) => navigation.navigate({ area: nextArea });
 
   const save = async (alternative?: string) => {
     if (!project || !area || !config || busy) return;
@@ -697,7 +747,10 @@ export default function ProjectEditor() {
         }),
       });
       const next = { ...project, ...saved, filename: saved.filename || filename, draft: saved.draft ?? project.draft };
-      setProject(next); setSavedSnapshot(JSON.stringify(next)); setSuggestedFilename('');
+      recovery.saved();
+      const savedRoute: EditorRoute = { area, filename: next.filename };
+      navigation.replace(savedRoute); setRoute(savedRoute);
+      setProject(next); setBaseline(next); setSavedSnapshot(JSON.stringify(next)); setSuggestedFilename('');
       setShowConversionPreview(false); setShowUpdateStarter(false);
       setBranch(saved.branch || 'custom-cms');
       setNotice(`Changes saved to staging (commit ${saved.commitSha.slice(0, 7)}).`);
@@ -709,6 +762,69 @@ export default function ProjectEditor() {
     } finally { setBusy(false); }
   };
 
+  const entryCopies = recovery.copies.filter(copy => routeKey(copy.route) === routeKey(route));
+  const candidate = entryCopies.find(copy => copy.id === selectedRecovery) || entryCopies[0];
+  const staleRecovery = !!candidate && (candidate.baseSha !== (project?.sha || null));
+  const restore = async (copy: RecoveryCopy) => {
+    if (!project || !area || busyRef.current || recovery.hasChanges || !recoveryScope) return;
+    setBusy(true); setError('');
+    try {
+      const stored = parseRecovery(window.localStorage.getItem(recoveryKey(recoveryScope, copy.id)) || '');
+      if (!stored || stored.revision !== copy.revision) { recovery.refresh(); throw new Error('That recovery copy changed. Review its latest version before restoring.'); }
+      const fresh = route.filename ? await api<Project>(`/api/content/${area}/${encodeURIComponent(route.filename)}`) : project;
+      if (!route.filename) await api(`/api/content/${area}`);
+      if ((fresh.sha || null) !== copy.baseSha) {
+        setProject(fresh); setBaseline(fresh); setSavedSnapshot(JSON.stringify(fresh)); setBodyEditorSession(session => session + 1);
+        throw new Error('The repository version changed. The latest version is open below; download the recovery copy to compare and reapply your changes.');
+      }
+      const recovered = restoreRecovery(fresh, route, copy);
+      recovery.restored(copy);
+      setBaseline(fresh); setSavedSnapshot(fresh.sha ? JSON.stringify(fresh) : ''); setProject(recovered);
+      setShowUpdateStarter(false); setShowConversionPreview(false); setBodyEditorSession(session => session + 1);
+      setNotice('Unsaved edits restored from this device. Review them, then use Save changes to save to GitHub.');
+    } catch (error) { setError((error as Error).message); }
+    finally { setBusy(false); }
+  };
+  const discardRecovery = (copy: RecoveryCopy) => {
+    if (window.confirm('Permanently discard this local recovery copy? This does not change the repository.')) recovery.discard(copy);
+  };
+  const storageWarning = recovery.storageError && <p className="message error" role="alert">{recovery.storageError}{recovery.hasChanges && <button type="button" className="link-button" onClick={() => { const copy = recovery.currentCopy(); if (copy) downloadRecovery(copy); }}>Download unsaved edits</button>}</p>;
+  const localDocuments = recovery.copies;
+  const recoveryList = <>
+    {storageWarning}
+    {!busy && localDocuments.length > 0 && <aside className="recovery-panel" aria-label="Local recovery copies">
+      <h2>Recovery copies on this device</h2>
+      <p>These edits have not been confirmed saved to GitHub. Open an entry to review its recovery copies.</p>
+      <ul>{localDocuments.map(copy => <li key={copy.id}>
+        <button type="button" onClick={() => navigation.navigate(copy.route)}>{copy.fields.title || copy.route.filename || `Untitled ${CONTENT_AREAS[copy.route.area!].itemLabel}`}</button>
+        <span>{CONTENT_AREAS[copy.route.area!].label} · <time dateTime={copy.savedAt}>{new Date(copy.savedAt).toLocaleString()}</time></span>
+        <div className="recovery-copy-actions">
+          <button type="button" onClick={() => downloadRecovery(copy)}>Download recovery copy</button>
+          <button type="button" onClick={() => discardRecovery(copy)}>Discard recovery copy</button>
+        </div>
+      </li>)}</ul>
+    </aside>}
+  </>;
+  const recoveryPanel = <>
+    {storageWarning}
+    {recovery.hasChanges && <div className="recovery-status">
+      <span role="status">{recovery.status === 'saved' ? 'Recovery copy saved on this device.' : recovery.status === 'error' ? 'Local recovery is unavailable.' : 'Saving a recovery copy on this device…'}</span>
+      {recovery.status === 'saved' && recovery.savedAt && <time dateTime={recovery.savedAt}>{new Date(recovery.savedAt).toLocaleTimeString()}</time>}
+      <span>Use Save changes to save to GitHub.</span>
+    </div>}
+    {candidate && <aside className="recovery-panel" aria-label="Recover unsaved edits">
+      <h2>Unsaved edits found on this device</h2>
+      <p>Recovery copy from <time dateTime={candidate.savedAt}>{new Date(candidate.savedAt).toLocaleString()}</time>.</p>
+      {entryCopies.length > 1 && <label>Recovery copy<select value={candidate.id} onChange={event => setSelectedRecovery(event.target.value)}>{entryCopies.map(copy => <option key={copy.id} value={copy.id}>{new Date(copy.savedAt).toLocaleString()} — {copy.fields.title || 'Untitled entry'}</option>)}</select></label>}
+      {staleRecovery ? <p>The repository version has changed since this copy was made. The latest version is open below. Download the copy to compare and reapply your changes.</p> : recovery.hasChanges ? <p>You already have unsaved edits open. Download this earlier copy to compare, or return to this entry before making further edits to restore it.</p> : <p>Restore these edits into the editor, then review and save them.</p>}
+      <div className="actions">
+        {!staleRecovery && <button type="button" className="primary" disabled={busy || recovery.hasChanges} onClick={() => restore(candidate)}>Restore unsaved edits</button>}
+        <button type="button" disabled={busy} onClick={() => downloadRecovery(candidate)}>Download recovery copy</button>
+        <button type="button" disabled={busy} onClick={() => discardRecovery(candidate)}>Discard recovery copy</button>
+      </div>
+    </aside>}
+  </>;
+
   const accountHeader = <header className="editor-header">
     <div><p className="eyebrow">Staging</p><h1>{area ? 'Content editor' : 'Editor dashboard'}</h1><p>Signed in as <strong>{viewer}</strong>.</p></div>
     <button className="link-button" type="button" disabled={busy} onClick={logout}>Sign out</button>
@@ -717,6 +833,7 @@ export default function ProjectEditor() {
   if (!area || !config) return (
     <main className="editor-shell">
       {accountHeader}
+      {recoveryList}
       <p className="dashboard-intro">Choose a content area to create a page or edit existing content.</p>
       {error && <p className="message error" role="alert">{error}</p>}
       <nav className="dashboard-grid" aria-label="Content areas">
@@ -727,11 +844,7 @@ export default function ProjectEditor() {
     </main>
   );
 
-  const backToList = () => {
-    if (busy || !canLeave()) return;
-    setProject(null); setNotice(''); setError(''); setSuggestedFilename('');
-    window.scrollTo({ top: 0 });
-  };
+  const backToList = () => { if (area && navigation.navigate({ area })) window.scrollTo({ top: 0 }); };
   const backToDashboard = () => { if (selectArea(null)) window.scrollTo({ top: 0 }); };
 
   if (!project) return (
@@ -741,8 +854,10 @@ export default function ProjectEditor() {
         <span className="navigation-location">{config.label}</span>
       </nav>
       {accountHeader}
+      {recoveryList}
       <p>Files are read from <code>{branch}</code>{branch === 'main' ? ' until the prototype branch is created by the first save' : ''}.</p>
       {error && <p className="message error" role="alert">{error}</p>}
+      {error && (route.filename || route.draftId) && <button type="button" disabled={busy} onClick={() => { void activateRoute(route); }}>Retry opening entry</button>}
       <label className="area-selector">Content area<select disabled={busy} value={area} onChange={(event) => selectArea((event.target.value || null) as AreaName | null)}><option value="">Dashboard — choose a content area</option>{Object.entries(CONTENT_AREAS).map(([name, item]) => <option key={name} value={name}>{item.label}</option>)}</select></label>
       <div className="list-heading"><h2>{config.label}</h2>{config.create && <button className="primary" type="button" disabled={busy} onClick={create}>New {config.itemLabel}</button>}</div>
       {busy ? <p role="status">Loading…</p> : <ul className="project-list">{sortedProjects.map((item) => <li className={item.draft && item.visibilityKnown ? 'draft-entry' : ''} key={item.path}><button type="button" onClick={() => open(item.name)}>
@@ -773,6 +888,7 @@ export default function ProjectEditor() {
           <span className="save-state">{busy ? 'Saving…' : !project.sha ? 'Not saved yet' : dirty ? 'Unsaved changes' : 'No unsaved changes'}</span>
         </div>
       </section>
+      {recoveryPanel}
       {notice && <p className="message success" role="status">{notice}</p>}
       {error && <p className="message error" role="alert">{error}</p>}
       {isArticle && project.sha && <p>Saved URL: /{area}/{project.filename.replace(/\.mdx?$/, '').replace(/\/index$/, '')}/</p>}
