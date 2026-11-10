@@ -36,10 +36,10 @@ the existing content schemas, sidebar organization and collapse behavior,
 reverse-chronological sorting, and previous/next navigation.
 
 Unused dependencies were removed after checking code and configuration references.
-Editor tests were repaired, navigation regression tests were added, and pull
-requests now run a validation-only CI workflow.
+Navigation regression tests were added, and pull requests now run a
+validation-only CI workflow.
 
-Validation passed: 168 generated pages, all internal links valid, 40 editor tests,
+Validation passed: 168 generated pages, all internal links valid,
 two navigation tests, and Astro type checking with no errors. Routes, sidebar
 output, and parsed content were compared against the Astro 5 baseline. Local
 browser testing was also completed by the maintainer.
@@ -52,7 +52,6 @@ content published on the website.
 
 - [Local setup](docs/LOCAL_SETUP.md)
 - [Local Decap CMS testing](docs/DECAP_LOCAL.md)
-- [Cloudflare content editor prototype](docs/CLOUDFLARE_EDITOR_PROTOTYPE.md)
 - [Conference map gallery maintenance](docs/how-to-update-conf-map-gallery.md)
 - [Data Citation Generator overview](docs/data-citation-generator.md)
 - [Data Citation Generator autofill crosswalk](docs/data-citation-autofill-crosswalk.md)
@@ -68,7 +67,6 @@ All commands are run from the root of the project, from a terminal:
 | `npm run decap`           | Starts the Decap local backend proxy             |
 | `npm run build`           | Build your production site to `./dist/`          |
 | `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run test:editor`     | Run the content editor tests                      |
 | `npm run test:navigation` | Check navigation in the built site; run after build |
 | `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `npm run astro -- --help` | Get help using the Astro CLI                     |
