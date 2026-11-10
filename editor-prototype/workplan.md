@@ -1,6 +1,8 @@
-The prototype already supports several content directories, image uploads, tables, editable LinkCards, protected MDX blocks, and hosted GitHub sign-in. Saves go to `custom-cms`; `posts` and `updates` are now enabled. Program updates use optional starter headings and a flexible article body, with opt-in conversion previews for existing structured and MDX entries. Continue hosted validation before the coworker usability test in step 6. Coworker rollout and version 1 release follow that test.
+The prototype supports blog posts, the enabled documentation areas, Program Updates, image uploads and formatting, tables, editable content blocks, protected MDX, and hosted GitHub sign-in. Current saves still go to `custom-cms`. Program Updates now has an optional outline, a flexible article body, and conversion previews for older content. Chip List and Card Grid blocks and icon formatting toolbars are implemented across the editor.
 
-Implementation note: blog saves commit to staging. Production builds still omit drafts, so hosted draft previews and deployment-status tracking remain separate work. Unsaved-change warnings and failed-save handling keep work in the open editor; before reloading, editors can copy unsaved text and field changes into a separate document.
+Review status (November 9, 2026): the editing features and local/automated checks are complete for the implemented prototype flows. The main unfinished work is the production publishing workflow in step 3, followed by hosted end-to-end validation and coworker testing. The newer publishing plan keeps release 1 focused on blog posts and enabled documentation; Program Updates editing is already implemented, but its production publishing rollout remains separate. Optional authenticated saved-draft previews are phase 2.
+
+Implementation note: existing blog saves still commit to staging. The agreed direction is separate Save Draft and Publish actions, shared per-document working branches, narrow automatic publishing PRs, and verified production deployment. Optional authenticated previews are phase 2. See the [publishing implementation plan](../docs/CMS_PUBLISHING_PLAN.md) for design, safeguards, transition, and launch prerequisites. Completed checkboxes below record prototype behavior; step 3 supersedes the editorial visibility switch and shared staging publication model.
 
 1. Confirm the blog post content model
 
@@ -35,49 +37,58 @@ Support creating and editing blog posts with the existing fields and Markdown/MD
 - [x] Add LinkButton insertion and property editing for plain button text, URL, and appearance; preserve unsupported buttons as protected MDX
 - [x] Use the existing rich-text body editor, image uploads, tables, editable LinkCards, and protected MDX blocks for blog content
 - [x] Preserve custom component imports and entire protected blocks verbatim, including nested content; keep surrounding Markdown editable
-- [ ] Improve navigation, saving, and previews for the blog workflow
+- [x] Improve prototype navigation and save-state feedback; production publishing and optional rendered previews remain tracked separately below
 - [x] Open on a dashboard with no content area selected; add prominent back buttons to content lists and editing views, keep top navigation visible while scrolling, and preserve unsaved-change prompts
 - [x] Add matching Save buttons at the top and bottom; distinguish unsaved changes from visibility, highlight saved drafts in content lists, and label navigation-only hiding separately
 - [x] Warn before leaving unsaved changes and preserve work in the open editor after failed saves, expired sessions, and stale-file conflicts; document how to copy unsaved changes before reloading
-- [ ] Distinguish unsaved changes, saved commits, deployment in progress, and a preview ready to view; ensure preview links show the intended saved version and explain whether unsaved content is included
+- [x] Distinguish unsaved changes, saving, and a saved staging commit in the prototype
+- [ ] Add verified publishing/deployment states under step 3; do not infer that a saved commit is live
+- [ ] Phase 2: add rendered saved-draft previews with exact-version links and readiness status; conversion previews are implemented but do not provide a hosted page preview
 - [x] Improve ordinary Markdown image insertion and editing with source, alt text, and optional captions stored as image titles; show centered images and captions in the existing editor, preserve unchanged image syntax, and keep legacy MDX protected
 - [x] Add compatible image resize handles, width entry, and left/center/right alignment to the existing editor; store formatting in a narrow HTML figure around the Markdown image, preserve captions and asset paths, and provide Reset formatting
-- [ ] Verify image selection, upload, alt text, and cover images in blog posts; document that uploads commit separately and decide how unused uploads are handled
-- [ ] Check keyboard navigation, field labels, dialog focus, error messages, and usability on smaller screens
+- [x] Verify body-image selection, upload, alt text, captions, formatting, and save/reopen in isolated browser tests; cover metadata validation and preservation are covered by unit/API tests
+- [x] Document the prototype's separate upload commits and retained unused uploads; document working-branch upload isolation and publication asset selection as future step 3 work
+- [ ] Complete cover-image picker/upload/removal and save/reopen checks in the browser and hosted workflow
+- [x] Check representative keyboard interactions, labels, focus behavior, error feedback, and smaller-screen layouts with the automated prototype browser suite
+- [x] Replace formatting-toolbar words with icons in both main and card-content editors, retaining tooltips, accessible names, focus indicators, and active/disabled states
+- [ ] Complete manual keyboard and assistive-technology review alongside coworker usability testing
 
 3. Finalize publishing
 
-Separate development from publishing, establish production validation, and document the staging-to-live workflow.
+Implement the [detailed publishing plan](../docs/CMS_PUBLISHING_PLAN.md). Planning is complete; the following implementation and administrative checks remain pending. Keep the existing Cloudflare staging setup operational during transition.
 
-- [ ] Define branch and merge strategy
-- [ ] Decide how editor code changes and content saves are isolated so unfinished editor development does not enter a content publishing PR
-- [ ] Define who reviews and merges content from staging to `main`, how unrelated staged edits are excluded when needed, and how staging stays synchronized with production
-- [x] Use Save changes consistently and honor the Hide from site (draft) checkbox; explain that a save to staging does not mean the content is live
-- [ ] Verify draft visibility on direct URLs, blog listings, navigation, search, and any feeds or sitemap; decide how authorized editors preview hidden drafts
-- [ ] Require successful builds
-- [ ] Make the existing validation workflow a required merge check, confirm its triggers cover publishing changes, and verify the approved commit deploys successfully to GitHub Pages
-- [ ] Confirm the editor's hosted URL and API host for routine use; GitHub Pages serves the public site while the hosted editor API currently runs on Cloudflare Pages
-- [ ] Document rollback and access settings
-- [ ] Verify hosted sign-in, repository permissions, optional user allowlist, session expiry, logout, and rejection of unauthorized writes before expanding access
-- [ ] Document how to recover from a failed staging build, failed live deployment, or incorrect content publish, including image changes and staging synchronization after rollback
-- [ ] Define how the prototype and existing Decap `/admin` editor coexist during rollout, including how editors avoid conflicting changes
+- [x] Define stable application deployment, draft metadata/lifecycle, publication scope, permissions/checks, deployment tracking, recovery, previews, and Decap transition in the detailed plan
+- [ ] Prepare a clean application release branch from current `main`; transfer reviewed editor changes without staging content/history
+- [ ] Provision a stable same-origin Cloudflare editor/API deployment tracking `main`, retaining existing `custom-cms` staging during transition
+- [ ] Add shared document working branches based on current `main`, draft discovery/reopening, isolated uploads, and concurrent-save protection
+- [ ] Replace the editorial Draft/Published switch with Save Draft and Publish; automatically manage underlying `draft` frontmatter without hiding the existing live page
+- [ ] Implement fixed single-document publication snapshots, required-asset selection, collision protection, stale-main conflicts, and idempotent PR creation/automatic merging
+- [ ] Add an independent required publication-scope check and make existing validation required; verify actual repository rules and intended editor account capabilities
+- [ ] Verify production draft exclusion from routes, navigation, listings, search, sitemap, and feeds present
+- [ ] Track the exact published revision through production deployment, overlapping/canceled runs, and served build verification before reporting Published
+- [ ] Restrict production Pages deployment to `main`, including manual workflow dispatch
+- [ ] Verify authorization on writes, allowlist, session expiry/logout, same-origin protection, and expired-session recovery
+- [ ] Implement concise failure states and document manual deployment/conflict/revert recovery
+- [ ] Inventory legacy/Decap drafts and transfer content-area ownership during rollout; prevent both editors from editing migrated areas
+- [ ] Phase 2: verify existing Cloudflare branch preview controls/Access, isolate preview credentials, render only the selected draft, and link to the exact saved deployment
 
 4. Validate and refine blog posts
 
-Validate representative blog editing tasks and resolve issues before moving on to program updates.
+Validate representative editing tasks against the completed prototype, then exercise the new publishing workflow once step 3 is implemented. Program Updates editing is already implemented in step 5.
 
 - [x] Add regression coverage for blog creation and metadata, existing post formats, protected MDX, unchanged content, duplicate filenames, and stale-file conflicts
 - [x] Verify title-derived slugs omit automatic date prefixes, remain unchanged after title/date/metadata edits, and leave existing filenames and URLs intact; test unique alternatives, equivalent route collisions, and simultaneous creation without overwrites
 - [x] Verify representative posts with custom layout components survive opening, editing surrounding Markdown, saving, and reloading without changes to the protected MDX
 - [x] Run `npm run test:editor`, Astro sync/check, `npm run build`, and `npm run test:navigation` against representative blog posts
-- [ ] Exercise the full hosted workflow: sign in, create a draft, edit an existing entry, upload an image, save, preview, review, publish, and verify the live page and blog listing
-- [ ] Test recovery from unsaved navigation, session expiry, a network failure, concurrent edits, and a failed build without losing the editor's work
-- [ ] Fix essential issues
+- [ ] Exercise phase 1 hosted workflow: sign in, create/reopen a draft, edit an existing entry, upload an image, save, publish through required checks, and verify the deployed live page and listings; add optional preview testing in phase 2
+- [x] Test unsaved-navigation cancellation/discard, stale-save rejection, and retention of open edits after a simulated failed conversion save
+- [ ] Exercise expired-session/reauthentication, network uncertainty, failed validation/build/deployment, refresh/relogin, and concurrent publication recovery through the real hosted workflow; prototype tests do not establish these release guarantees
+- [ ] Resolve remaining issues discovered during hosted publishing/recovery validation
 - [x] Update `editor-prototype/README.md` with blog post fields, supported body content, preview behavior, publishing responsibilities, and recovery instructions
 
-5. Add program updates after blog post refinement
+5. Program Updates prototype implementation
 
-Treat program updates as a separate content model and editor workflow. Enable and validate them before showing the editor to coworkers.
+The separate Program Updates editing workflow is implemented and has local, API, browser, and representative rendered-page validation. This completes the prototype implementation, not production publication/cutover. The scoped release 1 publishing plan still covers blog posts and enabled documentation; coordinate Program Updates ownership and publishing rollout separately.
 
 - [x] Audit update frontmatter, older MDX bodies, and newer `programUpdate` data rendered by `ProgramUpdateStructured`
 - [x] Design the simplified program update template and decide whether it uses Markdown, structured fields, or a combination
@@ -90,12 +101,21 @@ Treat program updates as a separate content model and editor workflow. Enable an
 
 6. Run coworker usability test and release
 
-Show coworkers the editor after both blog posts and program updates are ready, then address their feedback before routine use.
+Show coworkers the editor after routine blog and enabled documentation publishing work end to end. Program Updates prototype editing is complete and can be included in editing feedback, while its production publishing/cutover remains separate. Optional authenticated previews follow in phase 2.
 
-- [ ] Create a short editor guide covering both blog posts and program updates
+- [x] Document implemented prototype editing, Program Updates conversion, content blocks, icon toolbars, staging saves, and recovery limits in `editor-prototype/README.md`
+- [ ] Create a short coworker guide for the final Save Draft / Publish workflow and a maintainer recovery/cutover runbook after step 3
 - [ ] Run coworker usability test
-- [ ] Include creating and editing both a blog post and a program update; confirm coworkers can distinguish saving, previewing, hiding, and publishing without assistance
+- [ ] Include creating a blog post and updating a documentation page; confirm coworkers can distinguish saved drafts, publishing, and verified live content without assistance
 - [ ] Fix essential issues found during the usability test
-- [ ] Agree on release criteria: both content types work end to end, existing content is preserved, publishing checks pass, and no unresolved data-loss or access issues remain
-- [ ] Release version 1 with blog post and program update support
+- [ ] Agree on release criteria: blog/documentation publishing works end to end, existing content is preserved, publication scope and validation are enforced, deployment is verified, and no unresolved data-loss or access issues remain
+- [ ] Release version 1 with verified blog/documentation publishing; roll out Program Updates publishing separately after its production scope and cutover are ready
 - [ ] Start with a small group of editors, identify a support contact, and record follow-up improvements after the first routine publishing cycle
+
+Next implementation sequence
+
+1. Review live repository rules, intended editor-account permissions, Cloudflare/OAuth settings, and legacy drafts; prepare the clean application release branch from `main` without importing staging content/history. These live settings have not been verified by the local tests.
+2. Implement shared per-document working branches, isolated uploads, discovery/reopening, concurrent-save protection, and **Save Draft**, following `docs/CMS_PUBLISHING_PLAN.md`.
+3. Implement **Publish** using fixed single-document snapshots, an independent required scope check, required validation, and idempotent automatic PR merging.
+4. Track and verify the exact production deployment, finish failure/recovery states, and validate one new blog post and one documentation update end to end. Include the outstanding cover-image and recovery checks.
+5. Deploy the stable editor, complete the user/maintainer guides and area-by-area Decap cutover, and run coworker usability testing before release. Schedule Program Updates production publishing separately; optional saved-draft previews remain phase 2.
