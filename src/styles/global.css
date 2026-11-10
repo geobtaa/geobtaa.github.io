@@ -5,6 +5,8 @@
 /* ========== FONT IMPORTS (headings/body) ========== */
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600&family=Lora:ital,wght@0,400;0,700;1,400&family=Work+Sans:wght@600;700;900&display=swap');
 
+@import './badges.css';
+
 /* ========== GLOBAL BRAND ========== */
 :root {
 /* Brand palette */
