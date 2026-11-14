@@ -1,6 +1,8 @@
 import { isMap, parseDocument, stringify } from 'yaml';
 import { applyPageMetadata, parsePageMetadata } from './pageMetadata.mjs';
 import { contentVisibility, parseContent } from './content.mjs';
+import { validateComponentLinks } from './componentLinks.mjs';
+import { validateDocument } from './validateDocument.mjs';
 
 const FRONTMATTER = /^(---\r?\n)([\s\S]*?)(\r?\n---\r?\n(?:\r?\n)?)([\s\S]*)$/;
 const fields = ['title', 'date', 'draft', 'description', 'excerpt', 'authors', 'tags', 'cover'];
@@ -39,6 +41,7 @@ export function parseBlog(content) {
 export function validateBlog(input, existing) {
   if (typeof input.title !== 'string' || !input.title.trim()) throw invalid('Title is required.');
   if (typeof input.body !== 'string') throw invalid('Body must be text.');
+  validateComponentLinks(input.body);
   if (typeof input.draft !== 'boolean') throw invalid('Hide from site must be true or false.');
   const date = input.date;
   // Do not force an untouched legacy post to acquire a missing optional date.
@@ -111,6 +114,7 @@ export function postSlug(title) {
 export async function saveBlog(github, filename, input) {
   if (!filename) {
     const content = newBlog(input);
+    await validateDocument(content);
     const saved = await github.createBlog({ title: input.title, suggestedFilename: input.suggestedFilename, content });
     return { ...saved, content, ...parseBlog(content), ...parsePageMetadata(content), ...contentVisibility(content) };
   }
@@ -119,6 +123,7 @@ export async function saveBlog(github, filename, input) {
   if (loaded.sha !== input.sha) throw Object.assign(new Error('This page has changed in GitHub since you opened it. Your edits are still here; copy them before reloading.'), { status: 409 });
   // Use authoritative frontmatter, never a client-supplied originalContent.
   const content = serializeBlog(loaded.content, { ...parseBlog(loaded.content), ...input });
+  await validateDocument(content, { filename, originalBody: parseBlog(loaded.content).body });
   const saved = await github.saveContent({ area: 'posts', filename, content, sha: input.sha });
   return { ...saved, filename, content, ...parseBlog(content), ...parsePageMetadata(content), ...contentVisibility(content) };
 }

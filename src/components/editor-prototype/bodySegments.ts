@@ -1,100 +1,62 @@
+import { parseBodySyntax, supportedMarkdownNode, type SourceFormat } from './contentSyntax.ts';
+import type { MdxjsEsm } from 'mdast-util-mdxjs-esm';
 import { matchFormattedImage } from './formattedImage.ts';
 import { parseSimpleComponentMdx } from './simpleComponents.ts';
-import { matchLinkButtonBlock, parseLinkButtonMdx } from './linkButtonMdx.ts';
-import { matchLinkCardBlock, parseLinkCardMdx } from './linkCardMdx.ts';
+import { parseLinkButtonMdx } from './linkButtonMdx.ts';
+import { parseLinkCardMdx } from './linkCardMdx.ts';
 import { parseCollectionMdx } from './collectionMdx.ts';
 
 export type BodySegment = { id: number; kind: 'markdown' | 'protected' | 'structured'; content: string };
 
-export function splitBody(body: string, { mergeProtected = true } = {}): BodySegment[] {
-  const lines = body.match(/[^\n]*\n|[^\n]+$/g) || [];
+export function splitBody(body: string, { mergeProtected = true, format = 'mdx' as SourceFormat } = {}): BodySegment[] {
+  if (!body.trim()) return [{ id: 0, kind: 'markdown', content: body }];
+  let tree;
+  try { tree = parseBodySyntax(body, format); }
+  catch {
+    // Uncertain syntax is never partially exposed to a lossy editor. The API
+    // reports syntax errors on save; the original source remains available.
+    return [{ id: 0, kind: 'protected', content: body }];
+  }
   const segments: BodySegment[] = [];
-  let markdown = '';
   const push = (kind: BodySegment['kind'], content: string) => {
     if (!content) return;
     const previous = segments.at(-1);
     if (kind !== 'structured' && (kind !== 'protected' || mergeProtected) && previous?.kind === kind) previous.content += content;
     else segments.push({ id: segments.length, kind, content });
   };
-  const flushMarkdown = () => { push('markdown', markdown); markdown = ''; };
-
-  for (let index = 0; index < lines.length;) {
-    const line = lines[index];
-    const fence = line.match(/^ {0,3}(`{3,}|~{3,})/);
-    if (fence) {
-      markdown += line; index += 1;
-      const closing = new RegExp(`^ {0,3}${fence[1][0]}{${fence[1].length},}[ \\t]*(?:\\r?\\n)?$`);
-      while (index < lines.length) {
-        const next = lines[index++]; markdown += next;
-        if (closing.test(next)) break;
+  const lineEnd = (offset: number) => {
+    const newline = body.indexOf('\n', offset);
+    const end = newline < 0 ? body.length : newline;
+    return body.slice(offset, end).trim() ? offset : newline < 0 ? end : newline + 1;
+  };
+  let cursor = 0;
+  for (const node of tree.children) {
+    let start = node.position!.start.offset!;
+    const beginning = body.lastIndexOf('\n', start - 1) + 1;
+    if (beginning >= cursor && !body.slice(beginning, start).trim()) start = beginning;
+    const end = lineEnd(node.position!.end.offset!);
+    push('markdown', body.slice(cursor, start));
+    const raw = body.slice(start, end);
+    if (node.type === 'mdxjsEsm') {
+      // The AST can group consecutive imports. Keep individual statements for
+      // the existing explicit Program Update conversion, including multiline JS.
+      const program = (node as MdxjsEsm).data?.estree;
+      const statements = program?.comments?.length ? [] : program?.body || [];
+      let offset = start;
+      for (const statement of statements) {
+        const next = statement.range && lineEnd(statement.range[1]);
+        if (next && next <= end) { push('protected', body.slice(offset, next)); offset = next; }
       }
-      continue;
-    }
-    if (/^\s*(import|export)\s/.test(line)) {
-      flushMarkdown(); let block = line; index += 1;
-      // Multiline imports must not expose the imported names as Markdown.
-      if (/^\s*import\b/.test(line) && !/\bfrom\s*['"]|^\s*import\s*['"]/.test(line)) {
-        while (index < lines.length) {
-          const next = lines[index++]; block += next;
-          if (/\bfrom\s*['"]/.test(next)) break;
-        }
-      }
-      push('protected', block); continue;
-    }
-    if (/^\s*:::/.test(line)) {
-      flushMarkdown(); let block = line; index += 1;
-      while (index < lines.length) { block += lines[index]; if (/^\s*:::\s*$/.test(lines[index])) { index += 1; break; } index += 1; }
-      push('protected', block); continue;
-    }
-    if (/^\s*\{/.test(line)) {
-      flushMarkdown(); let block = line; index += 1;
-      let depth = (line.match(/\{/g) || []).length - (line.match(/\}/g) || []).length;
-      while (index < lines.length && depth > 0) {
-        block += lines[index];
-        depth += (lines[index].match(/\{/g) || []).length - (lines[index].match(/\}/g) || []).length;
-        index += 1;
-      }
-      push('protected', block); continue;
-    }
-    if (/^\s*<LinkCard\b/.test(line)) {
-      let block = line; index += 1;
-      while (!block.includes('/>') && index < lines.length) { block += lines[index]; index += 1; }
-      flushMarkdown();
-      if (matchLinkCardBlock(block) === block && parseLinkCardMdx(block)) push('structured', block);
-      else push('protected', block);
-      continue;
-    }
-    const formatted = line.startsWith('<figure data-cms-image="true"') ? matchFormattedImage(lines.slice(index).join('')) : null;
-    if (formatted) {
-      markdown += formatted.raw;
-      index += formatted.raw.split('\n').length;
-      // The match excludes the final line ending, which belongs to this line.
-      markdown += lines[index - 1]?.match(/\r?\n$/)?.[0] || '';
-      continue;
-    }
-    const tag = line.match(/<([A-Za-z][\w.-]*)\b/);
-    if (tag && (/^\s*</.test(line) || /^[A-Z]/.test(tag[1]))) {
-      flushMarkdown(); let block = line; index += 1;
-      const name = tag[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const tags = new RegExp(`<(/?)${name}(?=[\\s/>])(?:[^>"']|"[^"]*"|'[^']*')*>`, 'g');
-      const complete = () => {
-        const matches = [...block.matchAll(tags)];
-        if (!matches.length) return false;
-        let depth = 0;
-        for (const match of matches) depth += match[1] ? -1 : /\/\s*>$/.test(match[0]) ? 0 : 1;
-        return depth === 0;
-      };
-      while (!complete() && index < lines.length) {
-        block += lines[index++];
-      }
-      if (parseSimpleComponentMdx(block) || parseCollectionMdx(block) || (tag[1] === 'LinkButton' && matchLinkButtonBlock(block) === block && parseLinkButtonMdx(block))) push('structured', block);
-      else push('protected', block);
-      continue;
-    }
-    markdown += line; index += 1;
+      push('protected', body.slice(offset, end));
+    } else if (parseLinkCardMdx(raw) || parseLinkButtonMdx(raw) || parseSimpleComponentMdx(raw) || parseCollectionMdx(raw)) {
+      push('structured', raw);
+    } else if (matchFormattedImage(raw)?.raw === raw.replace(/\r?\n$/, '') || supportedMarkdownNode(node)) {
+      push('markdown', raw);
+    } else push('protected', raw);
+    cursor = end;
   }
-  flushMarkdown();
-  return segments.length ? segments : [{ id: 0, kind: 'markdown', content: '' }];
+  push('markdown', body.slice(cursor));
+  return segments.length ? segments : [{ id: 0, kind: 'markdown', content: body }];
 }
 
 // Whitespace-only segments separate blocks but are not reorder targets.

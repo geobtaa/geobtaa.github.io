@@ -34,5 +34,6 @@ jobs:
       - run: npm run astro -- sync
       - run: npm run astro -- check
       - run: npm run test:editor
+      - run: npm run test:editor:render
       - run: npm run build -- --timings
       - run: npm run test:navigation

@@ -1,4 +1,4 @@
-import { MarkdownManager } from '@tiptap/markdown';
+import { parseBodySyntax, supportedMarkdownNode } from './contentSyntax.ts';
 import { encodeAttribute, decodeAttribute } from './linkCardMdx.ts';
 import { ensureDefaultComponentImport } from './starlightImports.ts';
 import { parseCollectionData } from '../editor-blocks/data.mjs';
@@ -21,14 +21,9 @@ export function emptyCollectionData(kind: CollectionKind): CollectionData {
 }
 
 // Keep unfamiliar card content protected rather than letting an editor drop it.
-const lexer = new MarkdownManager({ extensions: [] }).instance;
-const cardTokens = new Set(['space', 'paragraph', 'text', 'escape', 'strong', 'em', 'link', 'list', 'list_item', 'codespan', 'code', 'br', 'del', 'heading', 'blockquote', 'hr', 'def']);
 export function supportedCardBody(body: string) {
-  let supported = true;
-  lexer.walkTokens(lexer.lexer(body), token => {
-    if (!cardTokens.has(token.type) || (token.type === 'list_item' && token.task)) supported = false;
-  });
-  return supported;
+  const allowed = (node: Parameters<typeof supportedMarkdownNode>[0]): boolean => !['image', 'table', 'html'].includes(node.type) && supportedMarkdownNode(node) && (!node.children || node.children.every(allowed));
+  return parseBodySyntax(body, 'md').children.every(allowed);
 }
 
 export function createCollectionMdx(kind: CollectionKind, data: CollectionData) {

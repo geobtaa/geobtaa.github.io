@@ -1,7 +1,7 @@
 import { formatImage, matchFormattedImage } from './formattedImage.ts';
 import StarterKit from '@tiptap/starter-kit';
 import { TableKit } from '@tiptap/extension-table';
-import { Markdown } from '@tiptap/markdown';
+import { MdxMarkdown, LiteralEntities, SafeCodeBlock, SafeLink } from './MdxMarkdown.ts';
 import Image from '@tiptap/extension-image';
 import { mergeAttributes, ResizableNodeView, type Editor, type EditorOptions } from '@tiptap/core';
 import { SimpleComponentBlocks } from './SimpleComponentBlock.ts';
@@ -11,7 +11,7 @@ import { CollectionBlocks } from './CollectionBlockViews.ts';
 
 type EditImage = (position: number, image: { src: string; alt: string; title: string }) => void;
 
-export function repositoryImage(previewBase = '', onEditImage?: EditImage) {
+export function repositoryImage(previewBase = '', onEditImage?: EditImage, readOnlyPreview = false, articlePreview = true) {
   return Image.extend({
     addAttributes() {
       return {
@@ -59,6 +59,30 @@ export function repositoryImage(previewBase = '', onEditImage?: EditImage) {
     // Reuse the existing caption/edit controls and Tiptap’s aspect-ratio-preserving resize view.
     addNodeView() {
       return ({ node, getPos, editor }) => {
+        if (readOnlyPreview) {
+          const figure = document.createElement('figure');
+          figure.className = 'editor-image preview-image';
+          figure.contentEditable = 'false';
+          figure.dataset.article = String(articlePreview);
+          const image = document.createElement('img');
+          const caption = document.createElement('figcaption');
+          figure.append(image, caption);
+          const render = (attrs: typeof node.attrs) => {
+            image.src = imagePreviewUrl(String(attrs.src || ''), previewBase);
+            image.alt = attrs.alt || '';
+            image.title = attrs.title || '';
+            figure.dataset.align = attrs.align || '';
+            figure.dataset.formatted = String(!!(attrs.align || attrs.width));
+            figure.style.width = attrs.width ? `${attrs.width}px` : '';
+            caption.textContent = attrs.title || '';
+            caption.hidden = !attrs.title || !(articlePreview || attrs.align || attrs.width);
+          };
+          render(node.attrs);
+          return { dom: figure, ignoreMutation: () => true, update(updated) {
+            if (updated.type !== node.type) return false;
+            render(updated.attrs); return true;
+          } };
+        }
         const figure = document.createElement('figure');
         figure.className = 'editor-image';
         figure.contentEditable = 'false';
@@ -155,20 +179,24 @@ export function imagePreviewUrl(source: string, previewBase = ''): string {
   return `${previewBase}/api/images/file/${path}`;
 }
 
-export function richTextEditorOptions(initialContent: string, onChange: (markdown: string) => void, previewBase = '', onEditImage?: EditImage, readOnlyPreview = false): Partial<EditorOptions> {
+export function richTextEditorOptions(initialContent: string, onChange: (markdown: string) => void, previewBase = '', onEditImage?: EditImage, readOnlyPreview = false, articlePreview = true): Partial<EditorOptions> {
   return {
     extensions: [
-      StarterKit.configure({ link: { openOnClick: false }, trailingNode: { notAfter: ['linkCardBlock', 'linkButtonBlock', ...SimpleComponentBlocks.map((block) => block.name), ...CollectionBlocks.map(block => block.name)] } }),
+      StarterKit.configure({ codeBlock: false, link: false, undoRedo: readOnlyPreview ? false : {}, trailingNode: { notAfter: ['linkCardBlock', 'linkButtonBlock', ...SimpleComponentBlocks.map((block) => block.name), ...CollectionBlocks.map(block => block.name)] } }),
+      SafeCodeBlock,
+      SafeLink.configure({ openOnClick: false }),
       TableKit,
-      repositoryImage(previewBase, onEditImage),
-      LinkCardBlock,
-      LinkButtonBlock,
-      ...SimpleComponentBlocks,
+      repositoryImage(previewBase, onEditImage, readOnlyPreview, articlePreview),
+      LinkCardBlock.configure({ readOnly: readOnlyPreview }),
+      LinkButtonBlock.configure({ readOnly: readOnlyPreview }),
+      ...SimpleComponentBlocks.map(block => block.configure({ readOnly: readOnlyPreview })),
       ...CollectionBlocks.map(block => block.configure({ readOnly: readOnlyPreview })),
-      Markdown.configure({ markedOptions: { gfm: true } }),
+      LiteralEntities,
+      MdxMarkdown.configure({ markedOptions: { gfm: true } }),
     ],
     content: initialContent,
     contentType: 'markdown',
-    onUpdate: ({ editor }: { editor: Editor }) => onChange(editor.getMarkdown()),
+    editable: !readOnlyPreview,
+    onUpdate: ({ editor }: { editor: Editor }) => { if (!readOnlyPreview) onChange(editor.getMarkdown()); },
   };
 }

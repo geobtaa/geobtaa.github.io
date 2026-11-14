@@ -1,4 +1,5 @@
 import type { Project, PageMetadata } from './editorTypes';
+import { DocumentPreview } from './DocumentPreview';
 import { useEditorNavigation, routeKey, type EditorRoute } from './editorNavigation';
 import { useEditorRecovery, type EditorRecovery } from './useEditorRecovery';
 import { downloadRecovery, parseRecovery, recoveryKey, restoreRecovery, type RecoveryCopy } from './editorRecovery';
@@ -9,6 +10,7 @@ import { SimpleComponentFields } from './SimpleComponentBlock';
 import { SIMPLE_COMPONENTS, SIMPLE_KINDS, createSimpleComponentMdx, emptySimpleFields, ensureSimpleComponentImport, simpleKindForNode, type SimpleKind } from './simpleComponents';
 import { LinkAddressField } from './LinkAddressField';
 import { normalizeLinkAddress } from './linkAddress';
+import { COMPONENT_LINK_ERROR, isSafeComponentHref } from './componentLinkSafety';
 import { splitBody, visibleBodySegments, moveBodySegment, type BodySegment } from './bodySegments';
 import { richTextEditorOptions } from './richTextEditor';
 import { createLinkCardMdx, ensureLinkCardImport } from './linkCardMdx';
@@ -176,6 +178,7 @@ function BlockInserter({ onInsert, onAddText }: { onInsert: (component: Inserted
   const insertLinkButton = () => {
     const fields = { ...linkButtonFields, text: linkButtonFields.text.trim(), href: normalizeLinkAddress(linkButtonFields.href) };
     if (!fields.text || !fields.href) return setLinkButtonError('Enter button text and a URL.');
+    if (!isSafeComponentHref(fields.href)) return setLinkButtonError(COMPONENT_LINK_ERROR);
     const error = onInsert('LinkButton', createLinkButtonMdx(fields));
     if (error) return setLinkButtonError(error);
     setLinkButtonDialog(false); setLinkButtonFields({ text: '', href: '', variant: 'primary' }); setLinkButtonError('');
@@ -183,6 +186,7 @@ function BlockInserter({ onInsert, onAddText }: { onInsert: (component: Inserted
   const insertLinkCard = () => {
     const fields = { title: linkCardTitle.trim(), description: linkCardDescription.trim(), href: normalizeLinkAddress(linkCardHref) };
     if (!fields.title || !fields.href) return setLinkCardError('Enter a title and URL.');
+    if (!isSafeComponentHref(fields.href)) return setLinkCardError(COMPONENT_LINK_ERROR);
     const error = onInsert('LinkCard', createLinkCardMdx(fields));
     if (error) return setLinkCardError(error);
     setLinkCardDialog(false); setLinkCardTitle(''); setLinkCardDescription(''); setLinkCardHref(''); setLinkCardError('');
@@ -353,8 +357,8 @@ function RichTextEditor({ initialValue, onChange, structured = false, onRemove }
   );
 }
 
-function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange: (value: string) => void }) {
-  const [segments, setSegments] = useState(() => splitBody(initialValue));
+function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: string; onChange: (value: string) => void; format?: 'md' | 'mdx' }) {
+  const [segments, setSegments] = useState(() => splitBody(initialValue, { format }));
   const [segmentSession, setSegmentSession] = useState(0);
   const [emptyEditorId, setEmptyEditorId] = useState<number | null>(initialValue.trim() ? null : 0);
   const segmentsRef = useRef(segments);
@@ -415,7 +419,7 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
     const ensured = COLLECTION_KINDS.includes(component as CollectionKind) ? ensureCollectionImport(body, component as CollectionKind) : component === 'LinkButton' ? ensureLinkButtonImport(body) : component === 'LinkCard' ? ensureLinkCardImport(body) : ensureSimpleComponentImport(body, component as SimpleKind);
     if ('error' in ensured && typeof ensured.error === 'string') return ensured.error;
     setRemovedBlock(null);
-    const next = splitBody(ensured.content);
+    const next = splitBody(ensured.content, { format });
     setEmptyEditorId(null); segmentsRef.current = next; setSegments(next);
     setMoveNotice('Block added.');
     setSegmentSession((session) => session + 1);
@@ -471,7 +475,7 @@ function BodyEditor({ initialValue, onChange }: { initialValue: string; onChange
     </div>}
     {visibleSegments.map((segment, index) => <div className="block-row" tabIndex={-1} ref={(row) => { if (row) blockRows.current.set(segment.id, row); else blockRows.current.delete(segment.id); }} key={`${segmentSession}:${segment.id}`}>
       {segment.kind === 'protected'
-        ? <details className="protected-block"><summary>Existing MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
+        ? <details className="protected-block"><summary>Existing Markdown / MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
         : <RichTextEditor onRemove={() => removeBlock(segment.id)} structured={segment.kind === 'structured'} initialValue={segment.content} onChange={(content) => update(segment.id, content)} />}
       <div className="block-controls">
         {segment.kind !== 'protected' && <div className="block-move-buttons" role="group" aria-label={`Move block ${index + 1}`}>
@@ -631,6 +635,7 @@ export default function ProjectEditor() {
   const [suggestedFilename, setSuggestedFilename] = useState('');
   const [showUpdateStarter, setShowUpdateStarter] = useState(false);
   const [showConversionPreview, setShowConversionPreview] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
   const dirty = project !== null && JSON.stringify(project) !== savedSnapshot;
   const isBlog = area === 'posts';
   const isUpdate = area === 'updates';
@@ -647,6 +652,7 @@ export default function ProjectEditor() {
   const activateRoute = async (next: EditorRoute) => {
     const sequence = ++requestSequence.current;
     setArea(next.area); setRoute(next); setProject(null); setBaseline(null); setProjects([]);
+    setPreviewMode(false);
     setNotice(''); setError(''); setSuggestedFilename(''); setSelectedRecovery(''); setShowConversionPreview(false); setShowUpdateStarter(false);
     if (!next.area) { setBusy(false); return; }
     setBusy(true);
@@ -874,18 +880,30 @@ export default function ProjectEditor() {
         <div className="navigation-actions"><button className="dashboard-link" type="button" disabled={busy} onClick={backToDashboard}>Dashboard</button><button className="primary top-save" type="button" disabled={busy} onClick={() => save()}>{busy ? 'Saving…' : 'Save changes'}</button></div>
       </nav>
       <h1>{project.sha ? `Edit ${config.itemLabel}` : `New ${config.itemLabel}`}</h1>
-      <section className={`visibility-panel ${project.draft ? 'is-draft' : 'is-ready'}`} aria-label="Page visibility" aria-live="polite">
-        <div className="visibility-heading">
-          <div className="content-badges">
-            <button className="visibility-control visibility-switch" type="button" role="switch" aria-label="Published" aria-checked={!project.draft} disabled={busy} onClick={() => setProject({ ...project, draft: !project.draft })} onKeyDown={(event) => {
+      <section className={`visibility-panel document-controls ${project.draft ? 'is-draft' : 'is-ready'}`} aria-label="Document controls">
+        <div className="document-control-group">
+          <span className="document-control-label" id="publication-status-label">Publication status</span>
+          <div className="visibility-control segmented-control" role="group" aria-labelledby="publication-status-label" onKeyDown={(event) => {
               if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
                 event.preventDefault();
                 setProject({ ...project, draft: event.key === 'ArrowLeft' });
+                event.currentTarget.querySelector<HTMLButtonElement>(`[data-publication-state="${event.key === 'ArrowLeft' ? 'draft' : 'published'}"]`)?.focus();
               }
-            }}><span className="draft-label" aria-hidden="true">Draft</span><span className="published-label" aria-hidden="true">Published</span></button>
-            {project.sidebarHidden && <span className="visibility-badge status-navigation">Hidden from navigation</span>}
+            }}>
+            <button type="button" data-publication-state="draft" aria-pressed={project.draft} disabled={busy} onClick={() => setProject({ ...project, draft: true })}>Draft</button>
+            <button type="button" data-publication-state="published" aria-pressed={!project.draft} disabled={busy} onClick={() => setProject({ ...project, draft: false })}>Published</button>
           </div>
-          <span className="save-state">{busy ? 'Saving…' : !project.sha ? 'Not saved yet' : dirty ? 'Unsaved changes' : 'No unsaved changes'}</span>
+        </div>
+        <div className="document-control-group document-view-group">
+          <span className="document-control-label" id="document-view-label">Editor view</span>
+          <div className="editor-mode-toggle segmented-control" role="group" aria-labelledby="document-view-label">
+            <button type="button" aria-pressed={!previewMode} aria-controls="document-edit" disabled={busy} onClick={() => setPreviewMode(false)}>Edit</button>
+            <button type="button" aria-pressed={previewMode} aria-controls="document-preview" disabled={busy} onClick={() => setPreviewMode(true)}>Preview</button>
+          </div>
+        </div>
+        <div className="document-control-status">
+          <span className="save-state" role="status">{busy ? 'Saving…' : !project.sha ? 'Not saved yet' : dirty ? 'Unsaved changes' : 'No unsaved changes'}</span>
+          {project.sidebarHidden && <span className="visibility-badge status-navigation">Hidden from navigation</span>}
         </div>
       </section>
       {recoveryPanel}
@@ -893,7 +911,8 @@ export default function ProjectEditor() {
       {error && <p className="message error" role="alert">{error}</p>}
       {isArticle && project.sha && <p>Saved URL: /{area}/{project.filename.replace(/\.mdx?$/, '').replace(/\/index$/, '')}/</p>}
       {suggestedFilename && !project.sha && <button type="button" disabled={busy} onClick={() => save(suggestedFilename)}>Create as {suggestedFilename.replace(/\.mdx$/, '')}</button>}
-      <form onSubmit={(event) => event.preventDefault()}>
+      {previewMode && <DocumentPreview project={project} area={area} apiBase={API} />}
+      <form id="document-edit" hidden={previewMode} inert={previewMode} onSubmit={(event) => event.preventDefault()}>
         <fieldset className="editor-fields" disabled={busy}>
         {!project.sha && !isArticle && <label>Filename <span>(optional; generated from title)</span><input value={project.filename} onChange={(event) => setProject({ ...project, filename: slugify(event.target.value) })} placeholder="example-project" /></label>}
         <label>Title<input required value={project.title} onChange={(event) => setProject({ ...project, title: event.target.value })} /></label>
@@ -923,10 +942,10 @@ export default function ProjectEditor() {
           <div className="actions"><button className="primary" type="button" onClick={() => {
             setProject({ ...project, body: project.conversion!.body!, convertProgramUpdate: true }); setShowConversionPreview(false); setBodyEditorSession((session) => session + 1);
           }}>Use editable version</button><button type="button" onClick={() => setShowConversionPreview(false)}>Cancel preview</button></div>
-          <fieldset disabled className="conversion-preview-content" aria-label="Read-only converted content">{splitBody(project.conversion.body).filter((segment) => segment.content.trim()).map((segment) => <ConversionPreviewBlock key={segment.id} content={segment.content} protectedBlock={segment.kind === 'protected'} />)}</fieldset>
+          <fieldset disabled className="conversion-preview-content cms-preview" aria-label="Read-only converted content">{splitBody(project.conversion.body).filter((segment) => segment.content.trim()).map((segment) => <ConversionPreviewBlock key={segment.id} content={segment.content} protectedBlock={segment.kind === 'protected'} />)}</fieldset>
         </section> : <>
           {project.convertProgramUpdate && <p className="message" role="status">The editable version is ready. Save changes to keep this conversion.</p>}
-          <div inert={busy}><BodyEditor key={bodyEditorSession} initialValue={project.body} onChange={(body) => { setShowUpdateStarter(false); setProject((current) => current ? { ...current, body } : current); }} /></div>
+          <div inert={busy}><BodyEditor key={bodyEditorSession} initialValue={project.body} format={project.filename.endsWith('.md') ? 'md' : 'mdx'} onChange={(body) => { setShowUpdateStarter(false); setProject((current) => current ? { ...current, body } : current); }} /></div>
         </>}
         <div className="actions editor-actions"><button className="back" disabled={busy} type="button" onClick={backToList}>← Back to {config.label}</button><button disabled={busy} className="primary" type="button" onClick={() => save()}>{busy ? 'Saving…' : 'Save changes'}</button></div>
         </fieldset>

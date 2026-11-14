@@ -110,11 +110,36 @@ for (const area of ['posts', 'updates']) for (const mode of ['local', 'hosted'])
       assert.deepEqual(edited.body.authors, loaded.body.authors);
       assert.ok(edited.body.body.includes('<CenterLayout>\nUntouched.\n</CenterLayout>'));
       assert.equal((await call('PUT', `/api/content/${area}/existing.md`, loaded.body)).status, 409);
+      for (const body of [
+        '<LinkCard title="Unsafe" href="javascript:alert(1)" />',
+        '<LinkCard title="Unsafe" href="java&#x73;cript:alert(1)" />',
+        '<LinkCard title="Unsafe" href="java&Tab;script&colon;alert(1)" />',
+        '<LinkButton href="data:text/html,unsafe">Unsafe</LinkButton>',
+        '<LinkButton href="vbscript:msgbox(1)">Unsafe</LinkButton>',
+      ]) {
+        const before = repo.files.get('existing.md');
+        const count = repo.files.size;
+        assert.equal((await call('POST', `/api/content/${area}`, { title: 'Unsafe', body })).status, 400);
+        assert.equal((await call('PUT', `/api/content/${area}/existing.md`, { ...edited.body, body })).status, 400);
+        assert.equal(repo.files.size, count, 'unsafe links must not create a commit');
+        assert.deepEqual(repo.files.get('existing.md'), before);
+      }
       const minimal = { title: 'A new post', date: '2026-10-24', body: 'New body.' };
       const created = await call('POST', `/api/content/${area}`, minimal);
       assert.equal(created.status, 201);
       assert.equal(created.body.filename, 'a-new-post.mdx');
       assert.equal(created.body.draft, true);
+      for (const body of ['Invalid {a: 1}.', '<Unknown>\nUnclosed', '| A |\n| --- |\n| First<br>Second |', 'A new {process.env.SECRET} expression.']) {
+        const before = repo.files.get('a-new-post.mdx');
+        const count = repo.files.size;
+        assert.equal((await call('POST', `/api/content/${area}`, { title: 'Invalid MDX', body })).status, 400, body);
+        assert.equal((await call('PUT', `/api/content/${area}/a-new-post.mdx`, { ...created.body, body })).status, 400, body);
+        assert.equal(repo.files.size, count);
+        assert.deepEqual(repo.files.get('a-new-post.mdx'), before);
+      }
+      const beforeProtectedEdit = repo.files.get('existing.md');
+      assert.equal((await call('PUT', `/api/content/${area}/existing.md`, { ...edited.body, body: edited.body.body.replace('Untouched.', 'Rewritten protected source.') })).status, 400);
+      assert.deepEqual(repo.files.get('existing.md'), beforeProtectedEdit);
       const collision = await call('POST', `/api/content/${area}`, minimal);
       assert.equal(collision.status, 409);
       assert.equal(collision.body.suggestedFilename, 'a-new-post-2.mdx');

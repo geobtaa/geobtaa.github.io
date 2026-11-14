@@ -21,6 +21,37 @@ window.fetch = async (url, options = {}) => {
 };
 createRoot(document.getElementById('root')).render(React.createElement(ProjectEditor));`;
 
+test('custom link dialogs reject unsafe schemes and show errors while editing existing links', {
+  skip: chrome ? false : 'Chrome/Chromium is required.', timeout: 30_000,
+}, async () => {
+  await withEditorBrowser(fixture, async browser => {
+    const { evaluate, waitFor, send } = browser;
+    await waitFor('!!document.querySelector(".rich-editor .tiptap")');
+    for (const [index, label] of ['Link Card', 'Link Button'].entries()) {
+      const menu = await openNewBlockMenu(browser, label);
+      await evaluate(`[...${menu}.querySelectorAll('button')].find(button => button.textContent === ${JSON.stringify(label)}).click()`);
+      await waitFor('!!document.querySelector(".link-card-dialog")');
+      for (const [field, value] of [[0, 'Maps'], [1, 'javascript:alert(1)']]) {
+        await evaluate(`document.querySelectorAll('.link-card-dialog input')[${field}].focus()`);
+        await send('Input.insertText', { text: value });
+      }
+      await evaluate(`[...document.querySelectorAll('.link-card-dialog button')].find(button => button.textContent === 'Insert ${label}').click()`);
+      assert.equal(await evaluate('!!document.querySelector(".link-card-dialog input[aria-invalid=true]")'), true);
+      assert.equal(await evaluate('window.writes.length'), 0);
+      assert.equal(await evaluate('document.querySelectorAll(".component-editor").length'), index);
+      await evaluate('document.querySelectorAll(".link-card-dialog input")[1].focus(); document.querySelectorAll(".link-card-dialog input")[1].select()');
+      await send('Input.insertText', { text: 'example.com/maps' });
+      await evaluate(`[...document.querySelectorAll('.link-card-dialog button')].find(button => button.textContent === 'Insert ${label}').click()`);
+      await waitFor(`!document.querySelector('.link-card-dialog') && document.querySelectorAll('.component-editor').length === ${index + 1}`);
+    }
+    await evaluate('document.querySelector(".structured-link-button .link-address-field input").focus(); document.querySelector(".structured-link-button .link-address-field input").select()');
+    await send('Input.insertText', { text: 'data:text/html,unsafe' });
+    await waitFor('!!document.querySelector(".structured-link-button input[aria-invalid=true]")');
+    assert.match(await evaluate('document.querySelector(".structured-link-button [role=alert]").textContent'), /relative link/);
+    assert.equal(await evaluate('window.writes.length'), 0);
+  }, { initialSearch: '?area=posts&file=blocks.mdx' });
+});
+
 test('side menus add blocks after their owner, keep text intact, and fit desktop and mobile', {
   skip: chrome ? false : 'Set CHROME_BIN to an installed Chrome/Chromium executable.', timeout: 30_000,
 }, async () => {

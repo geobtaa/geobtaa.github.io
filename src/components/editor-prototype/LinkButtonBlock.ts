@@ -4,10 +4,13 @@ import { Node } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
 import { createLinkButtonMdx, matchLinkButtonBlock, parseLinkButtonMdx, updateLinkButtonMdx, type LinkButtonFields } from './linkButtonMdx.ts';
 
-function LinkButtonEditor({ node, updateAttributes }: NodeViewProps) {
+function LinkButtonEditor({ node, updateAttributes, extension }: NodeViewProps) {
   const { text, href, variant } = node.attrs;
   const [fields, setFields] = useState<LinkButtonFields>({ text, href, variant });
   useEffect(() => { setFields({ text, href, variant }); }, [text, href, variant]);
+  if (extension.options.readOnly) return createElement(NodeViewWrapper, { contentEditable: false },
+    createElement('span', { className: `preview-link-button preview-button-${variant}`, title: href }, text),
+  );
   const change = (key: keyof LinkButtonFields, value: string) => {
     setFields((current) => ({ ...current, [key]: value }));
     updateAttributes({ [key]: value });
@@ -25,6 +28,7 @@ function LinkButtonEditor({ node, updateAttributes }: NodeViewProps) {
 
 export const LinkButtonBlock = Node.create({
   name: 'linkButtonBlock', group: 'block', atom: true, isolating: true,
+  addOptions() { return { readOnly: false }; },
   addAttributes() { return { text: { default: '' }, href: { default: '' }, variant: { default: 'primary' }, raw: { default: '' } }; },
   parseHTML() { return [{ tag: 'div[data-link-button-block]' }]; },
   renderHTML({ HTMLAttributes }) { return ['div', { 'data-link-button-block': '', ...HTMLAttributes }]; },

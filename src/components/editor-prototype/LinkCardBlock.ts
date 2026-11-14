@@ -4,12 +4,17 @@ import { Node } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
 import { createLinkCardMdx, matchLinkCardBlock, parseLinkCardMdx, updateLinkCardMdx } from './linkCardMdx.ts';
 
-function LinkCardEditor({ node, updateAttributes }: NodeViewProps) {
+function LinkCardEditor({ node, updateAttributes, extension }: NodeViewProps) {
   const { title, href, description } = node.attrs;
   const [fields, setFields] = useState({ title, href, description });
   // React restores controlled inputs at the end of each change event. Keep the
   // typed value locally so it does not revert while the node-view update arrives.
   useEffect(() => { setFields({ title, href, description }); }, [title, href, description]);
+  if (extension.options.readOnly) return createElement(NodeViewWrapper, { className: 'preview-link-card', contentEditable: false, title: href },
+    createElement('strong', null, title),
+    description && createElement('p', null, description),
+    createElement('span', { className: 'preview-card-arrow', 'aria-hidden': true }, '→'),
+  );
   const change = (key: 'title' | 'href' | 'description', value: string) => {
     setFields((current) => ({ ...current, [key]: value }));
     updateAttributes({ [key]: value });
@@ -34,6 +39,7 @@ function LinkCardEditor({ node, updateAttributes }: NodeViewProps) {
 
 export const LinkCardBlock = Node.create({
   name: 'linkCardBlock', group: 'block', atom: true, isolating: true,
+  addOptions() { return { readOnly: false }; },
   addAttributes() {
     return { title: { default: '' }, href: { default: '' }, description: { default: '' }, raw: { default: '' } };
   },

@@ -58,14 +58,14 @@ test('every content area edits and reopens metadata using the existing controls 
       await waitFor('!!document.querySelector(".project-list button")');
       await evaluate('document.querySelector(".project-list button").click()');
       await waitFor('!!document.querySelector(".editor-fields")');
-      assert.equal(await evaluate('document.querySelector(".visibility-switch").getAttribute("aria-checked")'), 'true');
+      assert.equal(await evaluate('document.querySelector("[data-publication-state=published]").getAttribute("aria-pressed")'), 'true');
       assert.equal(await evaluate(`${field('Page layout')}.selectedOptions[0].textContent`), area === 'conference' ? 'Splash' : 'Document (site default)');
       assert.equal(await evaluate(`${field('Page heading')}.selectedOptions[0].textContent`), area === 'conference' ? 'Show' : 'Show (site default)');
       assert.equal(await evaluate(`${field('Site search')}.selectedOptions[0].textContent`), 'Include (site default)');
       assert.equal(await evaluate(`${field('Navigation visibility')}.selectedOptions[0].textContent`), 'Show in navigation (site default)');
       await fill('Title', `Revised ${area}`);
       await fill('Description', `Revised ${area} summary.\nSecond line.`);
-      await evaluate('document.querySelector(".visibility-switch").click(); document.querySelector(".page-settings").open = true');
+      await evaluate('document.querySelector("[data-publication-state=draft]").click(); document.querySelector(".page-settings").open = true');
       await fill('Navigation label', `${area} navigation`);
       await fill('Navigation order', '7');
       await setValue('Navigation visibility', 'true');

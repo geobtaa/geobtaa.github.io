@@ -2,6 +2,7 @@ import { newContent, contentVisibility } from './content.mjs';
 import { parseBlog, serializeBlog } from './blog.mjs';
 import { parsePageMetadata, patchFrontmatter } from './pageMetadata.mjs';
 import { contentArea } from './contentAreas.mjs';
+import { validateDocument } from './validateDocument.mjs';
 const invalid = (message) => Object.assign(new Error(message), { status: 400 });
 
 export function parsePage(content) {
@@ -31,6 +32,7 @@ export async function savePage(github, area, filename, input) {
   const existing = original ? parsePage(original) : {};
   const entry = { ...existing, ...input, description: input.description ?? existing.description ?? '', draft: input.draft ?? (config.publishing ? !input.publish : existing.draft ?? false), body: input.body ?? existing.body ?? '' };
   const content = original ? serializePage(original, entry) : newPage(area, entry);
+  await validateDocument(content, { filename, originalBody: existing.body || '' });
   const saved = await github.saveContent({ area, filename, content, sha: input.sha, publish: config.publishing && !entry.draft });
   return { ...saved, filename, content, ...parsePage(content), ...contentVisibility(content) };
 }

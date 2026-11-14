@@ -63,11 +63,11 @@ function CollectionEditor({ node, updateAttributes, extension }: NodeViewProps) 
   };
   return h(NodeViewWrapper, { className: `collection-block collection-${kind}`, contentEditable: false },
     h('div', { ref: root },
-      h('strong', { className: 'collection-heading' }, COLLECTION_BLOCKS[kind].label),
+      !readOnly && h('strong', { className: 'collection-heading' }, COLLECTION_BLOCKS[kind].label),
       chipList && h('ul', { className: 'editor-chip-preview', 'aria-label': 'Chip list preview' }, ...entries.filter(entry => entry.value.trim()).map(entry => h('li', { key: entry.id }, entry.value))),
       metrics && h('div', { className: 'cms-metrics-block', 'aria-label': 'Metrics preview' }, h('dl', { className: 'cms-metrics' }, ...entries.filter(entry => entry.title.trim() || entry.value.trim()).map(entry => h('div', { key: entry.id, className: 'cms-metric' }, h('dt', { className: 'cms-metric-label' }, entry.title), h('dd', { className: 'cms-metric-value' }, entry.value))))),
       !readOnly && h('p', { className: 'collection-status', role: 'status' }, status),
-      (cardGrid || !readOnly) && h('div', { className: `collection-${chipList ? 'chip' : metrics ? 'metric' : 'card'}-entries` }, ...entries.map((entry, index) => h('fieldset', { key: entry.id, className: 'collection-entry', 'data-collection-entry': entry.id },
+      (cardGrid || !readOnly) && h('div', { className: `collection-${chipList ? 'chip' : metrics ? 'metric' : 'card'}-entries` }, ...entries.filter(entry => !readOnly || entry.title.trim() || entry.body.trim()).map((entry, index) => h(readOnly ? 'article' : 'fieldset', { key: entry.id, className: 'collection-entry', 'data-collection-entry': entry.id },
         !readOnly && h('legend', null, `${itemLabel} ${index + 1}`),
         !readOnly && h('label', null, chipList ? 'Text' : metrics ? 'Label' : 'Title', h('input', { value: chipList ? entry.value : entry.title, 'aria-label': `${itemLabel} ${index + 1} ${chipList ? 'text' : metrics ? 'label' : 'title'}`, onChange: (event: ChangeEvent<HTMLInputElement>) => change(entry.id, chipList ? 'value' : 'title', event.target.value) })),
         metrics && !readOnly && h('label', null, 'Value', h('input', { value: entry.value, 'aria-label': `Metric ${index + 1} value`, onChange: (event: ChangeEvent<HTMLInputElement>) => change(entry.id, 'value', event.target.value) })),

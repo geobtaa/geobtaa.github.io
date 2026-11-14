@@ -1,7 +1,7 @@
 import { createElement as h, useEffect, useRef } from 'react';
 import { useEditor, useEditorState, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { Markdown } from '@tiptap/markdown';
+import { MdxMarkdown, LiteralEntities, SafeCodeBlock, SafeLink } from './MdxMarkdown.ts';
 import { normalizeLinkAddress } from './linkAddress.ts';
 import { ToolbarButton } from './ToolbarButton.ts';
 import type { ToolbarAction } from './toolbarIcons.ts';
@@ -9,10 +9,10 @@ import type { ToolbarAction } from './toolbarIcons.ts';
 export function CardBodyEditor({ body, label, onChange, readOnly = false }: { body: string; label: string; onChange: (body: string) => void; readOnly?: boolean }) {
   const lastBody = useRef(body);
   const editor = useEditor({
-    extensions: [StarterKit.configure({ link: { openOnClick: false }, underline: false }), Markdown.configure({ markedOptions: { gfm: true } })],
+    extensions: [StarterKit.configure({ codeBlock: false, link: false, undoRedo: readOnly ? false : {}, underline: false }), SafeCodeBlock, SafeLink.configure({ openOnClick: false }), LiteralEntities, MdxMarkdown.configure({ markedOptions: { gfm: true } })],
     content: body, contentType: 'markdown', immediatelyRender: false, editable: !readOnly,
     editorProps: { attributes: { role: 'textbox', 'aria-label': label, 'aria-multiline': 'true' } },
-    onUpdate: ({ editor }) => { const value = editor.getMarkdown(); lastBody.current = value; onChange(value); },
+    onUpdate: ({ editor }) => { if (readOnly) return; const value = editor.getMarkdown(); lastBody.current = value; onChange(value); },
   });
   const active = useEditorState({ editor, selector: ({ editor }) => ({
     bold: editor?.isActive('bold'), italic: editor?.isActive('italic'), bulletList: editor?.isActive('bulletList'), orderedList: editor?.isActive('orderedList'),

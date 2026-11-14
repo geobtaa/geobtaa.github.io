@@ -8,13 +8,6 @@ const variants = ['primary', 'secondary', 'minimal'];
 function encodeText(text: string) {
   return encodeAttribute(text).replace(/[{}\[\]*_`\\~]/g, (character) => `&#${character.charCodeAt(0)};`);
 }
-function decode(value: string) {
-  return decodeAttribute(value.replace(/&#(\d+);/g, (_, code) => {
-    const number = Number(code);
-    return number > 0 && number <= 0x10ffff ? String.fromCodePoint(number) : '\uFFFD';
-  }));
-}
-
 function parts(source: string) {
   const match = source.match(/^(\s*<LinkButton\b((?:[^"'<>]|"[^"]*"|'[^']*')*)>)([\s\S]*?)(<\/LinkButton>\s*)$/);
   if (!match) return null;
@@ -29,14 +22,14 @@ function parts(source: string) {
   for (const attribute of attributes.matchAll(/([A-Za-z][\w-]*)\s*=\s*(["'])([^]*?)\2/g)) {
     if (attributes.slice(end, attribute.index).trim()) return null;
     const start = offset + attribute.index! + attribute[0].indexOf(attribute[2]) + 1;
-    found.push({ name: attribute[1], quote: attribute[2], value: decode(attribute[3]), start, end: start + attribute[3].length });
+    found.push({ name: attribute[1], quote: attribute[2], value: decodeAttribute(attribute[3]), start, end: start + attribute[3].length });
     end = attribute.index! + attribute[0].length;
   }
   if (attributes.slice(end).trim() || found.some((item, index) => !['href', 'variant'].includes(item.name) || found.findIndex((other) => other.name === item.name) !== index)) return null;
   const href = found.find((item) => item.name === 'href');
   const variant = found.find((item) => item.name === 'variant')?.value ?? 'primary';
   if (!href || !variants.includes(variant)) return null;
-  return { text: decode(text), href: href.value, variant: variant as LinkButtonFields['variant'], found, textStart: opening.length + content.indexOf(text), textEnd: opening.length + content.indexOf(text) + text.length, openingEnd: opening.length - 1 };
+  return { text: decodeAttribute(text), href: href.value, variant: variant as LinkButtonFields['variant'], found, textStart: opening.length + content.indexOf(text), textEnd: opening.length + content.indexOf(text) + text.length, openingEnd: opening.length - 1 };
 }
 
 export function parseLinkButtonMdx(source: string): (LinkButtonFields & { raw: string }) | null {

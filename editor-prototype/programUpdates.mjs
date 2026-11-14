@@ -4,6 +4,7 @@ import { parsePage } from './page.mjs';
 import { patchFrontmatter } from './pageMetadata.mjs';
 import { contentVisibility } from './content.mjs';
 import { splitBody } from '../src/components/editor-prototype/bodySegments.ts';
+import { validateDocument } from './validateDocument.mjs';
 
 export const PROGRAM_UPDATE_OUTLINE = `## Monthly Highlight
 
@@ -207,12 +208,15 @@ export async function saveProgramUpdate(github, filename, input) {
   let saved;
   if (!filename) {
     content = newProgramUpdate(input);
+    await validateDocument(content);
     saved = await github.createBlog({ area: 'updates', title: input.title, suggestedFilename: input.suggestedFilename, content });
   } else {
     if (!input.sha) throw invalid('An existing update SHA is required. Create new updates through the Program Updates collection.');
     const loaded = await github.getContent('updates', filename);
     if (loaded.sha !== input.sha) throw Object.assign(new Error('This page has changed in GitHub since you opened it. Your edits are still here; copy them before reloading.'), { status: 409 });
     content = serializeProgramUpdate(loaded.content, input);
+    const originalBody = input.convertProgramUpdate === true ? programUpdateConversion(loaded.content).body : parsePage(loaded.content).body;
+    await validateDocument(content, { filename, originalBody });
     saved = await github.saveContent({ area: 'updates', filename, content, sha: input.sha });
   }
   return { ...saved, ...(filename ? { filename } : {}), content, ...parseProgramUpdate(content), ...contentVisibility(content) };

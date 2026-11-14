@@ -79,6 +79,15 @@ for (const mode of ['local', 'hosted']) {
         assert.equal(saved.body.body, loaded.body.body);
         assert.equal((await call('GET', path)).body.metadata.sidebar.label, area);
         assert.equal((await call('PUT', path, input)).status, 409, 'stale writes are rejected');
+        const beforeInvalid = repo.files.get(`${area}/existing.mdx`);
+        for (const body of ['Invalid {a: 1}.', 'New {process.env.SECRET} expression.']) {
+          assert.equal((await call('PUT', path, { ...saved.body, body })).status, 400);
+          assert.equal((await call('PUT', `/api/content/${area}/invalid.mdx`, { title: 'Invalid', description: '', draft: true, body })).status, 400);
+          assert.equal(repo.files.has(`${area}/invalid.mdx`), false);
+          assert.deepEqual(repo.files.get(`${area}/existing.mdx`), beforeInvalid);
+        }
+        assert.equal((await call('PUT', path, { ...saved.body, body: saved.body.body.replace('Protected MDX.', 'Changed protected source.') })).status, 400);
+        assert.deepEqual(repo.files.get(`${area}/existing.mdx`), beforeInvalid);
         assert.equal((await call('PUT', path, { ...saved.body, metadata: { year: 1700 } })).status, 400);
         const created = await call('PUT', `/api/content/${area}/new.mdx`, { title: 'New page', description: '', draft: true, body: 'New body.', metadata: { sidebar: { hidden: true } } });
         assert.equal(created.status, 200, JSON.stringify(created.body));

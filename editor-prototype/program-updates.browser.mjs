@@ -55,7 +55,7 @@ test('new updates offer an optional outline, editable defaults, and a blank arti
     await openUpdates(browser);
     await evaluate(click('New Program Update'));
     await waitFor('!!document.querySelector(".editor-fields")');
-    assert.equal(await evaluate('document.querySelector(".visibility-switch").getAttribute("aria-checked")'), 'false');
+    assert.equal(await evaluate('document.querySelector("[data-publication-state=published]").getAttribute("aria-pressed")'), 'false');
     assert.match(await evaluate(`${field('Publication date')}.value`), /^\d{4}-\d{2}-\d{2}$/);
     assert.equal(await evaluate(`${field('Author 1')}.value`), 'BTAA-GIN Staff');
     assert.equal(await evaluate(`${field('Tags')}.value`), 'Program Updates');

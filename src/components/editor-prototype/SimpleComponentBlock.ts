@@ -17,11 +17,19 @@ export function SimpleComponentFields({ kind, fields, onChange, autoFocus = fals
     kind !== 'badge' ? createElement('label', null, 'Message', createElement('textarea', { rows: 4, required: true, value: fields.text, onChange: (event: ChangeEvent<HTMLTextAreaElement>) => onChange('text', event.target.value) })) : null,
   );
 }
-function SimpleEditor({ node, updateAttributes }: NodeViewProps) {
+function SimpleEditor({ node, updateAttributes, extension }: NodeViewProps) {
   const kind = simpleKindForNode(node.type.name)!;
   const { text, title, variant, size, type } = node.attrs;
   const [fields, setFields] = useState<SimpleFields>({ text, title, variant, size, type });
   useEffect(() => { setFields({ text, title, variant, size, type }); }, [text, title, variant, size, type]);
+  if (extension.options.readOnly) return createElement(NodeViewWrapper, { className: `preview-simple preview-${kind} preview-callout-${type}`, contentEditable: false },
+    kind === 'badge'
+      ? createElement('span', { className: `badge-preview badge-${variant} badge-size-${size}` }, text)
+      : createElement(kind === 'callout' ? 'aside' : 'article', null,
+        createElement('strong', null, title || (kind === 'callout' ? type[0].toUpperCase() + type.slice(1) : '')),
+        createElement('p', { style: { whiteSpace: 'pre-wrap' } }, text),
+      ),
+  );
   return createElement(NodeViewWrapper, { className: `structured-simple-component simple-${kind}`, contentEditable: false },
     createElement('strong', null, SIMPLE_COMPONENTS[kind].label),
     kind === 'badge' ? createElement('span', { className: `badge-preview badge-${fields.variant} badge-size-${fields.size}` }, fields.text || 'Badge') : null,
@@ -32,6 +40,7 @@ function SimpleEditor({ node, updateAttributes }: NodeViewProps) {
 }
 export const SimpleComponentBlocks = SIMPLE_KINDS.map((kind) => Node.create({
   name: SIMPLE_COMPONENTS[kind].node, group: 'block', atom: true, isolating: true,
+  addOptions() { return { readOnly: false }; },
   addAttributes() { return Object.fromEntries(Object.entries({ ...emptySimpleFields(), raw: '' }).map(([key, value]) => [key, { default: value }])); },
   parseHTML() { return [{ tag: `div[data-simple-component="${kind}"]` }]; },
   renderHTML() { return ['div', { 'data-simple-component': kind }]; },

@@ -9,6 +9,126 @@ import { SIMPLE_KINDS, SIMPLE_COMPONENTS, createSimpleComponentMdx, emptySimpleF
 import { createLinkButtonMdx, ensureLinkButtonImport, parseLinkButtonMdx, updateLinkButtonMdx } from '../src/components/editor-prototype/linkButtonMdx.ts';
 import { createLinkCardMdx, ensureLinkCardImport, LINK_CARD_IMPORT, parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor-prototype/linkCardMdx.ts';
 import { COLLECTION_BLOCKS, createCollectionMdx, parseCollectionMdx } from '../src/components/editor-prototype/collectionMdx.ts';
+import { compileSync, createProcessor } from '@mdx-js/mdx';
+import remarkGfm from 'remark-gfm';
+import { parsePage, serializePage } from './page.mjs';
+
+test('real documents retain tasks, footnotes, inline HTML and protected components through TipTap edits and two saves', async () => {
+  for (const [filename, marker, preserved] of [
+    ['src/content/docs/library/geodata-collection-roadmap.mdx', 'During the Groundwork Phase', /- \[[x ]\][^\n]*/g],
+    ['src/content/docs/library/btaa-sdi-2019.mdx', 'The next phase of the BTAA GDP', /\[\^[^\]]+\]/g],
+    ['src/content/docs/posts/2026-03-17-urban-base-layers-in-practice-philadelphia.mdx', 'Philadelphia represents', /<a href="[^"]+">[^<]+<\/a>/g],
+  ]) {
+    let source = await readFile(filename, 'utf8');
+    const original = parsePage(source).body;
+    const expected = [...original.matchAll(preserved)].map(match => match[0]);
+    const protectedSource = splitBody(original).filter(segment => segment.kind === 'protected').map(segment => segment.content);
+    assert.ok(expected.length, filename);
+    for (let pass = 1; pass <= 2; pass++) {
+      const loaded = parsePage(source);
+      const segments = splitBody(loaded.body);
+      const target = segments.find(segment => segment.kind === 'markdown' && segment.content.includes(marker));
+      assert.ok(target, `${filename}: the ordinary paragraph remains editable`);
+      const { editor } = openEditor(target.content);
+      let position;
+      editor.state.doc.descendants((node, pos) => { if (node.type.name === 'paragraph' && node.textContent.includes(marker)) position = pos + node.nodeSize - 1; });
+      assert.notEqual(position, undefined);
+      editor.commands.insertContentAt(position, { type: 'text', text: ` Review edit ${pass}.` });
+      const markdown = editor.getMarkdown();
+      const leading = target.content.match(/^(?:\r?\n)+/)?.[0] || '';
+      const trailing = target.content.match(/(?:\r?\n)+$/)?.[0] || '';
+      target.content = `${markdown.startsWith('\n') ? '' : leading}${markdown}${markdown.endsWith('\n') ? '' : trailing}`;
+      editor.destroy();
+      const body = segments.map(segment => segment.content).join('');
+      source = serializePage(source, { ...loaded, body });
+      for (const raw of [...expected, ...protectedSource]) assert.ok(parsePage(source).body.includes(raw), `${filename}: lost ${raw.slice(0, 100)}`);
+      assert.ok(body.includes(`Review edit ${pass}.`));
+      compileSync(body, { remarkPlugins: [remarkGfm] });
+    }
+  }
+});
+
+test('literal braces and ESM-like prose stay literal after typing, saving and reopening', () => {
+  for (const initial of ['Use \\{name\\}.', '', 'An ordinary paragraph.']) {
+    const opened = openEditor(initial);
+    opened.editor.commands.insertContentAt(opened.editor.state.doc.content.size - 1, { type: 'text', text: ' Set {a: 1} and {process.env.SECRET}.' });
+    const expected = opened.editor.state.doc.textContent;
+    let saved = opened.editor.getMarkdown();
+    opened.editor.destroy();
+    for (let pass = 0; pass < 2; pass++) {
+      compileSync(saved, { remarkPlugins: [remarkGfm] });
+      const check = node => {
+        assert.ok(!['mdxjsEsm', 'mdxTextExpression', 'mdxFlowExpression'].includes(node.type), 'literal input must not become executable syntax');
+        node.children?.forEach(check);
+      };
+      check(createProcessor().parse(saved));
+      const reopened = openEditor(saved);
+      assert.equal(reopened.editor.state.doc.textContent, expected);
+      saved = reopened.editor.getMarkdown(); reopened.editor.destroy();
+    }
+  }
+  for (const text of ['import Thing from "some-module";', 'export const secret = process.env.SECRET;']) {
+    const { editor } = openEditor('');
+    editor.commands.insertContent({ type: 'text', text });
+    const saved = editor.getMarkdown(); editor.destroy();
+    compileSync(saved);
+    assert.ok(createProcessor().parse(saved).children.every(node => node.type !== 'mdxjsEsm'), 'prose must not become an ESM declaration');
+    const reopened = openEditor(saved);
+    assert.equal(reopened.editor.state.doc.textContent, text); reopened.editor.destroy();
+  }
+});
+
+test('table hard breaks serialize as valid MDX without rewriting fenced code', () => {
+  const { editor } = openEditor('');
+  editor.commands.setContent({ type: 'doc', content: [{ type: 'table', content: [
+    { type: 'tableRow', content: [{ type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Header' }] }] }] },
+    { type: 'tableRow', content: [{ type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'First' }, { type: 'hardBreak' }, { type: 'text', text: 'Second {literal}' }] }] }] },
+  ] }] });
+  const saved = editor.getMarkdown(); editor.destroy();
+  assert.match(saved, /First<br \/>Second/);
+  compileSync(saved, { remarkPlugins: [remarkGfm] });
+  const code = openEditor('```js\nconst value = {a: 1}; // <br>\n```');
+  assert.equal(code.editor.getMarkdown().trimEnd(), '```js\nconst value = {a: 1}; // <br>\n```'); code.editor.destroy();
+});
+
+test('code examples containing fence delimiters cannot expose their contents as MDX', () => {
+  const text = '```mdx\n{process.env.SECRET}\n```';
+  const { editor } = openEditor('');
+  editor.commands.setContent({ type: 'doc', content: [{ type: 'codeBlock', attrs: { language: 'text' }, content: [{ type: 'text', text }] }] });
+  const saved = editor.getMarkdown(); editor.destroy();
+  compileSync(saved);
+  const reopened = openEditor(saved);
+  assert.equal(reopened.editor.state.doc.firstChild.type.name, 'codeBlock');
+  assert.equal(reopened.editor.state.doc.firstChild.textContent, text);
+  reopened.editor.destroy();
+});
+
+test('links with quoted titles and spaced destinations retain their attributes on unrelated edits', () => {
+  const original = 'Before [Maps](<https://example.com/a b> \'A "quoted" title\').';
+  const { editor } = openEditor(original);
+  editor.commands.insertContentAt(1, { type: 'text', text: 'An ordinary edit. ' });
+  const saved = editor.getMarkdown(); editor.destroy();
+  compileSync(saved);
+  const reopened = openEditor(saved);
+  let attrs;
+  reopened.editor.state.doc.descendants(node => { const link = node.marks.find(mark => mark.type.name === 'link'); if (link) attrs = link.attrs; });
+  assert.equal(attrs?.href, 'https://example.com/a b');
+  assert.equal(attrs?.title, 'A "quoted" title');
+  reopened.editor.destroy();
+});
+
+test('segmentation protects whole unsupported blocks, cross-block references, expressions and multiline exports', () => {
+  const blocks = ['- [x] Done\n- [ ] Pending', 'A footnote[^n].', '[^n]: Keep the citation.', 'Inline <span class="important">keep styling</span>.', 'Value {frontmatter.title}.', '![Map][map]', '[map]: @images/map.png', 'export const data = {\n  label: "a } in a string",\n};'];
+  const body = `Ordinary paragraph.\n\n${blocks.join('\n\n')}\n\nAfter.`;
+  const segments = splitBody(body);
+  assert.equal(segments.map(segment => segment.content).join(''), body);
+  for (const block of blocks) assert.ok(segments.some(segment => segment.kind === 'protected' && segment.content.includes(block)), block);
+  assert.ok(segments.some(segment => segment.kind === 'markdown' && segment.content.includes('Ordinary paragraph.')));
+  const exact = '  <Unknown value="a > b">\r\n  Keep exact.  \r\n  </Unknown>  \r\n';
+  const spaced = `Before\r\n\r\n${exact}\r\nAfter`;
+  assert.ok(splitBody(spaced).some(segment => segment.kind === 'protected' && segment.content === exact), 'protect indentation, trailing spaces and CRLF with the component');
+  assert.equal(splitBody(spaced).map(segment => segment.content).join(''), spaced);
+});
 
 const { window } = parseHTML('<!doctype html><html><body></body></html>');
 Object.assign(globalThis, {

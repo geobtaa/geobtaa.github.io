@@ -1,3 +1,6 @@
+import { ensureStarlightImport } from './starlightImports.ts';
+import { characterEntities } from 'character-entities';
+
 export type LinkCardFields = { title: string; href: string; description: string };
 export type ParsedLinkCard = LinkCardFields & { raw: string; descriptionPresent: boolean };
 
@@ -6,9 +9,14 @@ export const LINK_CARD_IMPORT = "import { LinkCard } from '@astrojs/starlight/co
 type Attribute = { name: string; quote: string; value: string; valueStart: number; valueEnd: number };
 
 export function decodeAttribute(value: string) {
-  return value.replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  // Decode one attribute layer, including numeric references accepted by MDX.
+  // A single pass keeps literal entity text such as &amp;lt; from becoming markup.
+  return value.replace(/&([a-z][a-z\d]*|#\d+|#x[\da-f]+);/gi, (entity, code: string) => {
+    if (!code.startsWith('#')) return Object.hasOwn(characterEntities, code) ? characterEntities[code] : entity;
+    const point = code[1].toLowerCase() === 'x' ? parseInt(code.slice(2), 16) : Number(code.slice(1));
+    return point > 0 && point <= 0x10ffff && !(point >= 0xd800 && point <= 0xdfff) ? String.fromCodePoint(point) : '\uFFFD';
+  });
 }
-
 export function encodeAttribute(value: string, quote = '"') {
   const encoded = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return quote === '"' ? encoded.replace(/"/g, '&quot;') : encoded.replace(/'/g, '&apos;');
@@ -25,37 +33,8 @@ export function createLinkCardMdx(fields: LinkCardFields) {
   return lines.join('\n');
 }
 
-function importsLinkCard(line: string) {
-  const match = line.match(/^\s*import\s+(.+?)\s+from\s+(['"])@astrojs\/starlight\/components\2\s*;?\s*$/);
-  const named = match?.[1].match(/\{([^}]*)\}/)?.[1];
-  return named?.split(',').some((binding) => /^LinkCard(?:\s+as\s+LinkCard)?$/.test(binding.trim())) || false;
-}
-
 export function ensureLinkCardImport(source: string) {
-  const lines = source.match(/[^\n]*\n|[^\n]+$/g) || [];
-  if (lines.some(importsLinkCard)) return { content: source, added: false };
-
-  const newline = source.includes('\r\n') ? '\r\n' : '\n';
-  let offset = 0;
-  let afterLastImport = -1;
-  for (const line of lines) {
-    offset += line.length;
-    if (/^\s*import\s/.test(line)) afterLastImport = offset;
-  }
-
-  if (afterLastImport >= 0) {
-    const before = source.slice(0, afterLastImport);
-    const separator = /\r?\n$/.test(before) ? '' : newline;
-    return {
-      content: `${before}${separator}${LINK_CARD_IMPORT}${newline}${source.slice(afterLastImport)}`,
-      added: true,
-    };
-  }
-
-  return {
-    content: source ? `${LINK_CARD_IMPORT}${newline}${newline}${source}` : `${LINK_CARD_IMPORT}${newline}`,
-    added: true,
-  };
+  return ensureStarlightImport(source, 'LinkCard');
 }
 
 function attributes(source: string): Attribute[] | null {
@@ -68,7 +47,7 @@ function attributes(source: string): Attribute[] | null {
   let end = 0;
   for (const match of body.matchAll(pattern)) {
     if (body.slice(end, match.index).trim()) return null;
-    const valueOffset = match[0].indexOf(match[3]);
+    const valueOffset = match[0].indexOf(match[2]) + 1;
     found.push({
       name: match[1], quote: match[2], value: match[3],
       valueStart: bodyOffset + match.index! + valueOffset,
@@ -118,7 +97,8 @@ export function updateLinkCardMdx(source: string, fields: LinkCardFields) {
       const indent = updated.slice(lineStart, close).match(/^\s*/)?.[0] || '';
       updated = `${updated.slice(0, lineStart)}${indent || '  '}description="${encodeAttribute(fields.description)}"${newline}${updated.slice(lineStart)}`;
     } else {
-      updated = `${updated.slice(0, close)}description="${encodeAttribute(fields.description)}" ${updated.slice(close)}`;
+      const before = updated.slice(0, close);
+      updated = `${before}${/\s$/.test(before) ? '' : ' '}description="${encodeAttribute(fields.description)}" ${updated.slice(close)}`;
     }
   }
   return updated;

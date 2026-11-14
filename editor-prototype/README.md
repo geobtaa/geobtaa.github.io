@@ -2,7 +2,7 @@
 
 This isolated prototype is available at `/editor/`. It edits a conservative allowlist of content directories under `src/content/docs` and writes through the GitHub API directly to the `custom-cms` staging branch. Decap `/admin` is unchanged.
 
-The enabled directories are `about`, `conference`, `guides`, `library`, `metadata`, `posts`, `projects`, `scholarship`, `team`, `updates`, and `workgroups`. Files can be created in each enabled directory. Every enabled area has frontmatter controls, including the **Draft / Published** switch and page settings. The available fields follow each area's existing content conventions. Program Updates supports the simpler article workflow described below.
+The enabled directories are `about`, `conference`, `guides`, `library`, `metadata`, `posts`, `projects`, `scholarship`, `team`, `updates`, and `workgroups`. Files can be created in each enabled directory. Every enabled area has frontmatter controls, including the **Draft / Published** control and page settings. The available fields follow each area's existing content conventions. Program Updates supports the simpler article workflow described below.
 
 ## Metadata across content areas
 
@@ -24,9 +24,9 @@ Non-blog dates remain optional and are not automatically added. Editing their ca
 
 Opening `/editor/` without a query opens the dashboard with no content area selected; editor links can open a list or entry directly. Choose **Blog Posts** on the dashboard, then open an existing post or choose **New Blog Post**. Each content list has a prominent **Back to dashboard** button. Editing views have **Back to Blog Posts** (or the current content area) at the top and beside the save controls, plus a **Dashboard** button. The top navigation stays visible while scrolling. Leaving an unsaved entry prompts first; confirmed navigation keeps a local recovery copy when browser storage is available.
 
-Every editing view has **Save changes** at the top and bottom. Both buttons perform the same save and honor the Draft / Published switch. Projects now use these buttons too, replacing the older Save draft/Publish actions. Saves still commit to staging.
+Every editing view has **Save changes** at the top and bottom. Both buttons perform the same save and honor the Draft / Published control. Projects now use these buttons too, replacing the older Save draft/Publish actions. Saves still commit to staging.
 
-The compact visibility banner contains a horizontal Draft / Published switch and save state. Draft is the left position; Published is the right position. The switch also supports the left and right arrow keys. Content lists show a **Draft** badge and an amber row only for confirmed draft items; other items have no badge. The underlying visibility settings are:
+The document toolbar groups **Publication status** (Draft / Published), **Editor view** (Edit / Preview), and save state. Both controls use labeled segmented buttons with a visible selected state. Publication status also supports the left and right arrow keys; clicking the selected option keeps its value. The controls share a row on desktop and most phones, and stack on very narrow screens. Content lists show a **Draft** badge and an amber row only for confirmed draft items; other items have no badge. The underlying visibility settings are:
 
 | Indicator | Frontmatter | Meaning |
 | --- | --- | --- |
@@ -34,7 +34,7 @@ The compact visibility banner contains a horizontal Draft / Published switch and
 | **Published** | `draft: false` or no draft field | Eligible for production builds. This does not confirm that the version is live. |
 | **Hidden from navigation** | `sidebar.hidden: true` | Excluded from automatically generated sidebar navigation. This alone does not hide the page at its URL or remove it from manually configured navigation. |
 
-The switch selects **Draft** (`draft: true`) on the left and **Published** (`draft: false`) on the right. These labels describe the content setting; saving still updates staging, and the live site changes after review, merge, and deployment. Page settings display inherited values explicitly, such as **Document (site default)** and **Show (site default)**. Leaving these selected preserves inheritance without adding a page override; choosing them again removes an existing override. Splash layouts hide the table of contents. Navigation-only hiding is a separate setting under **Page settings → Navigation**, alongside the navigation label and order. A draft can also have that navigation setting. Drafts have an amber banner and highlighted list row, so their status is conveyed by both text and color.
+The status control selects **Draft** (`draft: true`) on the left and **Published** (`draft: false`) on the right. These labels describe the content setting; saving still updates staging, and the live site changes after review, merge, and deployment. Page settings display inherited values explicitly, such as **Document (site default)** and **Show (site default)**. Leaving these selected preserves inheritance without adding a page override; choosing them again removes an existing override. Splash layouts hide the table of contents. Navigation-only hiding is a separate setting under **Page settings → Navigation**, alongside the navigation label and order. A draft can also have that navigation setting. Drafts have an amber selected status and highlighted list row, so their status is conveyed by both text and color.
 
 The editing view separately shows **Not saved yet**, **Unsaved changes**, **Saving…**, or **No unsaved changes**. A checkbox change affects the current form immediately and takes effect on staging after saving. Content-list statuses describe saved metadata, read from each listed file's blob SHA. Updating the live site requires review, merge, and deployment.
 
@@ -53,6 +53,14 @@ The editor warns before leaving unsaved changes. Choose **Cancel** to keep editi
 Both API implementations share blog serialization and creation logic. Updates use the loaded blob SHA and authoritative repository frontmatter. New posts use a Git tree snapshot and a fast-forward-only branch update so competing writes cannot overwrite an existing file or create an equivalent route unnoticed. If staging changes during creation, save again to recheck availability.
 
 Run `npm run test:editor` for editor regression tests. Run `npm run test:editor:browser` to check component insertion and property forms, image editing, link-address handling, Link Card cursor behavior, dashboard/back navigation, unsaved-change prompts, mobile layout, frontmatter controls across all enabled areas, visibility indicators, and both Save buttons using isolated headless Chrome profiles and temporary local test pages. These browser tests use no GitHub credentials or content saves. They find Chrome in common macOS/Linux locations; set `CHROME_BIN` to your Chrome/Chromium executable if needed. They skip when no browser is installed.
+
+## In-editor preview
+
+Use **Edit / Preview** to review the current title, relevant article/library metadata, and body, including unsaved changes. Preview runs in the browser using the existing TipTap extensions. Toggling does not save content, call a write API, or trigger a deployment. The editing instances stay mounted, preserving their content, selections, undo history, and block-removal undo. Returning to Edit resumes the same session.
+
+Preview shows ordinary rich text, tables, images, Link Cards, Link Buttons, badges, callouts, cards, Chip Lists, Card Grids, and Metrics as read-only content. Fonts, content width, spacing, and component styles approximate the published page. Protected MDX/Astro blocks remain in position as labeled placeholders with expandable source; nested content inside those blocks is not rendered. Links stay in Preview. Code highlighting, image zoom, navigation, and the full site shell are not reproduced. Frontmatter covers and excerpts are omitted from this page preview, matching the current article header; library descriptions appear as summaries. Blog/update images use the article centering and caption conventions, while documentation images retain their separate defaults.
+
+The existing **Preview editable version** action for older Program Updates remains a separate conversion workflow. Ordinary Preview always shows the current document without applying a conversion. Saving, image uploads, and the `custom-cms` review/deployment workflow are unchanged. Focused browser coverage is available with `node --test editor-prototype/preview.browser.mjs`.
 
 ## Browser navigation and local recovery
 
@@ -133,6 +141,12 @@ npm run dev
 Open `http://localhost:4321/editor/`. The local gateway uses the token only on the server and presents a local-development session to the UI.
 
 Existing pages and posts contain Astro/MDX imports, components, directives, and HTML. The editor displays unsupported syntax as read-only protected blocks and preserves its text verbatim; surrounding ordinary Markdown remains visually editable. The editor can insert supported LinkCards, LinkButtons, badges, plain-text callouts, and plain-text cards with their required MDX imports. Ordinary body content uses Markdown.
+
+Task lists, footnote references and definitions, reference-style links/images, custom directives, inline HTML, and MDX expressions remain read-only. An unsupported item protects its entire containing paragraph, list, table, or component, including indentation and line endings. Edit surrounding ordinary text normally; Preview shows expandable source for protected content. If syntax cannot be parsed confidently, the body stays protected rather than being partially converted. Use a reviewed source edit for changes inside these blocks.
+
+Visual text serialization escapes literal MDX braces and import/export-like prose, escapes link destinations and titles, emits self-closing table line breaks, and chooses code fences that cannot be closed by the example they contain. Both APIs compile generated MDX without evaluating it before writing to GitHub, and check that existing protected source remains unchanged and ordered. Invalid syntax, altered protected content, and new unsupported/executable source produce an error while retaining the open edits. Markdown files are validated as Markdown. This is a syntax/preservation check; repository imports, assets, and site rendering still require the production build.
+
+Preservation regressions include actual TipTap edits, saves, reopening, validation failures, and Edit/Preview with the Roadmap, SDI proposal, and Philadelphia CityGeo article. Run `npm run test:editor` and `npm run test:editor:browser`; `npm run test:editor:render` retains the previous batch's Astro-generated Link Card security checks.
 
 ## Hosted staging on Cloudflare Pages
 
