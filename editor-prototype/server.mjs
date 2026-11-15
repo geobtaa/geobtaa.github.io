@@ -97,7 +97,7 @@ export const createEditorServer = (github) => http.createServer(async (request, 
     respond(response, 404, { error: 'Not found.' }, origin);
   } catch (error) {
     const status = error instanceof GitHubConflictError ? 409 : (error.status || 500);
-    respond(response, status, { error: error.message || 'Unexpected server error.', ...(error.suggestedFilename ? { suggestedFilename: error.suggestedFilename } : {}) }, origin);
+    respond(response, status, { error: error.message || 'Unexpected server error.', ...(error.suggestedFilename ? { suggestedFilename: error.suggestedFilename } : {}), ...(error.creationState ? { creationState: error.creationState } : {}) }, origin);
   }
 });
 

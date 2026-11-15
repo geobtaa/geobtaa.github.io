@@ -53,6 +53,10 @@ test('corrupt and malformed recovery records remain untouched and cannot replace
   for (const record of [copy('one', { version: 2 }), copy('one', { baseSha: null }), copy('one', { fields: { ...copy().fields, sha: 'fake' } }), copy('one', { fields: { ...copy().fields, metadata: { head: 'not a list' } } }), copy('one', { route: { area: 'posts', filename: '../secret.mdx' } })]) assert.equal(parseRecovery(JSON.stringify(record)), null);
   const draftRoute = { area: 'posts', draftId: 'never-saved' };
   const draft = copy('draft', { route: draftRoute, baseSha: null, fields: recoveryFields({ ...base, filename: '', sha: undefined }) });
+  draft.fields.creationAttempt = { id: 'a-creation-identifier-12345', filename: 'original-title.mdx' };
+  assert.deepEqual(parseRecovery(JSON.stringify(draft)).fields.creationAttempt, draft.fields.creationAttempt);
+  const invalidAttempt = { ...draft, fields: { ...draft.fields, creationAttempt: { id: '../invalid', filename: '../secret.mdx' } } };
+  assert.equal(parseRecovery(JSON.stringify(invalidAttempt)), null);
   assert.ok(parseRecovery(JSON.stringify(draft)));
   assert.equal(restoreRecovery({ ...base, filename: '', sha: undefined }, draftRoute, draft).sha, undefined);
 });

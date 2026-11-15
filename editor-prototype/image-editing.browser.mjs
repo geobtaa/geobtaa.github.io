@@ -23,7 +23,7 @@ window.fetch = async (url, options = {}) => {
   if (path === '/api/images') return Response.json({ images: ${JSON.stringify(libraryNames)}.map(name => ({ name, path: name, sha: name })) });
   if (path === '/api/content/posts') return Response.json({ branch: 'custom-cms', entries: [{ name: 'images.mdx', path: 'src/content/docs/posts/images.mdx', sha: window.record.sha, draft: true, visibilityKnown: true }] });
   if (path === '/api/content/posts/images.mdx') {
-    if (options.method === 'PUT') { const fields = JSON.parse(options.body); window.writes.push(fields); window.record = { ...window.record, ...fields, sha: 'saved-' + window.writes.length }; }
+    if (options.method === 'PUT') { const fields = JSON.parse(options.body); window.writes.push(fields); window.record = { ...window.record, ...fields, sha: 'saved-' + window.writes.length, commitSha: 'commit-' + window.writes.length }; }
     return Response.json(window.record);
   }
   throw new Error('Unexpected API call: ' + path);

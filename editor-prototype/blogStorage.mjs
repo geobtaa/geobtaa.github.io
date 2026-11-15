@@ -1,6 +1,7 @@
 import { postSlug } from './blog.mjs';
 import { CONTENT_ROOT, contentDirectory, validateContentPath } from './contentAreas.mjs';
 import { DOC_EXTENSIONS, routeFromFilename, documentRoute, documentSlug, isRoutedDocument, staticPageRoute, routeConflictMessage } from './contentRoutes.mjs';
+import { validateCreationAttempt, findArticleCreation, uncertainCreation, gitBlobSha } from './articleCreation.mjs';
 
 const extensions = DOC_EXTENSIONS;
 const write = (method, data) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
@@ -20,9 +21,10 @@ export function availablePostFilename(title, paths) {
 }
 
 // Article naming uses the same snapshot and commit safeguards as other pages.
-export async function createBlogCommit({ request, ensureBranch, branch, title, suggestedFilename, content, area = 'posts', owner, repo }) {
+export async function createBlogCommit({ request, ensureBranch, branch, title, suggestedFilename, content, area = 'posts', owner, repo, creationId, creationFilename, creationRetry = false }) {
   if (!['posts', 'updates'].includes(area)) throw new Error('Unsupported article content area.');
-  return createContentCommit({ request, ensureBranch, branch, title, suggestedFilename, content, area, owner, repo, article: true });
+  validateCreationAttempt(creationId, creationFilename);
+  return createContentCommit({ request, ensureBranch, branch, title, suggestedFilename, content, area, owner, repo, creationId, creationFilename, creationRetry, article: true });
 }
 
 // Git blob SHAs are immutable. Reuse only parsed slug metadata, with a bounded
@@ -61,7 +63,7 @@ async function snapshotRoutes(tree, request, owner, repo) {
   return claims;
 }
 
-export async function createContentCommit({ request, ensureBranch, branch, filename, title, suggestedFilename, content, area, article = false, owner = 'geobtaa', repo = 'geobtaa.github.io' }) {
+export async function createContentCommit({ request, ensureBranch, branch, filename, title, suggestedFilename, content, area, article = false, owner = 'geobtaa', repo = 'geobtaa.github.io', creationId, creationFilename, creationRetry = false }) {
   const prefix = `${contentDirectory(area)}/`;
   const itemLabel = article ? area === 'updates' ? 'program update' : 'blog post' : 'page';
   if (!article) {
@@ -71,12 +73,17 @@ export async function createContentCommit({ request, ensureBranch, branch, filen
   await ensureBranch();
   const head = await request(`/git/ref/heads/${encodeURIComponent(branch)}`);
   const parent = head.object.sha;
+  const priorCreation = async ref => findArticleCreation({ request, ref, prefix, filename: creationFilename, id: creationId, branch });
+  if (creationId) {
+    try { const previous = await priorCreation(parent); if (previous) return previous; }
+    catch (error) { if (error.status === 401) throw Object.assign(error, { creationState: 'uncertain' }); throw uncertainCreation(); }
+  }
   const commit = await request(`/git/commits/${parent}`);
   const tree = await request(`/git/trees/${commit.tree.sha}?recursive=1`);
   if (tree.truncated) throw Object.assign(new Error(`The repository listing is incomplete. No ${itemLabel} was created.`), { status: 503 });
   let claims;
   try { claims = await snapshotRoutes(tree.tree, request, owner, repo); }
-  catch { throw Object.assign(new Error('The repository routes could not be verified. Nothing was saved to GitHub. Try again after the repository can be read.'), { status: 503 }); }
+  catch (error) { if (error.status === 401) throw error; throw Object.assign(new Error('The repository routes could not be verified. Nothing was saved to GitHub. Try again after the repository can be read.'), { status: 503 }); }
   const paths = new Set(tree.tree.map(item => item.path));
   const slug = documentSlug(content);
   if (slug !== null && claims.has(documentRoute('', slug))) throw Object.assign(new Error(routeConflictMessage(documentRoute('', slug), claims.get(documentRoute('', slug)))), { status: 409 });
@@ -84,22 +91,38 @@ export async function createContentCommit({ request, ensureBranch, branch, filen
     const base = postSlug(title);
     filename = `${base}.mdx`;
     for (let suffix = 2; (base === 'index' && filename === 'index.mdx') || paths.has(`${prefix}${filename}`) || claims.has(documentRoute(`${area}/${filename}`, slug)); suffix++) filename = `${base}-${suffix}.mdx`;
-    const requested = suggestedFilename || `${base}.mdx`;
-    if (requested !== filename) throw Object.assign(new Error(`That ${itemLabel} URL is already in use. Create as ${filename.replace(/\.mdx$/, '')} instead?`), { status: 409, suggestedFilename: filename });
+    const requested = creationFilename || suggestedFilename || `${base}.mdx`;
+    if (creationId && requested !== 'index.mdx' && !paths.has(`${prefix}${requested}`) && !claims.has(documentRoute(`${area}/${requested}`, slug))) filename = requested;
+    if (requested !== filename) {
+      if (creationId && creationRetry) throw uncertainCreation();
+      throw Object.assign(new Error(`That ${itemLabel} URL is already in use. Create as ${filename.replace(/\.mdx$/, '')} instead?`), { status: 409, suggestedFilename: filename, creationState: 'not-created' });
+    }
   }
   const route = documentRoute(`${area}/${filename}`, slug);
   const claimedBy = claims.get(route) || (paths.has(`${prefix}${filename}`) ? `${prefix}${filename}` : null);
-  if (claimedBy) throw Object.assign(new Error(routeConflictMessage(route, claimedBy)), { status: 409 });
+  if (claimedBy) throw Object.assign(new Error(routeConflictMessage(route, claimedBy)), { status: 409, creationState: 'not-created' });
   const nextTree = await request('/git/trees', write('POST', { base_tree: commit.tree.sha, tree: [{ path: `${prefix}${filename}`, mode: '100644', type: 'blob', content }] }));
-  const nextCommit = await request('/git/commits', write('POST', { message: `Create ${itemLabel}: ${filename}`, tree: nextTree.sha, parents: [parent] }));
+  if (typeof nextTree.sha !== 'string' || !nextTree.sha) throw new Error('GitHub did not return the new tree. No branch update was attempted.');
+  const nextCommit = await request('/git/commits', write('POST', { message: `Create ${itemLabel}: ${filename}${creationId ? `\n\nCMS-Creation: ${creationId}` : ''}`, tree: nextTree.sha, parents: [parent] }));
+  if (typeof nextCommit.sha !== 'string' || !nextCommit.sha) throw new Error('GitHub did not return the new commit. No branch update was attempted.');
+  // Compute the fallback before updating the branch. A successful creation must
+  // not depend on a subsequent Contents API read to obtain its revision.
+  const sha = nextTree.tree?.find(item => item.path === `${prefix}${filename}`)?.sha || await gitBlobSha(content);
+  const saved = { filename, sha, commitSha: nextCommit.sha, branch };
   try {
-    await request(`/git/refs/heads/${encodeURIComponent(branch)}`, write('PATCH', { sha: nextCommit.sha, force: false }));
+    const updated = await request(`/git/refs/heads/${encodeURIComponent(branch)}`, write('PATCH', { sha: nextCommit.sha, force: false }));
+    if (updated?.object?.sha !== nextCommit.sha) throw new Error('GitHub returned an ambiguous branch update.');
   } catch (error) {
-    if (error.status === 409 || error.status === 422) throw Object.assign(new Error(`Staging changed while creating this ${itemLabel}. Your work is still here. Save again to check for an available URL.`), { status: 409 });
-    throw error;
+    try {
+      const latest = await request(`/git/ref/heads/${encodeURIComponent(branch)}`);
+      if (latest?.object?.sha === nextCommit.sha) return saved;
+      if (creationId) { const previous = await priorCreation(latest.object.sha); if (previous) return previous; }
+      const comparison = await request(`/compare/${encodeURIComponent(nextCommit.sha)}...${encodeURIComponent(latest.object.sha)}`);
+      if (['ahead', 'identical'].includes(comparison.status) && comparison.merge_base_commit?.sha === nextCommit.sha) return saved;
+    } catch (checkError) { if (checkError.status === 401) throw Object.assign(checkError, { creationState: 'uncertain' }); }
+    if (error.status === 401) throw Object.assign(error, { creationState: 'uncertain' });
+    if (!creationId && (error.status === 409 || error.status === 422)) throw Object.assign(new Error(`Staging changed while creating this ${itemLabel}. Your work is still here. Save again to check for an available URL.`), { status: 409 });
+    throw uncertainCreation();
   }
-  const blob = nextTree.tree?.find((item) => item.path === `${prefix}${filename}`);
-  // GitHub returns tree entries; read the saved blob only if the response omits it.
-  const sha = blob?.sha || (await request(`/contents/${prefix}${filename}?ref=${nextCommit.sha}`)).sha;
-  return { filename, sha, commitSha: nextCommit.sha, branch };
+  return saved;
 }

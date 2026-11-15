@@ -1,17 +1,19 @@
 import type { Project } from './editorTypes.ts';
 import { validEditorRoute, routeKey, type EditorRoute } from './editorNavigation.ts';
+import { validCreationId, validCreationFilename } from '../../../editor-prototype/articleCreation.mjs';
 
-export type RecoveryFields = Pick<Project, 'filename' | 'title' | 'description' | 'body' | 'draft' | 'date' | 'excerpt' | 'authors' | 'tags' | 'cover' | 'metadata' | 'convertProgramUpdate'>;
+export type RecoveryFields = Pick<Project, 'filename' | 'title' | 'description' | 'body' | 'draft' | 'date' | 'excerpt' | 'authors' | 'tags' | 'cover' | 'metadata' | 'convertProgramUpdate' | 'creationAttempt'>;
 export type RecoveryCopy = { version: 1; id: string; revision: string; route: EditorRoute; baseSha: string | null; savedAt: string; fields: RecoveryFields };
 const PREFIX = 'geobtaa-editor-recovery:v1:';
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 export function recoveryFields(project: Project): RecoveryFields {
-  return { filename: project.filename, title: project.title, description: project.description, body: project.body, draft: project.draft, date: project.date || '', excerpt: project.excerpt || '', authors: project.authors || [], tags: project.tags || [], cover: project.cover || null, metadata: project.metadata || {}, convertProgramUpdate: project.convertProgramUpdate === true };
+  return { filename: project.filename, title: project.title, description: project.description, body: project.body, draft: project.draft, date: project.date || '', excerpt: project.excerpt || '', authors: project.authors || [], tags: project.tags || [], cover: project.cover || null, metadata: project.metadata || {}, convertProgramUpdate: project.convertProgramUpdate === true, ...(project.creationAttempt ? { creationAttempt: project.creationAttempt } : {}) };
 }
 function validFields(value: unknown): value is RecoveryFields {
-  const allowed = new Set(['filename', 'title', 'description', 'body', 'draft', 'date', 'excerpt', 'authors', 'tags', 'cover', 'metadata', 'convertProgramUpdate']);
+  const allowed = new Set(['filename', 'title', 'description', 'body', 'draft', 'date', 'excerpt', 'authors', 'tags', 'cover', 'metadata', 'convertProgramUpdate', 'creationAttempt']);
   if (!object(value) || !['filename', 'title', 'description', 'body', 'date', 'excerpt'].every(key => typeof value[key] === 'string') || typeof value.draft !== 'boolean' || typeof value.convertProgramUpdate !== 'boolean') return false;
   if (Object.keys(value).some(key => !allowed.has(key))) return false;
+  if (value.creationAttempt !== undefined && (!object(value.creationAttempt) || !validCreationId(value.creationAttempt.id) || !validCreationFilename(value.creationAttempt.filename))) return false;
   if (!Array.isArray(value.authors) || !value.authors.every(author => typeof author === 'string' || (object(author) && typeof author.name === 'string'))) return false;
   if (!Array.isArray(value.tags) || !value.tags.every(tag => typeof tag === 'string')) return false;
   if (value.cover !== null && (!object(value.cover) || typeof value.cover.alt !== 'string')) return false;

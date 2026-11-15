@@ -40,7 +40,7 @@ function repository(entries = [], { race = false, truncated = false, queryError 
       if (race) throw Object.assign(new Error('Not fast forward'), { status: 422 });
       assert.equal(files.has(pending.path), false);
       files.set(pending.path, { content: pending.content, sha: createHash('sha1').update(pending.content).digest('hex'), type: 'blob' });
-      return {};
+      return { object: { sha: JSON.parse(options.body).sha } };
     }
     throw new Error(`Unexpected request ${path}`);
   };

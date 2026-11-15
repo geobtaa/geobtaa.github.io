@@ -21,7 +21,7 @@ window.fetch = async (url, options = {}) => {
   if (options.method === 'POST' || options.method === 'PUT') {
     const input = JSON.parse(options.body);
     if (window.failNext) { window.failNext = false; return Response.json({ error: 'Staging changed. Your edits are still here.' }, { status: 409 }); }
-    const key = options.method === 'POST' ? 'created-' + window.writes.length + '.mdx' : filename;
+    const key = options.method === 'POST' ? input.creationFilename : filename;
     window.records[key] = options.method === 'POST' ? newProgramUpdate(input) : serializeProgramUpdate(window.records[key], input);
     window.writes.push({ filename: key, input });
     return Response.json({ filename: key, content: window.records[key], sha: 'saved-' + window.writes.length, commitSha: 'commit-saved', ...parseProgramUpdate(window.records[key]) });

@@ -14,12 +14,14 @@ function repository(area) {
   let head = 'head-1';
   let counter = 1;
   let pending;
+  const history = [];
   const files = new Map([['existing.md', { content: original, sha: 'blob-1' }]]);
   const fetchImpl = async (input, options = {}) => {
     const url = new URL(String(input));
     const method = options.method || 'GET';
     const path = url.pathname.replace('/repos/geobtaa/geobtaa.github.io', '');
     const payload = options.body ? JSON.parse(options.body) : null;
+    if (path === '/commits') return Response.json(history.filter(item => `src/content/docs/${area}/${item.filename}` === url.searchParams.get('path')));
     if (path === '/graphql') return Response.json(blobQueryResponse(payload, files.values()));
     if (path.startsWith('/git/ref/heads/')) return Response.json({ object: { sha: head } });
     if (path.startsWith('/git/blobs/')) {
@@ -36,6 +38,7 @@ function repository(area) {
     }
     if (path === '/git/commits' && method === 'POST') {
       assert.deepEqual(payload.parents, [head]);
+      pending.message = payload.message;
       return Response.json({ sha: `commit-${counter}` });
     }
     if (path.startsWith('/git/refs/heads/') && method === 'PATCH') {
@@ -43,13 +46,14 @@ function repository(area) {
       assert.ok(!files.has(pending.filename));
       files.set(pending.filename, { content: pending.content, sha: pending.sha });
       head = payload.sha;
-      return Response.json({});
+      history.unshift({ sha: head, filename: pending.filename, commit: { message: pending.message }, file: { content: pending.content, sha: pending.sha } });
+      return Response.json({ object: { sha: payload.sha } });
     }
     if (path.startsWith(`/contents/src/content/docs/${area}`)) {
       const filename = decodeURIComponent(path.replace(`/contents/src/content/docs/${area}`, '').replace(/^\//, ''));
       if (!filename) return Response.json([...files].map(([name, file]) => ({ name, path: `src/content/docs/${area}/${name}`, type: 'file', sha: file.sha })));
-      const file = files.get(filename);
-      if (method === 'GET') return file ? Response.json({ sha: file.sha, content: Buffer.from(file.content).toString('base64') }) : Response.json({ message: 'Not found' }, { status: 404 });
+      const file = history.find(item => item.sha === url.searchParams.get('ref') && item.filename === filename)?.file || files.get(filename);
+      if (method === 'GET') return file ? Response.json({ sha: file.sha, content: Buffer.from(file.content).toString('base64'), encoding: 'base64' }) : Response.json({ message: 'Not found' }, { status: 404 });
       assert.equal(method, 'PUT');
       if (file?.sha !== payload.sha) return Response.json({ message: 'SHA mismatch' }, { status: 409 });
       const saved = { sha: `blob-${++counter}`, content: Buffer.from(payload.content, 'base64').toString('utf8') };
@@ -162,6 +166,16 @@ for (const area of ['posts', 'updates']) for (const mode of ['local', 'hosted'])
       assert.equal((await call('PUT', `/api/content/${area}/a-new-post.mdx`, { title: 'Overwrite attempt' })).status, 400);
       assert.equal((await call('POST', `/api/content/${area}`, { title: '' })).status, 400);
       assert.equal((await call('GET', '/api/content/disabled')).status, 404);
+      const attempt = { ...minimal, title: 'Recover this creation', creationId: `api-creation-${mode}-${area}`, creationFilename: 'recover-this-creation.mdx' };
+      const firstAttempt = await call('POST', `/api/content/${area}`, attempt);
+      assert.equal(firstAttempt.status, 201, JSON.stringify(firstAttempt.body));
+      const committedCount = repo.files.size;
+      const replay = await call('POST', `/api/content/${area}`, { ...attempt, title: 'Edited after response loss', body: 'Later unsaved content.' });
+      assert.equal(replay.status, 201, JSON.stringify(replay.body));
+      assert.equal(replay.body.replayed, true);
+      assert.equal(replay.body.content, firstAttempt.body.content);
+      assert.equal(replay.body.sha, firstAttempt.body.sha);
+      assert.equal(repo.files.size, committedCount);
       if (area === 'updates') {
         const content = "---\ntitle: Structured update\ndate: 2026-10-24T18:00:00-05:00\ncustom: keep\nprogramUpdate:\n  highlight:\n    intro: '**A rich highlight.**'\n---\n\nimport ProgramUpdateStructured from 'src/components/ProgramUpdateStructured.astro';\n\n<ProgramUpdateStructured data={frontmatter.programUpdate} />\n";
         repo.files.set('structured.mdx', { content, sha: 'structured-blob' });

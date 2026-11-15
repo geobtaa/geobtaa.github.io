@@ -209,7 +209,8 @@ export async function saveProgramUpdate(github, filename, input) {
   if (!filename) {
     content = newProgramUpdate(input);
     await validateDocument(content);
-    saved = await github.createBlog({ area: 'updates', title: input.title, suggestedFilename: input.suggestedFilename, content });
+    saved = await github.createBlog({ area: 'updates', title: input.title, suggestedFilename: input.suggestedFilename, creationId: input.creationId, creationFilename: input.creationFilename, creationRetry: input.creationRetry === true, content });
+    content = saved.content ?? content;
   } else {
     if (!input.sha) throw invalid('An existing update SHA is required. Create new updates through the Program Updates collection.');
     const loaded = await github.getContent('updates', filename);

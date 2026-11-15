@@ -113,9 +113,10 @@ export function postSlug(title) {
 
 export async function saveBlog(github, filename, input) {
   if (!filename) {
-    const content = newBlog(input);
+    let content = newBlog(input);
     await validateDocument(content);
-    const saved = await github.createBlog({ title: input.title, suggestedFilename: input.suggestedFilename, content });
+    const saved = await github.createBlog({ title: input.title, suggestedFilename: input.suggestedFilename, creationId: input.creationId, creationFilename: input.creationFilename, creationRetry: input.creationRetry === true, content });
+    content = saved.content ?? content;
     return { ...saved, content, ...parseBlog(content), ...parsePageMetadata(content), ...contentVisibility(content) };
   }
   if (!input.sha) throw invalid('An existing post SHA is required. Create new posts through the blog collection.');

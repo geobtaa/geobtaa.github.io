@@ -31,5 +31,6 @@ export type Project = {
   cover?: { image?: string; light?: string; dark?: string; alt: string; caption?: string; [key: string]: unknown } | null;
   conversion?: { body: string | null; kind: string; error: string | null } | null;
   convertProgramUpdate?: boolean;
+  creationAttempt?: { id: string; filename: string };
 };
 

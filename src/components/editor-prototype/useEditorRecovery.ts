@@ -24,9 +24,9 @@ export function useEditorRecovery({ scope, route, project, baseline }: { scope: 
       if (result.unreadable) setStorageError('Some recovery copies could not be read. Keep a separate copy of important unsaved work.');
     } catch { setStorageError('This browser cannot store recovery copies. Keep a separate copy of unsaved work.'); setStatus('error'); }
   };
-  const flush = () => {
+  const flush = (snapshot?: Project) => {
     clearTimeout(timer.current);
-    const context = latest.current;
+    const context = snapshot ? { ...latest.current, project: snapshot } : latest.current;
     if (!context.scope || !context.project || !context.baseline || !context.route.area || (!context.route.filename && !context.route.draftId)) return false;
     const contextKey = JSON.stringify([context.scope, routeKey(context.route), context.baseline.sha || null]);
     if (session.current.key !== contextKey) session.current = { key: contextKey, id: crypto.randomUUID() };

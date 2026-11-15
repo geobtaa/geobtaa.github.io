@@ -30,7 +30,8 @@ function json(data, status = 200, headers = {}) {
 function parseCookies(request) {
   return Object.fromEntries((request.headers.get('Cookie') || '').split(';').filter(Boolean).map((part) => {
     const [name, ...value] = part.trim().split('=');
-    return [name, decodeURIComponent(value.join('='))];
+    try { return [name, decodeURIComponent(value.join('='))]; }
+    catch { return [name, '']; }
   }));
 }
 
@@ -65,7 +66,7 @@ async function openSession(value, secret) {
     const [iv, ciphertext] = value.split('.').map(fromBase64url);
     const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, await sessionKey(secret), ciphertext);
     const session = JSON.parse(new TextDecoder().decode(plaintext));
-    if (!session.token || !session.login || session.exp < Date.now()) return null;
+    if (typeof session.token !== 'string' || !session.token || typeof session.login !== 'string' || !session.login || !Number.isFinite(session.exp) || session.exp <= Date.now()) return null;
     return session;
   } catch { return null; }
 }
@@ -195,7 +196,7 @@ function createGitHubClient(env, token) {
 }
 
 async function login(request, env) {
-  if (!env.GITHUB_CLIENT_ID || !env.GITHUB_CLIENT_SECRET || !env.SESSION_SECRET) throw new HttpError(500, 'OAuth secrets are not configured.');
+  validateOAuthConfig(env);
   const url = new URL(request.url);
   const state = randomValue();
   const verifier = randomValue(48);
@@ -210,20 +211,31 @@ async function login(request, env) {
 }
 
 async function callback(request, env) {
+  validateOAuthConfig(env);
   const url = new URL(request.url);
   const cookies = parseCookies(request);
-  if (!url.searchParams.get('code') || !cookies[STATE_COOKIE] || url.searchParams.get('state') !== cookies[STATE_COOKIE]) throw new HttpError(400, 'Invalid or expired OAuth state. Start sign-in again.');
-  const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
-    method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ client_id: env.GITHUB_CLIENT_ID, client_secret: env.GITHUB_CLIENT_SECRET, code: url.searchParams.get('code'), redirect_uri: `${url.origin}/api/auth/callback`, code_verifier: cookies[VERIFIER_COOKIE] }),
-  });
-  const tokenData = await tokenResponse.json();
-  if (!tokenResponse.ok || !tokenData.access_token) throw new HttpError(401, tokenData.error_description || 'GitHub sign-in failed.');
-  const user = await githubRequest(tokenData.access_token, '/user');
+  if (!cookies[STATE_COOKIE] || !cookies[VERIFIER_COOKIE] || url.searchParams.get('state') !== cookies[STATE_COOKIE]) throw new HttpError(400, 'Invalid or expired OAuth state. Start sign-in again.');
+  if (url.searchParams.has('error')) throw new HttpError(401, 'GitHub sign-in was cancelled or refused. Start sign-in again.');
+  if (!url.searchParams.get('code')) throw new HttpError(400, 'GitHub did not return a sign-in code. Start sign-in again.');
+  let tokenResponse, tokenData;
+  try {
+    tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: env.GITHUB_CLIENT_ID, client_secret: env.GITHUB_CLIENT_SECRET, code: url.searchParams.get('code'), redirect_uri: `${url.origin}/api/auth/callback`, code_verifier: cookies[VERIFIER_COOKIE] }),
+    });
+    tokenData = await tokenResponse.json();
+  } catch { throw new HttpError(502, 'GitHub sign-in could not be reached or returned an unreadable response. Start sign-in again.'); }
+  if (!tokenResponse.ok || typeof tokenData?.access_token !== 'string' || !tokenData.access_token) throw new HttpError(tokenResponse.status >= 500 ? 502 : 401, 'GitHub could not complete sign-in. The code may have expired. Start sign-in again; contact the site administrator if this continues.');
   const { owner, repo } = repoSettings(env);
-  const repository = await githubRequest(tokenData.access_token, `/repos/${owner}/${repo}`);
-  const allowed = (env.ALLOWED_GITHUB_USERS || '').split(',').map((value) => value.trim().toLowerCase()).filter(Boolean);
-  if (!repository.permissions?.push || (allowed.length && !allowed.includes(user.login.toLowerCase()))) throw new HttpError(403, 'This GitHub account is not allowed to edit this repository.');
+  let user, repository;
+  try {
+    user = await githubRequest(tokenData.access_token, '/user');
+    repository = await githubRequest(tokenData.access_token, `/repos/${owner}/${repo}`);
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) throw new HttpError(error.status, 'GitHub could not authorize this sign-in. Sign in with an authorized account or contact the site administrator.');
+    throw new HttpError(502, 'GitHub account or repository access could not be verified. Start sign-in again.');
+  }
+  if (!repository?.permissions?.push || !allowedUser(user?.login, env)) throw new HttpError(403, 'This GitHub account is not allowed to edit this repository. Sign in with an authorized account or contact the site administrator.');
   const session = await sealSession({ token: tokenData.access_token, login: user.login, exp: Date.now() + 8 * 60 * 60 * 1000 }, env.SESSION_SECRET);
   const headers = new Headers({ Location: url.origin + editorReturnPath(cookies[RETURN_COOKIE], url.origin), 'Cache-Control': 'no-store' });
   headers.append('Set-Cookie', cookie(SESSION_COOKIE, session, 'SameSite=Strict; Max-Age=28800'));
@@ -238,8 +250,21 @@ async function authenticatedSession(request, env) {
   if (!value) throw new HttpError(401, 'Sign in with GitHub to continue.');
   const session = await openSession(value, env.SESSION_SECRET);
   if (!session) throw new HttpError(401, 'Your editor session has expired. Sign in again.');
+  if (!allowedUser(session.login, env)) throw Object.assign(new HttpError(403, 'This account is no longer authorized to use the editor. Sign in with an authorized account or contact the site administrator.'), { code: 'access_denied' });
   return session;
 }
+
+function validateOAuthConfig(env) {
+  if (!env.GITHUB_CLIENT_ID || !env.GITHUB_CLIENT_SECRET || typeof env.SESSION_SECRET !== 'string' || env.SESSION_SECRET.length < 32) throw new HttpError(500, 'GitHub sign-in is not configured correctly. Contact the site administrator.');
+}
+function allowedUser(login, env) {
+  const allowed = (env.ALLOWED_GITHUB_USERS || '').split(',').map(value => value.trim().toLowerCase()).filter(Boolean);
+  return typeof login === 'string' && !!login && (!allowed.length || allowed.includes(login.toLowerCase()));
+}
+function clearOAuthCookies(response) {
+  for (const name of [STATE_COOKIE, VERIFIER_COOKIE, RETURN_COOKIE]) response.headers.append('Set-Cookie', cookie(name, '', 'SameSite=Lax; Max-Age=0'));
+}
+const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 
 function contentRoute(pathname) {
   const match = pathname.match(/^\/api\/content\/([^/]+)(?:\/(.+))?$/);
@@ -293,13 +318,18 @@ export async function onRequest({ request, env }) {
   const url = new URL(request.url);
   try {
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method) && request.headers.get('Origin') !== url.origin) throw new HttpError(403, 'Invalid request origin.');
-    if (request.method === 'GET' && url.pathname === '/api/auth/login') return login(request, env);
-    if (request.method === 'GET' && url.pathname === '/api/auth/callback') return callback(request, env);
+    if (request.method === 'GET' && url.pathname === '/api/auth/login') return await login(request, env);
+    if (request.method === 'GET' && url.pathname === '/api/auth/callback') return await callback(request, env);
     if (request.method === 'POST' && url.pathname === '/api/auth/logout') {
       return json({ ok: true }, 200, { 'Set-Cookie': cookie(SESSION_COOKIE, '', 'SameSite=Strict; Max-Age=0') });
     }
     if (request.method === 'GET' && url.pathname === '/api/session') {
-      const session = await openSession(parseCookies(request)[SESSION_COOKIE] || '', env.SESSION_SECRET);
+      let session;
+      try { session = await authenticatedSession(request, env); }
+      catch (error) {
+        if (error.status !== 401) throw error;
+        return json({ authenticated: false }, 200, { 'Set-Cookie': cookie(SESSION_COOKIE, '', 'SameSite=Strict; Max-Age=0') });
+      }
       const { owner, repo, branch } = repoSettings(env);
       return json(session ? { authenticated: true, login: session.login, workspace: `${owner}/${repo}#${branch}` } : { authenticated: false });
     }
@@ -307,6 +337,16 @@ export async function onRequest({ request, env }) {
     return await contentApi(request, env, url.pathname);
   } catch (error) {
     const status = error instanceof GitHubConflictError ? 409 : (error.status || 500);
-    return json({ error: error.message || 'Unexpected server error.', ...(error.suggestedFilename ? { suggestedFilename: error.suggestedFilename } : {}) }, status);
+    const oauth = ['/api/auth/login', '/api/auth/callback'].includes(url.pathname);
+    const returnTo = editorReturnPath(parseCookies(request)[RETURN_COOKIE] || url.searchParams.get('returnTo'), url.origin);
+    const signInUrl = `/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`;
+    const message = oauth && !error.status ? 'GitHub sign-in could not be completed. Start sign-in again; contact the site administrator if this continues.' : error.message || 'Unexpected server error.';
+    const data = { error: message, ...(error.code ? { code: error.code } : {}), ...((oauth || status === 401 || error.code === 'access_denied') ? { signInUrl } : {}), ...(error.suggestedFilename ? { suggestedFilename: error.suggestedFilename } : {}), ...(error.creationState ? { creationState: error.creationState } : {}) };
+    const response = oauth && request.headers.get('Accept')?.includes('text/html')
+      ? new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>GitHub sign-in unsuccessful</title><h1>GitHub sign-in unsuccessful</h1><p>${escapeHtml(message)}</p><p><a href="${escapeHtml(signInUrl)}">Start sign-in again</a></p><p><a href="${escapeHtml(returnTo)}">Return to the editor</a>. Keep your original editing tab open.</p></html>`, { status, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; base-uri 'none'; frame-ancestors 'none'" } })
+      : json(data, status);
+    if (oauth) clearOAuthCookies(response);
+    if (status === 401 || error.code === 'access_denied') response.headers.append('Set-Cookie', cookie(SESSION_COOKIE, '', 'SameSite=Strict; Max-Age=0'));
+    return response;
   }
 }

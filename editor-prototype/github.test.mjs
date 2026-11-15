@@ -57,7 +57,7 @@ test('draft, reload, publish, create, and stale-SHA workflow', async () => {
     if (pathname.endsWith('/git/refs/heads/custom-cms') && method === 'PATCH') {
       assert.equal(JSON.parse(options.body).force, false);
       branchFiles.set(pending.path.slice('src/content/docs/projects/'.length), { content: pending.content, sha: `sha-${counter}` });
-      return response(200, {});
+      return response(200, { object: { sha: JSON.parse(options.body).sha } });
     }
     const contentsAt = pathname.indexOf('/contents/src/content/docs/projects');
     if (contentsAt !== -1) {

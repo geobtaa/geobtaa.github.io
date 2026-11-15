@@ -2,7 +2,7 @@ import type { Project, PageMetadata } from './editorTypes';
 import { DocumentPreview } from './DocumentPreview';
 import { useEditorNavigation, routeKey, type EditorRoute } from './editorNavigation';
 import { useEditorRecovery, type EditorRecovery } from './useEditorRecovery';
-import { downloadRecovery, parseRecovery, recoveryKey, restoreRecovery, type RecoveryCopy } from './editorRecovery';
+import { downloadRecovery, parseRecovery, recoveryFields, recoveryKey, restoreRecovery, type RecoveryCopy } from './editorRecovery';
 import { ToolbarButton } from './ToolbarButton';
 import { useEditor, useEditorState, EditorContent } from '@tiptap/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -16,7 +16,7 @@ import { MDX_COMPONENT_MESSAGE } from './contentSyntax';
 import { richTextEditorOptions } from './richTextEditor';
 import { createLinkCardMdx, ensureLinkCardImport } from './linkCardMdx';
 import { createLinkButtonMdx, ensureLinkButtonImport, type LinkButtonFields } from './linkButtonMdx';
-import { todayCalendar } from '../../../editor-prototype/blog.mjs';
+import { todayCalendar, postSlug } from '../../../editor-prototype/blog.mjs';
 import { parseContent } from '../../../editor-prototype/content.mjs';
 import { CONTENT_AREAS } from '../../../editor-prototype/contentAreas.mjs';
 import { documentRoute, routeConflictMessage } from '../../../editor-prototype/contentRoutes.mjs';
@@ -29,11 +29,20 @@ const CONFLICT = 'This page has changed in GitHub since you opened it. Reload th
 type ProjectListItem = { name: string; path: string; sha: string; route?: string; draft?: boolean; sidebarHidden?: boolean; visibilityKnown?: boolean };
 type ImageListItem = { name: string; path: string; sha: string; size?: number };
 type AreaName = keyof typeof CONTENT_AREAS;
+type ApiError = Error & { status?: number; suggestedFilename?: string; creationState?: string };
+let sessionBlocked = false;
 
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
+  if (sessionBlocked && path !== '/api/session' && !path.startsWith('/api/auth/')) throw new Error('Sign in again and check your sign-in before continuing. Your edits remain in this tab.');
   const response = await fetch(`${API}${path}`, options);
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw Object.assign(new Error(data.error || `Request failed (${response.status}).`), { suggestedFilename: data.suggestedFilename });
+  const data = await response.json().catch(() => null);
+  const serverError = typeof data?.error === 'string' ? data.error : `Request failed (${response.status}).`;
+  if (response.status === 401 || data?.code === 'access_denied') {
+    sessionBlocked = true;
+    window.dispatchEvent(new CustomEvent('cms-auth-required', { detail: typeof data?.error === 'string' ? data.error : 'Your editor session has expired. Sign in again.' }));
+  }
+  if (!response.ok) throw Object.assign(new Error(serverError), { status: response.status, suggestedFilename: typeof data?.suggestedFilename === 'string' ? data.suggestedFilename : undefined, creationState: data?.creationState === 'not-created' ? 'not-created' : data?.creationState === 'uncertain' ? 'uncertain' : undefined });
+  if (!data || typeof data !== 'object') throw Object.assign(new Error('The server returned an unreadable response. The save outcome could not be confirmed.'), { status: 502 });
   return data;
 }
 
@@ -640,6 +649,8 @@ export default function ProjectEditor() {
   const [showUpdateStarter, setShowUpdateStarter] = useState(false);
   const [showConversionPreview, setShowConversionPreview] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [authIssue, setAuthIssue] = useState('');
+  const [checkingSignIn, setCheckingSignIn] = useState(false);
   const dirty = project !== null && JSON.stringify(project) !== savedSnapshot;
   const isBlog = area === 'posts';
   const isUpdate = area === 'updates';
@@ -681,6 +692,11 @@ export default function ProjectEditor() {
   const recovery = useEditorRecovery({ scope: recoveryScope, route, project, baseline });
   recoveryRef.current = recovery;
   useEffect(() => {
+    const required = (event: Event) => { recoveryRef.current?.flush(); setAuthIssue((event as CustomEvent<string>).detail); };
+    window.addEventListener('cms-auth-required', required);
+    return () => window.removeEventListener('cms-auth-required', required);
+  }, []);
+  useEffect(() => {
     if (!dirty && !(busy && project)) return;
     // returnValue also supports browsers that still require the legacy signal.
     const warn = (event: BeforeUnloadEvent) => { recoveryRef.current?.flush(); event.preventDefault(); event.returnValue = true; };
@@ -703,11 +719,29 @@ export default function ProjectEditor() {
   useEffect(() => {
     void api<{ authenticated: boolean; login?: string; workspace?: string }>('/api/session')
       .then((session) => {
+        sessionBlocked = !session.authenticated;
         setWorkspace(session.workspace || 'geobtaa/geobtaa.github.io#custom-cms');
         setViewer(session.authenticated ? (session.login || 'GitHub user') : null);
       })
       .catch((err) => { setViewer(null); setError((err as Error).message); });
   }, []);
+
+  const checkSignIn = async () => {
+    setCheckingSignIn(true);
+    try {
+      const session = await api<{ authenticated: boolean; login?: string; workspace?: string }>('/api/session');
+      if (!session.authenticated) throw new Error('Sign-in is still required. Complete sign-in in the other tab, then check again.');
+      if (session.login?.toLowerCase() !== viewer?.toLowerCase() || (session.workspace || 'geobtaa/geobtaa.github.io#custom-cms') !== workspace) throw new Error(`Sign in as ${viewer} in the same workspace to resume these edits. A different account or workspace is currently signed in. You can download your unsaved edits below.`);
+      sessionBlocked = false; setAuthIssue(''); setError('');
+    } catch (err) { sessionBlocked = true; setAuthIssue((err as Error).message); }
+    finally { setCheckingSignIn(false); }
+  };
+  const authenticationPanel = authIssue && <aside className="message error" role="alert" aria-label="Sign-in required">
+    <p>{authIssue}</p><p>Your edits and editor state remain in this tab. Sign in in a separate tab, then return here.</p>
+    <a target="_blank" rel="noopener noreferrer" href={`${API}/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)}`} onClick={() => recoveryRef.current?.flush()}>Sign in again with GitHub</a>{' '}
+    <button type="button" disabled={checkingSignIn} onClick={() => void checkSignIn()}>{checkingSignIn ? 'Checking sign-in…' : 'Check sign-in'}</button>{' '}
+    {project && <button type="button" onClick={() => { const copy = recovery.currentCopy(); if (copy) downloadRecovery(copy); }}>Download unsaved edits</button>}
+  </aside>;
 
   const logout = async () => {
     if (!canLeave()) return;
@@ -732,12 +766,20 @@ export default function ProjectEditor() {
   const selectArea = (nextArea: AreaName | null) => navigation.navigate({ area: nextArea });
 
   const save = async (alternative?: string) => {
-    if (!project || !area || !config || busy) return;
+    if (!project || !area || !config || busy || authIssue) return;
     if (!project.title.trim()) return setError('Title is required.');
     const slug = project.sha ? project.filename.replace(/\.mdx?$/, '') : slugify(project.filename || project.title);
     if (!isArticle && !slug) return setError('Enter a title or filename before saving.');
     const filename = project.sha ? project.filename : `${slug}.mdx`;
     const creatingArticle = isArticle && !project.sha;
+    // A reload must not turn an ignored recovery prompt into a new creation.
+    const priorAttempt = project.creationAttempt || recovery.copies.find(copy => routeKey(copy.route) === routeKey(route) && copy.fields.creationAttempt)?.fields.creationAttempt;
+    const attempt = creatingArticle ? priorAttempt || { id: crypto.randomUUID(), filename: alternative || `${postSlug(project.title)}.mdx` } : undefined;
+    if (attempt) {
+      const pending = { ...project, creationAttempt: attempt };
+      if (!recovery.flush(pending)) return setError('Article creation has not started because its retry information could not be saved on this device. Enable browser storage and try again, or download your unsaved edits.');
+      setProject(pending);
+    }
     if (!project.sha && !creatingArticle) {
       const route = documentRoute(`${area}/${filename}`);
       const conflict = projects.find(item => item.name === filename || (item.route ?? (item.visibilityKnown === false ? undefined : documentRoute(`${area}/${item.name}`))) === route);
@@ -746,12 +788,13 @@ export default function ProjectEditor() {
     const publish = config.publishing && !project.draft;
     setBusy(true); setError(''); setNotice('');
     try {
-      const saved = await api<Project & { commitSha: string }>(creatingArticle ? `/api/content/${area}` : `/api/content/${area}/${encodeURIComponent(filename)}`, {
+      const saved = await api<Project & { commitSha: string; replayed?: boolean }>(creatingArticle ? `/api/content/${area}` : `/api/content/${area}/${encodeURIComponent(filename)}`, {
         method: creatingArticle ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           date: project.date ?? '', excerpt: project.excerpt ?? '', authors: project.authors ?? [], tags: project.tags ?? [], cover: project.cover ?? null, draft: project.draft, metadata: project.metadata,
           ...(isArticle ? { suggestedFilename: alternative } : {}),
+          ...(attempt ? { creationId: attempt.id, creationFilename: attempt.filename, creationRetry: !!priorAttempt } : {}),
           ...(isUpdate ? { convertProgramUpdate: project.convertProgramUpdate === true } : {}),
           title: project.title,
           description: project.description,
@@ -761,19 +804,25 @@ export default function ProjectEditor() {
           originalContent: project.content,
         }),
       });
-      const next = { ...project, ...saved, filename: saved.filename || filename, draft: saved.draft ?? project.draft };
+      if (!saved.sha || typeof saved.sha !== 'string' || !saved.commitSha || typeof saved.commitSha !== 'string' || typeof saved.content !== 'string' || typeof saved.body !== 'string' || typeof saved.title !== 'string' || (attempt && saved.filename !== attempt.filename)) throw new Error('The save response did not identify the committed document. Its outcome could not be confirmed.');
+      const confirmed = { ...project, ...saved, filename: saved.filename || filename, draft: saved.draft ?? project.draft, creationAttempt: undefined };
+      const confirmedFields = recoveryFields(confirmed);
+      const laterEdits = Object.fromEntries(Object.entries(recoveryFields(project)).filter(([key, value]) => !['filename', 'creationAttempt'].includes(key) && JSON.stringify(value) !== JSON.stringify(confirmedFields[key as keyof typeof confirmedFields])));
+      const next = saved.replayed ? { ...confirmed, ...laterEdits } : confirmed;
       recovery.saved();
       const savedRoute: EditorRoute = { area, filename: next.filename };
       navigation.replace(savedRoute); setRoute(savedRoute);
-      setProject(next); setBaseline(next); setSavedSnapshot(JSON.stringify(next)); setSuggestedFilename('');
+      setProject(next); setBaseline(confirmed); setSavedSnapshot(JSON.stringify(confirmed)); setSuggestedFilename('');
       setShowConversionPreview(false); setShowUpdateStarter(false);
       setBranch(saved.branch || 'custom-cms');
-      setNotice(`Changes saved to staging (commit ${saved.commitSha.slice(0, 7)}).`);
+      setNotice(saved.replayed ? `Original creation confirmed (commit ${saved.commitSha.slice(0, 7)}). Any later edits remain here for review and saving.` : `Changes saved to staging (commit ${saved.commitSha.slice(0, 7)}).`);
       await loadList(area);
     } catch (err) {
-      setSuggestedFilename((err as Error & { suggestedFilename?: string }).suggestedFilename || '');
+      const failure = err as ApiError;
+      if (attempt && failure.creationState === 'not-created') { const pending = { ...project, creationAttempt: undefined }; setProject(pending); recovery.flush(pending); }
+      setSuggestedFilename(attempt && failure.creationState !== 'not-created' ? '' : failure.suggestedFilename || '');
       const message = (err as Error).message;
-      setError(!isArticle && message.includes('changed in GitHub') ? CONFLICT : message);
+      setError(attempt && failure.creationState !== 'not-created' ? `${message} Creation is not confirmed. Use Retry creation safely to check the original request; do not create another article.` : !isArticle && message.includes('changed in GitHub') ? CONFLICT : message);
     } finally { setBusy(false); }
   };
 
@@ -830,6 +879,7 @@ export default function ProjectEditor() {
     {candidate && <aside className="recovery-panel" aria-label="Recover unsaved edits">
       <h2>Unsaved edits found on this device</h2>
       <p>Recovery copy from <time dateTime={candidate.savedAt}>{new Date(candidate.savedAt).toLocaleString()}</time>.</p>
+      {candidate.fields.creationAttempt && <p>This draft has an unconfirmed article creation. Saving checks that original request. Restore the copy to bring back its edits before checking.</p>}
       {entryCopies.length > 1 && <label>Recovery copy<select value={candidate.id} onChange={event => setSelectedRecovery(event.target.value)}>{entryCopies.map(copy => <option key={copy.id} value={copy.id}>{new Date(copy.savedAt).toLocaleString()} — {copy.fields.title || 'Untitled entry'}</option>)}</select></label>}
       {staleRecovery ? <p>The repository version has changed since this copy was made. The latest version is open below. Download the copy to compare and reapply your changes.</p> : recovery.hasChanges ? <p>You already have unsaved edits open. Download this earlier copy to compare, or return to this entry before making further edits to restore it.</p> : <p>Restore these edits into the editor, then review and save them.</p>}
       <div className="actions">
@@ -848,6 +898,7 @@ export default function ProjectEditor() {
   if (!area || !config) return (
     <main className="editor-shell">
       {accountHeader}
+      {authenticationPanel}
       {recoveryList}
       <p className="dashboard-intro">Choose a content area to create a page or edit existing content.</p>
       {error && <p className="message error" role="alert">{error}</p>}
@@ -872,7 +923,8 @@ export default function ProjectEditor() {
       {recoveryList}
       <p>Files are read from <code>{branch}</code>{branch === 'main' ? ' until the prototype branch is created by the first save' : ''}.</p>
       {error && <p className="message error" role="alert">{error}</p>}
-      {error && (route.filename || route.draftId) && <button type="button" disabled={busy} onClick={() => { void activateRoute(route); }}>Retry opening entry</button>}
+      {authenticationPanel}
+      {error && (route.filename || route.draftId) && <button type="button" disabled={busy || !!authIssue} onClick={() => { void activateRoute(route); }}>Retry opening entry</button>}
       <label className="area-selector">Content area<select disabled={busy} value={area} onChange={(event) => selectArea((event.target.value || null) as AreaName | null)}><option value="">Dashboard — choose a content area</option>{Object.entries(CONTENT_AREAS).map(([name, item]) => <option key={name} value={name}>{item.label}</option>)}</select></label>
       <div className="list-heading"><h2>{config.label}</h2>{config.create && <button className="primary" type="button" disabled={busy} onClick={create}>New {config.itemLabel}</button>}</div>
       {busy ? <p role="status">Loading…</p> : <ul className="project-list">{sortedProjects.map((item) => <li className={item.draft && item.visibilityKnown ? 'draft-entry' : ''} key={item.path}><button type="button" onClick={() => open(item.name)}>
@@ -886,7 +938,7 @@ export default function ProjectEditor() {
     <main className="editor-shell editor-workspace">
       <nav className="editor-navigation" aria-label="Editor navigation">
         <button className="back" type="button" disabled={busy} onClick={backToList}>← Back to {config.label}</button>
-        <div className="navigation-actions"><button className="dashboard-link" type="button" disabled={busy} onClick={backToDashboard}>Dashboard</button><button className="primary top-save" type="button" disabled={busy} onClick={() => save()}>{busy ? 'Saving…' : 'Save changes'}</button></div>
+        <div className="navigation-actions"><button className="dashboard-link" type="button" disabled={busy} onClick={backToDashboard}>Dashboard</button><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save changes'}</button></div>
       </nav>
       <h1>{project.sha ? `Edit ${config.itemLabel}` : `New ${config.itemLabel}`}</h1>
       <section className={`visibility-panel document-controls ${project.draft ? 'is-draft' : 'is-ready'}`} aria-label="Document controls">
@@ -918,7 +970,9 @@ export default function ProjectEditor() {
       {recoveryPanel}
       {notice && <p className="message success" role="status">{notice}</p>}
       {error && <p className="message error" role="alert">{error}</p>}
+      {authenticationPanel}
       {isArticle && project.sha && <p>Saved URL: /{area}/{project.filename.replace(/\.mdx?$/, '').replace(/\/index$/, '')}/</p>}
+      {!project.sha && project.creationAttempt && <p>Retry checks the original URL: /{area}/{project.creationAttempt.filename.replace(/\.mdx$/, '')}/. Changing the title keeps this URL.</p>}
       {suggestedFilename && !project.sha && <button type="button" disabled={busy} onClick={() => save(suggestedFilename)}>Create as {suggestedFilename.replace(/\.mdx$/, '')}</button>}
       {previewMode && <DocumentPreview project={project} area={area} apiBase={API} />}
       <form id="document-edit" hidden={previewMode} inert={previewMode} onSubmit={(event) => event.preventDefault()}>
@@ -956,7 +1010,7 @@ export default function ProjectEditor() {
           {project.convertProgramUpdate && <p className="message" role="status">The editable version is ready. Save changes to keep this conversion.</p>}
           <div inert={busy}><BodyEditor key={bodyEditorSession} initialValue={project.body} format={project.filename.endsWith('.md') ? 'md' : 'mdx'} onChange={(body) => { setShowUpdateStarter(false); setProject((current) => current ? { ...current, body } : current); }} /></div>
         </>}
-        <div className="actions editor-actions"><button className="back" disabled={busy} type="button" onClick={backToList}>← Back to {config.label}</button><button disabled={busy} className="primary" type="button" onClick={() => save()}>{busy ? 'Saving…' : 'Save changes'}</button></div>
+        <div className="actions editor-actions"><button className="back" disabled={busy} type="button" onClick={backToList}>← Back to {config.label}</button><button disabled={busy || !!authIssue} className="primary" type="button" onClick={() => save()}>{busy ? 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save changes'}</button></div>
         </fieldset>
       </form>
     </main>

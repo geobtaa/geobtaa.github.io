@@ -39,7 +39,7 @@ function repository() {
       const key = pending.path.slice('src/content/docs/'.length);
       assert.equal(files.has(key), false);
       files.set(key, { content: pending.content, sha: `created-${sequence}` });
-      return Response.json({});
+      return Response.json({ object: { sha: JSON.parse(options.body).sha } });
     }
     const match = path.match(/^\/contents\/src\/content\/docs\/(.+)$/);
     if (!match) throw new Error(`Unexpected request: ${path}`);

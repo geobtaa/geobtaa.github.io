@@ -123,7 +123,7 @@ function storage(paths = [], race = false) {
       return { sha: 'new-tree', tree: input.tree.map((item) => ({ ...item, sha: 'new-blob' })) };
     }
     if (path === '/git/commits') return { sha: 'new-commit' };
-    if (path.startsWith('/git/refs/heads/')) { if (race) throw Object.assign(new Error('not fast forward'), { status: 422 }); return {}; }
+    if (path.startsWith('/git/refs/heads/')) { if (race) throw Object.assign(new Error('not fast forward'), { status: 422 }); return { object: { sha: JSON.parse(options.body).sha } }; }
     throw new Error(`Unexpected ${path}`);
   }};
 }
@@ -162,11 +162,11 @@ test('creation resolves the blob SHA when GitHub returns a shallow tree response
   const github = storage();
   const request = async (path, options) => {
     const result = await github.request(path, options).catch((error) => {
-      if (path === '/contents/src/content/docs/posts/maps.mdx?ref=new-commit') return { sha: 'resolved-blob' };
+      if (path === '/contents/src/content/docs/posts/maps.mdx?ref=new-commit') throw new Error('Network failed after commit');
       throw error;
     });
     return path === '/git/trees' ? { sha: result.sha, tree: [{ path: 'src', type: 'tree', sha: 'subtree' }] } : result;
   };
   const saved = await createBlogCommit({ request, ensureBranch: async () => {}, branch: 'custom-cms', title: 'Maps', content: newBlog(entry()) });
-  assert.equal(saved.sha, 'resolved-blob');
+  assert.match(saved.sha, /^[a-f0-9]{40}$/);
 });
