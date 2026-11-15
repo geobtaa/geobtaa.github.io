@@ -1,4 +1,6 @@
 import { isMap, parseDocument } from 'yaml';
+import { CONTENT_ROOT } from './contentAreas.mjs';
+import { documentRoute, documentSlug } from './contentRoutes.mjs';
 
 const FRONTMATTER = /^(---\r?\n)([\s\S]*?)(\r?\n---\r?\n(?:\r?\n)?)([\s\S]*)$/;
 
@@ -20,7 +22,9 @@ export async function withContentVisibility(entries, readSource) {
     while (next < entries.length) {
       const index = next++;
       try {
-        output[index] = { ...entries[index], ...contentVisibility(await readSource(entries[index])), visibilityKnown: true };
+        const content = await readSource(entries[index]);
+        const filename = entries[index].path.slice(CONTENT_ROOT.length + 1);
+        output[index] = { ...entries[index], ...contentVisibility(content), route: documentRoute(filename, documentSlug(content)), visibilityKnown: true };
       } catch {
         output[index] = { ...entries[index], visibilityKnown: false };
       }

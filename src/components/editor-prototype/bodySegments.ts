@@ -1,4 +1,4 @@
-import { parseBodySyntax, supportedMarkdownNode, type SourceFormat } from './contentSyntax.ts';
+import { parseBodySyntax, supportedMarkdownNode, mdxOnlyMarkdownNode, type SourceFormat } from './contentSyntax.ts';
 import type { MdxjsEsm } from 'mdast-util-mdxjs-esm';
 import { matchFormattedImage } from './formattedImage.ts';
 import { parseSimpleComponentMdx } from './simpleComponents.ts';
@@ -37,7 +37,9 @@ export function splitBody(body: string, { mergeProtected = true, format = 'mdx' 
     const end = lineEnd(node.position!.end.offset!);
     push('markdown', body.slice(cursor, start));
     const raw = body.slice(start, end);
-    if (node.type === 'mdxjsEsm') {
+    if (format === 'md' && mdxOnlyMarkdownNode(node, body)) {
+      push('protected', raw);
+    } else if (node.type === 'mdxjsEsm') {
       // The AST can group consecutive imports. Keep individual statements for
       // the existing explicit Program Update conversion, including multiline JS.
       const program = (node as MdxjsEsm).data?.estree;

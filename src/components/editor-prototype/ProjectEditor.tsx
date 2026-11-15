@@ -12,19 +12,21 @@ import { LinkAddressField } from './LinkAddressField';
 import { normalizeLinkAddress } from './linkAddress';
 import { COMPONENT_LINK_ERROR, isSafeComponentHref } from './componentLinkSafety';
 import { splitBody, visibleBodySegments, moveBodySegment, type BodySegment } from './bodySegments';
+import { MDX_COMPONENT_MESSAGE } from './contentSyntax';
 import { richTextEditorOptions } from './richTextEditor';
 import { createLinkCardMdx, ensureLinkCardImport } from './linkCardMdx';
 import { createLinkButtonMdx, ensureLinkButtonImport, type LinkButtonFields } from './linkButtonMdx';
 import { todayCalendar } from '../../../editor-prototype/blog.mjs';
 import { parseContent } from '../../../editor-prototype/content.mjs';
 import { CONTENT_AREAS } from '../../../editor-prototype/contentAreas.mjs';
+import { documentRoute, routeConflictMessage } from '../../../editor-prototype/contentRoutes.mjs';
 import { PROGRAM_UPDATE_OUTLINE } from '../../../editor-prototype/programUpdates.mjs';
 import { COLLECTION_BLOCKS, COLLECTION_KINDS, collectionKindForNode, createCollectionMdx, emptyCollectionData, ensureCollectionImport, type CollectionKind } from './collectionMdx';
 
 const API = import.meta.env.PUBLIC_PROJECT_EDITOR_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8787' : '');
 const CONFLICT = 'This page has changed in GitHub since you opened it. Reload the latest version before saving.';
 
-type ProjectListItem = { name: string; path: string; sha: string; draft?: boolean; sidebarHidden?: boolean; visibilityKnown?: boolean };
+type ProjectListItem = { name: string; path: string; sha: string; route?: string; draft?: boolean; sidebarHidden?: boolean; visibilityKnown?: boolean };
 type ImageListItem = { name: string; path: string; sha: string; size?: number };
 type AreaName = keyof typeof CONTENT_AREAS;
 
@@ -138,7 +140,7 @@ function RepositoryImagePicker({ initialImage, showCaption = true, onSelect, onC
 
 type InsertedComponent = 'LinkCard' | 'LinkButton' | SimpleKind | CollectionKind;
 
-function BlockInserter({ onInsert, onAddText }: { onInsert: (component: InsertedComponent, raw: string) => string | undefined; onAddText: () => void }) {
+function BlockInserter({ onInsert, onAddText, mdx }: { onInsert: (component: InsertedComponent, raw: string) => string | undefined; onAddText: () => void; mdx: boolean }) {
   const menuRef = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     // Dismiss outside presses directly: Safari can blur a menu button with a
@@ -202,10 +204,11 @@ function BlockInserter({ onInsert, onAddText }: { onInsert: (component: Inserted
         event.preventDefault();
       }}>
         <button type="button" onClick={() => { closeMenu(); onAddText(); }}>Text</button>
-        <button type="button" onClick={() => { closeMenu(); setLinkCardDialog(true); setLinkCardError(''); }}>Link Card</button>
-        <button type="button" onClick={() => { closeMenu(); setLinkButtonDialog(true); setLinkButtonError(''); }}>Link Button</button>
-        {SIMPLE_KINDS.map((kind) => <button key={kind} type="button" onClick={() => { closeMenu(); setSimpleDialog(kind); setSimpleFields(emptySimpleFields()); setSimpleError(''); }}>{SIMPLE_COMPONENTS[kind].label}</button>)}
-        {COLLECTION_KINDS.map(kind => <button key={kind} type="button" onClick={() => {
+        {!mdx && <p>{MDX_COMPONENT_MESSAGE}</p>}
+        <button type="button" disabled={!mdx} onClick={() => { closeMenu(); setLinkCardDialog(true); setLinkCardError(''); }}>Link Card</button>
+        <button type="button" disabled={!mdx} onClick={() => { closeMenu(); setLinkButtonDialog(true); setLinkButtonError(''); }}>Link Button</button>
+        {SIMPLE_KINDS.map((kind) => <button key={kind} type="button" disabled={!mdx} onClick={() => { closeMenu(); setSimpleDialog(kind); setSimpleFields(emptySimpleFields()); setSimpleError(''); }}>{SIMPLE_COMPONENTS[kind].label}</button>)}
+        {COLLECTION_KINDS.map(kind => <button key={kind} type="button" disabled={!mdx} onClick={() => {
           closeMenu();
           const data = emptyCollectionData(kind);
           setCollectionError(onInsert(kind, createCollectionMdx(kind, data)) || '');
@@ -409,6 +412,7 @@ function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: 
     onChange(next.map((segment) => segment.content).join(''));
   };
   const insertComponent = (afterId: number, component: InsertedComponent, raw: string): string | undefined => {
+    if (format !== 'mdx') return MDX_COMPONENT_MESSAGE;
     const current = segmentsRef.current;
     const index = current.findIndex((segment) => segment.id === afterId);
     const before = current.slice(0, index + 1).map((segment) => segment.content).join('');
@@ -482,12 +486,12 @@ function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: 
           <button type="button" data-move="-1" disabled={!visibleSegments[index - 1] || visibleSegments[index - 1].kind === 'protected'} onClick={() => move(segment.id, -1)}>↑ Move up</button>
           <button type="button" data-move="1" disabled={!visibleSegments[index + 1] || visibleSegments[index + 1].kind === 'protected'} onClick={() => move(segment.id, 1)}>↓ Move down</button>
         </div>}
-        <BlockInserter onInsert={(component, raw) => insertComponent(segment.id, component, raw)} onAddText={() => addTextBlock(segment.id)} />
+        <BlockInserter mdx={format === 'mdx'} onInsert={(component, raw) => insertComponent(segment.id, component, raw)} onAddText={() => addTextBlock(segment.id)} />
       </div>
     </div>)}
     {!visibleSegments.length && <div className="empty-body">
       <p>No content blocks. Add a block to continue.</p>
-      <BlockInserter onInsert={(component, raw) => insertComponent(-1, component, raw)} onAddText={() => addTextBlock(-1)} />
+      <BlockInserter mdx={format === 'mdx'} onInsert={(component, raw) => insertComponent(-1, component, raw)} onAddText={() => addTextBlock(-1)} />
     </div>}
   </div>;
 }
@@ -734,6 +738,11 @@ export default function ProjectEditor() {
     if (!isArticle && !slug) return setError('Enter a title or filename before saving.');
     const filename = project.sha ? project.filename : `${slug}.mdx`;
     const creatingArticle = isArticle && !project.sha;
+    if (!project.sha && !creatingArticle) {
+      const route = documentRoute(`${area}/${filename}`);
+      const conflict = projects.find(item => item.name === filename || (item.route ?? (item.visibilityKnown === false ? undefined : documentRoute(`${area}/${item.name}`))) === route);
+      if (conflict) return setError(routeConflictMessage(route, conflict.path));
+    }
     const publish = config.publishing && !project.draft;
     setBusy(true); setError(''); setNotice('');
     try {

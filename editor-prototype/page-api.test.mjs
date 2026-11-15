@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { blobQueryResponse } from './githubTestHelpers.mjs';
 import { parse } from 'yaml';
 import { CONTENT_AREAS } from './contentAreas.mjs';
 import { createEditorServer } from './server.mjs';
@@ -11,10 +12,35 @@ const original = '---\ntitle: Original\ndescription: ""\ndate: 2025-12-31T23:00:
 const data = source => parse(source.match(/^---\n([\s\S]*?)\n---/)[1]);
 function repository() {
   let sequence = 0;
+  let pending;
   const files = new Map(Object.keys(CONTENT_AREAS).filter(area => !['posts', 'updates'].includes(area)).map(area => [`${area}/existing.mdx`, { content: original, sha: `loaded-${area}` }]));
   const fetchImpl = async (input, options = {}) => {
     const path = new URL(String(input)).pathname.replace('/repos/geobtaa/geobtaa.github.io', '');
+    if (path === '/graphql') return Response.json(blobQueryResponse(JSON.parse(options.body), files.values()));
     if (path.startsWith('/git/ref/heads/')) return Response.json({ object: { sha: 'head' } });
+    if (path === '/git/commits/head') return Response.json({ tree: { sha: 'base-tree' } });
+    if (path === '/git/trees/base-tree') return Response.json({ tree: [...files].map(([key, file]) => ({ path: `src/content/docs/${key}`, sha: file.sha, type: 'blob' })) });
+    if (path.startsWith('/git/blobs/')) {
+      const file = [...files.values()].find(file => file.sha === decodeURIComponent(path.slice('/git/blobs/'.length)));
+      return file ? Response.json({ content: Buffer.from(file.content).toString('base64'), encoding: 'base64' }) : Response.json({ message: 'Not found' }, { status: 404 });
+    }
+    if (path === '/git/trees' && options.method === 'POST') {
+      const input = JSON.parse(options.body);
+      assert.equal(input.base_tree, 'base-tree');
+      pending = input.tree[0];
+      return Response.json({ sha: 'new-tree', tree: [{ ...pending, sha: `created-${++sequence}` }] });
+    }
+    if (path === '/git/commits' && options.method === 'POST') {
+      assert.deepEqual(JSON.parse(options.body).parents, ['head']);
+      return Response.json({ sha: `commit-${sequence}` });
+    }
+    if (path.startsWith('/git/refs/heads/') && options.method === 'PATCH') {
+      assert.equal(JSON.parse(options.body).force, false);
+      const key = pending.path.slice('src/content/docs/'.length);
+      assert.equal(files.has(key), false);
+      files.set(key, { content: pending.content, sha: `created-${sequence}` });
+      return Response.json({});
+    }
     const match = path.match(/^\/contents\/src\/content\/docs\/(.+)$/);
     if (!match) throw new Error(`Unexpected request: ${path}`);
     const key = decodeURIComponent(match[1]);
@@ -89,6 +115,25 @@ for (const mode of ['local', 'hosted']) {
         assert.equal((await call('PUT', path, { ...saved.body, body: saved.body.body.replace('Protected MDX.', 'Changed protected source.') })).status, 400);
         assert.deepEqual(repo.files.get(`${area}/existing.mdx`), beforeInvalid);
         assert.equal((await call('PUT', path, { ...saved.body, metadata: { year: 1700 } })).status, 400);
+        repo.files.set(`${area}/taken.md`, { content: '---\ntitle: Taken\n---\n\nBody.', sha: `taken-${area}` });
+        repo.files.set(`${area}/nested/index.mdx`, { content: '---\ntitle: Nested\n---\n\nBody.', sha: `index-${area}` });
+        repo.files.set(`${area}/UPPER.mdx`, { content: '---\ntitle: Upper\n---\n\nBody.', sha: `upper-${area}` });
+        repo.files.set(`external/alias-${area}.mdx`, { content: `---\ntitle: Alias\nslug: ${area}/aliased/index\n---\n\nBody.`, sha: `alias-${area}` });
+        const markdown = await call('GET', `/api/content/${area}/taken.md`);
+        for (const body of ['<LinkCard title="Maps" href="/maps/" />', 'import {\n  LinkCard\n} from "@astrojs/starlight/components";\n\n<LinkCard title="Maps" href="/maps/" />']) {
+          assert.equal((await call('PUT', `/api/content/${area}/taken.md`, { ...markdown.body, body })).status, 400);
+          assert.equal((await call('PUT', `/api/content/${area}/new-component.md`, { title: 'Invalid', description: '', body })).status, 400);
+          assert.equal(repo.files.has(`${area}/new-component.md`), false);
+          assert.equal(repo.files.get(`${area}/taken.md`).sha, `taken-${area}`);
+        }
+        const revisedMarkdown = await call('PUT', `/api/content/${area}/taken.md`, { ...markdown.body, title: 'Still Markdown', body: 'Edited ordinary Markdown.' });
+        assert.equal(revisedMarkdown.status, 200);
+        assert.equal(revisedMarkdown.body.filename, 'taken.md');
+        for (const filename of ['taken.mdx', 'nested.md', 'upper.md', 'aliased.mdx']) {
+          const collision = await call('PUT', `/api/content/${area}/${filename}`, { title: 'Duplicate', description: '', body: 'Body.' });
+          assert.equal(collision.status, 409, JSON.stringify(collision.body));
+          assert.equal(repo.files.has(`${area}/${filename}`), false);
+        }
         const created = await call('PUT', `/api/content/${area}/new.mdx`, { title: 'New page', description: '', draft: true, body: 'New body.', metadata: { sidebar: { hidden: true } } });
         assert.equal(created.status, 200, JSON.stringify(created.body));
         assert.equal(created.body.draft, true);

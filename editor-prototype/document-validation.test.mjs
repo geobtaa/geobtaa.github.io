@@ -5,6 +5,25 @@ import { validateDocument } from './validateDocument.mjs';
 import { createSimpleComponentMdx, emptySimpleFields, ensureSimpleComponentImport } from '../src/components/editor-prototype/simpleComponents.ts';
 import { createCollectionMdx, ensureCollectionImport } from '../src/components/editor-prototype/collectionMdx.ts';
 
+test('Markdown files reject MDX-only component insertion while retaining existing source', async () => {
+  const validate = (body, originalBody = '') => validateDocument(newBlog({ title: 'Markdown', body }), { filename: 'legacy.md', originalBody });
+  const components = [
+    '<LinkCard title="Maps" href="/maps/" />', '<LinkButton href="/maps/">Maps</LinkButton>',
+    ...['badge', 'callout', 'card'].map(kind => createSimpleComponentMdx(kind, { ...emptySimpleFields(), title: 'Title', text: 'Text' })),
+    ...['chipList', 'cardGrid', 'metrics'].map(kind => createCollectionMdx(kind, [])),
+  ];
+  for (const component of components) {
+    await assert.rejects(validate(`Before.\n\n${component}\n`), error => error.status === 400 && /require an \.mdx/.test(error.message));
+  }
+  const legacy = `Before.\n\n${components[0]}\n`;
+  await validate(legacy.replace('Before.', 'Edited paragraph.'), legacy);
+  await assert.rejects(validate(legacy.replace('title="Maps"', 'title="New"'), legacy), { status: 400 });
+  await validate('Example:\n\n```mdx\nimport { LinkCard } from "@astrojs/starlight/components";\n<LinkCard title="Maps" href="/maps/" />\n```\n');
+  await validate('Use `<LinkCard />` in MDX.\n\nInline `import { LinkCard } from "@astrojs/starlight/components";` is an example.\n');
+  await assert.rejects(validate('import {\n  LinkCard as Card\n} from "@astrojs/starlight/components";\n\n<Card title="Maps" href="/maps/" />'), { status: 400 });
+  await validate('A regular [link](/maps/) and ![Map](/map.png).\n\n| A | B |\n| - | - |\n| 1 | 2 |\n');
+});
+
 test('validation preserves exact protected source, its indentation and order while allowing surrounding edits', async () => {
   const component = '  <Unknown value={"a } in a string"}>\r\n  Keep exact.  \r\n  </Unknown>  \r\n';
   const originalBody = `Before.\r\n\r\n${component}\r\nFootnote[^n].\r\n\r\n[^n]: Keep citation.\r\n`;

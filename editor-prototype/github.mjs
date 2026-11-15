@@ -1,6 +1,6 @@
 import { contentDirectory, encodeContentPath } from './contentAreas.mjs';
 import { IMAGE_DIRECTORY } from './imageAssets.mjs';
-import { createBlogCommit } from './blogStorage.mjs';
+import { createBlogCommit, createContentCommit } from './blogStorage.mjs';
 import { withContentVisibility } from './content.mjs';
 
 export class GitHubConflictError extends Error {}
@@ -86,7 +86,7 @@ export function createGitHubClient({
   return {
     workspace: `${owner}/${repo}#${branch}`,
     createBlog(input) {
-      return createBlogCommit({ request: (path, options) => request(`${api}${path}`, options), ensureBranch, branch, ...input });
+      return createBlogCommit({ request: (path, options) => request(path === '/graphql' ? 'https://api.github.com/graphql' : `${api}${path}`, options), ensureBranch, branch, owner, repo, ...input });
     },
     async listContent(area = 'projects') {
       const ref = await readRef();
@@ -110,6 +110,7 @@ export function createGitHubClient({
     },
 
     async saveContent({ area, filename, content, sha, publish }) {
+      if (!sha) return createContentCommit({ request: (path, options) => request(path === '/graphql' ? 'https://api.github.com/graphql' : `${api}${path}`, options), ensureBranch, branch, owner, repo, area, filename, content });
       await ensureBranch();
       const payload = {
         message: area === 'projects' ? `${publish ? 'Publish' : 'Save draft'} project: ${filename}` : `Update ${area}: ${filename}`,

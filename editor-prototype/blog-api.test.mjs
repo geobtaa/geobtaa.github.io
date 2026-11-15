@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { blobQueryResponse } from './githubTestHelpers.mjs';
 import { createEditorServer } from './server.mjs';
 import { createGitHubClient } from './github.mjs';
 import { newBlog, parseBlog } from './blog.mjs';
@@ -19,13 +20,14 @@ function repository(area) {
     const method = options.method || 'GET';
     const path = url.pathname.replace('/repos/geobtaa/geobtaa.github.io', '');
     const payload = options.body ? JSON.parse(options.body) : null;
+    if (path === '/graphql') return Response.json(blobQueryResponse(payload, files.values()));
     if (path.startsWith('/git/ref/heads/')) return Response.json({ object: { sha: head } });
     if (path.startsWith('/git/blobs/')) {
       const file = [...files.values()].find((item) => item.sha === path.slice('/git/blobs/'.length));
-      return file ? Response.json({ content: Buffer.from(file.content).toString('base64') }) : Response.json({ message: 'Not found' }, { status: 404 });
+      return file ? Response.json({ content: Buffer.from(file.content).toString('base64'), encoding: 'base64' }) : Response.json({ message: 'Not found' }, { status: 404 });
     }
     if (path === `/git/commits/${head}`) return Response.json({ tree: { sha: 'base-tree' } });
-    if (path === '/git/trees/base-tree') return Response.json({ tree: [...files.keys()].map((name) => ({ path: `src/content/docs/${area}/${name}`, type: 'blob' })) });
+    if (path === '/git/trees/base-tree') return Response.json({ tree: [...files].map(([name, file]) => ({ path: `src/content/docs/${area}/${name}`, sha: file.sha, type: 'blob' })) });
     if (path === '/git/trees' && method === 'POST') {
       assert.equal(payload.base_tree, 'base-tree');
       const item = payload.tree[0];
@@ -110,6 +112,9 @@ for (const area of ['posts', 'updates']) for (const mode of ['local', 'hosted'])
       assert.deepEqual(edited.body.authors, loaded.body.authors);
       assert.ok(edited.body.body.includes('<CenterLayout>\nUntouched.\n</CenterLayout>'));
       assert.equal((await call('PUT', `/api/content/${area}/existing.md`, loaded.body)).status, 409);
+      const beforeFormatError = repo.files.get('existing.md');
+      assert.equal((await call('PUT', `/api/content/${area}/existing.md`, { ...edited.body, body: `${edited.body.body}\n<LinkCard title="Maps" href="/maps/" />\n` })).status, 400);
+      assert.deepEqual(repo.files.get('existing.md'), beforeFormatError);
       for (const body of [
         '<LinkCard title="Unsafe" href="javascript:alert(1)" />',
         '<LinkCard title="Unsafe" href="java&#x73;cript:alert(1)" />',

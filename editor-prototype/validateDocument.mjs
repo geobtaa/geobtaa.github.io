@@ -4,6 +4,7 @@ import { LINK_CARD_IMPORT } from '../src/components/editor-prototype/linkCardMdx
 import { LINK_BUTTON_IMPORT } from '../src/components/editor-prototype/linkButtonMdx.ts';
 import { SIMPLE_COMPONENTS } from '../src/components/editor-prototype/simpleComponents.ts';
 import { COLLECTION_BLOCKS } from '../src/components/editor-prototype/collectionMdx.ts';
+import { parseBodySyntax, mdxOnlyMarkdownNode, MDX_COMPONENT_MESSAGE } from '../src/components/editor-prototype/contentSyntax.ts';
 
 const generatedImports = new Set([
   LINK_CARD_IMPORT, LINK_BUTTON_IMPORT,
@@ -16,6 +17,14 @@ const key = source => source.replace(/\r?\n$/, '');
 export async function validateDocument(content, { filename = 'new.mdx', originalBody = '' } = {}) {
   const body = parseContent(content).body;
   const format = filename.endsWith('.md') ? 'md' : 'mdx';
+  if (format === 'md') {
+    const components = source => parseBodySyntax(source, 'md').children
+      .filter(node => mdxOnlyMarkdownNode(node, source))
+      .map(node => source.slice(node.position.start.offset, node.position.end.offset));
+    if (JSON.stringify(components(body)) !== JSON.stringify(components(originalBody))) {
+      throw invalid(`${MDX_COMPONENT_MESSAGE} Existing component source must remain unchanged. Nothing was saved to GitHub.`);
+    }
+  }
   // Compile, but never evaluate, the generated document. Keep the compiler off
   // the editor's startup path; both authenticated gateways await this before
   // creating any GitHub blob, commit or branch.

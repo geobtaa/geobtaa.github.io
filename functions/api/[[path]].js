@@ -2,7 +2,7 @@ import { parsePage, savePage } from '../../editor-prototype/page.mjs';
 import { contentVisibility, withContentVisibility } from '../../editor-prototype/content.mjs';
 import { saveBlog } from '../../editor-prototype/blog.mjs';
 import { parseProgramUpdate, saveProgramUpdate } from '../../editor-prototype/programUpdates.mjs';
-import { createBlogCommit } from '../../editor-prototype/blogStorage.mjs';
+import { createBlogCommit, createContentCommit } from '../../editor-prototype/blogStorage.mjs';
 import { CONTENT_AREAS, contentArea, contentDirectory, encodeContentPath, validateContentPath } from '../../editor-prototype/contentAreas.mjs';
 import { IMAGE_DIRECTORY, imageContentType, validateImagePath, validateImageUpload } from '../../editor-prototype/imageAssets.mjs';
 const SESSION_COOKIE = 'editor_session';
@@ -113,7 +113,7 @@ function repoSettings(env) {
 function createGitHubClient(env, token) {
   const { owner, repo, branch, baseBranch } = repoSettings(env);
   const api = `/repos/${owner}/${repo}`;
-  const request = (path, options) => githubRequest(token, `${api}${path}`, options);
+  const request = (path, options) => githubRequest(token, path === '/graphql' ? path : `${api}${path}`, options);
   async function branchExists() {
     try { await request(`/git/ref/heads/${encodeURIComponent(branch)}`); return true; }
     catch (error) { if (error.status === 404) return false; throw error; }
@@ -140,7 +140,7 @@ function createGitHubClient(env, token) {
     return output;
   }
   return {
-    createBlog(input) { return createBlogCommit({ request, ensureBranch, branch, ...input }); },
+    createBlog(input) { return createBlogCommit({ request, ensureBranch, branch, owner, repo, ...input }); },
     async listContent(area) {
       const ref = await readRef();
       const files = await listDirectory(contentDirectory(area), ref);
@@ -156,6 +156,7 @@ function createGitHubClient(env, token) {
       return { filename, sha: file.sha, content: new TextDecoder().decode(base64ToBytes(file.content.replace(/\s/g, ''))), branch: ref };
     },
     async saveContent({ area, filename, content, sha, publish }) {
+      if (!sha) return createContentCommit({ request, ensureBranch, branch, owner, repo, area, filename, content });
       await ensureBranch();
       try {
         const result = await request(`/contents/${encodeContentPath(`${contentDirectory(area)}/${filename}`)}`, {

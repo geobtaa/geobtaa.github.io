@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { blobQueryResponse } from './githubTestHelpers.mjs';
 import { createGitHubClient, GitHubConflictError } from './github.mjs';
 import { newProject, parseContent, parseProject, serializeContent, serializeProject } from './content.mjs';
 
@@ -29,12 +30,35 @@ test('draft, reload, publish, create, and stale-SHA workflow', async () => {
   const mainFiles = new Map([['existing.mdx', { sha: 'sha-1', content: newProject({ title: 'Existing', description: 'Description', draft: false, body: 'Original body.' }) }]]);
   let branchFiles = new Map();
   const commits = [];
+  let pending;
   const fakeFetch = async (url, options = {}) => {
     const method = options.method || 'GET';
     const pathname = new URL(url).pathname;
+    if (pathname === '/graphql') return response(200, blobQueryResponse(JSON.parse(options.body), branchFiles.values()));
     if (pathname.endsWith('/git/ref/heads/custom-cms')) return branchExists ? response(200, { object: { sha: 'branch-head' } }) : response(404, { message: 'Not Found' });
     if (pathname.endsWith('/git/ref/heads/main')) return response(200, { object: { sha: 'main-head' } });
     if (pathname.endsWith('/git/refs') && method === 'POST') { branchExists = true; branchFiles = new Map(mainFiles); return response(201, { object: { sha: 'branch-head' } }); }
+    if (pathname.endsWith('/git/commits/branch-head')) return response(200, { tree: { sha: 'base-tree' } });
+    if (pathname.endsWith('/git/trees/base-tree')) return response(200, { tree: [...branchFiles].map(([name, file]) => ({ path: `src/content/docs/projects/${name}`, sha: file.sha, type: 'blob' })) });
+    if (pathname.includes('/git/blobs/')) {
+      const file = [...branchFiles.values()].find(file => file.sha === pathname.split('/').at(-1));
+      return response(200, { content: Buffer.from(file.content).toString('base64'), encoding: 'base64' });
+    }
+    if (pathname.endsWith('/git/trees') && method === 'POST') {
+      pending = JSON.parse(options.body).tree[0];
+      return response(201, { sha: 'created-tree', tree: [{ ...pending, sha: `sha-${++counter}` }] });
+    }
+    if (pathname.endsWith('/git/commits') && method === 'POST') {
+      const input = JSON.parse(options.body);
+      assert.deepEqual(input.parents, ['branch-head']);
+      commits.push(input.message);
+      return response(201, { sha: `commit-${counter}` });
+    }
+    if (pathname.endsWith('/git/refs/heads/custom-cms') && method === 'PATCH') {
+      assert.equal(JSON.parse(options.body).force, false);
+      branchFiles.set(pending.path.slice('src/content/docs/projects/'.length), { content: pending.content, sha: `sha-${counter}` });
+      return response(200, {});
+    }
     const contentsAt = pathname.indexOf('/contents/src/content/docs/projects');
     if (contentsAt !== -1) {
       const filename = decodeURIComponent(pathname.slice(contentsAt + '/contents/src/content/docs/projects'.length).replace(/^\//, ''));
@@ -73,7 +97,7 @@ test('draft, reload, publish, create, and stale-SHA workflow', async () => {
 
   branchFiles.set('new-project.mdx', { sha: 'external-sha', content: createdContent });
   await assert.rejects(client.saveProject({ filename: 'new-project.mdx', content: createdContent, sha: created.sha, publish: true }), GitHubConflictError);
-  assert.deepEqual(commits.slice(0, 3), ['Save draft project: existing.mdx', 'Publish project: existing.mdx', 'Save draft project: new-project.mdx']);
+  assert.deepEqual(commits.slice(0, 3), ['Save draft project: existing.mdx', 'Publish project: existing.mdx', 'Create page: new-project.mdx']);
 });
 
 test('an enabled non-Project entry saves and reloads in its own directory', async () => {

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { blobQueryResponse } from './githubTestHelpers.mjs';
 import { glob, readFile } from 'node:fs/promises';
 import { parseDocument } from 'yaml';
 import { calendarDate, todayCalendar, newBlog, parseBlog, serializeBlog, saveBlog, postSlug } from './blog.mjs';
@@ -112,9 +113,11 @@ function storage(paths = [], race = false) {
   const requests = [];
   return { requests, request: async (path, options = {}) => {
     requests.push({ path, ...options });
+    if (path === '/graphql') return blobQueryResponse(JSON.parse(options.body), [{ sha: 'test-empty-post', content: '---\ntitle: Existing\n---\n\nBody.' }]);
     if (path.startsWith('/git/ref/heads/')) return { object: { sha: 'parent' } };
     if (path === '/git/commits/parent') return { tree: { sha: 'base-tree' } };
-    if (path.startsWith('/git/trees/base-tree')) return { tree: paths.map((path) => ({ path: `src/content/docs/posts/${path}`, type: 'blob' })) };
+    if (path.startsWith('/git/trees/base-tree')) return { tree: paths.map((path) => ({ path: `src/content/docs/posts/${path}`, type: 'blob', sha: 'test-empty-post' })) };
+    if (path === '/git/blobs/test-empty-post') return { content: Buffer.from('---\ntitle: Existing\n---\n\nBody.').toString('base64'), encoding: 'base64' };
     if (path === '/git/trees') {
       const input = JSON.parse(options.body);
       return { sha: 'new-tree', tree: input.tree.map((item) => ({ ...item, sha: 'new-blob' })) };
@@ -129,7 +132,7 @@ test('creation suggests an available alternative and commits only after it is ac
   const github = storage(['a-new-blog-post.md', 'a-new-blog-post-2/index.mdx']);
   const options = { request: github.request, ensureBranch: async () => {}, branch: 'custom-cms', title: entry().title, content: newBlog(entry()) };
   await assert.rejects(createBlogCommit(options), { status: 409, suggestedFilename: 'a-new-blog-post-3.mdx' });
-  assert.ok(github.requests.every((item) => !item.method));
+  assert.ok(github.requests.every((item) => !item.method || item.path === '/graphql'), 'route checks perform no repository writes');
   const saved = await createBlogCommit({ ...options, suggestedFilename: 'a-new-blog-post-3.mdx' });
   assert.equal(saved.filename, 'a-new-blog-post-3.mdx');
   assert.equal(saved.sha, 'new-blob');

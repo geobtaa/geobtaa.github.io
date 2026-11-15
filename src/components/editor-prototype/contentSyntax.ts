@@ -8,7 +8,21 @@ import { directiveFromMarkdown } from 'mdast-util-directive';
 import type { Node } from 'unist';
 
 export type SourceFormat = 'md' | 'mdx';
+export const MDX_COMPONENT_MESSAGE = 'Custom components require an .mdx document. This .md file supports text, links, images, and tables.';
 export type SyntaxNode = Node & { children?: SyntaxNode[]; checked?: boolean | null; name?: string | null; attributes?: unknown; value?: string };
+
+// Markdown parses JSX as HTML and imports as prose. Keep those legacy blocks
+// read-only instead of presenting components that Astro cannot render here.
+// Inspect syntax nodes so fenced and inline code examples remain ordinary text.
+export function mdxOnlyMarkdownNode(node: SyntaxNode, source: string): boolean {
+  if (node.type === 'code' || node.type === 'inlineCode') return false;
+  if (node.type === 'html' && /<\/?[A-Z][\w.:-]*(?=[\s/>])/.test(node.value || '')) return true;
+  if (node.type === 'paragraph') {
+    const raw = source.slice(node.position?.start.offset, node.position?.end.offset);
+    if (/^import\s+(?:['"]|[\s\S]*?\bfrom\s*['"])/.test(raw)) return true;
+  }
+  return !!node.children?.some(child => mdxOnlyMarkdownNode(child, source));
+}
 
 export function parseBodySyntax(source: string, format: SourceFormat = 'mdx') {
   return fromMarkdown(source, {

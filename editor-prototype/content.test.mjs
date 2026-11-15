@@ -81,7 +81,7 @@ test('draft visibility and sidebar-only hiding are separate settings', () => {
 });
 
 test('content listings retain order and mark unreadable visibility as unknown', async () => {
-  const entries = ['draft', 'sidebar', 'unreadable', 'invalid', 'ready'].map((name) => ({ name, sha: `${name}-sha` }));
+  const entries = ['draft', 'sidebar', 'unreadable', 'invalid', 'ready'].map((name) => ({ name, path: `src/content/docs/about/${name}.mdx`, sha: `${name}-sha` }));
   const result = await withContentVisibility(entries, async ({ name }) => {
     if (name === 'unreadable') throw new Error('GitHub request failed');
     if (name === 'invalid') return '---\ntitle: [broken\n---\n\nBody';
@@ -89,6 +89,7 @@ test('content listings retain order and mark unreadable visibility as unknown', 
   });
   assert.deepEqual(result.map((item) => item.name), entries.map((item) => item.name));
   assert.equal(result[0].draft, true);
+  assert.equal(result[0].route, 'about/draft');
   assert.equal(result[1].draft, false);
   assert.equal(result[1].sidebarHidden, true);
   assert.deepEqual(result[2], { ...entries[2], visibilityKnown: false });
