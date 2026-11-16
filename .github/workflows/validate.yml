@@ -9,6 +9,7 @@ on:
       - "editor-prototype/**"
       - "functions/**"
       - "tests/**"
+      - "patches/**"
       - "astro.config.ts"
       - "navigation.config.ts"
       - "package.json"
@@ -33,6 +34,7 @@ jobs:
       - run: npm ci
       - run: npm run astro -- sync
       - run: npm run astro -- check
+      - run: npm run test:config
       - run: npm run test:editor
       - run: npm run test:editor:render
       - run: npm run build -- --timings

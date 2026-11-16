@@ -3,6 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "postinstall": "patch-package --error-on-fail",
     "dev": "astro dev",
     "start": "astro dev",
     "decap": "BIND_HOST=127.0.0.1 decap-server",
@@ -11,6 +12,7 @@
     "test:editor:browser": "node --test editor-prototype/*.browser.mjs",
     "test:editor:render": "node --test tests/cms-links-render.test.mjs",
     "test:navigation": "node --test tests/site-navigation.test.mjs",
+    "test:config": "node --test tests/fullview-mode.test.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
@@ -51,7 +53,7 @@
     "remark-gfm": "^4.0.1",
     "reveal.js": "^5.2.1",
     "sharp": "^0.34.2",
-    "starlight-fullview-mode": "^0.2.3",
+    "starlight-fullview-mode": "0.2.6",
     "starlight-image-zoom": "^0.16.2",
     "starlight-links-validator": "^0.27.0",
     "starlight-showcases": "^0.3.2",
@@ -68,6 +70,7 @@
     "@types/react-dom": "^19.1.9",
     "decap-server": "3.11.0",
     "linkedom": "^0.14.26",
+    "patch-package": "8.0.1",
     "prettier": "^3.6.2"
   },
   "volta": {

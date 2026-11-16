@@ -1,9 +1,9 @@
-import { formatImage, matchFormattedImage } from './formattedImage.ts';
+import { formatImage, matchFormattedImage, IMAGE_SIZE_PRESETS } from './formattedImage.ts';
 import StarterKit from '@tiptap/starter-kit';
 import { TableKit } from '@tiptap/extension-table';
 import { MdxMarkdown, LiteralEntities, SafeCodeBlock, SafeLink } from './MdxMarkdown.ts';
 import Image from '@tiptap/extension-image';
-import { mergeAttributes, ResizableNodeView, type Editor, type EditorOptions } from '@tiptap/core';
+import { mergeAttributes, type Editor, type EditorOptions } from '@tiptap/core';
 import { SimpleComponentBlocks } from './SimpleComponentBlock.ts';
 import { LinkButtonBlock } from './LinkButtonBlock.ts';
 import { LinkCardBlock } from './LinkCardBlock.ts';
@@ -57,7 +57,7 @@ export function repositoryImage(previewBase = '', onEditImage?: EditImage, readO
       const src = imagePreviewUrl(source, previewBase);
       return ['img', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { src })];
     },
-    // Reuse the existing caption/edit controls and Tiptap’s aspect-ratio-preserving resize view.
+    // Keep the editing hit area independent of the saved image dimensions.
     addNodeView() {
       return ({ node, getPos, editor }) => {
         if (readOnlyPreview) {
@@ -87,8 +87,17 @@ export function repositoryImage(previewBase = '', onEditImage?: EditImage, readO
         const figure = document.createElement('figure');
         figure.className = 'editor-image';
         figure.contentEditable = 'false';
+        figure.tabIndex = 0;
+        figure.setAttribute('role', 'group');
+        figure.addEventListener('focus', () => {
+          const pos = getPos();
+          if (pos !== undefined) editor.commands.setNodeSelection(pos);
+        });
+        const media = document.createElement('div');
+        media.className = 'editor-image-media';
         const image = document.createElement('img');
         const caption = document.createElement('figcaption');
+        media.append(image);
         const controls = document.createElement('div');
         controls.className = 'image-format-controls';
         controls.setAttribute('role', 'group');
@@ -104,27 +113,29 @@ export function repositoryImage(previewBase = '', onEditImage?: EditImage, readO
           button.addEventListener('click', () => commit({ align }));
           controls.append(button);
         }
-        const widthLabel = document.createElement('label');
-        widthLabel.textContent = 'Width (px)';
-        const widthInput = document.createElement('input');
-        widthInput.type = 'number'; widthInput.min = '50'; widthInput.max = '10000'; widthInput.step = '1';
-        widthInput.addEventListener('change', () => {
-          if (widthInput.value && widthInput.checkValidity()) commit({ width: Number(widthInput.value), height: null, align: figure.dataset.align || 'center' });
+        const sizeLabel = document.createElement('label');
+        sizeLabel.textContent = 'Size';
+        const sizeSelect = document.createElement('select');
+        const currentSize = document.createElement('option');
+        currentSize.value = '';
+        currentSize.disabled = true;
+        sizeSelect.append(currentSize);
+        for (const preset of IMAGE_SIZE_PRESETS) {
+          const option = document.createElement('option');
+          option.value = String(preset.width); option.textContent = preset.label;
+          sizeSelect.append(option);
+        }
+        sizeSelect.addEventListener('change', () => {
+          const preset = IMAGE_SIZE_PRESETS.find(preset => String(preset.width) === sizeSelect.value);
+          if (preset) commit({ width: preset.width, height: null, align: figure.dataset.align || 'center' });
         });
-        widthLabel.append(widthInput); controls.append(widthLabel);
+        sizeLabel.append(sizeSelect); controls.append(sizeLabel);
         const reset = document.createElement('button');
         reset.type = 'button'; reset.textContent = 'Reset formatting';
         reset.addEventListener('click', () => commit({ align: null, width: null, height: null }));
         controls.append(reset);
         controls.addEventListener('mousedown', event => { if ((event.target as HTMLElement).tagName === 'BUTTON') event.preventDefault(); });
-        const resizeView = new ResizableNodeView({
-          element: image, editor, node, getPos,
-          options: { directions: ['bottom-right'], min: { width: 50, height: 1 }, preserveAspectRatio: true, className: { handle: 'image-resize-handle' } },
-          onResize: (width) => { figure.style.width = `${Math.round(width)}px`; image.style.height = 'auto'; },
-          onCommit: (width) => commit({ width: Math.min(10000, Math.max(50, Math.round(width))), height: null, align: figure.dataset.align || 'center' }),
-          onUpdate: updated => { render(updated.attrs); return true; },
-        });
-        figure.append(resizeView.dom, caption, controls);
+        figure.append(media, caption, controls);
         const edit = document.createElement('button');
         edit.type = 'button';
         edit.className = 'image-edit-action';
@@ -147,10 +158,15 @@ export function repositoryImage(previewBase = '', onEditImage?: EditImage, readO
           figure.dataset.formatted = String(!!(attrs.align || attrs.width));
           const displayWidth = attrs.width || (attrs.align ? image.naturalWidth : 0);
           figure.style.width = displayWidth ? `${displayWidth}px` : '';
+          media.style.width = (attrs.width || image.naturalWidth) ? `${attrs.width || image.naturalWidth}px` : '';
           image.style.width = ''; image.style.height = 'auto';
-          widthInput.value = attrs.width ? String(attrs.width) : '';
+          const preset = IMAGE_SIZE_PRESETS.find(preset => preset.width === attrs.width);
+          currentSize.textContent = attrs.width ? `Custom (${attrs.width}px)` : 'Original size';
+          currentSize.hidden = !!preset;
+          sizeSelect.value = preset ? String(preset.width) : '';
           controls.querySelectorAll<HTMLButtonElement>('[data-align]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.align === (attrs.align || 'center'))));
           image.setAttribute('alt', String(attrs.alt || ''));
+          figure.setAttribute('aria-label', `Image: ${attrs.alt || 'No alt text'}`);
           if (attrs.title) image.setAttribute('title', attrs.title);
           else image.removeAttribute('title');
           caption.textContent = attrs.title || '';
@@ -160,12 +176,11 @@ export function repositoryImage(previewBase = '', onEditImage?: EditImage, readO
         render(node.attrs);
         return {
           dom: figure,
-          stopEvent: (event) => controls.contains(event.target as globalThis.Node) || edit.contains(event.target as globalThis.Node) || (event.target as HTMLElement).classList?.contains('image-resize-handle'),
+          stopEvent: (event) => event.type === 'focus' || controls.contains(event.target as globalThis.Node) || edit.contains(event.target as globalThis.Node),
           ignoreMutation: () => true,
-          destroy: () => resizeView.destroy(),
-          update(updated, decorations, innerDecorations) {
+          update(updated) {
             if (updated.type !== node.type) return false;
-            return resizeView.update(updated, decorations, innerDecorations);
+            render(updated.attrs); return true;
           },
         };
       };

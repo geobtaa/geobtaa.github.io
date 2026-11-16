@@ -9,11 +9,11 @@ const legacy = '<CenterLayout class="legacy">\n![Protected](@images/private.png 
 const libraryNames = ['original.png', 'replacement.png', ...Array.from({ length: 12 }, (_, index) => `sample-${index}.png`)];
 const originalImage = "![Original alt](@images//original.png 'Original caption')";
 const precedingText = Array.from({ length: 24 }, (_, index) => `Paragraph ${index + 1} before the image.`).join('\n\n');
-const fixture = `import React from 'react';
+const fixture = (body = `Before\n\n${precedingText}\n\n${originalImage}\n\nAfter\n\n${legacy}`) => `import React from 'react';
 import { createRoot } from 'react-dom/client';
 import ProjectEditor from '../src/components/editor-prototype/ProjectEditor.tsx';
 import '../src/components/editor-prototype/editor.css';
-window.record = { filename: 'images.mdx', path: 'src/content/docs/posts/images.mdx', sha: 'loaded', content: '', title: 'Images', description: '', draft: true, body: ${JSON.stringify(`Before\n\n${precedingText}\n\n${originalImage}\n\nAfter\n\n${legacy}`)}, date: '2026-10-24', excerpt: '', authors: [], tags: [], cover: null };
+window.record = { filename: 'images.mdx', path: 'src/content/docs/posts/images.mdx', sha: 'loaded', content: '', title: 'Images', description: '', draft: true, body: ${JSON.stringify(body)}, date: '2026-10-24', excerpt: '', authors: [], tags: [], cover: null };
 window.writes = [];
 window.confirm = () => true;
 window.fetch = async (url, options = {}) => {
@@ -33,7 +33,7 @@ createRoot(document.getElementById('root')).render(React.createElement(ProjectEd
 test('image controls insert, edit, cancel, render real images, and preserve Markdown through save/reopen', {
   skip: chrome ? false : 'Set CHROME_BIN to an installed Chrome/Chromium executable.', timeout: 45_000,
 }, async () => {
-  await withEditorBrowser(fixture, async ({ evaluate, waitFor, send, arrow }) => {
+  await withEditorBrowser(fixture(), async ({ evaluate, waitFor, send }) => {
     const click = async (text, scope = 'document') => {
       await waitFor(`!![...${scope}.querySelectorAll('button')].find(button => (button.getAttribute('aria-label') || button.textContent.trim()) === ${JSON.stringify(text)} && !button.disabled)`);
       await evaluate(`[...${scope}.querySelectorAll('button')].find(button => (button.getAttribute('aria-label') || button.textContent.trim()) === ${JSON.stringify(text)}).click()`);
@@ -107,19 +107,14 @@ test('image controls insert, edit, cancel, render real images, and preserve Mark
     await click('Apply Changes', 'document.querySelector(".image-picker")');
     await waitFor('document.querySelector(".editor-image img")?.naturalWidth > 0 && document.querySelector(".editor-image img").alt === "Replacement alt"');
     assert.equal(await evaluate('document.querySelector(".editor-image figcaption").textContent'), 'Replacement "caption"');
-    // Nearby formatting controls apply only to this image. Drag preserves its ratio.
+    // Nearby presets apply only to this image and preserve its ratio.
     await selectImage();
     await click('Left', 'document.querySelector(".ProseMirror-selectednode")');
-    const resizeStart = await evaluate(`(() => { const r = document.querySelector('.ProseMirror-selectednode .image-resize-handle').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
-    await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...resizeStart, button: 'left', clickCount: 1 });
-    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: resizeStart.x + 70, y: resizeStart.y + 44, button: 'left', buttons: 1 });
-    await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: resizeStart.x + 70, y: resizeStart.y + 44, button: 'left', clickCount: 1 });
-    await waitFor('Number(document.querySelector(".image-format-controls input").value) > 160');
+    assert.equal(await evaluate('document.querySelectorAll(".image-format-controls input, .image-resize-handle").length'), 0);
+    await evaluate(`const size = document.querySelector('.ProseMirror-selectednode .image-format-controls select'); size.value = '240'; size.dispatchEvent(new Event('change', { bubbles: true }));`);
+    await waitFor('document.querySelector(".editor-image").style.width === "240px"');
     const ratio = await evaluate(`(() => { const r = document.querySelector('.editor-image img').getBoundingClientRect(); return r.width / r.height; })()`);
     assert.ok(Math.abs(ratio - 1.6) < .02, 'resizing preserves the image aspect ratio');
-    await evaluate('document.querySelector(".image-format-controls input").focus(); document.querySelector(".image-format-controls input").select()');
-    await send('Input.insertText', { text: '240' });
-    await arrow('Tab', 9);
     await click('Right', 'document.querySelector(".ProseMirror-selectednode")');
     await waitFor('document.querySelector(".editor-image").dataset.align === "right" && document.querySelector(".editor-image").style.width === "240px"');
     await click('Save changes', 'document.querySelector(".editor-navigation")');
@@ -170,4 +165,79 @@ test('image controls insert, edit, cancel, render real images, and preserve Mark
     assert.equal(await evaluate(`document.querySelector('.editor-image img[alt="No caption"]').closest('.editor-image').querySelector('figcaption').hidden`), true);
     assert.equal(await evaluate('[...document.querySelectorAll(".editor-image img")].every(image => image.complete && image.naturalWidth > 0)'), true);
   }, { images: Object.fromEntries([...libraryNames, 'uploaded.png'].map(name => [name, png])) });
+});
+
+test('tiny and custom images stay unchanged on open and remain selectable; presets survive save/reopen and responsive Preview', {
+  skip: chrome ? false : 'Set CHROME_BIN to an installed Chrome/Chromium executable.', timeout: 45_000,
+}, async () => {
+  const formatted = width => `<figure data-cms-image="true" data-align="right" data-width="${width}">\n\n${originalImage}\n\n</figure>`;
+  const body = [5, 137, 9600].map(formatted).join('\n\n') + '\n\nAfter';
+  await withEditorBrowser(fixture(body), async ({ evaluate, waitFor, send }) => {
+    const click = async (label, scope) => {
+      await evaluate(`[...document.querySelector(${JSON.stringify(scope)}).querySelectorAll('button')].find(button => button.textContent.trim() === ${JSON.stringify(label)}).click()`);
+    };
+    await waitFor('document.querySelector(".editor-image img")?.naturalWidth > 0');
+    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'No unsaved changes');
+    assert.equal(await evaluate('document.querySelector(".body-editor .tiptap").editor.getMarkdown()'), body);
+    assert.deepEqual(await evaluate('[...document.querySelectorAll(".image-format-controls select")].map(select => select.selectedOptions[0].textContent)'), ['Custom (5px)', 'Custom (137px)', 'Custom (9600px)']);
+    const point = await evaluate(`(() => {
+      const figure = document.querySelector('.editor-image'); figure.scrollIntoView({ block: 'center' });
+      const bounds = figure.getBoundingClientRect();
+      return { x: bounds.left + 20, y: bounds.top + 20, width: bounds.width, height: bounds.height,
+        imageWidth: figure.querySelector('img').getBoundingClientRect().width,
+        captionWidth: figure.querySelector('figcaption').getBoundingClientRect().width };
+    })()`);
+    assert.equal(point.imageWidth, 5, 'selection area does not enlarge the saved image');
+    assert.ok(point.width >= 192 && point.height >= 44, 'tiny images have a usable selection area');
+    assert.ok(point.captionWidth >= 192, 'captions remain readable in the editing selection area');
+    await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: point.x, y: point.y, button: 'left', clickCount: 1 });
+    await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: point.x, y: point.y, button: 'left', clickCount: 1 });
+    await waitFor('document.querySelector(".editor-image").classList.contains("ProseMirror-selectednode")');
+    assert.ok(await evaluate('document.querySelector(".editor-image .image-format-controls select").offsetWidth > 0'));
+    await click('Edit image', '.editor-image');
+    await waitFor('!!document.querySelector(".image-picker")');
+    await click('Cancel', '.image-picker');
+    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'No unsaved changes');
+    // A save without resizing retains even the tiny width and original Markdown syntax.
+    await click('Save changes', '.editor-navigation');
+    await waitFor('window.writes.length === 1 && !document.querySelector(".editor-navigation .back").disabled');
+    assert.equal(await evaluate('window.record.body'), body);
+    await click('Preview', '.editor-mode-toggle');
+    await waitFor('!!document.querySelector(".cms-preview img")');
+    assert.equal(await evaluate('document.querySelector(".cms-preview img").getBoundingClientRect().width'), 5);
+    await click('Edit', '.editor-mode-toggle');
+    for (const [index, width] of [240, 480, 720].entries()) {
+      // Keyboard focus exposes controls even when the image itself is tiny.
+      await evaluate('document.querySelector(".editor-image").focus()');
+      await waitFor('document.querySelector(".editor-image").classList.contains("ProseMirror-selectednode")');
+      await evaluate(`(() => { const select = document.querySelector('.editor-image .image-format-controls select'); select.value = '${width}'; select.dispatchEvent(new Event('change', { bubbles: true })); })()`);
+      await click('Save changes', '.editor-navigation');
+      await waitFor(`window.writes.length === ${index + 2} && !document.querySelector('.editor-navigation .back').disabled`);
+      assert.equal(await evaluate('window.record.body'), [width, 137, 9600].map(formatted).join('\n\n') + '\n\nAfter');
+      await evaluate('document.querySelector(".editor-navigation .back").click()');
+      await waitFor('!!document.querySelector(".project-list button")');
+      await evaluate('document.querySelector(".project-list button").click()');
+      await waitFor(`document.querySelector('.editor-image img')?.naturalWidth > 0 && document.querySelector('.editor-image').style.width === '${width}px'`);
+      assert.equal(await evaluate('document.querySelector(".editor-image .image-format-controls select").value'), String(width));
+      assert.equal(await evaluate('document.querySelector(".editor-image img").alt'), 'Original alt');
+      assert.equal(await evaluate('document.querySelector(".editor-image figcaption").textContent'), 'Original caption');
+      assert.equal(await evaluate('document.querySelector(".editor-image").dataset.align'), 'right');
+      await click('Preview', '.editor-mode-toggle');
+      await waitFor('document.querySelector(".cms-preview img")?.naturalWidth > 0');
+      assert.equal(await evaluate('document.querySelector(".cms-preview .preview-image").style.width'), `${width}px`);
+      await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 740, deviceScaleFactor: 1, mobile: true });
+      const layout = await evaluate(`(() => {
+        const image = document.querySelector('.cms-preview img').getBoundingClientRect();
+        return { width: image.width, ratio: image.width / image.height,
+          containerWidth: document.querySelector('.cms-preview .tiptap').getBoundingClientRect().width,
+          overflow: document.documentElement.scrollWidth > innerWidth };
+      })()`);
+      assert.ok(layout.width <= layout.containerWidth);
+      assert.ok(Math.abs(layout.ratio - 1.6) < .02);
+      assert.equal(layout.overflow, false);
+      await click('Edit', '.editor-mode-toggle');
+      assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true, 'editing controls also fit on mobile');
+      await send('Emulation.setDeviceMetricsOverride', { width: 1000, height: 800, deviceScaleFactor: 1, mobile: false });
+    }
+  }, { initialSearch: '?area=posts&file=images.mdx', images: { 'original.png': png } });
 });

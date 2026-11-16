@@ -6,6 +6,7 @@ import { parseHTML } from 'linkedom';
 import { splitBody } from '../src/components/editor-prototype/bodySegments.ts';
 import { richTextEditorOptions } from '../src/components/editor-prototype/richTextEditor.ts';
 import { previewComponentLink } from '../src/components/editor-prototype/previewLinks.ts';
+import { IMAGE_SIZE_PRESETS } from '../src/components/editor-prototype/formattedImage.ts';
 import { SIMPLE_KINDS, SIMPLE_COMPONENTS, createSimpleComponentMdx, emptySimpleFields, ensureSimpleComponentImport, parseSimpleComponentMdx } from '../src/components/editor-prototype/simpleComponents.ts';
 import { createLinkButtonMdx, ensureLinkButtonImport, parseLinkButtonMdx, updateLinkButtonMdx } from '../src/components/editor-prototype/linkButtonMdx.ts';
 import { createLinkCardMdx, ensureLinkCardImport, LINK_CARD_IMPORT, parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor-prototype/linkCardMdx.ts';
@@ -144,6 +145,16 @@ Object.assign(globalThis, {
 });
 window.HTMLElement.prototype.getBoundingClientRect = () => ({ top: 0, right: 0, bottom: 0, left: 0, width: 0, height: 0 });
 window.HTMLElement.prototype.getClientRects = () => [];
+// Linkedom exposes only a getter for selects; supply the browser's value setter.
+Object.defineProperty(window.HTMLSelectElement.prototype, 'value', {
+  get: Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').get,
+  set(value) {
+    const options = [...this.querySelectorAll('option')];
+    for (const option of options) option.removeAttribute('selected');
+    const selected = options.find(option => option.value === value);
+    if (selected) selected.selected = true;
+  },
+});
 const selection = { anchorNode: null, anchorOffset: 0, focusNode: null, focusOffset: 0, rangeCount: 0, isCollapsed: true, removeAllRanges() {}, addRange() {} };
 window.document.getSelection = () => selection;
 window.getSelection = () => selection;
@@ -823,6 +834,41 @@ test('alignment without width and formatted images without captions round trip',
     assert.equal(editor.state.doc.firstChild.type.name, 'image');
     assert.equal(editor.state.doc.firstChild.attrs.align, align);
     assert.equal(editor.getMarkdown().trim(), raw);
+    editor.destroy();
+  }
+});
+
+test('existing custom image sizes stay exact; preset controls preserve metadata through undo and save/reopen', () => {
+  const markdown = "![Original alt](@images//original.png 'Original caption')";
+  for (const width of [5, 137, 320, 9600]) {
+    const source = `<figure data-cms-image="true" data-align="right" data-width="${width}">\n\n${markdown}\n\n</figure>\n\nAfter`;
+    const { editor } = openEditor(source);
+    assert.equal(editor.getMarkdown(), source, 'opening a custom size must not normalize the source');
+    const select = editor.view.dom.querySelector('.image-format-controls select');
+    assert.equal(select.querySelector('option').textContent, `Custom (${width}px)`);
+    for (const preset of IMAGE_SIZE_PRESETS) {
+      select.value = String(preset.width);
+      select.dispatchEvent(new window.Event('change'));
+      const saved = editor.getMarkdown();
+      assert.equal(saved, source.replace(`data-width="${width}"`, `data-width="${preset.width}"`));
+      const reopened = openEditor(saved).editor;
+      assert.equal(reopened.getMarkdown(), saved);
+      assert.equal(reopened.state.doc.firstChild.attrs.width, preset.width);
+      assert.equal(reopened.state.doc.firstChild.attrs.align, 'right');
+      assert.equal(reopened.state.doc.firstChild.attrs.src, '@images//original.png');
+      assert.equal(reopened.state.doc.firstChild.attrs.alt, 'Original alt');
+      assert.equal(reopened.state.doc.firstChild.attrs.title, 'Original caption');
+      reopened.commands.setNodeSelection(0);
+      reopened.commands.updateAttributes('image', { title: 'Changed caption' });
+      const final = openEditor(reopened.getMarkdown()).editor;
+      assert.equal(final.state.doc.firstChild.attrs.width, preset.width);
+      assert.equal(final.state.doc.firstChild.attrs.title, 'Changed caption');
+      final.destroy(); reopened.destroy();
+    }
+    editor.commands.undo();
+    assert.equal(editor.getMarkdown(), source);
+    editor.commands.redo();
+    assert.equal(editor.state.doc.firstChild.attrs.width, IMAGE_SIZE_PRESETS.at(-1).width);
     editor.destroy();
   }
 });

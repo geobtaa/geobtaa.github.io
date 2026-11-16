@@ -62,6 +62,21 @@ test('Astro leaves unfamiliar figures untouched', () => {
   }
 });
 
+test('legacy tiny and custom widths render at their saved size in MDX and Markdown', () => {
+  for (const width of ['5', '137', '9600']) {
+    const node = figure('right', width);
+    remarkFormattedImages()({ type: 'root', children: [node] });
+    assert.match(node.attributes.find(a => a.name === 'style').value, new RegExp(`width:${width}px;max-width:100%`));
+    const tree = { type: 'root', children: [
+      { type: 'html', value: `<figure data-cms-image="true" data-align="right" data-width="${width}">\n` },
+      { type: 'paragraph', children: [{ type: 'image', url: '@images/map.png', alt: 'Map', title: 'Caption' }] },
+      { type: 'html', value: '</figure>\n' },
+    ] };
+    remarkFormattedImages()(tree);
+    assert.match(tree.children[0].value, new RegExp(`width:${width}px;max-width:100%`));
+  }
+});
+
 test('plain Markdown figures get the same layout and escaped caption without changing their asset path', () => {
   const image = { type: 'image', url: '@images/map.png', alt: 'A map', title: 'A & <literal> caption' };
   const tree = { type: 'root', children: [

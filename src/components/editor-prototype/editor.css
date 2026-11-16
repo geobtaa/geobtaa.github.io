@@ -81,7 +81,7 @@ input, textarea, .area-selector select { width: 100%; padding: .7rem; border: 1p
 .update-options > button { padding: .55rem .75rem; border: 1px solid var(--editor-border-strong); border-radius: .35rem; background: var(--editor-surface); color: var(--editor-accent); }
 .conversion-preview-content { display: grid; gap: .75rem; min-width: 0; margin: 1rem 0 0; padding: 0; border: 0; }
 .conversion-preview-content .rich-editor { border: 0; background: var(--editor-surface); }
-.conversion-preview-content .image-format-controls, .conversion-preview-content .image-edit-action, .conversion-preview-content .image-resize-handle { display: none; }
+.conversion-preview-content .image-format-controls, .conversion-preview-content .image-edit-action { display: none; }
 .conversion-preview-content .editor-image { pointer-events: none; }
 .block-row { display: grid; grid-template-columns: minmax(0, 1fr) 8.5rem; gap: .75rem; min-width: 0; }
 .block-row > :first-child { min-width: 0; }
@@ -273,18 +273,17 @@ code { font-size: .9em; }
 .tiptap .editor-image[data-formatted="true"] { width: fit-content; max-width: 100%; }
 .tiptap .editor-image[data-align="left"] { margin-left: 0; margin-right: auto; }
 .tiptap .editor-image[data-align="right"] { margin-left: auto; margin-right: 0; }
-.tiptap .editor-image [data-resize-container] { max-width: 100%; }
-.tiptap .editor-image [data-resize-wrapper] { width: 100%; max-width: 100%; }
+.tiptap .editor-image:not(.preview-image) { min-width: min(12rem, 100%); min-height: 44px; }
+.tiptap .editor-image-media, .tiptap .editor-image > figcaption { max-width: 100%; margin-inline: auto; }
+.tiptap .editor-image[data-align="left"] > :is(.editor-image-media, figcaption) { margin-left: 0; }
+.tiptap .editor-image[data-align="right"] > :is(.editor-image-media, figcaption) { margin-right: 0; }
 .tiptap .editor-image[data-formatted="true"] img { width: 100%; }
-.tiptap .editor-image[data-formatted="false"] [data-resize-wrapper] { width: fit-content; margin: 0 auto; }
 .image-format-controls { display: none; flex-wrap: wrap; gap: .35rem; align-items: center; padding-top: .75rem; }
 .ProseMirror-selectednode .image-format-controls { display: flex; }
 .image-format-controls button { padding: .3rem .45rem; border: 1px solid var(--editor-border-strong); background: var(--editor-surface); border-radius: .25rem; }
 .image-format-controls button[aria-pressed="true"] { background: var(--editor-accent-soft); border-color: var(--editor-accent); }
 .image-format-controls label { display: flex; align-items: center; gap: .35rem; margin: 0; font-size: .85rem; }
-.image-format-controls input { width: 6rem; padding: .25rem; }
-.image-resize-handle { display: none; width: 16px; height: 16px; background: var(--editor-accent); border: 2px solid var(--editor-surface); border-radius: 3px; touch-action: none; }
-.ProseMirror-selectednode .image-resize-handle { display: block; }
+.image-format-controls select { max-width: 100%; padding: .3rem; border: 1px solid var(--editor-border-strong); border-radius: .25rem; background: var(--editor-surface); color: inherit; }
 
 .block-controls { min-width: 0; padding-left: .75rem; border-left: 1px solid var(--editor-border); }
 .block-controls .block-inserter { padding: 0; border: 0; }
