@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { chrome, withEditorBrowser } from './browserHarness.mjs';
+import { answerLeaveDialog, chrome, withEditorBrowser } from './browserHarness.mjs';
 import { createCollectionMdx } from '../src/components/editor-prototype/collectionMdx.ts';
 import { createSimpleComponentMdx, emptySimpleFields } from '../src/components/editor-prototype/simpleComponents.ts';
 
@@ -220,6 +220,7 @@ test('never-saved pages preview current form content and reset mode when leaving
     await browser.waitFor('document.querySelector(".cms-preview").textContent.includes("New page, never saved.")');
     assert.equal(await browser.evaluate('document.querySelector(".save-state").textContent'), 'Not saved yet');
     await browser.evaluate('document.querySelector(".editor-navigation .back").click()');
+    await answerLeaveDialog(browser);
     await browser.waitFor('!!document.querySelector(".project-list button")');
     await browser.evaluate('document.querySelector(".project-list button").click()');
     await browser.waitFor('!!document.querySelector(".body-editor .tiptap")');

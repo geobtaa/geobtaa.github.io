@@ -125,3 +125,9 @@ export async function openNewBlockMenu({ evaluate, waitFor }, label, row) {
   await waitFor(`${menu}.open && [...${menu}.querySelectorAll('button')].some(button => button.textContent === ${JSON.stringify(label)} && button.offsetWidth > 0)`);
   return menu;
 }
+
+export async function answerLeaveDialog({ evaluate, waitFor }, leave = true) {
+  await waitFor('!!document.querySelector(".unsaved-changes-dialog[open]")');
+  await evaluate(`[...document.querySelector('.unsaved-changes-dialog').querySelectorAll('button')].find(button => button.textContent === '${leave ? 'Leave editor' : 'Keep editing'}').click()`);
+  await waitFor('!document.querySelector(".unsaved-changes-dialog[open]")');
+}

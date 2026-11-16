@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { chrome, withEditorBrowser } from './browserHarness.mjs';
+import { answerLeaveDialog, chrome, withEditorBrowser } from './browserHarness.mjs';
 
 const original = '---\ntitle: Original\ndate: 2026-11-09\ndraft: true\nauthors: [{name: Staff}]\ntags: [Maps]\ncustom: keep\n---\n\nEditable paragraph.\n\n<Unknown>Protected source.</Unknown>\n';
 const fixture = `import React from 'react';
@@ -66,15 +66,29 @@ test('dashboard resumes unsaved work with one primary action, then discards only
     await evaluate('document.querySelector(".rich-editor .tiptap").editor.commands.focus("end")');
     await waitFor('document.activeElement === document.querySelector(".rich-editor .tiptap")');
     await send('Input.insertText', { text: ' Unsaved body to resume.' });
+    await evaluate(`window.beforeLeaveEditor = document.querySelector('.rich-editor .tiptap'); window.beforeLeaveSelection = window.beforeLeaveEditor.editor.state.selection.toJSON();`);
     await evaluate('document.querySelector(".dashboard-link").click()');
+    await waitFor('!!document.querySelector(".unsaved-changes-dialog[open]")');
+    assert.equal(await evaluate('document.querySelector("#unsaved-changes-message").textContent'), 'You have unsaved changes. If you leave now, we will keep a recovery copy in this browser so you can return to your work. Your changes have not been saved to the website.');
+    assert.deepEqual(await evaluate('[...document.querySelectorAll(".unsaved-changes-dialog button")].map(button => button.textContent)'), ['Keep editing', 'Leave editor']);
+    assert.equal(await evaluate('document.activeElement.textContent'), 'Keep editing');
+    await browser.arrow('Tab', 9);
+    assert.equal(await evaluate('document.activeElement.textContent'), 'Leave editor');
+    await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, modifiers: 8 });
+    await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, modifiers: 8 });
+    assert.equal(await evaluate('document.activeElement.textContent'), 'Keep editing');
+    await answerLeaveDialog(browser, false);
     assert.equal(await evaluate(`${title}.value`), 'Work to resume', 'cancel keeps the live document open');
-    assert.match(await evaluate('window.confirmMessages.at(-1)'), /kept only in this browser.*Resume editing/);
+    assert.equal(await evaluate('document.querySelector(".rich-editor .tiptap") === window.beforeLeaveEditor'), true);
+    assert.equal(await evaluate('document.activeElement === window.beforeLeaveEditor'), true, 'closing the dialog restores keyboard focus');
+    assert.deepEqual(await evaluate('window.beforeLeaveEditor.editor.state.selection.toJSON()'), await evaluate('window.beforeLeaveSelection'));
     await evaluate('window.allowLeave = true; document.querySelector(".dashboard-link").click()');
+    await answerLeaveDialog(browser);
     await waitFor(`!!(${button('Resume editing')})`);
     assert.equal(await evaluate('document.querySelector(".recovery-panel h2").textContent'), 'Unsaved changes');
     assert.equal(await evaluate(`${button('Resume editing')}.classList.contains('primary')`), true);
     assert.match(await evaluate('document.querySelector(".recovery-panel").textContent'), /only in this browser.*not been confirmed saved to GitHub/s);
-    assert.ok(await evaluate(`!!(${button('Download backup')})`));
+    assert.ok(await evaluate(`!!(${button('Save backup file')})`));
     await evaluate(`${button('Resume editing')}.click()`);
     await waitFor(`${title}?.value === 'Work to resume' && !document.querySelector('.top-save').disabled`);
     assert.match(await evaluate('document.querySelector(".rich-editor .tiptap").textContent'), /Unsaved body to resume/);
@@ -84,11 +98,13 @@ test('dashboard resumes unsaved work with one primary action, then discards only
     assert.equal(await evaluate('window.readRepo()["existing.mdx"].sha'), 'base-1');
     assert.equal(await evaluate('window.requests.some(request => request.method !== "GET")'), false, 'resuming never saves to GitHub');
     await evaluate('document.querySelector(".dashboard-link").click()');
+    await answerLeaveDialog(browser);
     await waitFor(`!!(${button('Discard unsaved changes')})`);
+    await evaluate('document.querySelector(".recovery-options summary").click()');
     const stored = await evaluate(`${recoveryKeys}.map(key => localStorage.getItem(key))`);
     await evaluate(`window.allowLeave = false; ${button('Discard unsaved changes')}.click()`);
     assert.deepEqual(await evaluate(`${recoveryKeys}.map(key => localStorage.getItem(key))`), stored);
-    assert.match(await evaluate('window.confirmMessages.at(-1)'), /Work to resume.*permanently removes.*cannot undo.*GitHub will not change/);
+    assert.match(await evaluate('window.confirmMessages.at(-1)'), /Work to resume.*permanently removes only this local version.*cannot undo.*GitHub will not change/);
     await evaluate(`window.allowLeave = true; ${button('Discard unsaved changes')}.click()`);
     await waitFor(`${recoveryKeys}.length === 0 && !document.querySelector('.recovery-panel')`);
     await open(browser);
@@ -103,6 +119,7 @@ test('dashboard resume keeps changed GitHub content open and retains unsaved wor
     const { evaluate, waitFor } = browser;
     await open(browser); await fill(browser, 'Do not overwrite GitHub');
     await evaluate('window.allowLeave = true; document.querySelector(".dashboard-link").click()');
+    await answerLeaveDialog(browser);
     await waitFor(`!!(${button('Resume editing')})`);
     await evaluate(`window.changeServer(); ${button('Resume editing')}.click()`);
     await waitFor(`${title}?.value === 'Newer repository title' && !document.querySelector('.top-save').disabled`);
@@ -115,12 +132,63 @@ test('dashboard resume keeps changed GitHub content open and retains unsaved wor
   });
 });
 
+for (const chosen of [0, 1]) test(`grouped dashboard lets users resume ${chosen ? 'an earlier divergent session' : 'the latest session'} and discard only a chosen version`, options, async () => {
+  await withEditorBrowser(fixture, async browser => {
+    const { evaluate, waitFor } = browser;
+    await open(browser); await fill(browser, 'Latest session title');
+    await evaluate('document.querySelector(".dashboard-link").click()');
+    await answerLeaveDialog(browser);
+    await waitFor(`!!(${button('Resume editing')})`);
+    await evaluate(`const key = ${recoveryKeys}[0]; const latest = JSON.parse(localStorage.getItem(key));
+      latest.savedAt = '2026-11-11T15:00:00Z'; localStorage.setItem(key, JSON.stringify(latest));
+      const earlier = { ...latest, id: 'earlier-session', revision: 'earlier-revision', savedAt: '2026-11-10T15:00:00Z', fields: { ...latest.fields, title: 'Earlier session title', body: 'Earlier independent body.' } };
+      window.earlierKey = key.slice(0, key.lastIndexOf(':') + 1) + earlier.id;
+      localStorage.setItem(window.earlierKey, JSON.stringify(earlier));
+      window.seededVersions = [latest, earlier];
+      window.dispatchEvent(new StorageEvent('storage', { key }));`);
+    await waitFor(`!!(${button('View earlier versions')})`);
+    assert.equal(await evaluate('document.querySelectorAll(".unsaved-documents > li").length'), 1);
+    assert.equal(await evaluate('document.querySelectorAll(".unsaved-documents > li > .recovery-copy-actions > .primary").length'), 1);
+    const originals = await evaluate(`${recoveryKeys}.map(key => localStorage.getItem(key)).sort()`);
+    await evaluate(`${button('Resume editing')}.click()`);
+    await waitFor('!!document.querySelector(".unsaved-versions")');
+    assert.equal(await evaluate('!!document.querySelector(".editor-fields")'), false, 'divergent sessions require an explicit choice');
+    assert.match(await evaluate('document.querySelector(".unsaved-versions").textContent'), /another editing session.*These versions differ/s);
+    assert.deepEqual(await evaluate('[...document.querySelectorAll(".unsaved-versions time")].map(time => time.dateTime).filter((value, index, all) => all.indexOf(value) === index)'), ['2026-11-11T15:00:00Z', '2026-11-10T15:00:00Z']);
+    await evaluate(`document.querySelectorAll('.unsaved-versions > ol > li')[${chosen}].querySelector('.recovery-options summary').click();
+      window.backup = ''; URL.createObjectURL = blob => { blob.text().then(value => window.backup = value); return 'blob:test'; }; HTMLAnchorElement.prototype.click = function() {};
+      document.querySelectorAll('.unsaved-versions > ol > li')[${chosen}].querySelector('.recovery-options button').click();`);
+    await waitFor('!!window.backup');
+    assert.equal(JSON.parse(await evaluate('window.backup')).fields.title, chosen ? 'Earlier session title' : 'Latest session title');
+    assert.deepEqual(await evaluate(`${recoveryKeys}.map(key => localStorage.getItem(key)).sort()`), originals, 'backup does not change any version');
+    await evaluate(`document.querySelectorAll('.unsaved-versions > ol > li')[${chosen}].querySelector('.recovery-copy-actions > button').click()`);
+    await waitFor(`${title}?.value === ${JSON.stringify(chosen ? 'Earlier session title' : 'Latest session title')} && !document.querySelector('.top-save').disabled`);
+    assert.match(await evaluate('document.querySelector(".message.success").textContent'), /restored changes.*not been confirmed saved/s);
+    await waitFor(`${recoveryKeys}.length === 2`);
+    const unchosen = await evaluate(`window.seededVersions[${1 - chosen}]`);
+    assert.ok((await evaluate(`${recoveryKeys}.map(key => localStorage.getItem(key))`)).includes(JSON.stringify(unchosen)), 'the other session is preserved byte for byte');
+    await evaluate('document.querySelector(".dashboard-link").click()'); await answerLeaveDialog(browser);
+    await waitFor('!!document.querySelector(".unsaved-documents")');
+    await evaluate('document.querySelector(".unsaved-documents > li > .recovery-copy-actions .recovery-options summary").click()');
+    const beforeDiscard = await evaluate(`${recoveryKeys}.map(key => localStorage.getItem(key)).sort()`);
+    await evaluate(`window.allowLeave = false; ${button('Discard unsaved changes')}.click()`);
+    assert.deepEqual(await evaluate(`${recoveryKeys}.map(key => localStorage.getItem(key)).sort()`), beforeDiscard);
+    await evaluate(`window.allowLeave = true; ${button('Discard unsaved changes')}.click()`);
+    await waitFor(`${recoveryKeys}.length === 1`);
+    assert.deepEqual(await evaluate(`${recoveryKeys}.map(key => localStorage.getItem(key))`), [JSON.stringify(unchosen)]);
+    assert.equal(await evaluate('window.readRepo()["existing.mdx"].sha'), 'base-1');
+    assert.equal(await evaluate('window.requests.some(request => request.method !== "GET")'), false);
+  });
+});
+
 test('discard refuses to delete unsaved work updated in another tab', options, async () => {
   await withEditorBrowser(fixture, async browser => {
     const { evaluate, waitFor } = browser;
     await open(browser); await fill(browser, 'Earlier version');
     await evaluate('window.allowLeave = true; document.querySelector(".dashboard-link").click()');
+    await answerLeaveDialog(browser);
     await waitFor(`!!(${button('Discard unsaved changes')})`);
+    await evaluate('document.querySelector(".recovery-options summary").click()');
     await evaluate(`window.keyToKeep = ${recoveryKeys}[0];
       const updated = JSON.parse(localStorage.getItem(window.keyToKeep));
       updated.revision = 'changed-in-another-tab'; updated.fields.title = 'Newer unsaved work';
@@ -132,6 +200,27 @@ test('discard refuses to delete unsaved work updated in another tab', options, a
   });
 });
 
+test('matching versions resume the latest record without asking users to choose', options, async () => {
+  await withEditorBrowser(fixture, async browser => {
+    const { evaluate, waitFor } = browser;
+    await open(browser); await fill(browser, 'Matching work');
+    await evaluate('document.querySelector(".dashboard-link").click()'); await answerLeaveDialog(browser);
+    await waitFor(`!!(${button('Resume editing')})`);
+    await evaluate(`const key = ${recoveryKeys}[0]; const original = JSON.parse(localStorage.getItem(key));
+      original.savedAt = '2000-01-01T00:00:00Z'; localStorage.setItem(key, JSON.stringify(original));
+      const newer = { ...original, id: 'matching-newer', revision: 'matching-revision', savedAt: '2001-01-01T00:00:00Z' };
+      window.newerKey = key.slice(0, key.lastIndexOf(':') + 1) + newer.id; window.originalKey = key;
+      localStorage.setItem(window.newerKey, JSON.stringify(newer)); window.dispatchEvent(new StorageEvent('storage', { key }));`);
+    await waitFor(`!!(${button('View earlier versions')})`);
+    await evaluate(`${button('Resume editing')}.click()`);
+    await waitFor(`${title}?.value === 'Matching work' && !document.querySelector('.top-save').disabled`);
+    await waitFor('!localStorage.getItem(window.newerKey)');
+    assert.ok(await evaluate('!!localStorage.getItem(window.originalKey)'), 'only the selected latest record is continued');
+    assert.equal(await evaluate('!!document.querySelector(".unsaved-versions")'), false);
+    assert.equal(await evaluate('window.requests.some(request => request.method !== "GET")'), false);
+  });
+});
+
 test('browser Back/Forward follows editor screens, cancel restores URL and edits, and returning offers recovery', options, async () => {
   await withEditorBrowser(fixture, async browser => {
     await open(browser);
@@ -139,9 +228,13 @@ test('browser Back/Forward follows editor screens, cancel restores URL and edits
     await fill(browser,'Unsaved title');
     await browser.evaluate('document.querySelector(".rich-editor .tiptap").focus()'); await browser.send('Input.insertText',{text:'Unsaved body. '});
     await browser.evaluate('history.back()');
-    await browser.waitFor('window.confirmCalls===1 && new URL(location.href).searchParams.get("file")==="existing.mdx"');
+    await browser.waitFor('!!document.querySelector(".unsaved-changes-dialog[open]") && new URL(location.href).searchParams.get("file")==="existing.mdx"');
+    await browser.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+    await browser.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+    await browser.waitFor('!document.querySelector(".unsaved-changes-dialog")');
     assert.equal(await browser.evaluate(`${title}.value`),'Unsaved title');
     await browser.evaluate('window.allowLeave=true; history.back()');
+    await answerLeaveDialog(browser);
     await browser.waitFor('!!document.querySelector(".project-list") && !new URL(location.href).searchParams.has("file")');
     assert.ok(await browser.evaluate(`${recoveryKeys}.length > 0`));
     await browser.evaluate('history.forward()');
@@ -214,7 +307,8 @@ test('recovery checks the latest SHA at restore time and preserves stale copies 
     await browser.waitFor(`${title}.value==='Newer repository title' && !document.querySelector('.top-save').disabled`);
     assert.equal(await browser.evaluate(`!!(${button('Restore changes')})`),false);
     assert.ok(await browser.evaluate(`${recoveryKeys}.length > 0`));
-    await browser.evaluate(`window.downloaded=''; const originalCreate=URL.createObjectURL; URL.createObjectURL=blob=>{blob.text().then(text=>window.downloaded=text);return originalCreate(blob)}; HTMLAnchorElement.prototype.click=function(){}; ${button('Download backup')}.click()`);
+    await browser.evaluate('document.querySelector(".recovery-options summary").click()');
+    await browser.evaluate(`window.downloaded=''; const originalCreate=URL.createObjectURL; URL.createObjectURL=blob=>{blob.text().then(text=>window.downloaded=text);return originalCreate(blob)}; HTMLAnchorElement.prototype.click=function(){}; ${button('Save backup file')}.click()`);
     await browser.waitFor('!!window.downloaded');
     assert.equal(JSON.parse(await browser.evaluate('window.downloaded')).fields.title,'Keep this recovery');
     assert.equal(await browser.evaluate('window.requests.some(request=>request.method==="PUT")'),false);
@@ -234,7 +328,9 @@ test('storage failure is visible, offers download, and retains the editor when l
     assert.equal(await browser.evaluate(`${recoveryKeys}.length`),0);
     assert.ok(await browser.evaluate(`!!(${button('Download unsaved edits')})`));
     await browser.evaluate('history.back()');
-    await browser.waitFor('window.confirmCalls===1 && new URL(location.href).searchParams.get("file")==="existing.mdx"');
+    await browser.waitFor('!!document.querySelector(".unsaved-changes-dialog[open]") && new URL(location.href).searchParams.get("file")==="existing.mdx"');
+    assert.match(await browser.evaluate('document.querySelector("#unsaved-changes-message").textContent'), /could not keep a recovery copy.*may be lost/);
+    await answerLeaveDialog(browser, false);
     assert.equal(await browser.evaluate(`${title}.value`),'Not backed up');
   });
 });
@@ -246,7 +342,7 @@ test('a deleted repository document still leaves its local copy downloadable wit
     const oldLoad = await browser.evaluate('window.loadId');
     await browser.send('Page.reload');
     await browser.waitFor(`window.loadId && window.loadId!==${JSON.stringify(oldLoad)} && !!(${button('Retry opening entry')})`);
-    await browser.waitFor(`!!(${button('Download backup')})`);
+    await browser.waitFor(`!!(${button('Save backup file')})`);
     assert.equal(await browser.evaluate(`!!(${button('Restore changes')})`),false);
     assert.ok(await browser.evaluate(`${recoveryKeys}.length>0`));
     assert.deepEqual(await browser.evaluate('window.readRepo()'),{});

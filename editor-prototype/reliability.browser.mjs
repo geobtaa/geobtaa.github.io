@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { chrome, withEditorBrowser } from './browserHarness.mjs';
+import { answerLeaveDialog, chrome, withEditorBrowser } from './browserHarness.mjs';
 
 const original = '---\ntitle: Existing\ndate: 2026-11-14\ndraft: true\n---\n\nEditable paragraph.\n\n<Unknown>Protected source.</Unknown>\n';
 const fixture = `import React from 'react';
@@ -166,8 +166,20 @@ test('dashboard Resume editing preserves an uncertain creation and retries the o
     await evaluate('window.responseFault = "lost"; document.querySelector(".top-save").click()');
     await waitFor('document.querySelector(".top-save").textContent === "Retry creation safely" && !document.querySelector(".top-save").disabled');
     await evaluate('document.querySelector(".dashboard-link").click()');
+    await answerLeaveDialog(browser);
     await waitFor(`!!(${button('Resume editing')})`);
+    await evaluate(`const key = Object.keys(localStorage).find(key => key.startsWith('geobtaa-editor-recovery:'));
+      const original = JSON.parse(localStorage.getItem(key));
+      const separate = { ...original, id: 'separate-save-attempt', revision: 'separate-revision', savedAt: '2000-01-01T00:00:00Z', fields: { ...original.fields, title: 'Another unconfirmed save', creationAttempt: { ...original.fields.creationAttempt, id: 'different-creation-id-12345' } } };
+      window.separateAttemptKey = key.slice(0, key.lastIndexOf(':') + 1) + separate.id;
+      localStorage.setItem(window.separateAttemptKey, JSON.stringify(separate));
+      window.dispatchEvent(new StorageEvent('storage', { key }));`);
+    await waitFor(`!!(${button('View earlier versions')})`);
     await evaluate(`${button('Resume editing')}.click()`);
+    await waitFor('!!document.querySelector(".unsaved-versions")');
+    assert.equal(await evaluate('document.querySelectorAll(".unsaved-versions > ol > li").length'), 2);
+    assert.match(await evaluate('document.querySelector(".unsaved-versions").textContent'), /Unconfirmed save/);
+    await evaluate('document.querySelector(".unsaved-versions .recovery-copy-actions > button").click()');
     await waitFor(`${title}?.value === 'Interrupted dashboard draft' && document.querySelector('.top-save').textContent === 'Retry creation safely' && !document.querySelector('.top-save').disabled`);
     assert.equal(await evaluate('window.writes.length'), 1, 'resume checks the draft without sending a save');
     assert.match(await evaluate('document.querySelector(".message.success").textContent'), /not been confirmed saved to GitHub/);
@@ -179,6 +191,7 @@ test('dashboard Resume editing preserves an uncertain creation and retries the o
     assert.equal(attempts[0].creationFilename, attempts[1].creationFilename);
     assert.equal(attempts[1].creationRetry, true);
     assert.equal(await evaluate('Object.values(window.repo.state.commits).filter(commit => commit.message.includes("CMS-Creation:")).length'), 1);
+    assert.ok(await evaluate('!!localStorage.getItem(window.separateAttemptKey)'), 'the other uncertain attempt is retained');
   }, { initialSearch: '?area=posts&new=dashboard-interrupted-save' });
 });
 

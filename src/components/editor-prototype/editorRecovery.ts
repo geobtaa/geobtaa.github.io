@@ -26,6 +26,22 @@ function validFields(value: unknown): value is RecoveryFields {
   return true;
 }
 export function recoveryPrefix(scope: string) { return PREFIX + encodeURIComponent(scope) + ':'; }
+// Call with records already filtered to the signed-in account and workspace.
+// A route identifies a saved document or a specific never-saved draft, not a title.
+export function groupRecoveryCopies(copies: RecoveryCopy[]) {
+  const groups = new Map<string, RecoveryCopy[]>();
+  for (const copy of copies) {
+    const key = routeKey(copy.route);
+    const versions = groups.get(key) || [];
+    versions.push(copy); groups.set(key, versions);
+  }
+  return [...groups.entries()].map(([key, versions]) => {
+    versions.sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt) || a.id.localeCompare(b.id));
+    const latest = versions[0];
+    const needsChoice = versions.some(copy => copy.baseSha !== latest.baseSha || JSON.stringify(copy.fields) !== JSON.stringify(latest.fields));
+    return { key, latest, versions, needsChoice };
+  }).sort((a, b) => Date.parse(b.latest.savedAt) - Date.parse(a.latest.savedAt));
+}
 export function recoveryKey(scope: string, id: string) { return recoveryPrefix(scope) + id; }
 export function parseRecovery(source: string): RecoveryCopy | null {
   try {

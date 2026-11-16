@@ -28,11 +28,13 @@ export function editorUrl(route: EditorRoute, base: string) {
 }
 
 type HistoryEntry = { session: string; index: number };
-export function useEditorNavigation({ enabled, activate, canLeave, onError }: { enabled: boolean; activate: (route: EditorRoute) => void; canLeave: () => boolean; onError: (message: string) => void }) {
+export function useEditorNavigation({ enabled, activate, canLeave, onError }: { enabled: boolean; activate: (route: EditorRoute) => void; canLeave: (leave: () => void) => boolean; onError: (message: string) => void }) {
   const callbacks = useRef({ activate, canLeave, onError });
   callbacks.current = { activate, canLeave, onError };
   const current = useRef<{ route: EditorRoute; entry: HistoryEntry } | null>(null);
   const restoring = useRef<number | null>(null);
+  const afterRestore = useRef<(() => void) | null>(null);
+  const approvedTraversal = useRef<HistoryEntry | null>(null);
   useEffect(() => {
     if (!enabled) return;
     let route: EditorRoute = { area: null };
@@ -52,11 +54,25 @@ export function useEditorNavigation({ enabled, activate, canLeave, onError }: { 
       // restores the original entry without adding dummy history entries.
       if (!target || target.session !== active.entry.session || !Number.isSafeInteger(target.index)) return;
       if (restoring.current !== null) {
-        if (target.index === restoring.current) restoring.current = null;
+        if (target.index === restoring.current) {
+          restoring.current = null;
+          const proceed = afterRestore.current; afterRestore.current = null; proceed?.();
+        }
         else window.history.go(restoring.current - target.index);
         return;
       }
-      if (!callbacks.current.canLeave()) {
+      const approved = approvedTraversal.current?.session === target.session && approvedTraversal.current?.index === target.index;
+      approvedTraversal.current = null;
+      if (!approved && !callbacks.current.canLeave(() => {
+        const proceed = () => {
+          if (current.current !== active) return;
+          approvedTraversal.current = target;
+          window.history.go(target.index - active.entry.index);
+        };
+        // Restore the editor URL before replaying an approved Back/Forward action.
+        if (restoring.current !== null) afterRestore.current = proceed;
+        else proceed();
+      })) {
         restoring.current = active.entry.index;
         window.history.go(active.entry.index - target.index);
         return;
@@ -71,16 +87,25 @@ export function useEditorNavigation({ enabled, activate, canLeave, onError }: { 
       callbacks.current.activate(next);
     };
     window.addEventListener('popstate', pop);
-    return () => { window.removeEventListener('popstate', pop); current.current = null; restoring.current = null; };
+    return () => { window.removeEventListener('popstate', pop); current.current = null; restoring.current = null; afterRestore.current = null; approvedTraversal.current = null; };
   }, [enabled]);
   const navigate = (route: EditorRoute) => {
     const active = current.current;
-    if (!active || restoring.current !== null || routeKey(route) === routeKey(active.route) || !callbacks.current.canLeave()) return false;
-    const entry = { session: active.entry.session, index: active.entry.index + 1 };
-    window.history.pushState({ editorNavigation: entry }, '', editorUrl(route, window.location.href));
-    current.current = { route, entry };
-    callbacks.current.activate(route);
-    return true;
+    if (!active || restoring.current !== null || routeKey(route) === routeKey(active.route)) return false;
+    const proceed = () => {
+      if (current.current !== active) return false;
+      if (restoring.current !== null) {
+        afterRestore.current = () => { proceed(); };
+        return false;
+      }
+      const entry = { session: active.entry.session, index: active.entry.index + 1 };
+      window.history.pushState({ editorNavigation: entry }, '', editorUrl(route, window.location.href));
+      current.current = { route, entry };
+      callbacks.current.activate(route);
+      return true;
+    };
+    if (!callbacks.current.canLeave(() => { proceed(); })) return false;
+    return proceed();
   };
   const replace = (route: EditorRoute) => {
     if (!current.current) return;

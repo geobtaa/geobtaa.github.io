@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { chrome, withEditorBrowser, openNewBlockMenu } from './browserHarness.mjs';
+import { answerLeaveDialog, chrome, withEditorBrowser, openNewBlockMenu } from './browserHarness.mjs';
 
 const legacy = '<Badge text="Legacy badge" />\n\n<Aside type="tip">Legacy callout.</Aside>\n\n<Card title="Legacy card">Legacy **rich** content.</Card>\n';
 const fixture = `import React from 'react';
@@ -95,6 +95,7 @@ test('new badges, callouts, and cards insert, edit, save/reopen and remove witho
     assert.match(saved, /A normal paragraph\./);
     for (const binding of ['CmsBadge', 'CmsCallout', 'CmsCard']) assert.equal([...saved.matchAll(new RegExp(`as ${binding} \\}`, 'g'))].length, 1);
     await evaluate('document.querySelector(".editor-navigation .back").click()');
+    await answerLeaveDialog({ evaluate, waitFor });
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
     await waitFor('document.querySelectorAll(".structured-simple-component").length === 3');

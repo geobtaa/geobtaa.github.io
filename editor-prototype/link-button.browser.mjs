@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { chrome, withEditorBrowser, openNewBlockMenu } from './browserHarness.mjs';
+import { answerLeaveDialog, chrome, withEditorBrowser, openNewBlockMenu } from './browserHarness.mjs';
 
 const protectedBlock = '<CenterLayout>\nKeep this legacy content.\n</CenterLayout>\n\n<LinkButton href="/" icon="external">Protected button</LinkButton>\n';
 const fixture = `import React from 'react';
@@ -72,6 +72,7 @@ test('LinkButton inserts, edits without cursor jumps, and saves/reopens with pro
     assert.match(saved, /<LinkButton href="https:\/\/example.com\/maps" variant="minimal">Vixyzsit the catalog<\/LinkButton>/);
     assert.equal([...saved.matchAll(/import \{ LinkButton \}/g)].length, 1);
     await evaluate('document.querySelector(".editor-navigation .back").click()');
+    await answerLeaveDialog({ evaluate, waitFor });
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
     await waitFor('document.querySelector(".structured-link-button input")?.value === "Vixyzsit the catalog"');
@@ -117,6 +118,7 @@ for (const first of ['Link Card', 'Link Button']) {
       await click('Save changes', 'document.querySelector(".editor-navigation")');
       await waitFor('window.writes.length === 1');
       await evaluate('document.querySelector(".editor-navigation .back").click()');
+      await answerLeaveDialog({ evaluate, waitFor });
       await waitFor('!!document.querySelector(".project-list button")');
       await evaluate('document.querySelector(".project-list button").click()');
       await waitFor('document.querySelectorAll(".component-editor").length === 1');
@@ -208,6 +210,7 @@ test('bare website addresses work for links, cards, and buttons while existing a
     assert.ok(saved.includes(protectedBlock));
     await waitFor('!document.querySelector(".top-save").disabled');
     await evaluate('document.querySelector(".editor-navigation .back").click()');
+    await answerLeaveDialog({ evaluate, waitFor });
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
     await waitFor('document.querySelectorAll(".link-address-field input").length === 4');

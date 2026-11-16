@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { CONTENT_AREAS } from './contentAreas.mjs';
-import { chrome, withEditorBrowser } from './browserHarness.mjs';
+import { answerLeaveDialog, chrome, withEditorBrowser } from './browserHarness.mjs';
 
 // Mock only the gateway; render the real dashboard, content list, and editor.
 const fixture = `import React from 'react';
@@ -26,7 +26,8 @@ test('dashboard starts without an area, back buttons navigate safely, and naviga
   skip: chrome ? false : 'Set CHROME_BIN to an installed Chrome/Chromium executable.',
   timeout: 30_000,
 }, async () => {
-  await withEditorBrowser(fixture, async ({ evaluate, waitFor, send }) => {
+  await withEditorBrowser(fixture, async browser => {
+    const { evaluate, waitFor, send } = browser;
     await waitFor('document.querySelector("h1")?.textContent === "Editor dashboard"');
     assert.deepEqual(await evaluate('window.requests.map(item => item.path)'), ['/api/session']);
     assert.equal(await evaluate('document.querySelector(".area-selector")'), null);
@@ -44,10 +45,10 @@ test('dashboard starts without an area, back buttons navigate safely, and naviga
     await evaluate('document.querySelector(".list-heading .primary").click()');
     await waitFor('document.querySelector("h1")?.textContent === "New Blog Post"');
     await evaluate('document.querySelector(".editor-navigation .back").click()');
-    assert.equal(await evaluate('window.confirmCalls'), 1);
+    await answerLeaveDialog(browser, false);
     assert.equal(await evaluate('document.querySelector("h1").textContent'), 'New Blog Post', 'canceling discard keeps the editor open');
     await evaluate('document.querySelector(".dashboard-link").click()');
-    assert.equal(await evaluate('window.confirmCalls'), 2);
+    await answerLeaveDialog(browser, false);
     assert.equal(await evaluate('document.querySelector("h1").textContent'), 'New Blog Post');
     await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
     await evaluate('new Promise(resolve => requestAnimationFrame(() => { window.scrollTo(0, 600); requestAnimationFrame(resolve); }))');
@@ -60,6 +61,7 @@ test('dashboard starts without an area, back buttons navigate safely, and naviga
     assert.ok(layout.height >= 44, 'back button remains a large touch target');
     assert.equal(layout.overflow, false, 'mobile page has no horizontal overflow');
     await evaluate('window.discard = true; document.querySelector(".editor-actions .back").click()');
+    await answerLeaveDialog(browser);
     await waitFor('!!document.querySelector(".project-list")');
     await evaluate('document.querySelector(".editor-navigation .back").click()');
     await waitFor('document.querySelector("h1")?.textContent === "Editor dashboard"');
@@ -70,6 +72,7 @@ test('dashboard starts without an area, back buttons navigate safely, and naviga
     await evaluate('document.querySelector(".list-heading .primary").click()');
     await waitFor('document.querySelector("h1")?.textContent === "New Blog Post"');
     await evaluate('document.querySelector(".dashboard-link").click()');
+    await answerLeaveDialog(browser);
     await waitFor('document.querySelector("h1")?.textContent === "Editor dashboard"');
   });
 });

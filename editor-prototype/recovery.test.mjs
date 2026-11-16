@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { editorUrl, parseEditorRoute, routeKey } from '../src/components/editor-prototype/editorNavigation.ts';
-import { parseRecovery, recoveryFields, recoveryKey, readRecoveryCopies, removeRecovery, restoreRecovery } from '../src/components/editor-prototype/editorRecovery.ts';
+import { groupRecoveryCopies, parseRecovery, recoveryFields, recoveryKey, readRecoveryCopies, removeRecovery, restoreRecovery } from '../src/components/editor-prototype/editorRecovery.ts';
 
 class Storage {
   data = new Map(); get length() { return this.data.size; } key(index) { return [...this.data.keys()][index] || null; }
@@ -10,6 +10,21 @@ class Storage {
 const route = { area: 'updates', filename: '2026-11.mdx' };
 const base = { filename: route.filename, sha: 'base-sha', content: 'Authoritative source', title: 'Update', description: '', body: 'Original body', draft: true, date: '2026-11-10', authors: [{ name: 'Staff', title: 'Keep extra data' }], tags: ['Program Updates'], cover: { image: '@images/map.png', alt: 'Map' }, metadata: { sidebar: { hidden: true, attrs: { class: 'keep' } } }, conversion: null };
 const copy = (id = 'copy-1', overrides = {}) => ({ version: 1, id, revision: 'revision-1', route, baseSha: base.sha, savedAt: '2026-11-10T15:00:00Z', fields: recoveryFields({ ...base, title: 'Unsaved title', body: '<CmsChipList items="[]" />\n\nUnsaved body.' }), ...overrides });
+
+test('dashboard groups exact document routes, sorts by time, and requires a choice for divergence or uncertain writes', () => {
+  const older = copy();
+  const latest = copy('new-session', { savedAt: '2026-11-11T15:00:00Z' });
+  assert.equal(groupRecoveryCopies([older, latest])[0].needsChoice, false);
+  assert.equal(groupRecoveryCopies([older, latest])[0].latest.id, latest.id);
+  for (const changed of [
+    { ...older, baseSha: 'other-base' },
+    { ...older, fields: { ...older.fields, body: 'Different session edits' } },
+    { ...older, fields: { ...older.fields, creationAttempt: { id: 'unconfirmed-creation-123456', filename: 'original.mdx' } } },
+  ]) assert.equal(groupRecoveryCopies([changed, latest])[0].needsChoice, true);
+  const drafts = ['one', 'two'].map(draftId => copy(draftId, { route: { area: 'posts', draftId }, baseSha: null }));
+  assert.equal(groupRecoveryCopies([older, latest, ...drafts, copy('other-area', { route: { area: 'posts', filename: route.filename } })]).length, 4);
+  assert.deepEqual(older, copy(), 'grouping never modifies or deletes stored records');
+});
 
 test('editor URLs round-trip dashboard, lists, nested documents and independent new drafts', () => {
   for (const entry of [{ area: null }, { area: 'posts' }, { area: 'library', filename: 'nested/file-name.md' }, { area: 'updates', draftId: 'local-draft-1' }]) {
