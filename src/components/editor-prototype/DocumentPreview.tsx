@@ -32,12 +32,8 @@ export function DocumentPreview({ project, area, apiBase }: { project: Project; 
   const authors = (project.authors || []).map(author => typeof author === 'string' ? author : author.name).filter(name => name.trim());
   const date = calendarDate(project.date);
   return <section id="document-preview" aria-label="Document preview">
-    <p className="preview-notice">Preview of current content, including unsaved changes. Protected Markdown and components appear as placeholders. Links stay in the preview.</p>
-    <article className="cms-preview" onClickCapture={event => {
-      if ((event.target as HTMLElement).closest('a')) event.preventDefault();
-    }} onAuxClick={event => {
-      if ((event.target as HTMLElement).closest('a')) event.preventDefault();
-    }}>
+    <p className="preview-notice">Preview of current content, including unsaved changes. Protected Markdown and components appear as placeholders. Links open in a new tab.</p>
+    <article className="cms-preview">
       <header className="preview-header">
         {project.metadata?.hidePageTitle
           ? <p className="preview-meta">Page title hidden: {project.title || 'Untitled page'}</p>

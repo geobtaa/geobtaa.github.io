@@ -8,6 +8,7 @@ import { SimpleComponentBlocks } from './SimpleComponentBlock.ts';
 import { LinkButtonBlock } from './LinkButtonBlock.ts';
 import { LinkCardBlock } from './LinkCardBlock.ts';
 import { CollectionBlocks } from './CollectionBlockViews.ts';
+import { PreviewLink } from './previewLinks.ts';
 
 type EditImage = (position: number, image: { src: string; alt: string; title: string }) => void;
 
@@ -184,7 +185,7 @@ export function richTextEditorOptions(initialContent: string, onChange: (markdow
     extensions: [
       StarterKit.configure({ codeBlock: false, link: false, undoRedo: readOnlyPreview ? false : {}, trailingNode: { notAfter: ['linkCardBlock', 'linkButtonBlock', ...SimpleComponentBlocks.map((block) => block.name), ...CollectionBlocks.map(block => block.name)] } }),
       SafeCodeBlock,
-      SafeLink.configure({ openOnClick: false }),
+      (readOnlyPreview ? PreviewLink : SafeLink).configure({ openOnClick: false }),
       TableKit,
       repositoryImage(previewBase, onEditImage, readOnlyPreview, articlePreview),
       LinkCardBlock.configure({ readOnly: readOnlyPreview }),

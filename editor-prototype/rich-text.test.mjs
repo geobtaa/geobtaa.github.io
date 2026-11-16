@@ -5,6 +5,7 @@ import { Editor } from '@tiptap/core';
 import { parseHTML } from 'linkedom';
 import { splitBody } from '../src/components/editor-prototype/bodySegments.ts';
 import { richTextEditorOptions } from '../src/components/editor-prototype/richTextEditor.ts';
+import { previewComponentLink } from '../src/components/editor-prototype/previewLinks.ts';
 import { SIMPLE_KINDS, SIMPLE_COMPONENTS, createSimpleComponentMdx, emptySimpleFields, ensureSimpleComponentImport, parseSimpleComponentMdx } from '../src/components/editor-prototype/simpleComponents.ts';
 import { createLinkButtonMdx, ensureLinkButtonImport, parseLinkButtonMdx, updateLinkButtonMdx } from '../src/components/editor-prototype/linkButtonMdx.ts';
 import { createLinkCardMdx, ensureLinkCardImport, LINK_CARD_IMPORT, parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor-prototype/linkCardMdx.ts';
@@ -153,6 +154,27 @@ function openEditor(markdown = '') {
   if (editor.state.doc.lastChild?.isTextblock) editor.commands.setTextSelection(editor.state.doc.content.size - 1);
   return { editor, externalMarkdown: () => externalMarkdown };
 }
+
+test('preview links enforce a safe new tab even with stored same-tab targets, without rewriting content', () => {
+  const editor = new Editor({ ...richTextEditorOptions('[Text](/guides/)', () => {}, '', undefined, true), injectCSS: false });
+  try {
+    for (const href of ['/guides/', '../help/', '#details', '?q=maps', 'https://example.com/maps']) {
+      editor.commands.setContent({ type: 'doc', content: [{ type: 'paragraph', content: [
+        { type: 'text', text: 'Text', marks: [{ type: 'link', attrs: { href, target: '_self', rel: 'opener' } }] },
+      ] }] });
+      const anchor = editor.view.dom.querySelector('a');
+      assert.equal(anchor.getAttribute('href'), href);
+      assert.equal(anchor.getAttribute('target'), '_blank');
+      assert.equal(anchor.getAttribute('rel'), 'noopener noreferrer');
+      assert.equal(editor.getMarkdown(), `[Text](${href})`);
+      assert.deepEqual(previewComponentLink(href), { href, target: '_blank', rel: 'noopener noreferrer' });
+    }
+    for (const href of ['javascript:alert(1)', 'data:text/html,unsafe', 'java\tscript:alert(1)']) {
+      assert.equal(previewComponentLink(href).href, undefined);
+    }
+    assert.equal(previewComponentLink('').href, undefined);
+  } finally { editor.destroy(); }
+});
 
 function type(editor, value) {
   for (const character of value) editor.commands.insertContent(character);

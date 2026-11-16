@@ -3,13 +3,14 @@ import { LinkAddressField } from './LinkAddressField.ts';
 import { Node } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
 import { createLinkButtonMdx, matchLinkButtonBlock, parseLinkButtonMdx, updateLinkButtonMdx, type LinkButtonFields } from './linkButtonMdx.ts';
+import { previewComponentLink } from './previewLinks.ts';
 
 function LinkButtonEditor({ node, updateAttributes, extension }: NodeViewProps) {
   const { text, href, variant } = node.attrs;
   const [fields, setFields] = useState<LinkButtonFields>({ text, href, variant });
   useEffect(() => { setFields({ text, href, variant }); }, [text, href, variant]);
   if (extension.options.readOnly) return createElement(NodeViewWrapper, { contentEditable: false },
-    createElement('span', { className: `preview-link-button preview-button-${variant}`, title: href }, text),
+    createElement('a', { className: `preview-link-button preview-button-${variant}`, ...previewComponentLink(href), title: href }, text),
   );
   const change = (key: keyof LinkButtonFields, value: string) => {
     setFields((current) => ({ ...current, [key]: value }));

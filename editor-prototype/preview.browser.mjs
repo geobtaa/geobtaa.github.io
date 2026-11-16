@@ -8,12 +8,12 @@ const image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAw
 const simple = kind => createSimpleComponentMdx(kind, { ...emptySimpleFields(), title: 'A literal <title>', text: 'A literal <message> & {value}.\nSecond line.' });
 const body = [
   "import { LinkCard } from '@astrojs/starlight/components';",
-  '## Review heading\n\nOriginal text with a [link](/must-not-navigate/).',
+  '## Review heading\n\nOriginal text with a [link](/must-not-navigate/), [external](https://example.com/text), [relative](../help/), [fragment](#details), and [query](?preview-link=1).',
   '<LinkCard title="Card title" href="https://example.com" description="Card description" />',
   '<LinkButton href="https://example.com" variant="secondary">Read more</LinkButton>',
   ...['badge', 'callout', 'card'].map(simple),
   createCollectionMdx('chipList', ['Lincoln, Nebraska', 'Maps']),
-  createCollectionMdx('cardGrid', [{ title: 'Rich card', body: '**Bold body**\n\n- First\n- Second' }, { title: '', body: '' }]),
+  createCollectionMdx('cardGrid', [{ title: 'Rich card', body: '**Bold body**\n\n- First\n- Second\n\n[Nested link](/nested-card/)' }, { title: '', body: '' }]),
   createCollectionMdx('metrics', [{ label: 'Visitors', value: '3,651' }]),
   '| Column A | Column B |\n| --- | --- |\n| One | Two |',
   `![Ordinary image](${image} "Ordinary caption")`,
@@ -50,6 +50,62 @@ async function preview(browser) {
 async function edit(browser) {
   await browser.evaluate(`${modeButton('Edit')}.click()`);
   await browser.waitFor('!document.querySelector("#document-edit").hidden');
+}
+
+async function checkPreviewLinks(browser) {
+  const { evaluate, send, onEvent } = browser;
+  const opened = [];
+  const stop = onEvent('Page.windowOpen', event => opened.push(event));
+  await send('Page.enable');
+  const before = await evaluate(`({ url: location.href, history: history.length,
+    selection: window.originalView.state.selection.toJSON(), markdown: window.originalEditor.editor.getMarkdown(),
+    requests: window.requests.length })`);
+  const links = await evaluate(`[...document.querySelectorAll('.cms-preview a[href]')].map(a => ({ href: a.href, target: a.target, rel: a.rel }))`);
+  assert.equal(links.length, 8, 'text links, card, button and nested card-body link are all anchors');
+  try {
+    for (const [index, link] of links.entries()) {
+      assert.equal(link.target, '_blank');
+      assert.equal(link.rel, 'noopener noreferrer');
+      const targetsBefore = new Set((await send('Target.getTargets')).targetInfos.map(target => target.targetId));
+      const point = await evaluate(`(() => {
+        const anchor = document.querySelectorAll('.cms-preview a[href]')[${index}];
+        anchor.scrollIntoView({ block: 'center' });
+        window.clickedPreviewLink = anchor;
+        const rect = (anchor.querySelector('strong, span') || anchor).getBoundingClientRect();
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      })()`);
+      if (index === 3) {
+        await evaluate(`document.querySelectorAll('.cms-preview a[href]')[${index - 1}].focus()`);
+        await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
+        await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
+        assert.equal(await evaluate('document.activeElement === window.clickedPreviewLink'), true, 'links remain in the native tab order');
+        await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+        await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+      } else {
+        const button = index === 2 ? 'middle' : 'left';
+        const modifiers = index === 4 ? (process.platform === 'darwin' ? 4 : 2) : 0;
+        await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button, clickCount: 1, modifiers });
+        await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button, clickCount: 1, modifiers });
+      }
+      // Auxiliary clicks create tabs without a Page.windowOpen event in Chrome.
+      let tabs = [];
+      for (let attempt = 0; attempt < 100; attempt++) {
+        tabs = (await send('Target.getTargets')).targetInfos.filter(target => target.type === 'page' && !targetsBefore.has(target.targetId));
+        if (tabs.length && (tabs[0].url === link.href || opened.some(event => event.url === link.href))) break;
+        await new Promise(resolve => setTimeout(resolve, 20));
+      }
+      assert.equal(tabs.length, 1, `link ${index} opens exactly one tab`);
+      assert.ok(tabs[0].url === link.href || opened.some(event => event.url === link.href), `link ${index} uses the expected destination`);
+      await send('Target.closeTarget', { targetId: tabs[0].targetId });
+      assert.deepEqual(await evaluate(`({ url: location.href, history: history.length,
+        selection: window.originalView.state.selection.toJSON(), markdown: window.originalEditor.editor.getMarkdown(),
+        requests: window.requests.length })`), before);
+      assert.equal(await evaluate(`document.querySelector('.body-editor .tiptap') === window.originalEditor &&
+        document.querySelector('#document-edit').hidden &&
+        document.querySelector('.save-state').textContent === 'Unsaved changes' &&
+        [...document.querySelectorAll('.editor-mode-toggle button')].find(b => b.textContent === 'Preview').getAttribute('aria-pressed') === 'true'`), true);
+    }
+  } finally { stop(); }
 }
 
 test('preview renders unsaved content and supported blocks without writes, and preserves live editors, selection and undo', options, async () => {
@@ -100,7 +156,7 @@ test('preview renders unsaved content and supported blocks without writes, and p
       const widget = [...document.querySelectorAll('.cms-preview .preview-protected')].find(block => block.textContent.includes('UnknownWidget'));
       return !!(widget.compareDocumentPosition(document.querySelector('.cms-preview > div:last-child')) & Node.DOCUMENT_POSITION_FOLLOWING);
     })()`), true, 'protected block remains before the final paragraph');
-    await evaluate('document.querySelector(".cms-preview a").click()');
+    await checkPreviewLinks(browser);
     assert.equal(await evaluate('location.pathname'), '/__editor-test');
     await evaluate('document.querySelector(".cms-preview .tiptap").focus()');
     await send('Input.insertText', { text: 'Must not be inserted.' });
