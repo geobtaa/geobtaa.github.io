@@ -9,5 +9,42 @@ sidebar:
 hidePageTitle: false
 ---
 
+import { LinkCard } from '@astrojs/starlight/components';
+import { LinkButton } from '@astrojs/starlight/components';
+import { Badge as CmsBadge } from '@astrojs/starlight/components';
+import { Aside as CmsCallout } from '@astrojs/starlight/components';
+import { Card as CmsCard } from '@astrojs/starlight/components';
+import CmsChipList from 'src/components/editor-blocks/ChipList.astro';
+import CmsCardGrid from 'src/components/editor-blocks/CardGrid.astro';
+import CmsMetrics from 'src/components/editor-blocks/Metrics.astro';
+
 ![](@images/100000-crop.gif)
+
+<LinkButton href="https://google.com" variant="primary">Link button</LinkButton>
+
+<LinkCard
+  title="Link card"
+  href="https://google.com"
+  description="Here is the description"
+/>
+
+<CmsBadge text="Badge" variant="default" size="small" />
+
+<CmsCallout type="note" title="Callout">
+
+Here is the message
+
+</CmsCallout>
+
+<CmsCard title="Card">
+
+Here is the message
+
+</CmsCard>
+
+<CmsChipList items="[&quot;chip 1&quot;,&quot;chip 2&quot;]" />
+
+<CmsCardGrid cards="[{&quot;title&quot;:&quot;Card grid&quot;,&quot;body&quot;:&quot;**Bold**\n\n*Italics*\n\n- list\n- list\n\n1. list\n2. list\n\n\n\n[Links](https://google.com)\n\n&quot;},{&quot;title&quot;:&quot;Card grid 2&quot;,&quot;body&quot;:&quot;rest&quot;}]" />
+
+<CmsMetrics items="[{&quot;label&quot;:&quot;metric label&quot;,&quot;value&quot;:&quot;100%&quot;}]" />
 
