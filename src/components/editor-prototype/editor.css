@@ -258,11 +258,16 @@ code { font-size: .9em; }
 .recovery-copy-actions button { min-height: 44px; padding: .35rem .6rem; border: 1px solid var(--editor-border-strong); border-radius: .35rem; background: var(--editor-surface); color: var(--editor-accent); }
 .recovery-copy-actions button.primary { background: var(--editor-accent); color: white; border-color: var(--editor-accent); }
 .recovery-panel button.destructive { color: var(--editor-error-text); border-color: var(--editor-error-text); }
-.recovery-options { align-self: flex-start; }
-.recovery-options summary { cursor: pointer; padding: .5rem; }
-.recovery-options[open] { flex-basis: 100%; padding: .5rem; border: 1px solid var(--editor-border); border-radius: .35rem; }
 .unsaved-versions { margin-top: 1rem; padding: .75rem; border: 1px solid var(--editor-border-strong); border-radius: .35rem; }
 .unsaved-version-excerpt { max-height: 7rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .85rem; }
+.unsaved-indicator { margin-left: .6rem; color: var(--editor-muted); font-size: .8rem; font-weight: normal; }
+.recovery-notice { margin: 1rem 0; padding: .75rem 1rem; border-left: 3px solid var(--editor-warning-border); background: var(--editor-warning-bg); }
+.recovery-notice h2 { margin: 0; font-size: 1rem; }
+.recovery-notice p { margin: .5rem 0; }
+.recovery-notice .actions { justify-content: flex-start; }
+.recovery-manager { width: min(46rem, calc(100% - 2rem)); max-height: 85vh; overflow: auto; border: 1px solid var(--editor-border-strong); border-radius: .5rem; padding: 1.5rem; color: var(--editor-text); background: var(--editor-surface); }
+.recovery-manager::backdrop { background: rgb(0 0 0 / 40%); }
+.recovery-version-actions { flex-basis: 100%; }
 .recovery-status { display: flex; flex-wrap: wrap; gap: .4rem; margin: .75rem 0; color: var(--editor-muted); font-size: .85rem; }
 .unsaved-changes-dialog { width: min(32rem, calc(100% - 2rem)); padding: 1.5rem; border: 1px solid var(--editor-border-strong); border-radius: .5rem; background: var(--editor-surface); color: var(--editor-text); }
 .unsaved-changes-dialog::backdrop { background: rgb(0 0 0 / 40%); }

@@ -167,6 +167,8 @@ test('dashboard Resume editing preserves an uncertain creation and retries the o
     await waitFor('document.querySelector(".top-save").textContent === "Retry creation safely" && !document.querySelector(".top-save").disabled');
     await evaluate('document.querySelector(".dashboard-link").click()');
     await answerLeaveDialog(browser);
+    await waitFor(`!!(${button('Find unsaved work')})`);
+    await evaluate(`${button('Find unsaved work')}.click()`);
     await waitFor(`!!(${button('Resume editing')})`);
     await evaluate(`const key = Object.keys(localStorage).find(key => key.startsWith('geobtaa-editor-recovery:'));
       const original = JSON.parse(localStorage.getItem(key));

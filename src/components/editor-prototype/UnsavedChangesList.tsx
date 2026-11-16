@@ -5,20 +5,22 @@ import { groupRecoveryCopies, type RecoveryCopy } from './editorRecovery';
 export function RecoveryOptions({ copy, disabled, onBackup, onDiscard }: {
   copy: RecoveryCopy; disabled?: boolean; onBackup: (copy: RecoveryCopy) => void; onDiscard: (copy: RecoveryCopy) => void;
 }) {
-  return <details key={`${copy.id}:${copy.revision}`} className="recovery-options">
-    <summary>Options</summary>
+  return <div key={`${copy.id}:${copy.revision}`} className="recovery-version-actions">
     <p>For the version kept on <time dateTime={copy.savedAt}>{new Date(copy.savedAt).toLocaleString()}</time>.</p>
     <p>Save backup file saves this version to your computer without changing the editor or GitHub.</p>
     <button type="button" disabled={disabled} onClick={() => onBackup(copy)}>Save backup file</button>{' '}
     <button type="button" className="destructive" disabled={disabled} onClick={() => onDiscard(copy)}>Discard unsaved changes</button>
-  </details>;
+  </div>;
 }
 
 export function UnsavedChangesList({ copies, canResume, onResume, onBackup, onDiscard }: {
   copies: RecoveryCopy[]; canResume: (copy: RecoveryCopy) => boolean;
   onResume: (copy: RecoveryCopy) => void; onBackup: (copy: RecoveryCopy) => void; onDiscard: (copy: RecoveryCopy) => void;
 }) {
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(() => {
+    const groups = groupRecoveryCopies(copies);
+    return groups.length === 1 && groups[0].versions.length > 1 ? groups[0].key : null;
+  });
   const groups = groupRecoveryCopies(copies);
   if (!groups.length) return null;
   return <aside className="recovery-panel" aria-label="Unsaved changes">
