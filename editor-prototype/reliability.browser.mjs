@@ -156,7 +156,7 @@ test('malformed update responses cannot mark a draft saved or create a suffixed 
   }, { initialSearch: '?area=updates&new=malformed-creation' });
 });
 
-test('dashboard Resume editing preserves an uncertain creation and retries the original article once', options, async () => {
+test('returning to the original editor URL preserves an uncertain creation and retries the original article once', options, async () => {
   await withEditorBrowser(fixture, async browser => {
     const { evaluate, waitFor, send } = browser;
     await send('Page.enable');
@@ -165,19 +165,21 @@ test('dashboard Resume editing preserves an uncertain creation and retries the o
     await fillTitle(browser, 'Interrupted dashboard draft');
     await evaluate('window.responseFault = "lost"; document.querySelector(".top-save").click()');
     await waitFor('document.querySelector(".top-save").textContent === "Retry creation safely" && !document.querySelector(".top-save").disabled');
+    const originalDraftUrl = await evaluate('location.href');
     await evaluate('document.querySelector(".dashboard-link").click()');
     await answerLeaveDialog(browser);
-    await waitFor(`!!(${button('Find unsaved work')})`);
-    await evaluate(`${button('Find unsaved work')}.click()`);
-    await waitFor(`!!(${button('Resume editing')})`);
+    assert.equal(await evaluate(`!!(${button('Find unsaved work')})`), false);
+    await evaluate('history.back()');
+    await waitFor(`!!(${button('Restore changes')})`);
+    assert.equal(await evaluate('location.href'), originalDraftUrl);
     await evaluate(`const key = Object.keys(localStorage).find(key => key.startsWith('geobtaa-editor-recovery:'));
       const original = JSON.parse(localStorage.getItem(key));
       const separate = { ...original, id: 'separate-save-attempt', revision: 'separate-revision', savedAt: '2000-01-01T00:00:00Z', fields: { ...original.fields, title: 'Another unconfirmed save', creationAttempt: { ...original.fields.creationAttempt, id: 'different-creation-id-12345' } } };
       window.separateAttemptKey = key.slice(0, key.lastIndexOf(':') + 1) + separate.id;
       localStorage.setItem(window.separateAttemptKey, JSON.stringify(separate));
       window.dispatchEvent(new StorageEvent('storage', { key }));`);
-    await waitFor(`!!(${button('View earlier versions')})`);
-    await evaluate(`${button('Resume editing')}.click()`);
+    await waitFor(`!!(${button('Restore changes')})`);
+    await evaluate(`${button('Restore changes')}.click()`);
     await waitFor('!!document.querySelector(".unsaved-versions")');
     assert.equal(await evaluate('document.querySelectorAll(".unsaved-versions > ol > li").length'), 2);
     assert.match(await evaluate('document.querySelector(".unsaved-versions").textContent'), /Unconfirmed save/);

@@ -891,11 +891,6 @@ export default function ProjectEditor() {
     canResume={copy => !busy && !authIssue && (project ? !recovery.hasChanges && copy.baseSha === (project.sha || null) : routeKey(copy.route) !== routeKey(route))}
     onResume={copy => { setRecoveryManager(null); if (project) void restore(copy); else resumeEditing(copy); }}
     onBackup={downloadRecovery} onDiscard={discardRecovery} onClose={() => setRecoveryManager(null)} />;
-  const recoveryList = <>
-    {storageWarning}
-    {recoveryTools}
-    {!busy && recovery.copies.length > 0 && <button type="button" className="link-button recovery-entry" onClick={() => manageRecovery('Open an interrupted draft, or select a stored version to review or export. Nothing is saved to GitHub until you choose Save changes.')}>Find unsaved work</button>}
-  </>;
   const recoveryPanel = <>
     {storageWarning}
     {recoveryTools}
@@ -934,7 +929,7 @@ export default function ProjectEditor() {
     <main className="editor-shell">
       {accountHeader}
       {authenticationPanel}
-      {recoveryList}
+      {storageWarning}
       <p className="dashboard-intro">Choose a content area to create a page or edit existing content.</p>
       {error && <p className="message error" role="alert">{error}</p>}
       <nav className="dashboard-grid" aria-label="Content areas">
@@ -955,7 +950,7 @@ export default function ProjectEditor() {
         <span className="navigation-location">{config.label}</span>
       </nav>
       {accountHeader}
-      {recoveryList}
+      {storageWarning}
       <p>Files are read from <code>{branch}</code>{branch === 'main' ? ' until the prototype branch is created by the first save' : ''}.</p>
       {error && <p className="message error" role="alert">{error}</p>}
       {authenticationPanel}
