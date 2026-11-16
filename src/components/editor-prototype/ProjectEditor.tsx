@@ -641,6 +641,8 @@ export default function ProjectEditor() {
   const [route, setRoute] = useState<EditorRoute>({ area: null });
   const [baseline, setBaseline] = useState<Project | null>(null);
   const [selectedRecovery, setSelectedRecovery] = useState('');
+  const [resumeRequest, setResumeRequest] = useState<{ copy: RecoveryCopy; scope: string } | null>(null);
+  const [restoringChanges, setRestoringChanges] = useState(false);
   const recoveryRef = useRef<EditorRecovery | null>(null);
   const requestSequence = useRef(0);
   const [bodyEditorSession, setBodyEditorSession] = useState(0);
@@ -661,13 +663,14 @@ export default function ProjectEditor() {
     if (!dirty) return true;
     if (!recoveryRef.current?.hasChanges) return window.confirm('Leave this new entry? Nothing has been saved to GitHub. Choose Cancel to keep editing.');
     return window.confirm(backedUp
-      ? 'Leave this entry? Your changes have not been saved to GitHub. A recovery copy is kept in this browser. Choose Cancel to keep editing.'
-      : 'Leave this entry? Unsaved changes may be lost because a recovery copy could not be saved. Choose Cancel to keep editing.');
+      ? 'Leave this page? Your changes have not been confirmed saved to GitHub. They are kept only in this browser. Choose Resume editing under Unsaved changes on the dashboard to continue later. Choose Cancel to keep editing now.'
+      : 'Leave this page? Your unsaved changes could not be kept in this browser and may be lost. Choose Cancel to keep editing or download a backup first.');
   };
   const activateRoute = async (next: EditorRoute) => {
     const sequence = ++requestSequence.current;
     setArea(next.area); setRoute(next); setProject(null); setBaseline(null); setProjects([]);
     setPreviewMode(false);
+    setResumeRequest(null);
     setNotice(''); setError(''); setSuggestedFilename(''); setSelectedRecovery(''); setShowConversionPreview(false); setShowUpdateStarter(false);
     if (!next.area) { setBusy(false); return; }
     setBusy(true);
@@ -751,16 +754,6 @@ export default function ProjectEditor() {
     setArea(null); setRoute({ area: null }); setProject(null); setBaseline(null); setProjects([]); setViewer(null); setNotice(''); setError('');
   };
 
-  if (viewer === undefined) return <main className="editor-shell"><p>Checking GitHub sign-in…</p></main>;
-  if (viewer === null) return (
-    <main className="editor-shell">
-      <p className="eyebrow">Staging</p><h1>Content editor</h1>
-      <p>Sign in with a GitHub account that can write to <code>geobtaa/geobtaa.github.io</code>.</p>
-      {error && <p className="message error" role="alert">{error}</p>}
-      <a className="button primary" href={`${API}/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)}`}>Sign in with GitHub</a>
-    </main>
-  );
-
   const open = (filename: string) => { if (area) navigation.navigate({ area, filename }); };
   const create = () => { if (area) navigation.navigate({ area, draftId: crypto.randomUUID() }); };
   const selectArea = (nextArea: AreaName | null) => navigation.navigate({ area: nextArea });
@@ -831,40 +824,57 @@ export default function ProjectEditor() {
   const staleRecovery = !!candidate && (candidate.baseSha !== (project?.sha || null));
   const restore = async (copy: RecoveryCopy) => {
     if (!project || !area || busyRef.current || recovery.hasChanges || !recoveryScope) return;
+    setRestoringChanges(true);
     setBusy(true); setError('');
     try {
       const stored = parseRecovery(window.localStorage.getItem(recoveryKey(recoveryScope, copy.id)) || '');
-      if (!stored || stored.revision !== copy.revision) { recovery.refresh(); throw new Error('That recovery copy changed. Review its latest version before restoring.'); }
+      if (!stored || stored.revision !== copy.revision) { recovery.refresh(); throw new Error('These unsaved changes were updated or removed in another tab. Review the latest version before restoring.'); }
       const fresh = route.filename ? await api<Project>(`/api/content/${area}/${encodeURIComponent(route.filename)}`) : project;
       if (!route.filename) await api(`/api/content/${area}`);
       if ((fresh.sha || null) !== copy.baseSha) {
         setProject(fresh); setBaseline(fresh); setSavedSnapshot(JSON.stringify(fresh)); setBodyEditorSession(session => session + 1);
-        throw new Error('The repository version changed. The latest version is open below; download the recovery copy to compare and reapply your changes.');
+        throw new Error('This page changed in GitHub. The latest saved version is open below. Your unsaved changes have been kept separately. Download a backup to compare and copy your edits into the latest version.');
       }
       const recovered = restoreRecovery(fresh, route, copy);
       recovery.restored(copy);
       setBaseline(fresh); setSavedSnapshot(fresh.sha ? JSON.stringify(fresh) : ''); setProject(recovered);
       setShowUpdateStarter(false); setShowConversionPreview(false); setBodyEditorSession(session => session + 1);
-      setNotice('Unsaved edits restored from this device. Review them, then use Save changes to save to GitHub.');
+      setNotice('Your restored changes are now displayed below. They have not been confirmed saved to GitHub. Review them, then choose Save changes.');
     } catch (error) { setError((error as Error).message); }
-    finally { setBusy(false); }
+    finally { setRestoringChanges(false); setBusy(false); }
+  };
+  useEffect(() => {
+    if (!resumeRequest || busy) return;
+    setResumeRequest(null);
+    if (project && !authIssue && recoveryScope === resumeRequest.scope && routeKey(route) === routeKey(resumeRequest.copy.route)) {
+      void restore(resumeRequest.copy);
+    }
+  }, [resumeRequest, busy, project, authIssue, recoveryScope, route]);
+  const resumeEditing = (copy: RecoveryCopy) => {
+    if (!recoveryScope || busyRef.current || authIssue) return;
+    if (navigation.navigate(copy.route)) {
+      setSelectedRecovery(copy.id);
+      setResumeRequest({ copy, scope: recoveryScope });
+    }
   };
   const discardRecovery = (copy: RecoveryCopy) => {
-    if (window.confirm('Permanently discard this local recovery copy? This does not change the repository.')) recovery.discard(copy);
+    if (window.confirm(`Discard unsaved changes for “${copy.fields.title || copy.route.filename || 'Untitled page'}”? This permanently removes this browser's saved copy of these edits. You cannot undo this. The page saved in GitHub will not change.`)) recovery.discard(copy);
   };
   const storageWarning = recovery.storageError && <p className="message error" role="alert">{recovery.storageError}{recovery.hasChanges && <button type="button" className="link-button" onClick={() => { const copy = recovery.currentCopy(); if (copy) downloadRecovery(copy); }}>Download unsaved edits</button>}</p>;
   const localDocuments = recovery.copies;
   const recoveryList = <>
     {storageWarning}
-    {!busy && localDocuments.length > 0 && <aside className="recovery-panel" aria-label="Local recovery copies">
-      <h2>Recovery copies on this device</h2>
-      <p>These edits have not been confirmed saved to GitHub. Open an entry to review its recovery copies.</p>
+    {!busy && localDocuments.length > 0 && <aside className="recovery-panel" aria-label="Unsaved changes">
+      <h2>Unsaved changes</h2>
+      <p>These changes are kept only in this browser and have not been confirmed saved to GitHub. Resume editing to review and save them. Clearing this browser's data will remove them.</p>
+      <p>Download backup saves a file of your changes for safekeeping; it does not save them to GitHub.</p>
       <ul>{localDocuments.map(copy => <li key={copy.id}>
-        <button type="button" onClick={() => navigation.navigate(copy.route)}>{copy.fields.title || copy.route.filename || `Untitled ${CONTENT_AREAS[copy.route.area!].itemLabel}`}</button>
+        <strong className="unsaved-document-title">{copy.fields.title || copy.route.filename || `Untitled ${CONTENT_AREAS[copy.route.area!].itemLabel}`}</strong>
         <span>{CONTENT_AREAS[copy.route.area!].label} · <time dateTime={copy.savedAt}>{new Date(copy.savedAt).toLocaleString()}</time></span>
         <div className="recovery-copy-actions">
-          <button type="button" onClick={() => downloadRecovery(copy)}>Download recovery copy</button>
-          <button type="button" onClick={() => discardRecovery(copy)}>Discard recovery copy</button>
+          <button type="button" className="primary" disabled={busy || !!authIssue || routeKey(copy.route) === routeKey(route)} onClick={() => resumeEditing(copy)}>Resume editing</button>
+          <button type="button" onClick={() => downloadRecovery(copy)}>Download backup</button>
+          <button type="button" className="destructive" onClick={() => discardRecovery(copy)}>Discard unsaved changes</button>
         </div>
       </li>)}</ul>
     </aside>}
@@ -872,23 +882,34 @@ export default function ProjectEditor() {
   const recoveryPanel = <>
     {storageWarning}
     {recovery.hasChanges && <div className="recovery-status">
-      <span role="status">{recovery.status === 'saved' ? 'Recovery copy saved on this device.' : recovery.status === 'error' ? 'Local recovery is unavailable.' : 'Saving a recovery copy on this device…'}</span>
+      <span role="status">{recovery.status === 'saved' ? 'Unsaved changes kept in this browser only.' : recovery.status === 'error' ? 'Browser backup is unavailable.' : 'Keeping unsaved changes in this browser…'}</span>
       {recovery.status === 'saved' && recovery.savedAt && <time dateTime={recovery.savedAt}>{new Date(recovery.savedAt).toLocaleTimeString()}</time>}
       <span>Use Save changes to save to GitHub.</span>
     </div>}
     {candidate && <aside className="recovery-panel" aria-label="Recover unsaved edits">
-      <h2>Unsaved edits found on this device</h2>
-      <p>Recovery copy from <time dateTime={candidate.savedAt}>{new Date(candidate.savedAt).toLocaleString()}</time>.</p>
-      {candidate.fields.creationAttempt && <p>This draft has an unconfirmed article creation. Saving checks that original request. Restore the copy to bring back its edits before checking.</p>}
-      {entryCopies.length > 1 && <label>Recovery copy<select value={candidate.id} onChange={event => setSelectedRecovery(event.target.value)}>{entryCopies.map(copy => <option key={copy.id} value={copy.id}>{new Date(copy.savedAt).toLocaleString()} — {copy.fields.title || 'Untitled entry'}</option>)}</select></label>}
-      {staleRecovery ? <p>The repository version has changed since this copy was made. The latest version is open below. Download the copy to compare and reapply your changes.</p> : recovery.hasChanges ? <p>You already have unsaved edits open. Download this earlier copy to compare, or return to this entry before making further edits to restore it.</p> : <p>Restore these edits into the editor, then review and save them.</p>}
+      <h2>Unsaved changes found</h2>
+      <p>Kept only in this browser on <time dateTime={candidate.savedAt}>{new Date(candidate.savedAt).toLocaleString()}</time>. These changes have not been confirmed saved to GitHub.</p>
+      <p>Download backup saves a file of your changes for safekeeping; it does not save them to GitHub.</p>
+      {candidate.fields.creationAttempt && <p>A previous save may have finished, but its result could not be confirmed. Restore changes first, then choose Retry creation safely to check that save without creating a duplicate article.</p>}
+      {entryCopies.length > 1 && <label>Unsaved version<select value={candidate.id} onChange={event => setSelectedRecovery(event.target.value)}>{entryCopies.map(copy => <option key={copy.id} value={copy.id}>{new Date(copy.savedAt).toLocaleString()} — {copy.fields.title || 'Untitled entry'}</option>)}</select></label>}
+      {staleRecovery ? <p>This page changed in GitHub. The latest saved version is displayed below; your unsaved changes have not been applied. Download a backup to compare and copy your edits into the latest version.</p> : recovery.hasChanges ? <p>You are already editing unsaved changes below. This earlier version has not been applied. Download a backup to compare, or reopen this page before restoring it.</p> : <p>Your unsaved changes are not displayed yet. Choose Restore changes to bring them back into the editor, then review and save them.</p>}
       <div className="actions">
-        {!staleRecovery && <button type="button" className="primary" disabled={busy || recovery.hasChanges} onClick={() => restore(candidate)}>Restore unsaved edits</button>}
-        <button type="button" disabled={busy} onClick={() => downloadRecovery(candidate)}>Download recovery copy</button>
-        <button type="button" disabled={busy} onClick={() => discardRecovery(candidate)}>Discard recovery copy</button>
+        {!staleRecovery && <button type="button" className="primary" disabled={busy || recovery.hasChanges || !!authIssue} onClick={() => restore(candidate)}>Restore changes</button>}
+        <button type="button" disabled={busy} onClick={() => downloadRecovery(candidate)}>Download backup</button>
+        <button type="button" className="destructive" disabled={busy} onClick={() => discardRecovery(candidate)}>Discard unsaved changes</button>
       </div>
     </aside>}
   </>;
+
+  if (viewer === undefined) return <main className="editor-shell"><p>Checking GitHub sign-in…</p></main>;
+  if (viewer === null) return (
+    <main className="editor-shell">
+      <p className="eyebrow">Staging</p><h1>Content editor</h1>
+      <p>Sign in with a GitHub account that can write to <code>geobtaa/geobtaa.github.io</code>.</p>
+      {error && <p className="message error" role="alert">{error}</p>}
+      <a className="button primary" href={`${API}/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)}`}>Sign in with GitHub</a>
+    </main>
+  );
 
   const accountHeader = <header className="editor-header">
     <div><p className="eyebrow">Staging</p><h1>{area ? 'Content editor' : 'Editor dashboard'}</h1><p>Signed in as <strong>{viewer}</strong>.</p></div>
@@ -938,7 +959,7 @@ export default function ProjectEditor() {
     <main className="editor-shell editor-workspace">
       <nav className="editor-navigation" aria-label="Editor navigation">
         <button className="back" type="button" disabled={busy} onClick={backToList}>← Back to {config.label}</button>
-        <div className="navigation-actions"><button className="dashboard-link" type="button" disabled={busy} onClick={backToDashboard}>Dashboard</button><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save changes'}</button></div>
+        <div className="navigation-actions"><button className="dashboard-link" type="button" disabled={busy} onClick={backToDashboard}>Dashboard</button><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save changes'}</button></div>
       </nav>
       <h1>{project.sha ? `Edit ${config.itemLabel}` : `New ${config.itemLabel}`}</h1>
       <section className={`visibility-panel document-controls ${project.draft ? 'is-draft' : 'is-ready'}`} aria-label="Document controls">
@@ -963,7 +984,7 @@ export default function ProjectEditor() {
           </div>
         </div>
         <div className="document-control-status">
-          <span className="save-state" role="status">{busy ? 'Saving…' : !project.sha ? 'Not saved yet' : dirty ? 'Unsaved changes' : 'No unsaved changes'}</span>
+          <span className="save-state" role="status">{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : !project.sha ? 'Not saved yet' : dirty ? 'Unsaved changes' : 'No unsaved changes'}</span>
           {project.sidebarHidden && <span className="visibility-badge status-navigation">Hidden from navigation</span>}
         </div>
       </section>

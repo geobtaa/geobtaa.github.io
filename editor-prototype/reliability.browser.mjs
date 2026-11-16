@@ -120,8 +120,8 @@ test('lost article responses survive recovery and retry one creation while retai
     await waitFor(`Object.keys(localStorage).filter(key => key.startsWith('geobtaa-editor-recovery:')).some(key => { const copy = JSON.parse(localStorage.getItem(key)); return copy.fields.title === 'Later title' && copy.fields.body.includes('Later body edits.'); })`);
     const previous = await evaluate('window.loadId');
     await send('Page.reload');
-    await waitFor(`window.loadId !== ${JSON.stringify(previous)} && !!(${button('Restore unsaved edits')})`);
-    await evaluate(`${button('Restore unsaved edits')}.click()`);
+    await waitFor(`window.loadId !== ${JSON.stringify(previous)} && !!(${button('Restore changes')})`);
+    await evaluate(`${button('Restore changes')}.click()`);
     await waitFor(`${title}.value === 'Later title' && !document.querySelector('.top-save').disabled`);
     await evaluate('window.pendingEditor = document.querySelector(".rich-editor .tiptap"); document.querySelector(".top-save").click()');
     await waitFor('new URL(location.href).searchParams.get("file") === "original-article.mdx"');
@@ -156,6 +156,32 @@ test('malformed update responses cannot mark a draft saved or create a suffixed 
   }, { initialSearch: '?area=updates&new=malformed-creation' });
 });
 
+test('dashboard Resume editing preserves an uncertain creation and retries the original article once', options, async () => {
+  await withEditorBrowser(fixture, async browser => {
+    const { evaluate, waitFor, send } = browser;
+    await send('Page.enable');
+    browser.onEvent('Page.javascriptDialogOpening', () => { void send('Page.handleJavaScriptDialog', { accept: true }); });
+    await waitFor('!!document.querySelector(".editor-fields")');
+    await fillTitle(browser, 'Interrupted dashboard draft');
+    await evaluate('window.responseFault = "lost"; document.querySelector(".top-save").click()');
+    await waitFor('document.querySelector(".top-save").textContent === "Retry creation safely" && !document.querySelector(".top-save").disabled');
+    await evaluate('document.querySelector(".dashboard-link").click()');
+    await waitFor(`!!(${button('Resume editing')})`);
+    await evaluate(`${button('Resume editing')}.click()`);
+    await waitFor(`${title}?.value === 'Interrupted dashboard draft' && document.querySelector('.top-save').textContent === 'Retry creation safely' && !document.querySelector('.top-save').disabled`);
+    assert.equal(await evaluate('window.writes.length'), 1, 'resume checks the draft without sending a save');
+    assert.match(await evaluate('document.querySelector(".message.success").textContent'), /not been confirmed saved to GitHub/);
+    await evaluate('document.querySelector(".top-save").click()');
+    await waitFor('new URL(location.href).searchParams.get("file") === "interrupted-dashboard-draft.mdx"');
+    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'No unsaved changes');
+    const attempts = await evaluate('window.writes.map(write => write.input)');
+    assert.equal(attempts[0].creationId, attempts[1].creationId);
+    assert.equal(attempts[0].creationFilename, attempts[1].creationFilename);
+    assert.equal(attempts[1].creationRetry, true);
+    assert.equal(await evaluate('Object.values(window.repo.state.commits).filter(commit => commit.message.includes("CMS-Creation:")).length'), 1);
+  }, { initialSearch: '?area=posts&new=dashboard-interrupted-save' });
+});
+
 test('ignoring recovery after a lost response still reuses the pending creation rather than making a new article', options, async () => {
   await withEditorBrowser(fixture, async browser => {
     const { evaluate, waitFor, send } = browser;
@@ -167,7 +193,7 @@ test('ignoring recovery after a lost response still reuses the pending creation 
     await waitFor('document.querySelector(".top-save").textContent === "Retry creation safely" && !document.querySelector(".top-save").disabled');
     const previous = await evaluate('window.loadId');
     await send('Page.reload');
-    await waitFor(`window.loadId !== ${JSON.stringify(previous)} && !!(${button('Restore unsaved edits')})`);
+    await waitFor(`window.loadId !== ${JSON.stringify(previous)} && !!(${button('Restore changes')})`);
     await fillTitle(browser, 'A different title after reloading');
     await evaluate('document.querySelector(".top-save").click()');
     await waitFor('new URL(location.href).searchParams.get("file") === "original-article.mdx"');

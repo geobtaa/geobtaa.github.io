@@ -21,8 +21,8 @@ export function useEditorRecovery({ scope, route, project, baseline }: { scope: 
     try {
       const result = readRecoveryCopies(window.localStorage, context.scope, context.project ? context.route : undefined);
       setCopies(result.copies.filter(copy => copy.id !== session.current.id));
-      if (result.unreadable) setStorageError('Some recovery copies could not be read. Keep a separate copy of important unsaved work.');
-    } catch { setStorageError('This browser cannot store recovery copies. Keep a separate copy of unsaved work.'); setStatus('error'); }
+      if (result.unreadable) setStorageError('Some unsaved changes could not be read. Keep a separate backup of important work.');
+    } catch { setStorageError('This browser cannot keep a backup of your unsaved changes. Keep a separate backup of your work.'); setStatus('error'); }
   };
   const flush = (snapshot?: Project) => {
     clearTimeout(timer.current);
@@ -46,7 +46,7 @@ export function useEditorRecovery({ scope, route, project, baseline }: { scope: 
       if (consume.current) { removeRecovery(window.localStorage, context.scope, consume.current); consume.current = null; }
       setStatus('saved'); setSavedAt(copy.savedAt); setStorageError('');
       return true;
-    } catch { setStatus('error'); setStorageError('Recovery could not be saved on this device. Keep this tab open or download your unsaved edits.'); return false; }
+    } catch { setStatus('error'); setStorageError('Your unsaved changes could not be kept in this browser. Keep this tab open or download a backup.'); return false; }
   };
   const flushRef = useRef(flush); flushRef.current = flush;
   useEffect(() => {
@@ -81,7 +81,7 @@ export function useEditorRecovery({ scope, route, project, baseline }: { scope: 
       try {
         if (session.current.copy) removeRecovery(window.localStorage, context.scope, session.current.copy);
         if (consume.current) removeRecovery(window.localStorage, context.scope, consume.current);
-      } catch { setStorageError('Changes were saved, but a local recovery copy could not be cleared.'); }
+      } catch { setStorageError('Your changes were saved to GitHub, but this browser’s backup could not be cleared.'); }
     }
     session.current.copy = undefined; session.current.fields = undefined; consume.current = null;
     setStatus('none'); refresh();
@@ -90,9 +90,10 @@ export function useEditorRecovery({ scope, route, project, baseline }: { scope: 
     const context = latest.current;
     if (!context.scope) return;
     try {
-      if (!removeRecovery(window.localStorage, context.scope, copy)) setStorageError('That recovery copy changed in another tab. Review the latest copy before discarding it.');
+      if (!removeRecovery(window.localStorage, context.scope, copy)) setStorageError('These unsaved changes were updated or removed in another tab. Review the latest version before discarding.');
+      else setStorageError('');
       refresh();
-    } catch { setStorageError('The recovery copy could not be removed from this device.'); }
+    } catch { setStorageError('These unsaved changes could not be removed from this browser.'); }
   };
   const currentCopy = (): RecoveryCopy | null => {
     const context = latest.current;

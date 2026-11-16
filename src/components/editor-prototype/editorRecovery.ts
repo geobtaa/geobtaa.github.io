@@ -55,11 +55,11 @@ export function removeRecovery(storage: Storage, scope: string, copy: RecoveryCo
   storage.removeItem(key); return true;
 }
 export function restoreRecovery(base: Project, route: EditorRoute, copy: RecoveryCopy): Project {
-  if (routeKey(route) !== routeKey(copy.route) || (base.sha || null) !== copy.baseSha) throw new Error('The repository version has changed. Download the recovery copy to compare it with the latest version.');
+  if (routeKey(route) !== routeKey(copy.route) || (base.sha || null) !== copy.baseSha) throw new Error('The saved version has changed in GitHub. Download a backup to compare your unsaved changes with the latest version.');
   return { ...base, ...copy.fields, filename: base.sha ? base.filename : copy.fields.filename, sha: base.sha, content: base.content, conversion: base.conversion };
 }
 export function downloadRecovery(copy: RecoveryCopy) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(copy, null, 2)], { type: 'application/json' }));
-  const link = document.createElement('a'); link.href = url; link.download = `editor-recovery-${copy.savedAt.replace(/[^0-9]/g, '')}.json`; link.click();
+  const link = document.createElement('a'); link.href = url; link.download = `unsaved-changes-backup-${copy.savedAt.replace(/[^0-9]/g, '')}.json`; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

@@ -253,9 +253,11 @@ code { font-size: .9em; }
 .recovery-panel .actions { justify-content: flex-start; flex-wrap: wrap; margin-top: .75rem; }
 .recovery-panel ul { display: grid; gap: .75rem; padding-left: 1.25rem; }
 .recovery-panel li > span { display: block; color: var(--editor-muted); font-size: .85rem; }
-.recovery-panel li > button { padding: .35rem 0; border: 0; background: transparent; color: var(--editor-accent); text-decoration: underline; text-align: left; overflow-wrap: anywhere; }
+.unsaved-document-title { overflow-wrap: anywhere; }
 .recovery-copy-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .35rem; }
 .recovery-copy-actions button { min-height: 44px; padding: .35rem .6rem; border: 1px solid var(--editor-border-strong); border-radius: .35rem; background: var(--editor-surface); color: var(--editor-accent); }
+.recovery-copy-actions button.primary { background: var(--editor-accent); color: white; border-color: var(--editor-accent); }
+.recovery-panel button.destructive { color: var(--editor-error-text); border-color: var(--editor-error-text); }
 .recovery-status { display: flex; flex-wrap: wrap; gap: .4rem; margin: .75rem 0; color: var(--editor-muted); font-size: .85rem; }
 .message .link-button { display: block; margin-top: .5rem; }
 
