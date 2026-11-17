@@ -19,6 +19,14 @@ content and is processed by Astro and Starlight into published pages.
 
 ## Feature documentation
 
+- [Permanent GIN editor deployment](GIN_EDITOR_DEPLOYMENT.md): project isolation, canonical-origin security, dashboard settings, and cutover
+
+- [Per-document Save Draft](CMS_SAVE_DRAFT.md): shared working branches, associated images, recovery, no-build controls, and rollout gates
+
+- [Custom CMS application release audit](CMS_RELEASE_AUDIT.md): transfer scope,
+  excluded content, validation, and publishing prerequisites
+- [Cloudflare content editor prototype](CLOUDFLARE_EDITOR_PROTOTYPE.md): current
+  application and staging configuration
 - [Data Citation Generator overview](data-citation-generator.md): purpose,
   technology stack, architecture, safeguards, and development acknowledgment
 - [Data Citation Generator autofill crosswalk](data-citation-autofill-crosswalk.md):

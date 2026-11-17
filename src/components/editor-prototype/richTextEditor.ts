@@ -1,0 +1,219 @@
+import { pendingImagePreview } from './pendingImages.ts';
+import { formatImage, matchFormattedImage, IMAGE_SIZE_PRESETS } from './formattedImage.ts';
+import StarterKit from '@tiptap/starter-kit';
+import { TableKit } from '@tiptap/extension-table';
+import { MdxMarkdown, LiteralEntities, SafeCodeBlock, SafeLink } from './MdxMarkdown.ts';
+import Image from '@tiptap/extension-image';
+import { mergeAttributes, type Editor, type EditorOptions } from '@tiptap/core';
+import { SimpleComponentBlocks } from './SimpleComponentBlock.ts';
+import { LinkButtonBlock } from './LinkButtonBlock.ts';
+import { LinkCardBlock } from './LinkCardBlock.ts';
+import { CollectionBlocks } from './CollectionBlockViews.ts';
+import { PreviewLink } from './previewLinks.ts';
+
+type EditImage = (position: number, image: { src: string; alt: string; title: string }) => void;
+
+export function repositoryImage(previewBase = '', onEditImage?: EditImage, readOnlyPreview = false, articlePreview = true) {
+  return Image.extend({
+    addAttributes() {
+      return {
+        ...this.parent?.(),
+        align: { default: null, rendered: false },
+        originalFormatted: { default: null, rendered: false },
+        originalMarkdown: { default: null, rendered: false },
+        originalFields: { default: null, rendered: false },
+      };
+    },
+    parseMarkdown(token, helpers) {
+      const fields = { src: token.href, alt: token.text, title: token.title };
+      if (token.formatted) return helpers.createNode('image', { ...fields, ...token.formatted, originalFormatted: token.raw, originalMarkdown: token.imageMarkdown, originalFields: { ...fields, ...token.formatted } });
+      return helpers.createNode('image', { ...fields, originalMarkdown: token.raw, originalFields: fields });
+    },
+    markdownTokenizer: {
+      name: 'image', level: 'block',
+      start(source) { return source.indexOf('<figure data-cms-image="true"'); },
+      tokenize(source, _tokens, lexer) {
+        const formatted = matchFormattedImage(source);
+        if (!formatted) return;
+        const tokens = lexer.inlineTokens(formatted.markdown);
+        if (tokens.length !== 1 || tokens[0].type !== 'image' || tokens[0].raw !== formatted.markdown) return;
+        return { ...tokens[0], type: 'image', raw: formatted.raw, imageMarkdown: formatted.markdown, formatted: { align: formatted.align, width: formatted.width } };
+      },
+    },
+    renderMarkdown(node) {
+      const { src = '', alt = '', title = '', align, width, originalFormatted, originalMarkdown, originalFields } = node.attrs || {};
+      const unchanged = originalFields && ['src', 'alt', 'title'].every((key) => (node.attrs?.[key] || '') === (originalFields[key] || ''));
+      if (unchanged && originalFormatted && align === originalFields.align && width === originalFields.width) return originalFormatted;
+      const escapedAlt = String(alt).replace(/[\\\[\]]/g, '\\$&');
+      const escapedTitle = String(title || '').replace(/[\\"]/g, '\\$&');
+      const destination = /[\s()]/.test(src) ? `<${String(src).replace(/</g, '%3C').replace(/>/g, '%3E')}>` : src;
+      const canonical = `![${escapedAlt}](${destination}${escapedTitle ? ` "${escapedTitle}"` : ''})`;
+      const markdown = unchanged && originalMarkdown ? originalMarkdown : canonical;
+      const formatted = formatImage(markdown, align, width);
+      // Reference-style and parenthesized destinations need inline syntax inside our narrow wrapper.
+      return (align || width) && !matchFormattedImage(formatted) ? formatImage(canonical, align, width) : formatted;
+    },
+    renderHTML({ HTMLAttributes }) {
+      const source = String(HTMLAttributes.src || '');
+      const src = imagePreviewUrl(source, previewBase);
+      return ['img', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { src })];
+    },
+    // Keep the editing hit area independent of the saved image dimensions.
+    addNodeView() {
+      return ({ node, getPos, editor }) => {
+        if (readOnlyPreview) {
+          const figure = document.createElement('figure');
+          figure.className = 'editor-image preview-image';
+          figure.contentEditable = 'false';
+          figure.dataset.article = String(articlePreview);
+          const image = document.createElement('img');
+          const caption = document.createElement('figcaption');
+          figure.append(image, caption);
+          const render = (attrs: typeof node.attrs) => {
+            image.src = imagePreviewUrl(String(attrs.src || ''), previewBase);
+            image.alt = attrs.alt || '';
+            image.title = attrs.title || '';
+            figure.dataset.align = attrs.align || '';
+            figure.dataset.formatted = String(!!(attrs.align || attrs.width));
+            figure.style.width = attrs.width ? `${attrs.width}px` : '';
+            caption.textContent = attrs.title || '';
+            caption.hidden = !attrs.title || !(articlePreview || attrs.align || attrs.width);
+          };
+          render(node.attrs);
+          return { dom: figure, ignoreMutation: () => true, update(updated) {
+            if (updated.type !== node.type) return false;
+            render(updated.attrs); return true;
+          } };
+        }
+        const figure = document.createElement('figure');
+        figure.className = 'editor-image';
+        figure.contentEditable = 'false';
+        figure.tabIndex = 0;
+        figure.setAttribute('role', 'group');
+        figure.addEventListener('focus', () => {
+          const pos = getPos();
+          if (pos !== undefined) editor.commands.setNodeSelection(pos);
+        });
+        const media = document.createElement('div');
+        media.className = 'editor-image-media';
+        const image = document.createElement('img');
+        const caption = document.createElement('figcaption');
+        media.append(image);
+        const controls = document.createElement('div');
+        controls.className = 'image-format-controls';
+        controls.setAttribute('role', 'group');
+        controls.setAttribute('aria-label', 'Image formatting');
+        const commit = (attrs: Record<string, unknown>) => {
+          const pos = getPos();
+          if (pos !== undefined) editor.chain().setNodeSelection(pos).updateAttributes('image', attrs).run();
+        };
+        for (const align of ['left', 'center', 'right']) {
+          const button = document.createElement('button');
+          button.type = 'button'; button.textContent = align[0].toUpperCase() + align.slice(1);
+          button.dataset.align = align;
+          button.addEventListener('click', () => commit({ align }));
+          controls.append(button);
+        }
+        const sizeLabel = document.createElement('label');
+        sizeLabel.textContent = 'Size';
+        const sizeSelect = document.createElement('select');
+        const currentSize = document.createElement('option');
+        currentSize.value = '';
+        currentSize.disabled = true;
+        sizeSelect.append(currentSize);
+        for (const preset of IMAGE_SIZE_PRESETS) {
+          const option = document.createElement('option');
+          option.value = String(preset.width); option.textContent = preset.label;
+          sizeSelect.append(option);
+        }
+        sizeSelect.addEventListener('change', () => {
+          const preset = IMAGE_SIZE_PRESETS.find(preset => String(preset.width) === sizeSelect.value);
+          if (preset) commit({ width: preset.width, height: null, align: figure.dataset.align || 'center' });
+        });
+        sizeLabel.append(sizeSelect); controls.append(sizeLabel);
+        const reset = document.createElement('button');
+        reset.type = 'button'; reset.textContent = 'Reset formatting';
+        reset.addEventListener('click', () => commit({ align: null, width: null, height: null }));
+        controls.append(reset);
+        controls.addEventListener('mousedown', event => { if ((event.target as HTMLElement).tagName === 'BUTTON') event.preventDefault(); });
+        figure.append(media, caption, controls);
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.className = 'image-edit-action';
+        edit.textContent = 'Edit image';
+        edit.addEventListener('mousedown', (event) => event.preventDefault());
+        edit.addEventListener('click', () => {
+          const position = getPos();
+          if (position === undefined) return;
+          const current = editor.state.doc.nodeAt(position);
+          if (!current) return;
+          onEditImage?.(position, { src: current.attrs.src || '', alt: current.attrs.alt || '', title: current.attrs.title || '' });
+        });
+        if (onEditImage) figure.append(edit);
+        let currentAttrs = node.attrs;
+        const render = (attrs: typeof node.attrs) => {
+          currentAttrs = attrs;
+          const src = imagePreviewUrl(String(attrs.src || ''), previewBase);
+          if (image.getAttribute('src') !== src) image.setAttribute('src', src);
+          figure.dataset.align = attrs.align || '';
+          figure.dataset.formatted = String(!!(attrs.align || attrs.width));
+          const displayWidth = attrs.width || (attrs.align ? image.naturalWidth : 0);
+          figure.style.width = displayWidth ? `${displayWidth}px` : '';
+          media.style.width = (attrs.width || image.naturalWidth) ? `${attrs.width || image.naturalWidth}px` : '';
+          image.style.width = ''; image.style.height = 'auto';
+          const preset = IMAGE_SIZE_PRESETS.find(preset => preset.width === attrs.width);
+          currentSize.textContent = attrs.width ? `Custom (${attrs.width}px)` : 'Original size';
+          currentSize.hidden = !!preset;
+          sizeSelect.value = preset ? String(preset.width) : '';
+          controls.querySelectorAll<HTMLButtonElement>('[data-align]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.align === (attrs.align || 'center'))));
+          image.setAttribute('alt', String(attrs.alt || ''));
+          figure.setAttribute('aria-label', `Image: ${attrs.alt || 'No alt text'}`);
+          if (attrs.title) image.setAttribute('title', attrs.title);
+          else image.removeAttribute('title');
+          caption.textContent = attrs.title || '';
+          caption.hidden = !attrs.title;
+        };
+        image.addEventListener('load', () => render(currentAttrs));
+        render(node.attrs);
+        return {
+          dom: figure,
+          stopEvent: (event) => event.type === 'focus' || controls.contains(event.target as globalThis.Node) || edit.contains(event.target as globalThis.Node),
+          ignoreMutation: () => true,
+          update(updated) {
+            if (updated.type !== node.type) return false;
+            render(updated.attrs); return true;
+          },
+        };
+      };
+    },
+  });
+}
+
+export function imagePreviewUrl(source: string, previewBase = ''): string {
+  const match = source.match(/^(?:@images\/|\/?src\/assets\/images\/|(?:\.\.\/)+assets\/images\/)(.+)$/);
+  if (!match) return source;
+  const path = match[1].split('/').filter(Boolean).map(encodeURIComponent).join('/');
+  return pendingImagePreview(match[1]) || `${previewBase}/api/images/file/${path}`;
+}
+
+export function richTextEditorOptions(initialContent: string, onChange: (markdown: string) => void, previewBase = '', onEditImage?: EditImage, readOnlyPreview = false, articlePreview = true): Partial<EditorOptions> {
+  return {
+    extensions: [
+      StarterKit.configure({ codeBlock: false, link: false, undoRedo: readOnlyPreview ? false : {}, trailingNode: { notAfter: ['linkCardBlock', 'linkButtonBlock', ...SimpleComponentBlocks.map((block) => block.name), ...CollectionBlocks.map(block => block.name)] } }),
+      SafeCodeBlock,
+      (readOnlyPreview ? PreviewLink : SafeLink).configure({ openOnClick: false }),
+      TableKit,
+      repositoryImage(previewBase, onEditImage, readOnlyPreview, articlePreview),
+      LinkCardBlock.configure({ readOnly: readOnlyPreview }),
+      LinkButtonBlock.configure({ readOnly: readOnlyPreview }),
+      ...SimpleComponentBlocks.map(block => block.configure({ readOnly: readOnlyPreview })),
+      ...CollectionBlocks.map(block => block.configure({ readOnly: readOnlyPreview })),
+      LiteralEntities,
+      MdxMarkdown.configure({ markedOptions: { gfm: true } }),
+    ],
+    content: initialContent,
+    contentType: 'markdown',
+    editable: !readOnlyPreview,
+    onUpdate: ({ editor }: { editor: Editor }) => { if (!readOnlyPreview) onChange(editor.getMarkdown()); },
+  };
+}

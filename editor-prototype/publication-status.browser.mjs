@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { chrome, withEditorBrowser } from './browserHarness.mjs';
+const selected = 'a'.repeat(40), head = 'c'.repeat(40);
+const fixture = `import React from 'react';
+import {createRoot} from 'react-dom/client';
+import ProjectEditor from '../src/components/editor-prototype/ProjectEditor.tsx';
+import '../src/components/editor-prototype/editor.css';
+window.record={filename:'report.mdx',head:'${head}',sha:'${'b'.repeat(40)}',hasDraft:true,baselineExists:true,title:'Newer saved draft',description:'',draft:true,body:'Working draft text.',content:'---\\ntitle: Newer saved draft\\ndraft: true\\n---\\n\\nWorking draft text.'};
+window.statusResult=JSON.parse(localStorage.getItem('publication-server-status')||'null')||{state:'publishing',message:'Publishing · waiting for required validation checks.',selectedHead:'${selected}',number:42,url:'https://github.com/geobtaa/geobtaa.github.io/pull/42',newerDraft:true};
+window.writes=[];window.loadId=crypto.randomUUID();
+window.setStatus=value=>{window.statusResult=value;localStorage.setItem('publication-server-status',JSON.stringify(value))};
+window.fetch=async(url,options={})=>{
+ const path=new URL(String(url),location.origin).pathname;
+ if(options.method&&options.method!=='GET')window.writes.push({path,input:JSON.parse(options.body||'{}')});
+ if(path==='/api/session')return Response.json({authenticated:true,login:localStorage.getItem('publication-login')||'first-editor',workspace:'geobtaa/geobtaa.github.io#cms-drafts-v1'});
+ if(path==='/api/content/library')return Response.json({branch:'main',entries:[{name:'report.mdx',path:'src/content/docs/library/report.mdx',sha:window.record.sha,hasDraft:true}]});
+ if(path==='/api/content/library/report.mdx')return Response.json(window.record);
+ if(path.startsWith('/api/publish/'))return Response.json(window.statusResult);
+ if(path==='/api/images')return Response.json({images:[]});
+ throw new Error('Unexpected read '+path);
+};
+createRoot(document.getElementById('root')).render(React.createElement(ProjectEditor));`;
+const options = { skip: chrome ? false : 'Chrome/Chromium is required.', timeout: 45000 };
+const title = 'document.querySelector(".editor-fields input[required]")';
+test('publication status refresh preserves unsaved text, never writes, and recovers Published after another login/reload', options, async () => {
+  await withEditorBrowser(fixture, async browser => {
+    const {evaluate,waitFor,send}=browser;
+    await waitFor(`!!${title} && document.querySelector('.publication-status')?.dataset.state==='publishing'`);
+    await evaluate(`window.originalEditor=document.querySelector('.tiptap');${title}.focus();${title}.select()`);
+    await send('Input.insertText',{text:'Keep my unsaved title'});
+    await evaluate(`window.setStatus({...window.statusResult,state:'deployment-failed',message:'Changes merged; the GitHub Pages deployment failed.'});[...document.querySelectorAll('.publication-status button')].find(button=>button.textContent==='Refresh publication status').click()`);
+    await waitFor('document.querySelector(".publication-status").dataset.state==="deployment-failed"');
+    assert.equal(await evaluate(`${title}.value`),'Keep my unsaved title');
+    assert.equal(await evaluate('document.querySelector(".tiptap")===window.originalEditor'),true);
+    const published = {state:'published',message:'Published · verified on gin.btaa.org.',selectedHead:selected,deployedHead:'d'.repeat(40),deploymentId:300,runId:200,liveUrl:'https://gin.btaa.org/library/report/',newerDraft:true};
+    await evaluate(`window.setStatus(${JSON.stringify(published)});[...document.querySelectorAll('.publication-status button')].find(button=>button.textContent==='Refresh publication status').click()`);
+    await waitFor('document.querySelector(".publication-status").dataset.state==="published"');
+    assert.equal(await evaluate(`${title}.value`),'Keep my unsaved title');
+    assert.match(await evaluate('document.querySelector(".publication-status").textContent'),/Newer edits.*not included/);
+    assert.equal(await evaluate('window.writes.length'),0);
+    // Revert this local edit before changing accounts; publication status itself is server state.
+    await evaluate(`${title}.focus();${title}.select()`);await send('Input.insertText',{text:'Newer saved draft'});
+    await waitFor('document.querySelector(".save-state").textContent==="No unsaved changes"');
+    const load=await evaluate('window.loadId');
+    await evaluate('localStorage.setItem("publication-login","second-editor")');await send('Page.reload');
+    await waitFor(`window.loadId!==${JSON.stringify(load)} && document.querySelector('.publication-status')?.dataset.state==='published'`);
+    assert.equal(await evaluate('window.writes.length'),0);
+    assert.equal(await evaluate('document.querySelector(".publication-status a").href'),'https://gin.btaa.org/library/report/');
+    await evaluate(`window.setStatus({state:'published',message:'Unverified success'});document.querySelector('.publication-status button').click()`);
+    await waitFor('document.querySelector(".publication-status").dataset.state==="checking"');
+    assert.equal(await evaluate('[...document.querySelectorAll(".publication-status a")].some(link=>link.textContent==="View live")'),false);
+  },{initialSearch:'?area=library&file=report.mdx'});
+});

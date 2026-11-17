@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { draftTestRepository } from './draftTestRepository.mjs';
+import { createDraftStore } from './draftStorage.mjs';
+import { savePage, parsePage } from './page.mjs';
+import { onRequest } from '../functions/api/[[path]].js';
+const origin = 'https://gin-editor.pages.dev';
+test('hosted Publish requires canonical origin, same-origin POST, an authorized session, explicit enablement and a saved revision', async () => {
+  const repo = await draftTestRepository({ 'src/content/docs/library/report.mdx': '---\ntitle: Report\n---\n\nOriginal.' });
+  const env = { EDITOR_ORIGIN: origin, GITHUB_CLIENT_ID: 'client', GITHUB_CLIENT_SECRET: 'secret', SESSION_SECRET: 'this-test-secret-has-at-least-thirty-two-characters', ALLOWED_GITHUB_USERS: 'editor' };
+  const previous = globalThis.fetch;
+  globalThis.fetch = async (url, options) => String(url).includes('login/oauth/access_token') ? Response.json({ access_token: 'test-token' }) : String(url).endsWith('/user') ? Response.json({ login: 'editor' }) : repo.fetchImpl(url, options);
+  try {
+    const login = await onRequest({ request: new Request(origin + '/api/auth/login'), env });
+    const state = new URL(login.headers.get('location')).searchParams.get('state');
+    const callback = await onRequest({ request: new Request(origin + `/api/auth/callback?code=test&state=${state}`, { headers: { Cookie: login.headers.getSetCookie().map(value => value.split(';')[0]).join('; ') } }), env });
+    const cookie = callback.headers.getSetCookie().find(value => value.startsWith('editor_session=')).split(';')[0];
+    const store = createDraftStore({ request: repo.request }), file = await store.getContent('library', 'report.mdx');
+    const saved = await savePage(store, 'library', 'report.mdx', { ...file, ...parsePage(file.content), body: 'Saved.' });
+    const call = (config = env, headers = { Cookie: cookie, Origin: origin }, host = origin, input = { head: saved.head }) => onRequest({ request: new Request(host + '/api/publish/library/report.mdx', { method: 'POST', headers, body: JSON.stringify(input) }), env: config });
+    assert.equal((await call()).status, 403);
+    const enabled = { ...env, CMS_PUBLISH_ENABLED: 'true' };
+    assert.equal((await call(enabled, { Origin: origin })).status, 401);
+    assert.equal((await call(enabled, { Cookie: cookie, Origin: 'https://evil.test' })).status, 403);
+    assert.equal((await call(enabled, undefined, 'https://preview.gin-editor.pages.dev')).status, 403);
+    assert.equal((await call({ ...enabled, ALLOWED_GITHUB_USERS: 'someone-else' })).status, 403);
+    repo.push = false; assert.equal((await call(enabled)).status, 403); repo.push = true;
+    assert.equal(repo.pulls.length, 0);
+    const response = await call(enabled);
+    assert.equal(response.status, 200); assert.equal((await response.json()).state, 'publishing');
+    assert.equal(repo.pulls.length, 1);
+    assert.equal((await call(enabled)).status, 200); assert.equal(repo.pulls.length, 1);
+    const statusRequest = (host = origin, session = cookie) => onRequest({ request: new Request(host + '/api/publish/library/report.mdx', { headers: { Cookie: session } }), env });
+    const before = [...repo.refs];
+    const status = await statusRequest(); assert.equal(status.status, 200); assert.equal((await status.json()).state, 'publishing');
+    assert.deepEqual([...repo.refs], before, 'status reads work with publishing disabled and never move refs');
+    assert.equal((await statusRequest('https://preview.gin-editor.pages.dev')).status, 403);
+    assert.equal((await statusRequest(origin, '')).status, 401);
+  } finally { globalThis.fetch = previous; }
+});

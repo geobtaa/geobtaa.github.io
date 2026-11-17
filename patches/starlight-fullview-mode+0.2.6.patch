@@ -1,0 +1,13 @@
+diff --git a/node_modules/starlight-fullview-mode/index.ts b/node_modules/starlight-fullview-mode/index.ts
+index d648b3a..d9ba501 100644
+--- a/node_modules/starlight-fullview-mode/index.ts
++++ b/node_modules/starlight-fullview-mode/index.ts
+@@ -65,7 +65,7 @@ const starlightFullViewModeConfigSchema = z
+     overrideWarnEnabled: z.boolean().default(false),
+ 
+   })
+-  .default({});
++  .prefault({});
+ 
+ export type StarlightFullViewModeUserConfig = z.input<
+   typeof starlightFullViewModeConfigSchema

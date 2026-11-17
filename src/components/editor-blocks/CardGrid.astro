@@ -1,0 +1,10 @@
+---
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import { createMarkdownProcessor } from '@astrojs/markdown-remark';
+import { parseCollectionData, escapeHtml } from './data.mjs';
+const cards = (parseCollectionData('cardGrid', Astro.props.cards) || []).filter(card => card.title.trim() || card.body.trim());
+const processor = await createMarkdownProcessor({ syntaxHighlight: false });
+const rendered = await Promise.all(cards.map(async card => ({ ...card, html: (await processor.render(card.body)).code })));
+---
+
+{rendered.length > 0 && <CardGrid>{rendered.map(card => <Card title={escapeHtml(card.title)}><div set:html={card.html} /></Card>)}</CardGrid>}

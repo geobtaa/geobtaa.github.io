@@ -52,6 +52,9 @@ content published on the website.
 
 - [Local setup](docs/LOCAL_SETUP.md)
 - [Local Decap CMS testing](docs/DECAP_LOCAL.md)
+- [Per-document Save Draft](docs/CMS_SAVE_DRAFT.md)
+- [Custom CMS application release audit](docs/CMS_RELEASE_AUDIT.md)
+- [Cloudflare content editor prototype](docs/CLOUDFLARE_EDITOR_PROTOTYPE.md)
 - [Conference map gallery maintenance](docs/how-to-update-conf-map-gallery.md)
 - [Data Citation Generator overview](docs/data-citation-generator.md)
 - [Data Citation Generator autofill crosswalk](docs/data-citation-autofill-crosswalk.md)
@@ -67,6 +70,8 @@ All commands are run from the root of the project, from a terminal:
 | `npm run decap`           | Starts the Decap local backend proxy             |
 | `npm run build`           | Build your production site to `./dist/`          |
 | `npm run preview`         | Preview your build locally, before deploying     |
+| `npm run test:editor`     | Run editor unit and API tests                     |
+| `npm run test:editor:browser` | Run isolated editor browser tests             |
 | `npm run test:navigation` | Check navigation in the built site; run after build |
 | `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `npm run astro -- --help` | Get help using the Astro CLI                     |

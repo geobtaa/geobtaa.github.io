@@ -1,0 +1,16 @@
+---
+import ChipList from '../ChipList.astro';
+import { parseCollectionData } from './data.mjs';
+const items = (parseCollectionData('chipList', Astro.props.items) || []).filter(item => item.trim());
+---
+
+{items.length > 0 && <ChipList class="not-content cms-chip-list">{items.map(item => <li>{item}</li>)}</ChipList>}
+
+<style>
+  :global(.chip-list.cms-chip-list > li) {
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    padding-inline: clamp(.75rem, 4vw, 3rem);
+  }
+</style>
