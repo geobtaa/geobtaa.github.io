@@ -18,7 +18,7 @@ const remarkFormattedImages: Plugin<[], Root> = () => (tree) => {
     const match = node.value.trim().match(/^<figure data-cms-image="true" data-align="(left|center|right)"(?: data-width="([1-9]\d{0,4})")?>$/);
     if (!match) return;
     const width = match[2] ? Number(match[2]) : null;
-    if (width !== null && (width < 50 || width > 10000)) return;
+    if (width !== null && (width < 1 || width > 10000)) return;
     const parent = ancestors.at(-1);
     if (!parent || !('children' in parent)) return;
     const index = parent.children.findIndex(child => child === node);
@@ -44,7 +44,7 @@ const remarkFormattedImages: Plugin<[], Root> = () => (tree) => {
     const widthAttr = value('data-width');
     if (marker?.type !== 'mdxJsxAttribute' || marker.value !== 'true' || alignment?.type !== 'mdxJsxAttribute' || !['left', 'center', 'right'].includes(String(alignment.value))) return;
     const width = widthAttr?.type === 'mdxJsxAttribute' ? Number(widthAttr.value) : null;
-    if (width !== null && (!Number.isInteger(width) || width < 50 || width > 10000)) return;
+    if (width !== null && (!Number.isInteger(width) || width < 1 || width > 10000)) return;
     if (node.children.length !== 1 || node.children[0].type !== 'paragraph' || node.children[0].children.length !== 1 || node.children[0].children[0].type !== 'image') return;
     const image = node.children[0].children[0];
     const align = alignment.value;

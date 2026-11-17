@@ -1,0 +1,11 @@
+.cms-metrics-block { container: cms-metrics / inline-size; width: 100%; }
+.cms-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; width: 100%; max-width: 64rem; margin: 1.5rem auto; padding: 0; }
+.cms-metrics .cms-metric { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .6rem; min-width: 0; padding: 1.25rem .75rem; border: 1px solid var(--sl-color-hairline, #cbd5e1); border-radius: .5rem; background: var(--sl-color-bg-sidebar, #f8fafc); text-align: center; overflow-wrap: anywhere; }
+.cms-metrics .cms-metric-label { margin: 0; font-size: 1rem; font-weight: 500; line-height: 1.4; color: var(--sl-color-text, #334155); }
+.cms-metrics .cms-metric-value { order: -1; margin: 0; font-size: clamp(1.75rem, 3vw, 2.25rem); font-weight: 750; font-variant-numeric: tabular-nums; line-height: 1.15; letter-spacing: -.02em; color: var(--sl-color-text-accent, #075985); }
+@container cms-metrics (min-width: 40rem) {
+  .cms-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@container cms-metrics (max-width: 23.99rem) {
+  .cms-metrics { grid-template-columns: minmax(0, 1fr); }
+}

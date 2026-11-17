@@ -3,24 +3,40 @@ name: Validate Astro site
 on:
   pull_request:
     branches: ["main"]
-    paths:
-      - "src/**"
-      - "public/**"
-      - "tests/**"
-      - "astro.config.ts"
-      - "navigation.config.ts"
-      - "package.json"
-      - "package-lock.json"
-      - "tsconfig.json"
-      - ".node-version"
-      - ".github/workflows/**"
   workflow_dispatch:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
-  validate:
+  publication-plan:
+    runs-on: ubuntu-latest
+    outputs:
+      kind: ${{ steps.plan.outputs.kind }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+          cache: npm
+      - run: npm ci
+      - id: plan
+        name: Classify with trusted base code only
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != "pull_request" ] || [ ! -f scripts/check-cms-publication.mjs ]; then
+            # Bootstrap/manual runs never earn a browser skip.
+            echo "kind=full-suite" >> "$GITHUB_OUTPUT"
+          else
+            node scripts/check-cms-publication.mjs --github-output
+          fi
+
+  site-validation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,5 +47,45 @@ jobs:
       - run: npm ci
       - run: npm run astro -- sync
       - run: npm run astro -- check
+      - run: npm run test:config
+      - run: npm run test:editor
+      - run: npm run test:editor:render
       - run: npm run build -- --timings
       - run: npm run test:navigation
+
+  browser-tests:
+    needs: publication-plan
+    if: needs.publication-plan.result == 'success' && needs.publication-plan.outputs.kind != 'cms-snapshot'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+          cache: npm
+      - run: npm ci
+      - name: Require Chrome (never silently skip browser coverage)
+        run: test -x /usr/bin/google-chrome
+      - name: Full browser regressions (sequential)
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node --test --test-concurrency=1 editor-prototype/*.browser.mjs
+
+  validate:
+    if: always()
+    needs: [publication-plan, site-validation, browser-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail closed on missing proof or incomplete validation
+        env:
+          KIND: ${{ needs.publication-plan.outputs.kind }}
+          PLAN_RESULT: ${{ needs.publication-plan.result }}
+          SITE_RESULT: ${{ needs.site-validation.result }}
+          BROWSER_RESULT: ${{ needs.browser-tests.result }}
+        run: |
+          test "$PLAN_RESULT" = "success" && test "$SITE_RESULT" = "success" || exit 1
+          case "$KIND" in
+            cms-snapshot) test "$BROWSER_RESULT" = "skipped" ;;
+            validated-source|full-suite) test "$BROWSER_RESULT" = "success" ;;
+            *) echo "Unknown publication classification; validation blocked."; exit 1 ;;
+          esac

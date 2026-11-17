@@ -13,6 +13,7 @@ import removeTocOverview from './src/plugins/removeTocOverview';
 import remarkAccessibleTaskLists from './src/plugins/remarkAccessibleTaskLists';
 import remarkCenterLayoutImages from './src/plugins/remarkCenterLayoutImages';
 import remarkFormattedImages from './src/plugins/remarkFormattedImages';
+import remarkSafeComponentLinks from './src/plugins/remarkSafeComponentLinks';
 
 type SidebarItem = NonNullable<StarlightUserConfig['sidebar']>[number];
 
@@ -66,7 +67,7 @@ export default defineConfig({
   compressHTML: true,
   markdown: {
     processor: unified({
-      remarkPlugins: [remarkAccessibleTaskLists, remarkFormattedImages, remarkCenterLayoutImages],
+      remarkPlugins: [remarkAccessibleTaskLists, remarkFormattedImages, remarkCenterLayoutImages, remarkSafeComponentLinks],
     }),
   },
   redirects: {
