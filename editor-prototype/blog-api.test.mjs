@@ -12,7 +12,7 @@ const original = newBlog({ title: 'Old post', date: '2026-10-24', draft: false, 
 
 async function repository(area) {
   const prefix = `src/content/docs/${area}/`;
-  const repo = await draftTestRepository({ [prefix + 'existing.md']: { content: original, sha: 'blob-1' } });
+  const repo = await draftTestRepository({ [prefix + 'existing.md']: original });
   return { ...repo, files: repo.compatFiles(prefix) };
 }
 
@@ -104,11 +104,13 @@ for (const area of ['posts', 'updates']) for (const mode of ['local', 'hosted'])
       assert.equal(collision.status, 409);
       assert.equal(collision.body.suggestedFilename, 'a-new-post-2.mdx');
       assert.equal((await call('POST', `/api/content/${area}`, { ...minimal, suggestedFilename: collision.body.suggestedFilename })).status, 201);
-      const listing = (await call('GET', `/api/content/${area}`)).body.entries;
+      const catalog = await call('GET', `/api/content/${area}`);
+      assert.equal(catalog.status,200,JSON.stringify(catalog.body));
+      const listing = catalog.body.entries;
       assert.equal(listing.length, 3);
-      assert.ok(listing.every((item) => item.visibilityKnown === true));
-      assert.equal(listing.find((item) => item.name === 'existing.md').draft, false);
-      assert.equal(listing.find((item) => item.name === 'a-new-post.mdx').draft, true);
+      assert.ok(listing.every(item => item.discovery==='provisional' && item.visibilityKnown===false && !Object.hasOwn(item,'hasDraft')));
+      assert.equal(listing.find(item=>item.name==='existing.md').onMain,true);
+      assert.equal(listing.find(item=>item.name==='a-new-post.mdx').draftHint,'saved');
       const reloaded = await call('GET', `/api/content/${area}/a-new-post.mdx`);
       assert.equal(reloaded.body.title, minimal.title);
       assert.equal((await call('PUT', `/api/content/${area}/a-new-post.mdx`, { ...reloaded.body, title: 'Renamed', date: '2027-01-01', draft: false })).status, 200);

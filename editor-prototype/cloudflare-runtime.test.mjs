@@ -60,6 +60,21 @@ test('workerd reproduces unsupported error redirect mode before any outbound req
   assert.deepEqual([...repo.refs],refs);
 }));
 
+test('workerd content list uses lightweight discovery without granting editing authority', () => fixture(async ({call,calls,repo}) => {
+  const refs = [...repo.refs];
+  const response = await call('/api/content/library');
+  assert.equal(response.status,200,await response.clone().text());
+  const list = await response.json();
+  assert.equal(list.discovery,'provisional');
+  assert.equal(list.entries[0].name,'runtime.mdx');
+  assert.equal(list.entries[0].onMain,true);
+  assert.equal(list.entries[0].visibilityKnown,false);
+  assert.equal(Object.hasOwn(list.entries[0],'head'),false);
+  assert.equal(Object.hasOwn(list.entries[0],'sha'),false);
+  assert.equal(calls.length,2);
+  assert.deepEqual([...repo.refs],refs);
+}));
+
 test('workerd never forwards OAuth code/client credentials through a redirect', () => fixture(async ({call,calls,scenario}) => {
   for (const status of [301,302,303,307,308]) for (const location of ['https://github.com/redirected','https://outside.example/capture']) {
     const login = await call('/api/auth/login');

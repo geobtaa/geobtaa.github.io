@@ -33,7 +33,8 @@ const CONFLICT = 'This page has changed in GitHub since you opened it. Reload th
 
 const DraftImages = createContext<{ area: string; filename: string; add: (image: PendingImage) => void } | null>(null);
 
-type ProjectListItem = { hasDraft?: boolean; baselineExists?: boolean; name: string; path: string; sha: string; route?: string; draft?: boolean; sidebarHidden?: boolean; visibilityKnown?: boolean };
+type ProjectListItem = { hasDraft?: boolean; baselineExists?: boolean; name: string; path: string; sha?: string; route?: string; draft?: boolean; sidebarHidden?: boolean; visibilityKnown?: boolean; discovery?: 'provisional'; onMain?: boolean; mainBlob?: string; draftHint?: 'saved'|'review'|'unknown'|'none-observed'; needsReview?: boolean; candidateHeads?: string[] };
+type ContentList = {entries:ProjectListItem[];branch:string;mainHead?:string;discovery?:'provisional';warnings?:string[]};
 type ImageListItem = { name: string; path: string; sha: string; size?: number };
 type AreaName = keyof typeof CONTENT_AREAS;
 type ApiError = Error & { status?: number; suggestedFilename?: string; creationState?: string };
@@ -641,6 +642,8 @@ function freshEntry(area: AreaName): Project {
 
 export default function ProjectEditor() {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
+  const [listWarnings, setListWarnings] = useState<string[]>([]);
+  const [listProvisional, setListProvisional] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
   const [area, setArea] = useState<AreaName | null>(null);
   const [busy, setBusyState] = useState(false);
@@ -702,7 +705,7 @@ export default function ProjectEditor() {
   const activateRoute = async (next: EditorRoute) => {
     const sequence = ++requestSequence.current;
     setArea(next.area); setRoute(next); setProject(null); setBaseline(null);
-    if (next.area !== area) setProjects([]);
+    if (next.area !== area) { setProjects([]); setListWarnings([]); setListProvisional(false); }
     setPreviewMode(false);
     setRecoveryManager(null);
     setResumeRequest(null);
@@ -713,11 +716,11 @@ export default function ProjectEditor() {
       const [list, loaded] = await Promise.all([
         // Opening a document needs its authoritative response, not a second
         // verification of the entire list. Refresh on list/new-entry routes.
-        next.filename ? Promise.resolve(null) : api<{ entries: ProjectListItem[]; branch: string }>(`/api/content/${next.area}`),
+        next.filename ? Promise.resolve(null) : api<ContentList>(`/api/content/${next.area}`),
         next.filename ? api<Project>(`/api/content/${next.area}/${encodeURIComponent(next.filename)}`) : Promise.resolve(null),
       ]);
       if (sequence !== requestSequence.current) return;
-      if (list) setProjects(list.entries);
+      if (list) { setProjects(list.entries); setListWarnings(list.warnings || []); setListProvisional(list.discovery === 'provisional'); }
       const entry = loaded || (next.draftId ? freshEntry(next.area) : null);
       if (entry) {
         setPendingImagePreviews(entry.assets);
@@ -751,8 +754,8 @@ export default function ProjectEditor() {
   const loadList = async (nextArea: AreaName) => {
     setBusy(true); setError('');
     try {
-      const data = await api<{ entries: ProjectListItem[]; branch: string }>(`/api/content/${nextArea}`);
-      setProjects(data.entries);
+      const data = await api<ContentList>(`/api/content/${nextArea}`);
+      setProjects(data.entries); setListWarnings(data.warnings || []); setListProvisional(data.discovery === 'provisional');
     } catch (err) { setError((err as Error).message); }
     finally { setBusy(false); }
   };
@@ -990,10 +993,16 @@ export default function ProjectEditor() {
       {error && (route.filename || route.draftId) && <button type="button" disabled={busy || !!authIssue} onClick={() => { void activateRoute(route); }}>Retry opening entry</button>}
       <label className="area-selector">Content area<select disabled={busy} value={area} onChange={(event) => selectArea((event.target.value || null) as AreaName | null)}><option value="">Dashboard — choose a content area</option>{Object.entries(CONTENT_AREAS).map(([name, item]) => <option key={name} value={name}>{item.label}</option>)}</select></label>
       <div className="list-heading"><h2>{config.label}</h2>{config.create && <button className="primary" type="button" disabled={busy} onClick={create}>New {config.itemLabel}</button>}</div>
+      {listProvisional && <p className="list-discovery-note">On main identifies the repository source. Saved work is checked when you open a document.</p>}
+      {listWarnings.map((warning,index)=><p className="message" role="status" key={index}>{warning}</p>)}
       {busy ? <p role="status">Loading…</p> : <ul className="project-list">{sortedProjects.map((item) => <li className={item.hasDraft || (item.draft && item.visibilityKnown) ? 'draft-entry' : ''} key={item.path}><button type="button" onClick={() => open(item.name)}>
         <span className="content-name">{item.name.replace(/\.mdx?$/, '')}</span>
         {recovery.copies.some(copy => copy.route.area === area && copy.route.filename === item.name) && <span className="unsaved-indicator">Unsaved edits</span>}
         {(item.hasDraft || (item.draft && item.visibilityKnown === true)) && <span className="visibility-badge status-draft">Draft</span>}
+        {item.discovery === 'provisional' && <>
+          <span className="visibility-badge">{item.onMain ? 'On main' : 'New saved draft'}</span>
+          {(item.needsReview || item.draftHint === 'review') ? <span className="visibility-badge">Needs review</span> : item.draftHint === 'saved' && item.onMain ? <span className="visibility-badge">Saved work available</span> : null}
+        </>}
       </button></li>)}</ul>}
     </main>
   );

@@ -15,6 +15,7 @@ import { createPublicationPRClient } from './publicationPR.mjs';
 import { validateDocument } from './validateDocument.mjs';
 import { PAGE_METADATA_FIELDS, validatePageMetadata, patchFrontmatter } from './pageMetadata.mjs';
 import { compareAncestry } from './gitComparison.mjs';
+import { discoverContent } from './contentDiscovery.mjs';
 
 const ZERO = '0'.repeat(40);
 const MARKER = 'CMS-Draft-v1: ';
@@ -415,6 +416,7 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     publicationPlan, verifyPublication,
     ...publication,
     drafts: true, workspace: `${owner}/${repo}#cms-drafts-v1`, getContent, saveContent,
+    discoverContent: area => discoverContent({request,owner,repo},area),
     async listContent(area) {
       const prefix = `${contentDirectory(area)}/`, baseline = await main(), drafts = await discover(baseline, { verifyRetired: false });
       const entries = new Map([...baseline.files].filter(([path]) => path.startsWith(prefix) && /\.mdx?$/.test(path) && !path.split('/').at(-1).startsWith('_')).map(([path, file]) => [path, { name: path.slice(prefix.length), path, sha: file.sha, baselineExists: true, hasDraft: false }]));
