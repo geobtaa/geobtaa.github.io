@@ -37,6 +37,7 @@ export function validateSourceText(path, source, original = '') {
     }
     if (path === '.github/workflows/validate.yml') {
       const jobs = workflow.jobs, plan = jobs['publication-plan'], browser = jobs['browser-tests'], gate = jobs.validate;
+      const render = jobs['render-tests'], isolatedRender = render !== undefined;
       const require = (condition, message) => { if (!condition) throw invalid(`Required CI coverage is unsafe: ${message}.`); };
       require(plan?.outputs?.kind === '${{ steps.plan.outputs.kind }}', 'classification output must come from the trusted plan step');
       require(plan.steps?.some(step => step.uses?.startsWith('actions/checkout@') && step.with?.ref === '${{ github.event.pull_request.base.sha || github.sha }}' && step.with?.['persist-credentials'] === false), 'classify from trusted base, without checkout credentials');
@@ -49,10 +50,22 @@ else
 fi`, 'use verified classification; missing checker must select the full suite');
       require(browser?.needs === 'publication-plan' && browser.if === "needs.publication-plan.result == 'success' && needs.publication-plan.outputs.kind != 'cms-snapshot'", 'ordinary source must run browsers');
       require(browser.steps?.some(step => step.run === 'test -x /usr/bin/google-chrome') && browser.steps?.some(step => step.run === 'node --test --test-concurrency=1 editor-prototype/*.browser.mjs' && step.env?.CHROME_BIN === '/usr/bin/google-chrome'), 'require Chrome and the complete browser suite');
-      require(gate?.if === 'always()' && JSON.stringify(gate.needs) === JSON.stringify(['publication-plan', 'site-validation', 'browser-tests']), 'the required validate gate must aggregate every result even after failures');
+      // Support the installed contract and a separately activated isolated job.
+      // Either form must run render fixtures for CMS snapshots as well as source PRs.
+      const unconditionalRun = (job, command) => job?.steps?.some(step => step.run === command && step.if === undefined && step['continue-on-error'] === undefined);
+      const renderJob = isolatedRender ? render : jobs['site-validation'];
+      require(renderJob?.if === undefined && renderJob?.['continue-on-error'] === undefined && unconditionalRun(renderJob,'npm run test:editor:render'), 'render fixtures must run unconditionally');
+      if (isolatedRender) {
+        require(render['runs-on'] === 'ubuntu-latest', 'render fixtures require their own runner');
+        require(render.steps?.some(step => step.uses?.startsWith('actions/checkout@') && step.if === undefined && step.with?.ref === undefined && step.with?.['persist-credentials'] === false) && render.steps?.some(step => step.uses?.startsWith('actions/setup-node@') && step.if === undefined && step.with?.['node-version-file'] === '.node-version') && unconditionalRun(render,'npm ci'), 'isolated render fixtures must install and test the PR checkout');
+        require(!jobs['site-validation']?.steps?.some(step => step.run?.includes('test:editor:render')), 'render fixtures must not also mutate the site-build workspace');
+      }
+      const requiredJobs = ['publication-plan', 'site-validation', 'browser-tests', ...(isolatedRender ? ['render-tests'] : [])];
+      require(gate?.if === 'always()' && JSON.stringify(gate.needs) === JSON.stringify(requiredJobs), 'the required validate gate must aggregate every result even after failures');
       const final = gate.steps?.[0];
       require(final?.env?.KIND === '${{ needs.publication-plan.outputs.kind }}' && final.env.PLAN_RESULT === '${{ needs.publication-plan.result }}' && final.env.SITE_RESULT === '${{ needs.site-validation.result }}' && final.env.BROWSER_RESULT === '${{ needs.browser-tests.result }}', 'bind final gate to actual job results');
-      require(final.run?.trim() === `test "$PLAN_RESULT" = "success" && test "$SITE_RESULT" = "success" || exit 1
+      if (isolatedRender) require(final.env.RENDER_RESULT === '${{ needs.render-tests.result }}', 'bind render coverage to its actual job result');
+      require(final.run?.trim() === `test "$PLAN_RESULT" = "success" && test "$SITE_RESULT" = "success"${isolatedRender ? ' && test "$RENDER_RESULT" = "success"' : ''} || exit 1
 case "$KIND" in
   cms-snapshot) test "$BROWSER_RESULT" = "skipped" ;;
   validated-source|full-suite) test "$BROWSER_RESULT" = "success" ;;
