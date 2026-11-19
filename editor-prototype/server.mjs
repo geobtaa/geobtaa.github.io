@@ -92,7 +92,7 @@ export const createEditorServer = (github) => http.createServer(async (request, 
       const { area, filename } = route;
       if (area === 'posts' && request.method === 'POST' && !filename) return respond(response, 201, await saveBlog(github, null, await readJson(request)), origin);
       if (area === 'updates' && request.method === 'POST' && !filename) return respond(response, 201, await saveProgramUpdate(github, null, await readJson(request)), origin);
-      if (request.method === 'GET' && !filename) return respond(response, 200, await github.listContent(area), origin);
+      if (request.method === 'GET' && !filename) return respond(response, 200, await (github.discoverContent ? github.discoverContent(area) : github.listContent(area)), origin);
       if (!filename) throw Object.assign(new Error('Content filename is required.'), { status: 400 });
       if (request.method === 'GET') {
         const file = await github.getContent(area, filename);

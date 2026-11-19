@@ -71,6 +71,25 @@ export async function draftTestRepository(initial = {}) {
         return repository.pulls.filter(pr => url.searchParams.has('head') ? `geobtaa:${pr.head.ref}` === url.searchParams.get('head') : pr.state === 'open').slice((Number(url.searchParams.get('page') || 1) - 1) * 100, Number(url.searchParams.get('page') || 1) * 100);
       }
       if (path === '/graphql') {
+        if (input.query.includes('query CMSContentDiscovery')) {
+          const nodes=[...refs].filter(([name])=>name.startsWith('refs/heads/cms/drafts/')).map(([name,head])=>({name:name.slice('refs/heads/cms/drafts/'.length),prefix:'refs/heads/cms/drafts/',target:{oid:head,message:commits.get(head).message}}));
+          const start=Number(input.variables.after||0),end=start+repository.pageSize;
+          return {data:{repository:{ref:{target:{oid:refs.get('refs/heads/main')}},refs:{nodes:nodes.slice(start,end),pageInfo:{hasNextPage:end<nodes.length,endCursor:String(end)}}}}};
+        }
+        if (input.query.includes('query CMSContentObjects')) {
+          const found={};
+          for(const [,alias,encoded]of input.query.matchAll(/(o\d+):object\(expression:("(?:[^"\\]|\\.)*")/g)) {
+            const expression=JSON.parse(encoded),colon=expression.indexOf(':'),head=expression.slice(0,colon),path=expression.slice(colon+1),files=filesAt(head),file=files.get(path);
+            if(file){found[alias]=file.type==='blob'?{oid:file.sha}:null;continue;}
+            const prefix=path+'/',entries=new Map();
+            for(const [name,value]of files)if(name.startsWith(prefix)){
+              const relative=name.slice(prefix.length),first=relative.split('/')[0];
+              entries.set(first,relative.includes('/')?{name:first,type:'tree',mode:16384,oid:await gitBlobShaBytes(new TextEncoder().encode(head+':'+prefix+first))}:{name:first,type:value.type,mode:parseInt(value.mode,8),oid:value.sha});
+            }
+            found[alias]=entries.size?{oid:await gitBlobShaBytes(new TextEncoder().encode(head+':'+path)),entries:[...entries.values()]}:null;
+          }
+          return {data:{repository:found}};
+        }
         if (input.query.includes('query CMSPublicationHistory') || input.query.includes('query CMSDraftHistory')) {
           if (Number(input.query.match(/history\(first:(\d+)/)[1]) > 100) throw new Error('GitHub GraphQL first limit is 100');
           const sha = input.variables.head || JSON.parse(input.query.match(/object\(oid:("[a-f0-9]+")/)[1]), nodes = []; let current = sha;

@@ -45,7 +45,7 @@ for (const mode of ['local','hosted']) test(`${mode} API prepares images without
     assert.equal(repo.filesAt(saved.body.head).has(`src/assets/images/${image.body.path}`),true);
     assert.equal(repo.refs.get('refs/heads/main'),main);
     if(mode==='hosted')await secondLogin();
-    const list=await call('GET','/api/content/library');assert.equal(list.body.entries[0].hasDraft,true);
+    const list=await call('GET','/api/content/library');assert.equal(list.body.entries[0].draftHint,'saved');assert.equal(list.body.entries[0].discovery,'provisional');
     const reopened=await call('GET','/api/content/library/report.mdx');assert.equal(reopened.body.head,saved.body.head);
     const imageList=await call('GET','/api/images?area=library&filename=report.mdx');assert.equal(imageList.body.images.length,1);
     const invalid=await call('POST','/api/images',{filename:'Unscoped.gif',mimeType:'image/gif',content:Buffer.from('GIF89a').toString('base64')});assert.equal(invalid.status,400);

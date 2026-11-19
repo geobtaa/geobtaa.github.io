@@ -212,7 +212,7 @@ async function contentApi(request, env, pathname) {
   const { area, filename } = route;
   if (area === 'posts' && request.method === 'POST' && !filename) return json(await saveBlog(github, null, await request.json()), 201);
   if (area === 'updates' && request.method === 'POST' && !filename) return json(await saveProgramUpdate(github, null, await request.json()), 201);
-  if (request.method === 'GET' && !filename) return json(await github.listContent(area));
+  if (request.method === 'GET' && !filename) return json(await github.discoverContent(area));
   if (!filename) throw new HttpError(400, 'Content filename is required.');
   if (request.method === 'GET') {
     const file = await github.getContent(area, filename);
