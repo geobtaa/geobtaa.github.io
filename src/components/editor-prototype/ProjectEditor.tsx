@@ -643,7 +643,6 @@ function freshEntry(area: AreaName): Project {
 export default function ProjectEditor() {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [listWarnings, setListWarnings] = useState<string[]>([]);
-  const [listProvisional, setListProvisional] = useState(false);
   const [listRefreshing, setListRefreshing] = useState(false);
   const [listStale, setListStale] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
@@ -677,8 +676,8 @@ export default function ProjectEditor() {
   const listScope = typeof viewer === 'string' ? JSON.stringify([typeof location === 'undefined' ? '' : location.origin, API, workspace, viewer.toLowerCase()]) : null;
   const listMemory = useRef<{scope:string|null;epoch:number;areas:Map<AreaName,ContentList>}>({scope:null,epoch:0,areas:new Map()});
   if (listMemory.current.scope !== listScope) listMemory.current = {scope:listScope,epoch:listMemory.current.epoch+1,areas:new Map()};
-  const showList = (data: ContentList) => { setProjects(data.entries); setListWarnings(data.warnings || []); setListProvisional(data.discovery === 'provisional'); };
-  const clearListMemory = () => { listMemory.current.areas.clear(); listMemory.current.epoch++; setProjects([]); setListWarnings([]); setListProvisional(false); setListRefreshing(false); setListStale(false); };
+  const showList = (data: ContentList) => { setProjects(data.entries); setListWarnings(data.warnings || []); };
+  const clearListMemory = () => { listMemory.current.areas.clear(); listMemory.current.epoch++; setProjects([]); setListWarnings([]); setListRefreshing(false); setListStale(false); };
   type LeavePrompt = { leave: () => void; backedUp: boolean; message: string };
   const [leavePrompt, setLeavePrompt] = useState<LeavePrompt | null>(null);
   const leavePromptRef = useRef<LeavePrompt | null>(null);
@@ -715,7 +714,7 @@ export default function ProjectEditor() {
     const epoch = listMemory.current.epoch;
     const remembered = next.area ? listMemory.current.areas.get(next.area) : undefined;
     setArea(next.area); setRoute(next); setProject(null); setBaseline(null);
-    if (next.area !== area) { setProjects([]); setListWarnings([]); setListProvisional(false); }
+    if (next.area !== area) { setProjects([]); setListWarnings([]); }
     if (remembered && !next.filename) showList(remembered);
     setListStale(!!remembered && !next.filename); setListRefreshing(false);
     setPreviewMode(false);
@@ -973,7 +972,7 @@ export default function ProjectEditor() {
   );
 
   const accountHeader = <header className="editor-header">
-    <div><p className="eyebrow">Staging</p><h1>{area ? 'Content editor' : 'Editor dashboard'}</h1><p>Signed in as <strong>{viewer}</strong>.</p></div>
+    <div><p className="eyebrow">Staging</p><h1>{area ? 'Content editor' : 'Editor dashboard'}</h1>{!area && <p>Signed in as <strong>{viewer}</strong>.</p>}</div>
     <button className="link-button" type="button" disabled={busy} onClick={logout}>Sign out</button>
   </header>;
 
@@ -983,6 +982,7 @@ export default function ProjectEditor() {
       {authenticationPanel}
       {storageWarning}
       <p className="dashboard-intro">Choose a content area to create a page or edit existing content.</p>
+      <p>Saved drafts can be viewed and edited by other authorized editors.</p>
       {error && <p className="message error" role="alert">{error}</p>}
       <nav className="dashboard-grid" aria-label="Content areas">
         {Object.entries(CONTENT_AREAS).map(([name, item]) => <button className="dashboard-card" type="button" key={name} onClick={() => selectArea(name as AreaName)}>
@@ -1003,22 +1003,21 @@ export default function ProjectEditor() {
       </nav>
       {accountHeader}
       {storageWarning}
-      <p>Published content comes from main. Saved drafts are shared with other authorized editors and do not change the public website.</p>
       {error && <p className="message error" role="alert">{error}</p>}
       {authenticationPanel}
       {error && (route.filename || route.draftId) && <button type="button" disabled={busy || !!authIssue} onClick={() => { void activateRoute(route); }}>Retry opening entry</button>}
       <label className="area-selector">Content area<select disabled={busy} value={area} onChange={(event) => selectArea((event.target.value || null) as AreaName | null)}><option value="">Dashboard — choose a content area</option>{Object.entries(CONTENT_AREAS).map(([name, item]) => <option key={name} value={name}>{item.label}</option>)}</select></label>
       <div className="list-heading"><h2>{config.label}</h2>{config.create && <button className="primary" type="button" disabled={busy} onClick={create}>New {config.itemLabel}</button>}</div>
+      <p className="list-discovery-note">Choose a page to edit, or continue working on a saved draft. Changes won't appear on the public website until they're published.</p>
       {listRefreshing ? <p role="status">Refreshing content list… Showing the previous list while checking for changes.</p> : listStale && !route.filename && <p role="status">This list may be out of date. Open an entry to check its current editing state.</p>}
-      {listProvisional && <p className="list-discovery-note">On main identifies the repository source. Saved work is checked when you open a document.</p>}
       {listWarnings.map((warning,index)=><p className="message" role="status" key={index}>{warning}</p>)}
       {route.filename ? busy && <p role="status">Checking document and saved work…</p> : busy ? <p role="status">Loading content…</p> : <ul className="project-list">{sortedProjects.map((item) => <li className={item.hasDraft || (item.draft && item.visibilityKnown) ? 'draft-entry' : ''} key={item.path}><button type="button" disabled={!!authIssue} onClick={() => open(item.name)}>
         <span className="content-name">{item.name.replace(/\.mdx?$/, '')}</span>
         {recovery.copies.some(copy => copy.route.area === area && copy.route.filename === item.name) && <span className="unsaved-indicator">Unsaved edits</span>}
         {(item.hasDraft || (item.draft && item.visibilityKnown === true)) && <span className="visibility-badge status-draft">Draft</span>}
         {item.discovery === 'provisional' && <>
-          <span className="visibility-badge">{item.onMain ? 'On main' : 'New saved draft'}</span>
-          {(item.needsReview || item.draftHint === 'review') ? <span className="visibility-badge">Needs review</span> : item.draftHint === 'saved' && item.onMain ? <span className="visibility-badge">Saved work available</span> : null}
+          <span className="visibility-badge">{item.onMain ? 'Published' : 'New draft'}</span>
+          {(item.needsReview || item.draftHint === 'review') ? <span className="visibility-badge">Needs review</span> : item.draftHint === 'saved' && item.onMain ? <span className="visibility-badge">Saved draft</span> : null}
         </>}
       </button></li>)}</ul>}
     </main>
