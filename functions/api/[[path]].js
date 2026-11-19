@@ -89,7 +89,7 @@ function cookie(name, value, options = '') {
 
 async function githubRequest(token, path, options = {}) {
   const response = await fetch(`https://api.github.com${path}`, {
-    ...options, redirect: 'error',
+    ...options, redirect: 'manual',
     headers: {
       Accept: 'application/vnd.github+json',
       Authorization: `Bearer ${token}`,
@@ -98,6 +98,7 @@ async function githubRequest(token, path, options = {}) {
       ...options.headers,
     },
   });
+  if (response.status >= 300 && response.status < 400) throw new HttpError(502, 'GitHub returned an unexpected redirect. No redirect was followed; verify the saved draft before retrying a write.');
   if (!response.ok) {
     const detail = await response.json().catch(() => ({}));
     throw new HttpError(response.status, detail.message || `GitHub request failed (${response.status}).`);
@@ -138,9 +139,10 @@ async function callback(request, env) {
   let tokenResponse, tokenData;
   try {
     tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
-      method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      method: 'POST', redirect: 'manual', headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify({ client_id: env.GITHUB_CLIENT_ID, client_secret: env.GITHUB_CLIENT_SECRET, code: url.searchParams.get('code'), redirect_uri: `${url.origin}/api/auth/callback`, code_verifier: cookies[VERIFIER_COOKIE] }),
     });
+    if (tokenResponse.status >= 300 && tokenResponse.status < 400) throw new HttpError(502, 'GitHub sign-in returned an unexpected redirect.');
     tokenData = await tokenResponse.json();
   } catch { throw new HttpError(502, 'GitHub sign-in could not be reached or returned an unreadable response. Start sign-in again.'); }
   if (!tokenResponse.ok || typeof tokenData?.access_token !== 'string' || !tokenData.access_token) throw new HttpError(tokenResponse.status >= 500 ? 502 : 401, 'GitHub could not complete sign-in. The code may have expired. Start sign-in again; contact the site administrator if this continues.');

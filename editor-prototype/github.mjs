@@ -7,8 +7,9 @@ export function createGitHubClient({ token, owner = 'geobtaa', repo = 'geobtaa.g
   const api = `https://api.github.com/repos/${owner}/${repo}`;
   const request = async (path, options = {}) => {
     const response = await fetchImpl(path === '/graphql' ? 'https://api.github.com/graphql' : `${api}${path}`, {
-      ...options, redirect: 'error', headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'geobtaa-editor', ...options.headers },
+      ...options, redirect: 'manual', headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'geobtaa-editor', ...options.headers },
     });
+    if (response.status >= 300 && response.status < 400) throw Object.assign(new Error('GitHub returned an unexpected redirect. No redirect was followed; verify the saved draft before retrying a write.'), { status: 502 });
     if (!response.ok) {
       const detail = await response.json().catch(() => ({}));
       throw Object.assign(new Error(detail.message || `GitHub request failed (${response.status}).`), { status: response.status });
