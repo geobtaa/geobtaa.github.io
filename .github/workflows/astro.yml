@@ -8,16 +8,6 @@ on:
   # Runs on pushes targeting the default branch
   push:
     branches: ["main"]
-    paths:
-      - "src/**"
-      - "public/**"
-      - "astro.config.ts"
-      - "package.json"
-      - "package-lock.json"
-      - "tsconfig.json"
-      - ".node-version"
-      - "navigation.config.ts"
-      - ".github/workflows/astro.yml"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -31,7 +21,7 @@ permissions:
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   BUILD_PATH: "." # default value when not using subfolders
@@ -39,6 +29,7 @@ env:
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/main' && github.repository == 'geobtaa/geobtaa.github.io'
     name: Build
     runs-on: ubuntu-latest
     steps:
@@ -81,12 +72,15 @@ jobs:
             --site "${{ steps.pages.outputs.origin }}" \
             --base "${{ steps.pages.outputs.base_path }}"
         working-directory: ${{ env.BUILD_PATH }}
+      - name: Record production source and rendered-document identities
+        run: node scripts/write-cms-deployment.mjs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ env.BUILD_PATH }}/dist
 
   deploy:
+    if: github.ref == 'refs/heads/main' && github.repository == 'geobtaa/geobtaa.github.io'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -94,6 +88,12 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy
     steps:
+      - name: Reject an obsolete build before deploying
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current_main=$(gh api repos/geobtaa/geobtaa.github.io/git/ref/heads/main --jq .object.sha)
+          test "$current_main" = "$GITHUB_SHA" || { echo "Main advanced; the newer workflow must deploy instead."; exit 1; }
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

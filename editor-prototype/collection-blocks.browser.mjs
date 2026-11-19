@@ -52,6 +52,29 @@ async function save(browser, count) {
   await browser.waitFor(`window.writes.length === ${count} && document.querySelector('.save-state').textContent === 'No unsaved changes'`);
 }
 
+async function cardState(browser, card) {
+  return browser.evaluate(`(() => {
+    const content = (${card})?.querySelector('.card-body .tiptap');
+    const editor = content?.editor;
+    const selection = editor?.state.selection;
+    return {
+      browser: navigator.userAgent, platform: navigator.platform,
+      focused: document.activeElement === content,
+      domSelection: window.getSelection()?.toString(),
+      editorSelection: selection?.toJSON(),
+      selectedText: selection && editor.state.doc.textBetween(selection.from, selection.to, ' '),
+      html: content?.innerHTML, markdown: editor?.getMarkdown(),
+    };
+  })()`);
+}
+async function waitForCard(browser, card, condition, stage) {
+  try { await browser.waitFor(condition); }
+  catch (error) {
+    const diagnostic = await cardState(browser, card).catch(failure => ({ unavailable: failure.message }));
+    throw new Error(`${stage}: ${error.message}\nCard diagnostics: ${JSON.stringify(diagnostic, null, 2)}`, { cause: error });
+  }
+}
+
 test('chips and rich card grids insert, reorder entries, preserve cursors and formatting, save/reopen and remove independently', options, async () => {
   await withEditorBrowser(fixture(), async browser => {
     const { evaluate, waitFor, send } = browser;
@@ -79,12 +102,32 @@ test('chips and rich card grids insert, reorder entries, preserve cursors and fo
     await waitFor('document.querySelectorAll(".collection-cardGrid .collection-entry").length === 2');
     const card = index => `document.querySelectorAll('.collection-cardGrid .collection-entry')[${index}]`;
     await fill(browser, `${card(0)}.querySelector('input')`, 'Maps & <literal> {title}');
-    await evaluate(`${card(0)}.querySelector('.card-body .tiptap').focus()`);
-    await send('Input.insertText', { text: 'An important update with <literal> & {data}.' });
-    await evaluate(`(() => { const content = ${card(0)}.querySelector('.card-body .tiptap'); const range = document.createRange(); range.selectNodeContents(content.firstChild); const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range); })()`);
+    const richText = 'An important update with <literal> & {data}.';
+    const content = `${card(0)}.querySelector('.card-body .tiptap')`;
+    await evaluate(`${content}.focus()`);
+    await send('Input.insertText', { text: richText });
+    await waitForCard(browser, card(0), `${content}.textContent === ${JSON.stringify(richText)}`, 'Card text insertion');
+    // Use the browser's select-all shortcut in the focused nested editor, then
+    // wait for ProseMirror to observe it. A DOM Range alone leaves a window in
+    // which Bold sees a collapsed editor selection and only toggles stored marks.
+    const modifiers = await evaluate('/Mac/.test(navigator.platform) ? 4 : 2');
+    await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65, modifiers });
+    await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65, modifiers });
+    await waitForCard(browser, card(0), `(() => {
+      const editor = ${content}.editor, { from, to } = editor.state.selection;
+      return document.activeElement === ${content} && from !== to
+        && editor.state.doc.textBetween(from, to, ' ') === ${JSON.stringify(richText)}
+        && window.getSelection().toString().trim() === ${JSON.stringify(richText)};
+    })()`, 'Card select-all synchronization');
+    const formattingTrace = { selected: await cardState(browser, card(0)), bold: null, list: null };
     await click(browser, button('Bold', `${card(0)}.querySelector('.toolbar')`));
+    await waitForCard(browser, card(0), `${content}.querySelector('strong')?.textContent === ${JSON.stringify(richText)} && ${content}.editor.getMarkdown().includes('**')`, 'Bold applies before subsequent edits');
+    formattingTrace.bold = await cardState(browser, card(0));
     await click(browser, button('Link', `${card(0)}.querySelector('.toolbar')`));
+    await waitForCard(browser, card(0), `${content}.querySelector('a')?.getAttribute('href') === 'https://example.com/maps' && ${content}.querySelector('strong')?.textContent === ${JSON.stringify(richText)}`, 'Link preserves bold');
     await click(browser, button('Bulleted list', `${card(0)}.querySelector('.toolbar')`));
+    await waitForCard(browser, card(0), `${content}.querySelector('li strong')?.textContent === ${JSON.stringify(richText)}`, 'List preserves bold');
+    formattingTrace.list = await cardState(browser, card(0));
     await fill(browser, `${card(1)}.querySelector('input')`, 'Second card');
     await evaluate(`${card(1)}.querySelector('.card-body .tiptap').focus()`);
     await send('Input.insertText', { text: 'Second card body.' });
@@ -112,9 +155,10 @@ test('chips and rich card grids insert, reorder entries, preserve cursors and fo
     const cards = parseCollectionMdx(gridSource).data;
     assert.equal(cards[0].title, 'Third card'); assert.equal(cards[0].body, 'Third card body.');
     assert.equal(cards[1].title, 'Maps & <literal> {title}');
-    assert.ok(cards[1].body.includes('**'));
-    assert.ok(cards[1].body.includes('https://example.com/maps'));
-    assert.match(cards[1].body, /^- /);
+    const formattingDiagnostics = `Serialized card: ${JSON.stringify(cards[1], null, 2)}\nFormatting trace: ${JSON.stringify(formattingTrace, null, 2)}`;
+    assert.ok(cards[1].body.includes('**'), `Saved card must retain bold Markdown.\n${formattingDiagnostics}`);
+    assert.ok(cards[1].body.includes('https://example.com/maps'), `Saved card must retain its link.\n${formattingDiagnostics}`);
+    assert.match(cards[1].body, /^- /, `Saved card must retain its list.\n${formattingDiagnostics}`);
     await evaluate('document.querySelector(".editor-navigation .back").click()');
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');

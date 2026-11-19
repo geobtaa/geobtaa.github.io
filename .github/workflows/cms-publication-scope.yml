@@ -1,0 +1,30 @@
+name: CMS publication scope
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+concurrency:
+  group: cms-eligibility-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  cms-publication-scope:
+    if: github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      # Never check out or execute the PR head in this workflow.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Validate eligibility from trusted base
+        run: node scripts/check-cms-publication.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
