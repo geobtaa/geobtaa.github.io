@@ -41,9 +41,9 @@ On 2026-11-19, the complete draft-ref inventory contained three drafts:
 
 | Document | Current head | Last commit UTC | Retained new images |
 | --- | --- | --- | ---: |
-| `library/cms-publishing-test.mdx` | `5fe43d8` | 2026-11-19 01:14:49 | 0 |
-| `library/geodata-pilot-workgroup-report.mdx` | `8a29030` | 2026-11-17 18:56:44 | 0 |
-| `library/test-doc-today.mdx` | `82e025a` | 2026-11-17 19:03:39 | 1 |
+| `library/cms-publishing-test.mdx` | `5fe43d8` | `2026-11-19 01:14:49` | 0 |
+| `library/geodata-pilot-workgroup-report.mdx` | `8a29030` | `2026-11-17 18:56:44` | 0 |
+| `library/test-doc-today.mdx` | `82e025a` | `2026-11-17 19:03:39` | 1 |
 
 All predate the 2026-11-19 source-release deployment. The retained test snapshot `fd2b062`, coordinator `90d87e4`, working revision `5fe43d8` and associated lock were read back and match their recorded SHAs. No refs were deleted, rewritten or retried. The pre-existing image is not evidence of a write by the failed attempt.
 
