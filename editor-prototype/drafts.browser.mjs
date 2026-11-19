@@ -28,7 +28,7 @@ window.fetch=async(url,options={})=>{
  const parsed=new URL(String(url),location.origin),pathname=parsed.pathname;
  try{
   if(pathname.startsWith('/api/publish/')&&(!options.method||options.method==='GET'))return Response.json(await window.store.getPublicationStatus('library','report.mdx'));
-  if(pathname.startsWith('/api/publish/'))return Response.json(await window.store.publishContent({area:'library',filename:'report.mdx',head:JSON.parse(options.body).head}));
+  if(pathname.startsWith('/api/publish/'))return Response.json(await (JSON.parse(options.body).prepare ? window.store.preparePublication({area:'library',filename:'report.mdx',head:JSON.parse(options.body).head}) : window.store.publishContent({area:'library',filename:'report.mdx',...JSON.parse(options.body)})));
   if(pathname==='/api/session')return Response.json({authenticated:true,login:localStorage.getItem('test-draft-login')||'first-editor',workspace:window.store.workspace});
   if(pathname==='/api/images'&&options.method==='POST'){const input=JSON.parse(options.body);return Response.json(await window.store.uploadImage({...input,bytes:Uint8Array.from(atob(input.content),char=>char.charCodeAt(0))}))}
   if(pathname==='/api/images')return Response.json(await window.store.listImages({area:parsed.searchParams.get('area'),filename:parsed.searchParams.get('filename')}));
@@ -105,14 +105,44 @@ test('Publish is separate from Save Draft, requires a clean saved revision, and 
     await evaluate('document.querySelector(".top-save").click()');
     await waitFor('document.querySelector(".save-state").textContent==="No unsaved changes"');
     assert.equal(await evaluate('window.repo.pulls.length'), 0, 'Save Draft never opens a PR');
-    await evaluate('window.repo.autoMergeFailure=true;document.querySelector(".publish-document").click()');
-    await waitFor('document.querySelector(".message")?.textContent.includes("auto-merge could not be confirmed")');
+    await evaluate('window.repo.protection={};document.querySelector(".publish-document").click()');
+    await waitFor('document.querySelector(".message")?.textContent.includes("policy blocked")');
     assert.equal(await evaluate(`${title}.value`), 'Publication test');
-    assert.equal(await evaluate('window.repo.pulls.length'), 1);
-    await evaluate('window.repo.autoMergeFailure=false;document.querySelector(".publish-document").click()');
-    await waitFor('document.querySelector(".message")?.textContent.includes("Publication request recorded · PR #1")');
+    assert.equal(await evaluate('window.repo.pulls.length'), 0);
+    await evaluate('window.repo.protection=undefined;document.querySelector(".publish-document").click()');
+    await waitFor('document.querySelector(".message")?.textContent.includes("Publication PR created")');
     assert.equal(await evaluate('window.repo.pulls.length'), 1);
     await fill(browser, 'Unsaved newer text');
     assert.equal(await evaluate('document.querySelector(".publish-document").disabled'), true);
   }, {initialSearch:'?area=library&file=report.mdx'});
+});
+
+test('after manual merge, reopening and saving another edit works without branch instructions or losing unsaved browser recovery', options, async () => {
+  await withEditorBrowser(fixture, async browser => {
+    const {evaluate,waitFor,send}=browser;
+    await waitFor(`!!${title}`);await fill(browser,'First round');
+    await evaluate('document.querySelector(".top-save").click()');
+    await waitFor('document.querySelector(".save-state").textContent==="No unsaved changes"');
+    await evaluate('document.querySelector(".publish-document").click()');
+    await waitFor('window.repo.pulls.length===1 && document.querySelector(".publish-document").disabled===false');
+    // Keep a browser-only edit made after submission but before the manual merge.
+    await fill(browser,'Keep unsaved second round');
+    await evaluate(`(async()=>{window.mergeSubmitted=async()=>{const pr=window.repo.pulls.at(-1),file=window.repo.filesAt(pr.head.sha).get('src/content/docs/library/report.mdx');const main=await window.repo.put('src/content/docs/library/report.mdx',new TextDecoder().decode(window.repo.objects.get(file.sha)));pr.state='closed';pr.merged_at='2026-11-19T12:00:00Z';pr.merge_commit_sha=main;};await window.mergeSubmitted();await window.fetch('/api/publish/library/report.mdx');window.dispatchEvent(new Event('pagehide'));})()`);
+    await send('Page.enable'); browser.onEvent('Page.javascriptDialogOpening',()=>{void send('Page.handleJavaScriptDialog',{accept:true})});
+    await send('Page.reload');
+    await waitFor(`!!${title} && !!${button('Restore changes')}`);
+    assert.match(await evaluate('document.body.textContent'),/previous PR merged/);
+    const restore=await evaluate(`[...document.querySelectorAll('button')].find(button=>button.textContent.startsWith('Restore')&&!button.disabled)?.textContent`);
+    assert.ok(restore,'same saved source can restore pre-merge unsaved edits');
+    await evaluate(`[...document.querySelectorAll('button')].find(button=>button.textContent===${JSON.stringify(restore)}).click()`);
+    await waitFor(`${title}.value==='Keep unsaved second round'`);
+    await evaluate('document.querySelector(".top-save").click()');
+    await waitFor('document.querySelector(".save-state").textContent==="No unsaved changes" && document.querySelector(".publish-document").disabled===false');
+    await evaluate('document.querySelector(".publish-document").click()');
+    await waitFor('window.repo.pulls.length===2 && document.querySelector(".publish-document").disabled===false');
+    assert.equal(await evaluate(`${title}.value`),'Keep unsaved second round');
+    assert.equal(await evaluate('window.repo.pulls[0].state'),'closed');
+    assert.equal(await evaluate('window.repo.pulls[1].state'),'open');
+    assert.equal(await evaluate('document.body.textContent.includes("cycle-")'),false);
+  },{initialSearch:'?area=library&file=report.mdx'});
 });

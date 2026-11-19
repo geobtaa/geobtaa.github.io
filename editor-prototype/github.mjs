@@ -7,7 +7,7 @@ export function createGitHubClient({ token, owner = 'geobtaa', repo = 'geobtaa.g
   const api = `https://api.github.com/repos/${owner}/${repo}`;
   const request = async (path, options = {}) => {
     const response = await fetchImpl(path === '/graphql' ? 'https://api.github.com/graphql' : `${api}${path}`, {
-      ...options, headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'geobtaa-editor', ...options.headers },
+      ...options, redirect: 'error', headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'geobtaa-editor', ...options.headers },
     });
     if (!response.ok) {
       const detail = await response.json().catch(() => ({}));

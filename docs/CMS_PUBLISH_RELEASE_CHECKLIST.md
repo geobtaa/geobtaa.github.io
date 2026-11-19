@@ -1,3 +1,5 @@
+> Superseded for the current release by [PR-only publishing](CMS_PR_ONLY.md). Automatic merging, the six-stage Actions orchestration proposal, and CMS deployment tracking are abandoned. The text below records the earlier design.
+
 # CMS publishing release checklist
 
 This is a proposed future procedure, not authorization to push, merge, deploy, change settings or publish now. Keep `CMS_PUBLISH_ENABLED=false` until the separately authorized smoke test.

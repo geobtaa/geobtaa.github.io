@@ -1,0 +1,3224 @@
+{
+  "schema": 1,
+  "revision": "78beb55c38aab6a8374d800bab5bbcc00a418a13",
+  "node": "v24.13.1",
+  "platform": "darwin/arm64",
+  "measuredAt": "2026-11-19T17:11:27.281Z",
+  "actualCloudflareMeasurements": false,
+  "network": "disabled; in-memory GitHub only",
+  "cpuMeaning": "Node process CPU including mock transport; not Cloudflare CPU. Module initialization and fixture/session setup excluded. Fresh means fresh compiler/route module caches, not an observed Cloudflare cold isolate.",
+  "cases": [
+    {
+      "fixture": {
+        "id": "reopen-small",
+        "operation": "reopen",
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 0
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 7,
+          "nodeProcessCpuMs": 4.982,
+          "mockTransportCpuMs": 0.467,
+          "localWallMs": 3.825,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 7,
+          "nodeProcessCpuMs": 1.376,
+          "mockTransportCpuMs": 0.253,
+          "localWallMs": 0.925,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 7,
+          "nodeProcessCpuMs": 1.4,
+          "mockTransportCpuMs": 0.226,
+          "localWallMs": 0.837,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "discovery-small",
+        "operation": "discovery",
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 0
+      },
+      "url": "/api/content/library",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 10,
+          "nodeProcessCpuMs": 7.161,
+          "mockTransportCpuMs": 0.758,
+          "localWallMs": 5.396,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 1,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 10,
+          "nodeProcessCpuMs": 2.391,
+          "mockTransportCpuMs": 0.357,
+          "localWallMs": 1.754,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 1,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 10,
+          "nodeProcessCpuMs": 2.992,
+          "mockTransportCpuMs": 0.497,
+          "localWallMs": 1.699,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 1,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "save-small",
+        "operation": "save",
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 2680
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "PUT",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 24,
+          "nodeProcessCpuMs": 66.867,
+          "mockTransportCpuMs": 2.965,
+          "localWallMs": 64.157,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "CMSRoutes": 6,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 18,
+          "nodeProcessCpuMs": 10.909,
+          "mockTransportCpuMs": 0.794,
+          "localWallMs": 6.971,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 18,
+          "nodeProcessCpuMs": 17.542,
+          "mockTransportCpuMs": 0.51,
+          "localWallMs": 6.534,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "save-32KiB",
+        "operation": "save",
+        "documentChars": 32768,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 32811,
+        "bodyBytes": 67448
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "PUT",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 24,
+          "nodeProcessCpuMs": 271.97,
+          "mockTransportCpuMs": 2.804,
+          "localWallMs": 164.233,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "CMSRoutes": 6,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 18,
+          "nodeProcessCpuMs": 145.08,
+          "mockTransportCpuMs": 14.124,
+          "localWallMs": 89.819,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 18,
+          "nodeProcessCpuMs": 103.391,
+          "mockTransportCpuMs": 1.13,
+          "localWallMs": 70.945,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "save-128KiB",
+        "operation": "save",
+        "documentChars": 131072,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 131115,
+        "bodyBytes": 268028
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "PUT",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 24,
+          "nodeProcessCpuMs": 718.503,
+          "mockTransportCpuMs": 7.542,
+          "localWallMs": 393.495,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "CMSRoutes": 6,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 18,
+          "nodeProcessCpuMs": 527.381,
+          "mockTransportCpuMs": 3.243,
+          "localWallMs": 320.713,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 18,
+          "nodeProcessCpuMs": 422.425,
+          "mockTransportCpuMs": 2.822,
+          "localWallMs": 281.775,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "image-prepare-1MiB",
+        "operation": "image-prepare",
+        "imageBytes": 1048576,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 1398357
+      },
+      "url": "/api/images",
+      "method": "POST",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 201,
+          "logicalExternalFetches": 0,
+          "nodeProcessCpuMs": 52.569,
+          "mockTransportCpuMs": 0,
+          "localWallMs": 50.952,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {}
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 201,
+          "logicalExternalFetches": 0,
+          "nodeProcessCpuMs": 53.989,
+          "mockTransportCpuMs": 0,
+          "localWallMs": 49.728,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {}
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 201,
+          "logicalExternalFetches": 0,
+          "nodeProcessCpuMs": 47.449,
+          "mockTransportCpuMs": 0,
+          "localWallMs": 47.152,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {}
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "save-image-1MiB",
+        "operation": "save-image",
+        "imageBytes": 1048576,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 1401142
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "PUT",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 25,
+          "nodeProcessCpuMs": 159.643,
+          "mockTransportCpuMs": 32.884,
+          "localWallMs": 143.015,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "CMSRoutes": 6,
+            "/git/blobs": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 19,
+          "nodeProcessCpuMs": 93.286,
+          "mockTransportCpuMs": 31.46,
+          "localWallMs": 86.692,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/blobs": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 19,
+          "nodeProcessCpuMs": 102.641,
+          "mockTransportCpuMs": 32.408,
+          "localWallMs": 88.766,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/blobs": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "reopen-image-1MiB",
+        "operation": "reopen",
+        "imageBytes": 1048576,
+        "storedImage": true,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 188,
+        "bodyBytes": 0
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 9,
+          "nodeProcessCpuMs": 78.087,
+          "mockTransportCpuMs": 18.488,
+          "localWallMs": 68.372,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 3,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 2
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 9,
+          "nodeProcessCpuMs": 63.094,
+          "mockTransportCpuMs": 17.14,
+          "localWallMs": 61.893,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 3,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 2
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 9,
+          "nodeProcessCpuMs": 60.004,
+          "mockTransportCpuMs": 14.465,
+          "localWallMs": 59.15,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 3,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 2
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "image-prepare-5MiB",
+        "operation": "image-prepare",
+        "imageBytes": 5242880,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 6990761
+      },
+      "url": "/api/images",
+      "method": "POST",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 201,
+          "logicalExternalFetches": 0,
+          "nodeProcessCpuMs": 273.299,
+          "mockTransportCpuMs": 0,
+          "localWallMs": 258.352,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {}
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 201,
+          "logicalExternalFetches": 0,
+          "nodeProcessCpuMs": 247.156,
+          "mockTransportCpuMs": 0,
+          "localWallMs": 239.567,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {}
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 201,
+          "logicalExternalFetches": 0,
+          "nodeProcessCpuMs": 242.46,
+          "mockTransportCpuMs": 0,
+          "localWallMs": 234.943,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {}
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "save-image-5MiB",
+        "operation": "save-image",
+        "imageBytes": 5242880,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 6993546
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "PUT",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 25,
+          "nodeProcessCpuMs": 495.81,
+          "mockTransportCpuMs": 165.075,
+          "localWallMs": 466.248,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "CMSRoutes": 6,
+            "/git/blobs": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 19,
+          "nodeProcessCpuMs": 422.746,
+          "mockTransportCpuMs": 175.687,
+          "localWallMs": 404.839,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/blobs": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 19,
+          "nodeProcessCpuMs": 412.853,
+          "mockTransportCpuMs": 167.985,
+          "localWallMs": 396.815,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 2,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/blobs": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "reopen-image-5MiB",
+        "operation": "reopen",
+        "imageBytes": 5242880,
+        "storedImage": true,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 188,
+        "bodyBytes": 0
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 9,
+          "nodeProcessCpuMs": 324.196,
+          "mockTransportCpuMs": 80.071,
+          "localWallMs": 306.921,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 3,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 2
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 9,
+          "nodeProcessCpuMs": 306.771,
+          "mockTransportCpuMs": 73.78,
+          "localWallMs": 299.09,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 3,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 2
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 9,
+          "nodeProcessCpuMs": 308.85,
+          "mockTransportCpuMs": 71.835,
+          "localWallMs": 300.969,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 3,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 2
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "reopen-history-27",
+        "operation": "reopen",
+        "history": 27,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1079,
+        "bodyBytes": 0
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 34,
+          "nodeProcessCpuMs": 6.088,
+          "mockTransportCpuMs": 1.014,
+          "localWallMs": 4.605,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 29,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 34,
+          "nodeProcessCpuMs": 1.78,
+          "mockTransportCpuMs": 0.473,
+          "localWallMs": 1.371,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 29,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 34,
+          "nodeProcessCpuMs": 2.205,
+          "mockTransportCpuMs": 0.471,
+          "localWallMs": 1.465,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 29,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "save-history-27",
+        "operation": "save",
+        "history": 27,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1079,
+        "bodyBytes": 2695
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "PUT",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 51,
+          "nodeProcessCpuMs": 67.805,
+          "mockTransportCpuMs": 2.879,
+          "localWallMs": 65.291,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "POST",
+            "path": "CMSSaveDraft"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 29,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "CMSRoutes": 6,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 45,
+          "nodeProcessCpuMs": 13.52,
+          "mockTransportCpuMs": 1.963,
+          "localWallMs": 7.89,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 29,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 45,
+          "nodeProcessCpuMs": 22.487,
+          "mockTransportCpuMs": 1.28,
+          "localWallMs": 9.485,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 29,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "discovery-history-27",
+        "operation": "discovery",
+        "history": 27,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1079,
+        "bodyBytes": 0
+      },
+      "url": "/api/content/library",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 36,
+          "nodeProcessCpuMs": 7.972,
+          "mockTransportCpuMs": 1.407,
+          "localWallMs": 5.935,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 27,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 36,
+          "nodeProcessCpuMs": 2.542,
+          "mockTransportCpuMs": 0.57,
+          "localWallMs": 2.021,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 27,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 36,
+          "nodeProcessCpuMs": 2.82,
+          "mockTransportCpuMs": 0.516,
+          "localWallMs": 2.14,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 27,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "reopen-history-33",
+        "operation": "reopen",
+        "history": 33,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1079,
+        "bodyBytes": 0
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 40,
+          "nodeProcessCpuMs": 6.044,
+          "mockTransportCpuMs": 1.056,
+          "localWallMs": 4.6,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 35,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 40,
+          "nodeProcessCpuMs": 2.095,
+          "mockTransportCpuMs": 0.587,
+          "localWallMs": 1.578,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 35,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 40,
+          "nodeProcessCpuMs": 1.768,
+          "mockTransportCpuMs": 0.474,
+          "localWallMs": 1.259,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 35,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "save-history-33",
+        "operation": "save",
+        "history": 33,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1079,
+        "bodyBytes": 2695
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "PUT",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 57,
+          "nodeProcessCpuMs": 70.102,
+          "mockTransportCpuMs": 2.798,
+          "localWallMs": 64.12,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "POST",
+            "path": "CMSRoutes"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 35,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "CMSRoutes": 6,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 51,
+          "nodeProcessCpuMs": 13.544,
+          "mockTransportCpuMs": 1.993,
+          "localWallMs": 8.202,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "POST",
+            "path": "CMSSaveDraft"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 35,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 51,
+          "nodeProcessCpuMs": 20.081,
+          "mockTransportCpuMs": 2.814,
+          "localWallMs": 6.934,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "POST",
+            "path": "CMSSaveDraft"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 35,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "discovery-history-33",
+        "operation": "discovery",
+        "history": 33,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1079,
+        "bodyBytes": 0
+      },
+      "url": "/api/content/library",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 42,
+          "nodeProcessCpuMs": 8.01,
+          "mockTransportCpuMs": 1.028,
+          "localWallMs": 6.033,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 33,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 42,
+          "nodeProcessCpuMs": 2.556,
+          "mockTransportCpuMs": 0.482,
+          "localWallMs": 2.042,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 33,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 42,
+          "nodeProcessCpuMs": 2.741,
+          "mockTransportCpuMs": 0.783,
+          "localWallMs": 1.931,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 33,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "reopen-history-60",
+        "operation": "reopen",
+        "history": 60,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1079,
+        "bodyBytes": 0
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 67,
+          "nodeProcessCpuMs": 8.784,
+          "mockTransportCpuMs": 1.301,
+          "localWallMs": 5.907,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/52c41697790f45b3a5b3e5acf89ed3f400000027"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 62,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 67,
+          "nodeProcessCpuMs": 2.135,
+          "mockTransportCpuMs": 0.544,
+          "localWallMs": 1.708,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/52c41697790f45b3a5b3e5acf89ed3f400000027"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 62,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 67,
+          "nodeProcessCpuMs": 2.825,
+          "mockTransportCpuMs": 0.718,
+          "localWallMs": 1.806,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/52c41697790f45b3a5b3e5acf89ed3f400000027"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 62,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "save-history-60",
+        "operation": "save",
+        "history": 60,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1079,
+        "bodyBytes": 2695
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "PUT",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 84,
+          "nodeProcessCpuMs": 72.167,
+          "mockTransportCpuMs": 3.049,
+          "localWallMs": 67.063,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/603aeb2b85c44a5e91b14415040b461f00000027"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 62,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "CMSRoutes": 6,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 78,
+          "nodeProcessCpuMs": 26.332,
+          "mockTransportCpuMs": 4.699,
+          "localWallMs": 10.989,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/603aeb2b85c44a5e91b14415040b461f00000027"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 62,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 78,
+          "nodeProcessCpuMs": 21.013,
+          "mockTransportCpuMs": 1.625,
+          "localWallMs": 7.704,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/603aeb2b85c44a5e91b14415040b461f00000027"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 62,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "discovery-history-60",
+        "operation": "discovery",
+        "history": 60,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1079,
+        "bodyBytes": 0
+      },
+      "url": "/api/content/library",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 69,
+          "nodeProcessCpuMs": 13.506,
+          "mockTransportCpuMs": 1.468,
+          "localWallMs": 8.177,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/9fd19fd098d24c81b810aaae25f2cb5900000023"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 60,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 69,
+          "nodeProcessCpuMs": 3.166,
+          "mockTransportCpuMs": 0.822,
+          "localWallMs": 2.555,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/9fd19fd098d24c81b810aaae25f2cb5900000023"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 60,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 69,
+          "nodeProcessCpuMs": 3.248,
+          "mockTransportCpuMs": 1.104,
+          "localWallMs": 2.369,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/9fd19fd098d24c81b810aaae25f2cb5900000023"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 60,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "reopen-history-600",
+        "operation": "reopen",
+        "history": 600,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1080,
+        "bodyBytes": 0
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 607,
+          "nodeProcessCpuMs": 22.703,
+          "mockTransportCpuMs": 8.626,
+          "localWallMs": 14.248,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/3bc218b5809a43fb88eab7eac5a7cfdf0000045f"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 602,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 607,
+          "nodeProcessCpuMs": 8.803,
+          "mockTransportCpuMs": 3.699,
+          "localWallMs": 7.507,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/3bc218b5809a43fb88eab7eac5a7cfdf0000045f"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 602,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 607,
+          "nodeProcessCpuMs": 7.538,
+          "mockTransportCpuMs": 3.155,
+          "localWallMs": 6.216,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/3bc218b5809a43fb88eab7eac5a7cfdf0000045f"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 602,
+            "/git/trees/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/blobs/:oid": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "save-history-600",
+        "operation": "save",
+        "history": 600,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1080,
+        "bodyBytes": 2697
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "PUT",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 624,
+          "nodeProcessCpuMs": 96.107,
+          "mockTransportCpuMs": 12.362,
+          "localWallMs": 76.491,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/beb9933676894df48a05672220b416320000045f"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 602,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "CMSRoutes": 6,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 618,
+          "nodeProcessCpuMs": 22.956,
+          "mockTransportCpuMs": 4.252,
+          "localWallMs": 15.194,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/beb9933676894df48a05672220b416320000045f"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 602,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 618,
+          "nodeProcessCpuMs": 32.349,
+          "mockTransportCpuMs": 5.577,
+          "localWallMs": 15.128,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/beb9933676894df48a05672220b416320000045f"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 2,
+            "/git/commits/:oid": 602,
+            "/git/trees/:oid": 4,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/blobs/:oid": 3,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 1,
+            "CMSSaveDraft": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "discovery-history-600",
+        "operation": "discovery",
+        "history": 600,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1080,
+        "bodyBytes": 0
+      },
+      "url": "/api/content/library",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 609,
+          "nodeProcessCpuMs": 23.432,
+          "mockTransportCpuMs": 7.422,
+          "localWallMs": 14.443,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/65f7494612674bd49b0f7e9e3c4c39bb0000045b"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 600,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 609,
+          "nodeProcessCpuMs": 9.679,
+          "mockTransportCpuMs": 4.221,
+          "localWallMs": 8.204,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/65f7494612674bd49b0f7e9e3c4c39bb0000045b"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 600,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 609,
+          "nodeProcessCpuMs": 16.84,
+          "mockTransportCpuMs": 4.235,
+          "localWallMs": 9.886,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": true,
+          "firstFetchBeyond50": {
+            "method": "GET",
+            "path": "/git/commits/65f7494612674bd49b0f7e9e3c4c39bb0000045b"
+          },
+          "grouped": {
+            "/git/ref/heads/main": 1,
+            "/git/commits/:oid": 600,
+            "/git/trees/:oid": 4,
+            "CMSDrafts": 1,
+            "/git/blobs/:oid": 3
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "pr-prepare",
+        "operation": "pr-prepare",
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 66
+      },
+      "url": "/api/publish/library/qualification.mdx",
+      "method": "POST",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 3,
+          "nodeProcessCpuMs": 1.285,
+          "mockTransportCpuMs": 0.151,
+          "localWallMs": 1.112,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "CMSPublicationFiles": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 3,
+          "nodeProcessCpuMs": 0.572,
+          "mockTransportCpuMs": 0.06,
+          "localWallMs": 0.347,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "CMSPublicationFiles": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 3,
+          "nodeProcessCpuMs": 0.461,
+          "mockTransportCpuMs": 0.083,
+          "localWallMs": 0.324,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "CMSPublicationFiles": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "pr-create",
+        "operation": "pr-create",
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 1182
+      },
+      "url": "/api/publish/library/qualification.mdx",
+      "method": "POST",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 23,
+          "nodeProcessCpuMs": 3.115,
+          "mockTransportCpuMs": 1.195,
+          "localWallMs": 2.307,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 23,
+          "nodeProcessCpuMs": 1.2,
+          "mockTransportCpuMs": 0.507,
+          "localWallMs": 0.987,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 23,
+          "nodeProcessCpuMs": 1.505,
+          "mockTransportCpuMs": 0.455,
+          "localWallMs": 0.828,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "pr-status",
+        "operation": "pr-status",
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 0
+      },
+      "url": "/api/publish/library/qualification.mdx",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 8,
+          "nodeProcessCpuMs": 2.251,
+          "mockTransportCpuMs": 0.51,
+          "localWallMs": 1.737,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 2,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 8,
+          "nodeProcessCpuMs": 0.627,
+          "mockTransportCpuMs": 0.222,
+          "localWallMs": 0.551,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 2,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 8,
+          "nodeProcessCpuMs": 0.707,
+          "mockTransportCpuMs": 0.139,
+          "localWallMs": 0.5,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 2,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "pr-create-history-600",
+        "operation": "pr-create",
+        "history": 600,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1080,
+        "bodyBytes": 1196
+      },
+      "url": "/api/publish/library/qualification.mdx",
+      "method": "POST",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 23,
+          "nodeProcessCpuMs": 18.131,
+          "mockTransportCpuMs": 2.303,
+          "localWallMs": 6.652,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 23,
+          "nodeProcessCpuMs": 1.072,
+          "mockTransportCpuMs": 0.437,
+          "localWallMs": 0.878,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 23,
+          "nodeProcessCpuMs": 1.414,
+          "mockTransportCpuMs": 0.429,
+          "localWallMs": 0.743,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "pr-prepare-image-1MiB",
+        "operation": "pr-prepare",
+        "imageBytes": 1048576,
+        "storedImage": true,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 188,
+        "bodyBytes": 66
+      },
+      "url": "/api/publish/library/qualification.mdx",
+      "method": "POST",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 3,
+          "nodeProcessCpuMs": 1.434,
+          "mockTransportCpuMs": 0.156,
+          "localWallMs": 1.264,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "CMSPublicationFiles": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 3,
+          "nodeProcessCpuMs": 0.562,
+          "mockTransportCpuMs": 0.105,
+          "localWallMs": 0.423,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "CMSPublicationFiles": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 3,
+          "nodeProcessCpuMs": 0.467,
+          "mockTransportCpuMs": 0.065,
+          "localWallMs": 0.331,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "CMSPublicationFiles": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "pr-create-image-1MiB",
+        "operation": "pr-create",
+        "imageBytes": 1048576,
+        "storedImage": true,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 188,
+        "bodyBytes": 404
+      },
+      "url": "/api/publish/library/qualification.mdx",
+      "method": "POST",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 24,
+          "nodeProcessCpuMs": 3.358,
+          "mockTransportCpuMs": 1.346,
+          "localWallMs": 2.548,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 2,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 24,
+          "nodeProcessCpuMs": 1.121,
+          "mockTransportCpuMs": 0.541,
+          "localWallMs": 1.007,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 2,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 24,
+          "nodeProcessCpuMs": 1.466,
+          "mockTransportCpuMs": 0.49,
+          "localWallMs": 0.811,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 2,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "pr-prepare-image-5MiB",
+        "operation": "pr-prepare",
+        "imageBytes": 5242880,
+        "storedImage": true,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 188,
+        "bodyBytes": 66
+      },
+      "url": "/api/publish/library/qualification.mdx",
+      "method": "POST",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 3,
+          "nodeProcessCpuMs": 1.369,
+          "mockTransportCpuMs": 0.151,
+          "localWallMs": 1.199,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "CMSPublicationFiles": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 3,
+          "nodeProcessCpuMs": 2.526,
+          "mockTransportCpuMs": 0.077,
+          "localWallMs": 0.584,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "CMSPublicationFiles": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 3,
+          "nodeProcessCpuMs": 0.419,
+          "mockTransportCpuMs": 0.051,
+          "localWallMs": 0.287,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "CMSPublicationFiles": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "pr-create-image-5MiB",
+        "operation": "pr-create",
+        "imageBytes": 5242880,
+        "storedImage": true,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 188,
+        "bodyBytes": 404
+      },
+      "url": "/api/publish/library/qualification.mdx",
+      "method": "POST",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 24,
+          "nodeProcessCpuMs": 3.364,
+          "mockTransportCpuMs": 1.464,
+          "localWallMs": 2.495,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 2,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 24,
+          "nodeProcessCpuMs": 9.115,
+          "mockTransportCpuMs": 6.959,
+          "localWallMs": 2.199,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 2,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 24,
+          "nodeProcessCpuMs": 1.606,
+          "mockTransportCpuMs": 0.527,
+          "localWallMs": 0.847,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 2,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "pr-create-repeat",
+        "operation": "pr-create",
+        "attempts": 1,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 1182
+      },
+      "url": "/api/publish/library/qualification.mdx",
+      "method": "POST",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 18,
+          "nodeProcessCpuMs": 2.813,
+          "mockTransportCpuMs": 0.691,
+          "localWallMs": 2.192,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 2,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/main": 2,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 2
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 18,
+          "nodeProcessCpuMs": 0.975,
+          "mockTransportCpuMs": 0.437,
+          "localWallMs": 0.619,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 2,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/main": 2,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 2
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 18,
+          "nodeProcessCpuMs": 1.162,
+          "mockTransportCpuMs": 0.465,
+          "localWallMs": 0.499,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 2,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/main": 2,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 2
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "pr-create-attempts-20",
+        "operation": "pr-create",
+        "attempts": 20,
+        "closeAttempts": true,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 1182
+      },
+      "url": "/api/publish/library/qualification.mdx",
+      "method": "POST",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 27,
+          "nodeProcessCpuMs": 5.921,
+          "mockTransportCpuMs": 2.95,
+          "localWallMs": 3.737,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 3,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-20": 1,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-21": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 27,
+          "nodeProcessCpuMs": 1.409,
+          "mockTransportCpuMs": 0.557,
+          "localWallMs": 1.234,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 3,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-20": 1,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-21": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 27,
+          "nodeProcessCpuMs": 1.892,
+          "mockTransportCpuMs": 0.6,
+          "localWallMs": 1.22,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 3,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-20": 1,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-21": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "pr-status-attempts-20",
+        "operation": "pr-status",
+        "attempts": 20,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 0
+      },
+      "url": "/api/publish/library/qualification.mdx",
+      "method": "GET",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 9,
+          "nodeProcessCpuMs": 2.984,
+          "mockTransportCpuMs": 0.693,
+          "localWallMs": 2.334,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 2,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 2
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 9,
+          "nodeProcessCpuMs": 1.253,
+          "mockTransportCpuMs": 0.544,
+          "localWallMs": 0.977,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 2,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 2
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 9,
+          "nodeProcessCpuMs": 1.151,
+          "mockTransportCpuMs": 0.202,
+          "localWallMs": 0.801,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 2,
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 2,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 2
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "pr-prepare-128KiB",
+        "operation": "pr-prepare",
+        "documentChars": 131072,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 131115,
+        "bodyBytes": 66
+      },
+      "url": "/api/publish/library/qualification.mdx",
+      "method": "POST",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 3,
+          "nodeProcessCpuMs": 1.887,
+          "mockTransportCpuMs": 0.288,
+          "localWallMs": 1.678,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "CMSPublicationFiles": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 3,
+          "nodeProcessCpuMs": 1.117,
+          "mockTransportCpuMs": 0.247,
+          "localWallMs": 0.88,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "CMSPublicationFiles": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 3,
+          "nodeProcessCpuMs": 1.025,
+          "mockTransportCpuMs": 0.224,
+          "localWallMs": 0.855,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/commits/:oid": 1,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "CMSPublicationFiles": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "pr-create-128KiB",
+        "operation": "pr-create",
+        "documentChars": 131072,
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 131115,
+        "bodyBytes": 133856
+      },
+      "url": "/api/publish/library/qualification.mdx",
+      "method": "POST",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 23,
+          "nodeProcessCpuMs": 4.046,
+          "mockTransportCpuMs": 1.731,
+          "localWallMs": 3.222,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 23,
+          "nodeProcessCpuMs": 1.761,
+          "mockTransportCpuMs": 0.762,
+          "localWallMs": 1.598,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 23,
+          "nodeProcessCpuMs": 2.023,
+          "mockTransportCpuMs": 0.763,
+          "localWallMs": 1.387,
+          "error": null,
+          "resultState": "pr-open",
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "": 2,
+            "/git/commits/:oid": 2,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 1,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 3,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "/git/ref/heads/main": 3,
+            "CMSPublicationFiles": 1,
+            "/branches/main/protection": 1,
+            "/rules/branches/main": 1,
+            "/pulls": 2,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1,
+            "CMSPublicationPRs": 1,
+            "/git/ref/heads/cms/publish/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid-:oid-1": 1
+          }
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "repeat-save",
+        "operation": "repeat-save",
+        "otherPublishedDocuments": 168,
+        "otherDrafts": 2,
+        "selectedDocumentChars": 1067,
+        "bodyBytes": 2685
+      },
+      "url": "/api/content/library/qualification.mdx",
+      "method": "PUT",
+      "samples": [
+        {
+          "label": "fresh-node-process",
+          "index": 0,
+          "httpStatus": 200,
+          "logicalExternalFetches": 37,
+          "nodeProcessCpuMs": 75.827,
+          "mockTransportCpuMs": 3.391,
+          "localWallMs": 70.946,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 3,
+            "/git/commits/:oid": 4,
+            "/git/trees/:oid": 6,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 3,
+            "/compare/:oid...:oid": 1,
+            "/git/blobs/:oid": 3,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 2,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 1,
+            "": 1,
+            "CMSDrafts": 1,
+            "CMSRoutes": 6,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 1,
+          "httpStatus": 200,
+          "logicalExternalFetches": 31,
+          "nodeProcessCpuMs": 26.088,
+          "mockTransportCpuMs": 0.98,
+          "localWallMs": 10.462,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 3,
+            "/git/commits/:oid": 4,
+            "/git/trees/:oid": 6,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 3,
+            "/compare/:oid...:oid": 1,
+            "/git/blobs/:oid": 3,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 2,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 1,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1
+          }
+        },
+        {
+          "label": "same-process-warm",
+          "index": 2,
+          "httpStatus": 200,
+          "logicalExternalFetches": 31,
+          "nodeProcessCpuMs": 17.208,
+          "mockTransportCpuMs": 1.623,
+          "localWallMs": 8.505,
+          "error": null,
+          "resultState": null,
+          "requestBudgetExceeded": false,
+          "firstFetchBeyond50": null,
+          "grouped": {
+            "/git/ref/heads/main": 3,
+            "/git/commits/:oid": 4,
+            "/git/trees/:oid": 6,
+            "/git/ref/heads/cms/drafts/library/qualification-b9a01be04722f9ca434cf7c6f2cc4bd6": 3,
+            "/compare/:oid...:oid": 1,
+            "/git/blobs/:oid": 3,
+            "/git/ref/heads/cms/publication-state/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 2,
+            "CMSPublicationHistory": 1,
+            "/git/ref/tags/cms-publication-locks/b9a01be04722f9ca434cf7c6f2cc4bd6-:oid": 1,
+            "CMSPublicationPRs": 1,
+            "": 1,
+            "CMSDrafts": 1,
+            "/git/trees": 1,
+            "/git/commits": 2,
+            "CMSSaveDraft": 1
+          }
+        }
+      ]
+    }
+  ],
+  "liveReadOnlyAudit": {
+    "checkedOn": "2026-11-19",
+    "remoteMain": "b2f6e6eabf5b54ac9488e021929cc5699a657a1e",
+    "requiredChecks": {
+      "strict": true,
+      "checks": [
+        {
+          "context": "validate",
+          "app_id": 15368
+        },
+        {
+          "context": "cms-publication-scope",
+          "app_id": 15368
+        }
+      ]
+    },
+    "enforceAdmins": true,
+    "forcePushes": false,
+    "deletions": false,
+    "effectiveRulesets": [],
+    "requiredPullRequestReviewsFieldPresent": false,
+    "manualPublicationPolicyVerifierStatus": 403,
+    "manualPublicationPolicyVerifierError": "Publication policy blocked: require PRs with zero human approvals, code-owner approval disabled, and no last-push approval requirement. Ask a maintainer to correct repository policy; no protection bypass is supported.",
+    "colleenumnRepositoryRole": "admin",
+    "actualEditorOAuthGrantVerified": false,
+    "preservedRefs": {
+      "savedDraft": "5fe43d83398d994fdf86beee7bcc5c01a59a38ec",
+      "snapshot": "fd2b06259282ab1421a7c6d8070932f70b880c61",
+      "coordinator": "90d87e48650a421a939531ced7ccbcc3ad03e866",
+      "lockTarget": "fd2b06259282ab1421a7c6d8070932f70b880c61"
+    },
+    "cloudflareDashboardVerified": false,
+    "liveWritesPerformed": false
+  }
+}

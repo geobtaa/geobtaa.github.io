@@ -1,13 +1,13 @@
+import { publicationTestClient } from './publicationTestHelpers.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { verifyPublicationPolicy } from './publicationPolicy.mjs';
 import { verifyPullRequestEligibility } from './pullRequestEligibility.mjs';
 import { draftTestRepository } from './draftTestRepository.mjs';
-import { createDraftStore } from './draftStorage.mjs';
 import { parsePage, savePage } from './page.mjs';
 test('only the complete current snapshot contract gives CMS eligibility; a name or document-shaped diff cannot', async () => {
   const repo = await draftTestRepository({ 'src/content/docs/library/report.mdx': '---\ntitle: Report\n---\n\nOriginal.' });
-  const store = () => createDraftStore({ request: repo.request });
+  const store = () => publicationTestClient({ request: repo.request });
   const file = await store().getContent('library', 'report.mdx');
   const saved = await savePage(store(), 'library', 'report.mdx', { ...file, ...parsePage(file.content), body: 'Safe edit.' });
   await store().publishContent({ area: 'library', filename: 'report.mdx', head: saved.head });
@@ -34,4 +34,22 @@ test('policy verifier rejects weak checks, missing enforcement, bypasses, permis
   for (const policy of policies) await assert.rejects(verifyPublicationPolicy(path => path === '/branches/main/protection' ? policy : repo.request(path)), /policy blocked/);
   for (const status of [403, 404, 500]) await assert.rejects(verifyPublicationPolicy(() => { throw Object.assign(new Error('Denied'), { status }); }), /policy-read permission/);
   repo.rules = [{ type: 'pull_request' }]; await assert.rejects(verifyPublicationPolicy(repo.request), /ruleset protection is unsupported/);
+});
+test('missing or null effective PR protection fails closed even when inactive review preferences remain readable', async () => {
+  const repo = await draftTestRepository(), baseline = await repo.request('/branches/main/protection');
+  for (const reviews of [undefined, null]) {
+    const policy = { ...baseline };
+    if (reviews === undefined) delete policy.required_pull_request_reviews;
+    else policy.required_pull_request_reviews = reviews;
+    const calls = [];
+    const request = async path => {
+      calls.push(path);
+      if (path === '/branches/main/protection') return policy;
+      if (path.endsWith('/required_pull_request_reviews')) return { required_approving_review_count: 0, require_code_owner_reviews: false, require_last_push_approval: false };
+      return repo.request(path);
+    };
+    await assert.rejects(verifyPublicationPolicy(request, { manual: true }), /does not report enabled pull-request protection/);
+    assert.equal(calls.some(path => path.endsWith('/required_pull_request_reviews')), false, 'inactive preferences cannot substitute for enabled protection');
+  }
+  await verifyPublicationPolicy(repo.request, { manual: true }); // Enabled PR requirement with zero approvals remains valid.
 });

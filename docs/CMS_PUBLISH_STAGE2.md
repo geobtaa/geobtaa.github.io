@@ -1,3 +1,5 @@
+> Superseded for the current release by [PR-only publishing](CMS_PR_ONLY.md). Automatic merging, the six-stage Actions orchestration proposal, and CMS deployment tracking are abandoned. The text below records the earlier design.
+
 # Publication and deployment tracking — Stage 2
 
 Stage 1 checkpoint: `aaafcc7` on `editor/cms-release`. Stage 2 is prepared as a separate local checkpoint; its SHA and the two release-preparation SHAs are recorded in the completion report. Keep `CMS_PUBLISH_ENABLED` unset/false. No live publication, push, deployment, OAuth change, or administrative setting change has been performed.

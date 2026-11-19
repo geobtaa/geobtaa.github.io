@@ -75,3 +75,19 @@ test('corrupt and malformed recovery records remain untouched and cannot replace
   assert.ok(parseRecovery(JSON.stringify(draft)));
   assert.equal(restoreRecovery({ ...base, filename: '', sha: undefined }, draftRoute, draft).sha, undefined);
 });
+
+test('recovery binds carried-forward edits to their saved source as well as the main blob', () => {
+  const resumed = { ...base, resumeHead: 'a'.repeat(40) };
+  const record = copy('resume', { baseResumeHead: resumed.resumeHead });
+  assert.ok(parseRecovery(JSON.stringify(record)));
+  assert.equal(restoreRecovery(resumed, route, record).title, record.fields.title);
+  assert.throws(() => restoreRecovery({ ...resumed, resumeHead: 'b'.repeat(40) }, route, record), /saved version has changed/);
+  assert.throws(() => restoreRecovery(resumed, route, copy()), /saved version has changed/);
+});
+test('pre-merge browser recovery resumes against the verified identical saved source without reverting published visibility', () => {
+  const resumed = { ...base, sha: 'main-blob', draft: false, resumeHead: 'a'.repeat(40), resumeSourceSha: base.sha };
+  const record = copy();
+  assert.equal(restoreRecovery(resumed, route, record).body, record.fields.body);
+  assert.equal(restoreRecovery(resumed, route, record).draft, false);
+  assert.throws(() => restoreRecovery({ ...resumed, resumeSourceSha: 'newer-source' }, route, record), /saved version has changed/);
+});

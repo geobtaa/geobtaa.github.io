@@ -1,3 +1,5 @@
+> Superseded for the current release by [PR-only publishing](CMS_PR_ONLY.md). Automatic merging, the six-stage Actions orchestration proposal, and CMS deployment tracking are abandoned. The text below records the earlier design.
+
 Stage 2 publication/deployment tracking is implemented locally with publishing disabled. See [CMS_PUBLISH_STAGE2.md](CMS_PUBLISH_STAGE2.md) and [CMS_PUBLISH_RELEASE_CHECKLIST.md](CMS_PUBLISH_RELEASE_CHECKLIST.md). Earlier milestone/future-tense descriptions below are historical.
 
 Current Stage 1 governance: advisory CODEOWNERS (`@karenmajewicz`, `@ewlarson`), zero required human/code-owner approvals, automated ordinary-source security checks, and full CMS snapshot validation. See [CMS_PUBLISH_STAGE1.md](CMS_PUBLISH_STAGE1.md); earlier review-policy proposals below are historical.

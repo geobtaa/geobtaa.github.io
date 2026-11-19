@@ -3,7 +3,7 @@ import { validEditorRoute, routeKey, type EditorRoute } from './editorNavigation
 import { validCreationId, validCreationFilename } from '../../../editor-prototype/articleCreation.mjs';
 
 export type RecoveryFields = Pick<Project, 'filename' | 'title' | 'description' | 'body' | 'draft' | 'date' | 'excerpt' | 'authors' | 'tags' | 'cover' | 'metadata' | 'convertProgramUpdate' | 'creationAttempt' | 'assets'>;
-export type RecoveryCopy = { version: 1; id: string; revision: string; route: EditorRoute; baseSha: string | null; savedAt: string; fields: RecoveryFields };
+export type RecoveryCopy = { version: 1; id: string; revision: string; route: EditorRoute; baseSha: string | null; baseResumeHead?: string | null; savedAt: string; fields: RecoveryFields };
 const PREFIX = 'geobtaa-editor-recovery:v1:';
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 export function recoveryFields(project: Project): RecoveryFields {
@@ -39,7 +39,7 @@ export function groupRecoveryCopies(copies: RecoveryCopy[]) {
   return [...groups.entries()].map(([key, versions]) => {
     versions.sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt) || a.id.localeCompare(b.id));
     const latest = versions[0];
-    const needsChoice = versions.some(copy => copy.baseSha !== latest.baseSha || JSON.stringify(copy.fields) !== JSON.stringify(latest.fields));
+    const needsChoice = versions.some(copy => copy.baseSha !== latest.baseSha || copy.baseResumeHead !== latest.baseResumeHead || JSON.stringify(copy.fields) !== JSON.stringify(latest.fields));
     return { key, latest, versions, needsChoice };
   }).sort((a, b) => Date.parse(b.latest.savedAt) - Date.parse(a.latest.savedAt));
 }
@@ -49,6 +49,7 @@ export function parseRecovery(source: string): RecoveryCopy | null {
     const copy = JSON.parse(source);
     if (!object(copy) || copy.version !== 1 || typeof copy.id !== 'string' || !/^[A-Za-z0-9_-]{1,80}$/.test(copy.id) || typeof copy.revision !== 'string' || typeof copy.savedAt !== 'string' || !Number.isFinite(Date.parse(copy.savedAt))) return null;
     if (!object(copy.route) || !validEditorRoute(copy.route as EditorRoute) || !copy.route.area || (!copy.route.filename && !copy.route.draftId) || !validFields(copy.fields)) return null;
+    if (copy.baseResumeHead != null && (typeof copy.baseResumeHead !== 'string' || !/^[a-f0-9]{40}$/.test(copy.baseResumeHead))) return null;
     if (copy.route.filename ? typeof copy.baseSha !== 'string' || !copy.baseSha || copy.fields.filename !== copy.route.filename : copy.baseSha !== null) return null;
     return copy as RecoveryCopy;
   } catch { return null; }
@@ -71,9 +72,13 @@ export function removeRecovery(storage: Storage, scope: string, copy: RecoveryCo
   if (!latest || latest.revision !== copy.revision) return false;
   storage.removeItem(key); return true;
 }
+export function recoveryMatches(base: Project, copy: RecoveryCopy) {
+  if (base.resumeHead && !copy.baseResumeHead) return !!base.resumeSourceSha && copy.baseSha === base.resumeSourceSha;
+  return (base.sha || null) === copy.baseSha && (base.resumeHead || null) === (copy.baseResumeHead || null);
+}
 export function restoreRecovery(base: Project, route: EditorRoute, copy: RecoveryCopy): Project {
-  if (routeKey(route) !== routeKey(copy.route) || (base.sha || null) !== copy.baseSha) throw new Error('The saved version has changed in GitHub. Download a backup to compare your unsaved changes with the latest version.');
-  return { ...base, ...copy.fields, filename: base.sha ? base.filename : copy.fields.filename, sha: base.sha, content: base.content, conversion: base.conversion };
+  if (routeKey(route) !== routeKey(copy.route) || !recoveryMatches(base, copy)) throw new Error('The saved version has changed in GitHub. Download a backup to compare your unsaved changes with the latest version.');
+  return { ...base, ...copy.fields, filename: base.sha ? base.filename : copy.fields.filename, sha: base.sha, ...(base.resumeHead ? { draft: base.draft } : {}), content: base.content, conversion: base.conversion };
 }
 export function downloadRecovery(copy: RecoveryCopy) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(copy, null, 2)], { type: 'application/json' }));

@@ -4,29 +4,29 @@
 # code-owner reviews OFF. Content, uploads and editorial documentation are unowned.
 
 # Technical ownership only. Add future technical paths explicitly; no catch-all.
-/src/pages/**/*.astro @karenmajewicz @ewlarson
-/src/pages/**/*.ts @karenmajewicz @ewlarson
-/src/plugins/ @karenmajewicz @ewlarson
-/src/content.config.ts @karenmajewicz @ewlarson
-/src/content/BlogSchema.ts @karenmajewicz @ewlarson
-/src/components/ @karenmajewicz @ewlarson
-/src/utils/ @karenmajewicz @ewlarson
-/functions/ @karenmajewicz @ewlarson
-/editor-prototype/ @karenmajewicz @ewlarson
-/scripts/ @karenmajewicz @ewlarson
-/tests/ @karenmajewicz @ewlarson
-/.github/ @karenmajewicz @ewlarson
-/package.json @karenmajewicz @ewlarson
-/package-lock.json @karenmajewicz @ewlarson
-/patches/ @karenmajewicz @ewlarson
-/astro.config.ts @karenmajewicz @ewlarson
-/navigation.config.ts @karenmajewicz @ewlarson
-/tsconfig.json @karenmajewicz @ewlarson
-/.node-version @karenmajewicz @ewlarson
+/src/pages/**/*.astro @karenmajewicz
+/src/pages/**/*.ts @karenmajewicz
+/src/plugins/ @karenmajewicz
+/src/content.config.ts @karenmajewicz
+/src/content/BlogSchema.ts @karenmajewicz
+/src/components/ @karenmajewicz
+/src/utils/ @karenmajewicz
+/functions/ @karenmajewicz
+/editor-prototype/ @karenmajewicz
+/scripts/ @karenmajewicz
+/tests/ @karenmajewicz
+/.github/ @karenmajewicz
+/package.json @karenmajewicz
+/package-lock.json @karenmajewicz
+/patches/ @karenmajewicz
+/astro.config.ts @karenmajewicz
+/navigation.config.ts @karenmajewicz
+/tsconfig.json @karenmajewicz
+/.node-version @karenmajewicz
 
-/docs/cloudflare/ @karenmajewicz @ewlarson
-/public/admin/ @karenmajewicz @ewlarson
-/public/_headers @karenmajewicz @ewlarson
-/public/_redirects @karenmajewicz @ewlarson
-/wrangler.jsonc @karenmajewicz @ewlarson
-/wrangler.toml @karenmajewicz @ewlarson
+/docs/cloudflare/ @karenmajewicz
+/public/admin/ @karenmajewicz
+/public/_headers @karenmajewicz
+/public/_redirects @karenmajewicz
+/wrangler.jsonc @karenmajewicz
+/wrangler.toml @karenmajewicz

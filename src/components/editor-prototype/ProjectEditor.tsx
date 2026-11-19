@@ -1,3 +1,4 @@
+import { preparePublicationCandidate } from '../../../editor-prototype/publicationCandidate.mjs';
 import { PublicationStatus, type PublicationState } from './PublicationStatus';
 import { setPendingImagePreviews, pendingImagePreview, type PendingImage } from './pendingImages';
 import type { Project, PageMetadata } from './editorTypes';
@@ -6,7 +7,7 @@ import { UnsavedChangesDialog } from './UnsavedChangesDialog';
 import { RecoveryManager } from './RecoveryManager';
 import { useEditorNavigation, routeKey, type EditorRoute } from './editorNavigation';
 import { useEditorRecovery, type EditorRecovery } from './useEditorRecovery';
-import { downloadRecovery, groupRecoveryCopies, parseRecovery, recoveryFields, recoveryKey, restoreRecovery, type RecoveryCopy } from './editorRecovery';
+import { downloadRecovery, groupRecoveryCopies, parseRecovery, recoveryFields, recoveryMatches, recoveryKey, restoreRecovery, type RecoveryCopy } from './editorRecovery';
 import { ToolbarButton } from './ToolbarButton';
 import { useEditor, useEditorState, EditorContent } from '@tiptap/react';
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -664,6 +665,7 @@ export default function ProjectEditor() {
   const [showConversionPreview, setShowConversionPreview] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [publicationVersion, setPublicationVersion] = useState(0);
+  const [submittedPR, setSubmittedPR] = useState<{ path: string; status: PublicationState }>();
   const [authIssue, setAuthIssue] = useState('');
   const [checkingSignIn, setCheckingSignIn] = useState(false);
   type LeavePrompt = { leave: () => void; backedUp: boolean; message: string };
@@ -827,6 +829,7 @@ export default function ProjectEditor() {
           description: project.description,
           body: project.body,
           head: project.head,
+          resumeHead: project.resumeHead,
           assets: project.assets,
           sha: project.sha,
           originalContent: project.content,
@@ -857,18 +860,21 @@ export default function ProjectEditor() {
     if (!area || !project?.hasDraft || !project.head || dirty || busy) return;
     setBusy(true); setError(''); setNotice('');
     try {
-      const result = await api<{ state: string; number: number; message?: string }>(`/api/publish/${area}/${encodeContentPath(project.filename)}`, {
-        method: 'POST', body: JSON.stringify({ head: selectedHead }),
-      });
-      if (!Number.isInteger(result.number) || !['publishing', 'action-required', 'closed', 'merged'].includes(result.state)) throw new Error('Publication could not be confirmed. Retry Publish safely; your saved draft is intact.');
-      setNotice(result.message || (result.state === 'publishing' ? `Publication request recorded · PR #${result.number}.` : result.state === 'merged' ? `Publication request recovered · PR #${result.number}.` : `PR #${result.number} is closed. Contact a maintainer before retrying.`));
+      const path = `/api/publish/${area}/${encodeContentPath(project.filename)}`;
+      const prepared = await api<{ head: string; content: string; assets: Record<string, string> }>(path, { method: 'POST', body: JSON.stringify({ head: selectedHead, prepare: true }) });
+      if (prepared.head !== selectedHead) throw new Error('The selected saved revision changed. Your edits remain here.');
+      const candidate = preparePublicationCandidate(prepared, project.filename);
+      const result = await api<{ state: string; number: number; url: string; message?: string }>(path, { method: 'POST', body: JSON.stringify({ head: selectedHead, candidate }) });
+      if (!Number.isInteger(result.number) || !['pr-open', 'closed', 'merged'].includes(result.state)) throw new Error('PR creation could not be confirmed. Refresh PR status before retrying; your saved draft is intact.');
+      setSubmittedPR({ path, status: result });
+      setNotice(result.message || `Publication PR #${result.number}.`);
     } catch (err) { setError((err as Error).message); }
     finally { setBusy(false); setPublicationVersion(value => value + 1); }
   };
 
   const entryCopies = recovery.copies.filter(copy => routeKey(copy.route) === routeKey(route));
   const candidate = entryCopies.find(copy => copy.id === selectedRecovery) || entryCopies[0];
-  const staleRecovery = !!candidate && (candidate.baseSha !== (project?.sha || null));
+  const staleRecovery = !!candidate && (!project || !recoveryMatches(project, candidate));
   const restore = async (copy: RecoveryCopy) => {
     if (!project || !area || busyRef.current || recovery.hasChanges || !recoveryScope) return;
     setRestoringChanges(true);
@@ -878,7 +884,7 @@ export default function ProjectEditor() {
       if (!stored || stored.revision !== copy.revision) { recovery.refresh(); throw new Error('These unsaved changes were updated or removed in another tab. Review the latest version before restoring.'); }
       const fresh = route.filename ? await api<Project>(`/api/content/${area}/${encodeURIComponent(route.filename)}`) : project;
       if (!route.filename) await api(`/api/content/${area}`);
-      if ((fresh.sha || null) !== copy.baseSha) {
+      if (!recoveryMatches(fresh, copy)) {
         setProject(fresh); setBaseline(fresh); setSavedSnapshot(JSON.stringify(fresh)); setBodyEditorSession(session => session + 1);
         throw new Error('This page changed in GitHub. The latest saved version is open below. Your unsaved changes have been kept separately. Download a backup to compare and copy your edits into the latest version.');
       }
@@ -912,7 +918,7 @@ export default function ProjectEditor() {
   const manageRecovery = (reason: string) => setRecoveryManager(reason);
   const recoveryTools = recoveryManager !== null && <RecoveryManager
     copies={project ? entryCopies : recovery.copies} reason={recoveryManager}
-    canResume={copy => !busy && !authIssue && (project ? !recovery.hasChanges && copy.baseSha === (project.sha || null) : routeKey(copy.route) !== routeKey(route))}
+    canResume={copy => !busy && !authIssue && (project ? !recovery.hasChanges && recoveryMatches(project, copy) : routeKey(copy.route) !== routeKey(route))}
     onResume={copy => { setRecoveryManager(null); if (project) void restore(copy); else resumeEditing(copy); }}
     onBackup={downloadRecovery} onDiscard={discardRecovery} onClose={() => setRecoveryManager(null)} />;
   const recoveryPanel = <>
@@ -999,7 +1005,7 @@ export default function ProjectEditor() {
       {leavePrompt && <UnsavedChangesDialog message={leavePrompt.message} onKeepEditing={() => showLeavePrompt(null)} onLeave={leaveEditor} />}
       <nav className="editor-navigation" aria-label="Editor navigation">
         <button className="back" type="button" disabled={busy} onClick={backToList}>← Back to {config.label}</button>
-        <div className="navigation-actions"><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue} onClick={() => publish()}>Publish</button><button className="dashboard-link" type="button" disabled={busy} onClick={backToDashboard}>Dashboard</button><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button></div>
+        <div className="navigation-actions"><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue} onClick={() => publish()}>Create Publication PR</button><button className="dashboard-link" type="button" disabled={busy} onClick={backToDashboard}>Dashboard</button><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button></div>
       </nav>
       <h1>{project.sha ? `Edit ${config.itemLabel}` : `New ${config.itemLabel}`}</h1>
       <section className={`visibility-panel document-controls ${project.draft ? 'is-draft' : 'is-ready'}`} aria-label="Document controls">
@@ -1007,6 +1013,7 @@ export default function ProjectEditor() {
           <span className="document-control-label">Draft status</span>
           <span className="draft-status">{project.hasDraft ? project.baselineExists ? 'Draft changes saved · main unchanged' : 'Draft saved' : project.sha ? 'Main version · no saved draft' : 'Draft · not saved yet'}</span>
           {project.lastSavedBy && <small>Last saved by {project.lastSavedBy}{project.lastSavedAt ? ` on ${project.lastSavedAt}` : ''}</small>}
+          {project.resumeHead && <p className="message">{project.preservedEdits ? 'Your previous PR merged. Your later saved edits are preserved below. Use Save Draft to include them in another PR.' : 'Your previous PR merged. Continue editing and use Save Draft as usual.'}</p>}
           {project.mainChanged && <p className="message error">This draft is based on an earlier main revision. Save Draft is blocked to protect published content. Keep or download your edits. For repeat editing, <a href={`https://github.com/geobtaa/geobtaa.github.io/edit/main/src/content/docs/${area}/${encodeContentPath(project.filename)}`} target="_blank" rel="noopener noreferrer">edit the current published source on GitHub</a> and propose a PR, or ask a maintainer for help. Do not delete drafts or locks.</p>}
         </div>
         <div className="document-control-group document-view-group">
@@ -1021,7 +1028,7 @@ export default function ProjectEditor() {
           {project.sidebarHidden && <span className="visibility-badge status-navigation">Hidden from navigation</span>}
         </div>
       </section>
-      {project.hasDraft && <PublicationStatus key={`${area}/${project.filename}`} path={`/api/publish/${area}/${encodeContentPath(project.filename)}`} head={project.head} dirty={dirty} refreshVersion={publicationVersion} disabled={busy || !!authIssue} load={loadPublicationStatus} onRetry={head => { void publish(head); }} />}
+      {project.hasDraft && <PublicationStatus key={`${area}/${project.filename}`} path={`/api/publish/${area}/${encodeContentPath(project.filename)}`} head={project.head} dirty={dirty} refreshVersion={publicationVersion} disabled={busy || !!authIssue} load={loadPublicationStatus} submitted={submittedPR?.path === `/api/publish/${area}/${encodeContentPath(project.filename)}` ? submittedPR.status : undefined} onRetry={head => { void publish(head); }} />}
       {recoveryPanel}
       {notice && <p className="message success" role="status">{notice}</p>}
       {error && <p className="message error" role="alert">{error}</p>}

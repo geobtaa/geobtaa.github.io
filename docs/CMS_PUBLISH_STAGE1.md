@@ -1,3 +1,5 @@
+> Superseded for the current release by [PR-only publishing](CMS_PR_ONLY.md). Automatic merging, the six-stage Actions orchestration proposal, and CMS deployment tracking are abandoned. The text below records the earlier design.
+
 Stage 1 is committed as `aaafcc7`. Stage 2 tracking is implemented locally; see [CMS_PUBLISH_STAGE2.md](CMS_PUBLISH_STAGE2.md) and the [release checklist](CMS_PUBLISH_RELEASE_CHECKLIST.md). Older status descriptions below record the Stage 1 checkpoint.
 
 # Publish mechanics — Stage 1

@@ -1,23 +1,24 @@
+import { publicationTestClient } from './publicationTestHelpers.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createDraftStore, prepareDraftImage } from './draftStorage.mjs';
+import { prepareDraftImage } from './draftStorage.mjs';
 import { draftTestRepository } from './draftTestRepository.mjs';
 import { parsePage, savePage } from './page.mjs';
 const filename = 'report.mdx', path = `src/content/docs/library/${filename}`;
 const original = '---\ntitle: Report\n---\n\nOriginal.\n';
 async function fixture({ initial = original, body = 'Selected revision.' } = {}) {
   const repo = await draftTestRepository(initial ? { [path]: initial } : {});
-  const store = () => createDraftStore({ request: repo.request });
+  const store = () => publicationTestClient({ request: repo.request });
   const file = initial ? await store().getContent('library', filename) : {};
   const saved = await savePage(store(), 'library', filename, { ...file, ...(initial ? parsePage(file.content) : { title: 'Report', description: '' }), body });
   const publish = (head = saved.head) => store().publishContent({ area: 'library', filename, head });
   return { repo, store, saved, publish };
 }
-test('publication is a one-document snapshot on fresh main, not a draft merge, with native SHA-bound auto-merge', async () => {
+test('publication is a one-document snapshot on fresh main, not a draft merge, with a manual-merge PR', async () => {
   const { repo, saved, publish } = await fixture();
   const main = await repo.put('application.js', 'New application on main');
   const result = await publish();
-  assert.equal(result.state, 'publishing');
+  assert.equal(result.state, 'pr-open');
   const pr = repo.pulls[0], commit = repo.commits.get(pr.head.sha);
   assert.deepEqual(commit.parents, [{ sha: main }]);
   assert.notEqual(commit.parents[0].sha, saved.head);
@@ -27,7 +28,9 @@ test('publication is a one-document snapshot on fresh main, not a draft merge, w
   assert.match(doc, /draft: false/);
   assert.equal(repo.refs.get(`refs/heads/${saved.branch}`), saved.head);
   assert.match(commit.message, /\[CF-Pages-Skip\]/);
-  assert.equal(repo.pulls[0].auto_merge, true);
+  assert.equal(repo.pulls[0].auto_merge, undefined);
+  assert.equal(repo.requests.some(call => call.body?.includes('enablePullRequestAutoMerge')), false);
+  await publicationTestClient({ request: repo.request }).verifyPublication(pr.head.ref, pr.head.sha);
 });
 test('duplicate, concurrent and closed/merged publication requests reuse exactly one PR', async () => {
   const { repo, publish } = await fixture();
@@ -53,10 +56,12 @@ test('publication rejects changed main, invalid revision, route collisions, and 
   await assert.rejects(a.publish(), { status: 409 }); assert.equal(a.repo.pulls.length, 0);
   await assert.rejects(a.publish('bogus'), { status: 400 });
   const b = await fixture(); await b.repo.put('src/content/docs/library/report.md', original);
-  await assert.rejects(b.publish(), { status: 409 });
+  await b.publish();
+  await assert.rejects(b.store().verifyPublication(b.repo.pulls[0].head.ref, b.repo.pulls[0].head.sha), /claimed|route|URL/);
   const c = await fixture();
   const head = await c.repo.put(path, original + '<script>danger()</script>\n', { branch: c.saved.branch });
-  await assert.rejects(c.publish(head), /unsupported|read-only|MDX/);
+  await c.publish(head);
+  await assert.rejects(c.store().verifyPublication(c.repo.pulls[0].head.ref, c.repo.pulls[0].head.sha), /unsupported|read-only|MDX/);
 });
 test('new documents publish; only referenced verified image assets enter the snapshot', async () => {
   const { repo, store, saved, publish } = await fixture({ initial: null });
@@ -81,13 +86,13 @@ test('scope validation rejects added files, image tampering, and externally adva
     await assert.rejects(publish(), { status: 409 });
   }
 });
-test('GitHub auto-merge failure and uncertain ref/PR responses retain recoverable snapshots and drafts', async () => {
+test('uncertain ref responses retain recoverable snapshots and drafts without requesting auto-merge', async () => {
   const { repo, saved, publish } = await fixture(); repo.fault = 'after'; repo.autoMergeFailure = true;
   const response = await publish();
-  assert.equal(response.state, 'action-required');
+  assert.equal(response.state, 'pr-open');
   assert.equal(repo.refs.get(`refs/heads/${saved.branch}`), saved.head);
   repo.autoMergeFailure = false;
-  assert.equal((await publish()).state, 'publishing'); assert.equal(repo.pulls.length, 1);
+  assert.equal((await publish()).state, 'pr-open'); assert.equal(repo.pulls.length, 1);
 });
 
 test('an older selected revision publishes without including or overwriting a newer working revision', async () => {
@@ -108,12 +113,12 @@ test('auto-merge is never requested when required protection is absent or not st
 test('a lost PR creation response recovers its existing PR without making a duplicate', async () => {
   const { repo, saved } = await fixture();
   let lost = false;
-  const store = createDraftStore({ request: async (path, options) => {
+  const store = publicationTestClient({ request: async (path, options) => {
     const result = await repo.request(path, options);
     if (path === '/pulls' && !lost) { lost = true; throw new Error('Connection lost after PR created'); }
     return result;
   } });
-  assert.equal((await store.publishContent({ area: 'library', filename, head: saved.head })).state, 'publishing');
+  assert.equal((await store.publishContent({ area: 'library', filename, head: saved.head })).state, 'pr-open');
   assert.equal(repo.pulls.length, 1);
 });
 test('the scope checker compares the entire actual snapshot tree, not metadata alone', async () => {
@@ -125,7 +130,7 @@ test('the scope checker compares the entire actual snapshot tree, not metadata a
 });
 test('main moving during snapshot creation stops before creating a PR', async () => {
   const { repo, saved } = await fixture(); let moved = false;
-  const store = createDraftStore({ request: async (path, options) => {
+  const store = publicationTestClient({ request: async (path, options) => {
     const result = await repo.request(path, options);
     if (path === '/git/commits' && !moved) { moved = true; await repo.put('unrelated.js', 'Concurrent main update'); }
     return result;
@@ -134,12 +139,15 @@ test('main moving during snapshot creation stops before creating a PR', async ()
   assert.equal(repo.pulls.length, 0);
 });
 
-test('unverified image dependencies and protected frontmatter are rejected before a PR exists', async () => {
+test('required CI rejects unverified image dependencies and protected frontmatter in candidate PRs', async () => {
   for (const content of [original + '![Missing](@images/missing.gif)\n', original + '![Unknown](./unverified.gif)\n', original.replace('title: Report', 'title: Report\nhead:\n  - tag: script\n    content: alert(1)')]) {
     const { repo, saved, publish } = await fixture();
     const head = await repo.put(path, content, { branch: saved.branch });
-    await assert.rejects(publish(head), /image|frontmatter/);
-    assert.equal(repo.pulls.length, 0);
+    await publish(head);
+    const pr = repo.pulls[0];
+    await assert.rejects(publicationTestClient({ request: repo.request }).verifyPublication(pr.head.ref, pr.head.sha), /image|frontmatter/);
+    assert.equal(repo.pulls.length, 1);
+    assert.equal(repo.refs.get(`refs/heads/${saved.branch}`), head);
   }
 });
 
@@ -166,7 +174,7 @@ test('unrelated main changes replace the immutable attempt and retire the earlie
   const first = structuredClone(repo.pulls[0]), oldHead = repo.refs.get(`refs/heads/${first.head.ref}`);
   const newer = await savePage(store(), 'library', filename, { ...saved, ...parsePage(saved.content), body: 'Unsaved by publication, newer working revision.' });
   const main = await repo.put('unrelated.js', 'Latest main');
-  assert.equal((await publish()).state, 'publishing');
+  assert.equal((await publish()).state, 'pr-open');
   assert.equal(repo.pulls[0].state, 'closed'); assert.equal(repo.pulls.length, 2);
   const second = repo.pulls[1];
   assert.deepEqual(repo.commits.get(second.head.sha).parents, [{ sha: main }]);
@@ -191,16 +199,16 @@ test('closed attempts and abandoned reservations recover using retained locks, i
   assert.deepEqual([...repo.refs].filter(([name]) => name.startsWith('refs/tags/')), locks);
   assert.equal(repo.refs.get(`refs/heads/${saved.branch}`), saved.head);
   const other = await fixture(); let rejectPR = true;
-  const store = () => createDraftStore({ request: (path, options) => { if (path === '/pulls' && rejectPR) throw new Error('Connection failed before PR creation'); return other.repo.request(path, options); } });
+  const store = () => publicationTestClient({ request: (path, options) => { if (path === '/pulls' && rejectPR) throw new Error('Connection failed before PR creation'); return other.repo.request(path, options); } });
   await assert.rejects(store().publishContent({ area: 'library', filename, head: other.saved.head }));
   rejectPR = false;
-  assert.equal((await store().publishContent({ area: 'library', filename, head: other.saved.head })).state, 'publishing');
+  assert.equal((await store().publishContent({ area: 'library', filename, head: other.saved.head })).state, 'pr-open');
   assert.equal(other.repo.pulls.length, 1);
 });
 test('uncertain retirement blocks replacement; a merge winning the close race is terminal', async () => {
   for (const merge of [false, true]) {
     const { repo, saved, publish } = await fixture(); await publish(); await repo.put('unrelated.js', 'New main');
-    const store = createDraftStore({ request: async (path, options) => {
+    const store = publicationTestClient({ request: async (path, options) => {
       if (options?.method === 'PATCH') {
         if (merge) { repo.pulls[0].merged_at = '2026-11-17T00:00:00Z'; repo.pulls[0].state = 'closed'; }
         throw new Error('Close response lost');
@@ -230,12 +238,12 @@ test('missing legacy coordinator, corrupt lock, and rewritten history fail close
   await assert.rejects(publish(), /lock identity mismatch/);
 });
 
-test('failed auto-merge plus a lost replacement reservation response recover one new attempt', async () => {
+test('a lost replacement reservation response recovers one new manual publication attempt', async () => {
   const { repo, saved, publish } = await fixture(); repo.autoMergeFailure = true;
-  assert.equal((await publish()).state, 'action-required');
+  assert.equal((await publish()).state, 'pr-open');
   await repo.put('unrelated.js', 'Unrelated current main');
   repo.fault = 'after';
-  assert.equal((await publish()).state, 'action-required');
+  assert.equal((await publish()).state, 'pr-open');
   assert.equal(repo.pulls.length, 2); assert.equal(repo.pulls[0].state, 'closed');
   repo.autoMergeFailure = false;
   assert.equal((await publish()).number, 2); assert.equal(repo.pulls.length, 2);

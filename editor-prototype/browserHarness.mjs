@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { createServer } from 'vite';
+import { waitForChrome } from './browserStartup.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const candidates = [process.env.CHROME_BIN, '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome', '/usr/bin/chromium'].filter(Boolean);
@@ -45,17 +46,7 @@ export async function withEditorBrowser(fixtureCode, run, { images = {}, initial
     });
     await server.listen();
     browser = spawn(chrome, ['--headless', '--disable-gpu', '--no-first-run', '--no-default-browser-check', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
-    const debugUrl = await new Promise((resolve, reject) => {
-      let output = '';
-      const timer = setTimeout(() => reject(new Error('Chrome launch timed out.')), 10_000);
-      browser.stderr.on('data', (chunk) => {
-        output += chunk;
-        const match = output.match(/DevTools listening on (ws:\/\/[^\s]+)/);
-        if (match) { clearTimeout(timer); resolve(match[1]); }
-      });
-      browser.once('error', (error) => { clearTimeout(timer); reject(error); });
-      browser.once('exit', (code) => { clearTimeout(timer); reject(new Error(`Chrome exited (${code}): ${output.slice(-1000)}`)); });
-    });
+    const debugUrl = await waitForChrome(browser, profile);
     const pages = await (await fetch(`http://${new URL(debugUrl).host}/json/list`)).json();
     socket = new WebSocket(pages.find((page) => page.type === 'page').webSocketDebuggerUrl);
     await once(socket, 'open');

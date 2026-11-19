@@ -12,7 +12,7 @@ export function useEditorRecovery({ scope, route, project, baseline }: { scope: 
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const session = useRef<{ key: string; id: string; copy?: RecoveryCopy; fields?: string }>({ key: '', id: '' });
   const consume = useRef<RecoveryCopy | null>(null);
-  const key = scope && baseline ? JSON.stringify([scope, routeKey(route), baseline.sha || null]) : '';
+  const key = scope && baseline ? JSON.stringify([scope, routeKey(route), baseline.sha || null, baseline.resumeHead || null]) : '';
   const hasChanges = !!project && !!baseline && JSON.stringify(recoveryFields(project)) !== JSON.stringify(recoveryFields(baseline));
   const fieldsKey = project ? JSON.stringify(recoveryFields(project)) : '';
   const refresh = () => {
@@ -28,7 +28,7 @@ export function useEditorRecovery({ scope, route, project, baseline }: { scope: 
     clearTimeout(timer.current);
     const context = snapshot ? { ...latest.current, project: snapshot } : latest.current;
     if (!context.scope || !context.project || !context.baseline || !context.route.area || (!context.route.filename && !context.route.draftId)) return false;
-    const contextKey = JSON.stringify([context.scope, routeKey(context.route), context.baseline.sha || null]);
+    const contextKey = JSON.stringify([context.scope, routeKey(context.route), context.baseline.sha || null, context.baseline.resumeHead || null]);
     if (session.current.key !== contextKey) session.current = { key: contextKey, id: crypto.randomUUID() };
     const fields = recoveryFields(context.project);
     const serialized = JSON.stringify(fields);
@@ -40,7 +40,7 @@ export function useEditorRecovery({ scope, route, project, baseline }: { scope: 
         setStatus('none'); return true;
       }
       if (serialized === session.current.fields && session.current.copy && window.localStorage.getItem(recoveryKey(context.scope, session.current.id)) === JSON.stringify(session.current.copy)) return true;
-      const copy: RecoveryCopy = { version: 1, id: session.current.id, revision: crypto.randomUUID(), route: context.route, baseSha: context.baseline.sha || null, savedAt: new Date().toISOString(), fields };
+      const copy: RecoveryCopy = { version: 1, id: session.current.id, revision: crypto.randomUUID(), route: context.route, baseSha: context.baseline.sha || null, ...(context.baseline.resumeHead ? { baseResumeHead: context.baseline.resumeHead } : {}), savedAt: new Date().toISOString(), fields };
       window.localStorage.setItem(recoveryKey(context.scope, copy.id), JSON.stringify(copy));
       session.current.copy = copy; session.current.fields = serialized;
       if (consume.current) { removeRecovery(window.localStorage, context.scope, consume.current); consume.current = null; }
@@ -98,7 +98,7 @@ export function useEditorRecovery({ scope, route, project, baseline }: { scope: 
   const currentCopy = (): RecoveryCopy | null => {
     const context = latest.current;
     if (!context.project || !context.baseline || !context.route.area) return null;
-    return { version: 1, id: session.current.id || crypto.randomUUID(), revision: crypto.randomUUID(), route: context.route, baseSha: context.baseline.sha || null, savedAt: new Date().toISOString(), fields: recoveryFields(context.project) };
+    return { version: 1, id: session.current.id || crypto.randomUUID(), revision: crypto.randomUUID(), route: context.route, baseSha: context.baseline.sha || null, ...(context.baseline.resumeHead ? { baseResumeHead: context.baseline.resumeHead } : {}), savedAt: new Date().toISOString(), fields: recoveryFields(context.project) };
   };
   return { copies, status, savedAt, storageError, hasChanges, flush, refresh, restored, saved, discard, currentCopy };
 }

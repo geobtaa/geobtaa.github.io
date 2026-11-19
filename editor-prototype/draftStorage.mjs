@@ -1,14 +1,17 @@
-import { contentDirectory, CONTENT_ROOT, validateContentPath } from './contentAreas.mjs';
+import { digest, documentPath, draftBranch, draftMetadata, publicationBaseKey } from './draftIdentity.mjs';
+import { activeDraft, draftHeads, selectDraft } from './draftCycles.mjs';
+export { documentPath, draftBranch } from './draftIdentity.mjs';
+import { contentDirectory, CONTENT_ROOT } from './contentAreas.mjs';
 import { documentRoute, documentSlug, routeConflictMessage } from './contentRoutes.mjs';
 import { snapshotRoutes, availablePostFilename } from './blogStorage.mjs';
 import { contentVisibility, parseContent, withContentVisibility } from './content.mjs';
 import { postSlug } from './blog.mjs';
 import { validateCreationAttempt, gitBlobSha, uncertainCreation } from './articleCreation.mjs';
 import { validateImageUpload, validateImagePath, imageContentType, IMAGE_DIRECTORY } from './imageAssets.mjs';
-import { parseBodySyntax } from '../src/components/editor-prototype/contentSyntax.ts';
+import { imageReferences } from './publicationCandidate.mjs';
 import { parse } from 'yaml';
-import { readProductionMarker, productionDocumentHash, trackPublication } from './publicationStatus.mjs';
-import { verifyPublicationPolicy } from './publicationPolicy.mjs';
+import { readPublicationState } from './publicationCoordinator.mjs';
+import { createPublicationPRClient } from './publicationPR.mjs';
 import { validateDocument } from './validateDocument.mjs';
 import { PAGE_METADATA_FIELDS, validatePageMetadata, patchFrontmatter } from './pageMetadata.mjs';
 
@@ -26,50 +29,35 @@ export function encodeBytes(bytes) {
   for (let i = 0; i < bytes.length; i += 0x8000) text += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return btoa(text);
 }
-async function digest(value) {
-  return [...new Uint8Array(await crypto.subtle.digest('SHA-256', typeof value === 'string' ? new TextEncoder().encode(value) : value))].map(byte => byte.toString(16).padStart(2, '0')).join('');
-}
-export function documentPath(area, filename) {
-  const canonical = validateContentPath(filename);
-  // Decode once at the HTTP boundary; aliases must not create another identity.
-  if (canonical !== filename || canonical.split('/').at(-1).startsWith('_')) throw failure(400, 'Use a canonical, routed document filename.');
-  return `${contentDirectory(area)}/${canonical}`;
-}
-export async function draftBranch(area, filename) {
-  const path = documentPath(area, filename);
-  return `cms/drafts/${area}/${postSlug(filename.replace(/\.mdx?$/, '')).slice(0, 40)}-${(await digest(path)).slice(0, 32)}`;
-}
 export async function prepareDraftImage({ area, documentFilename, filename, mimeType, bytes }) {
   const path = documentPath(area, documentFilename);
   const safe = validateImageUpload({ filename, mimeType, bytes });
   const name = safe.replace(/\.[^.]+$/, '');
   return { path: `cms-${(await digest(path)).slice(0, 32)}/${name}-${await digest(bytes)}.${safe.split('.').at(-1)}`, mimeType, content: encodeBytes(bytes), filename: safe };
 }
-function imageReferences(content, filename, unknown = null) {
-  const data = parse(content.match(/^---\r?\n([\s\S]*?)\r?\n---/)[1]);
-  const refs = new Set();
-  const add = source => {
-    if (typeof source !== 'string') return;
-    const match = source.match(/^(?:@images\/|\/?src\/assets\/images\/|(?:\.\.\/)+assets\/images\/)(.+)$/);
-    if (match) refs.add(validateImagePath(match[1]));
-    else unknown?.add(source);
-  };
-  const walk = node => { if (node.type === 'image') add(node.url); for (const child of node.children || []) walk(child); };
-  walk(parseBodySyntax(parseContent(content).body, filename.endsWith('.md') ? 'md' : 'mdx'));
-  for (const field of ['image', 'light', 'dark']) add(data.cover?.[field]);
-  return refs;
-}
-function metadata(commit) {
-  const lines = commit.message?.split('\n').filter(line => line.startsWith(MARKER));
-  if (lines?.length !== 1) throw failure(409, 'A draft branch has unrecognized metadata. A maintainer must inspect it.');
-  try { return JSON.parse(lines[0].slice(MARKER.length)); } catch { throw failure(409, 'Invalid draft identity metadata.'); }
-}
-
 // Shared by the local gateway and Cloudflare. No application-host branch is used.
-export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.github.io', readMarker = readProductionMarker, readDocumentHash = productionDocumentHash }) {
-  const commits = new Map(), trees = new Map(), blobs = new Map();
+export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.github.io' }) {
+  const commits = new Map(), trees = new Map(), blobs = new Map(), comparisons = new Map(), resumeEvidence = new Map();
   const once = async (cache, key, read) => { if (!cache.has(key)) cache.set(key, await read()); return cache.get(key); };
+  const compare = (base, head) => once(comparisons, `${base}:${head}`, () => base === head ? Promise.resolve({ status: 'identical', merge_base_commit: { sha: base } }) : request(`/compare/${base}...${head}`));
   const commit = sha => once(commits, sha, () => request(`/git/commits/${sha}`));
+  async function historyCommit(sha) {
+    if (!commits.has(sha)) {
+      // Read immutable objects in bounded batches. The inspector below still
+      // follows and verifies every exact parent; GraphQL order is not trusted.
+      const result = await request('/graphql', write({ query: `query CMSDraftHistory($owner:String!,$repo:String!,$head:GitObjectID!){repository(owner:$owner,name:$repo){object(oid:$head){...on Commit{oid history(first:100){nodes{oid message tree{oid} parents(first:2){nodes{oid}} author{name date}}}}}}}`, variables: { owner, repo, head: sha } }));
+      const object = result.data?.repository?.object, nodes = object?.history?.nodes;
+      const oid = value => typeof value === 'string' && /^[a-f0-9]{40,64}$/.test(value);
+      if (result.errors?.length || object?.oid !== sha || !Array.isArray(nodes) || !nodes.length || nodes.length > 100 || !nodes.some(value => value?.oid === sha)) throw failure(503, 'Draft history is incomplete. Nothing was saved; your edits are preserved.');
+      const values = new Map();
+      for (const value of nodes) {
+        if (!oid(value?.oid) || values.has(value.oid) || typeof value.message !== 'string' || !oid(value.tree?.oid) || !Array.isArray(value.parents?.nodes) || value.parents.nodes.length > 2 || value.parents.nodes.some(parent => !oid(parent?.oid))) throw failure(503, 'Draft history is incomplete. Nothing was saved; your edits are preserved.');
+        values.set(value.oid, { sha: value.oid, message: value.message, tree: { sha: value.tree.oid }, parents: value.parents.nodes.map(parent => ({ sha: parent.oid })), author: value.author });
+      }
+      for (const [oid, value] of values) if (!commits.has(oid)) commits.set(oid, value);
+    }
+    return commits.get(sha);
+  }
   const tree = sha => once(trees, sha, async () => {
     const result = await request(`/git/trees/${sha}?recursive=1`);
     if (result.truncated !== false || !Array.isArray(result.tree)) throw failure(503, 'The repository tree is incomplete. Nothing was saved.');
@@ -104,35 +92,37 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     catch (error) { if (error.status === 404) return null; throw error; }
   };
   const main = async () => { const head = await ref('heads/main'); if (!head) throw failure(503, 'The main content baseline is unavailable.'); return { head, files: await snapshot(head) }; };
-  async function refs() {
-    const found = []; let after = null;
-    do {
-      const result = await request('/graphql', write({ query: 'query CMSDrafts($owner:String!,$repo:String!,$after:String){repository(owner:$owner,name:$repo){refs(refPrefix:"refs/heads/cms/drafts/",first:100,after:$after){nodes{name prefix target{oid}} pageInfo{hasNextPage endCursor}}}}', variables: { owner, repo, after } }));
-      const page = result.data?.repository?.refs;
-      if (result.errors?.length || !Array.isArray(page?.nodes) || typeof page.pageInfo?.hasNextPage !== 'boolean') throw failure(503, 'Draft discovery is unavailable. Nothing was saved.');
-      found.push(...page.nodes);
-      if (!page.pageInfo.hasNextPage) break;
-      if (!page.pageInfo.endCursor || page.pageInfo.endCursor === after || found.length >= 5000) throw failure(503, 'Draft discovery is incomplete. A maintainer must inspect the branch inventory.');
-      after = page.pageInfo.endCursor;
-    } while (true);
-    return found;
-  }
+  const inventory = async () => {
+    const heads = await draftHeads({ request, owner, repo });
+    for (const item of heads) {
+      if (item.value && !commits.has(item.head)) commits.set(item.head, item.value);
+      if (item.before && !commits.has(item.before.sha)) commits.set(item.before.sha, item.before);
+    }
+    return heads;
+  };
+  const active = (area, filename) => activeDraft(area, filename, { request, owner, repo, ref, commit });
   async function inspect(branch, head, baseline) {
-    const latest = await commit(head), meta = metadata(latest);
+    const latest = await commit(head), meta = draftMetadata(latest);
     const parts = typeof meta.path === 'string' && meta.path.startsWith(`${CONTENT_ROOT}/`) ? meta.path.slice(CONTENT_ROOT.length + 1).split('/') : [];
     const area = parts.shift(), filename = parts.join('/');
-    if (!area || !filename || await draftBranch(area, filename) !== branch || meta.version !== 1 || typeof meta.base !== 'string' || !/^[a-f0-9]{40,64}$/.test(meta.base) || !meta.assets || typeof meta.assets !== 'object' || Array.isArray(meta.assets)) throw failure(409, 'Draft branch identity does not match its document.');
+    if (!area || !filename || await draftBranch(area, filename, meta) !== branch || ![1, 2].includes(meta.version) || typeof meta.base !== 'string' || !/^[a-f0-9]{40,64}$/.test(meta.base) || !meta.assets || typeof meta.assets !== 'object' || Array.isArray(meta.assets)) throw failure(409, 'Draft branch identity does not match its document.');
     const baseFiles = await snapshot(meta.base);
     const baseDocument = baseFiles.get(meta.path);
     if (baseDocument && (baseDocument.type !== 'blob' || baseDocument.mode !== '100644')) throw failure(409, 'The original draft document is not a regular file.');
     if ((baseFiles.get(meta.path)?.sha || null) !== meta.baseBlob) throw failure(409, 'The draft base document does not match its recorded revision.');
-    const comparison = await request(`/compare/${meta.base}...${baseline.head}`);
+    const comparison = await compare(meta.base, baseline.head);
     if (!['ahead', 'identical'].includes(comparison.status) || comparison.merge_base_commit?.sha !== meta.base) throw failure(409, 'The draft base is not an ancestor of main.');
     let cursor = head, steps = 0;
     while (cursor !== meta.base) {
       if (++steps > 1000) throw failure(503, 'Draft history exceeds the verification limit. A maintainer must inspect it.');
-      const current = await commit(cursor), identity = metadata(current);
-      if (current.parents?.length !== 1 || ['path','base','baseBlob','creationId'].some(key => identity[key] !== meta[key])) throw failure(409, 'Draft ancestry or identity was changed outside the editor.');
+      const current = await historyCommit(cursor), identity = draftMetadata(current);
+      if (current.parents?.length !== 1 || ['version','path','base','baseBlob','creationId','previousBranch','previousHead'].some(key => identity[key] !== meta[key])) throw failure(409, 'Draft ancestry or identity was changed outside the editor.');
+      if (cursor !== head && identity.retiredTo) throw failure(409, 'A retired draft was changed outside the editor. Your edits are preserved.');
+      if (current.parents[0].sha === meta.base && meta.version === 2) {
+        const priorHead = await ref(`heads/${meta.previousBranch}`), prior = priorHead && await commit(priorHead), before = await commit(meta.previousHead);
+        const priorMeta = prior && draftMetadata(prior);
+        if (!prior || prior.parents?.length !== 1 || prior.parents[0].sha !== meta.previousHead || prior.tree.sha !== before.tree.sha || priorMeta.path !== meta.path || priorMeta.retiredTo?.branch !== branch || priorMeta.retiredTo?.head !== cursor || await draftBranch(area, filename, priorMeta) !== meta.previousBranch || JSON.stringify(priorMeta) !== JSON.stringify({ ...draftMetadata(before), retiredTo: { branch, head: cursor } })) throw failure(409, 'The saved draft continuation does not preserve its predecessor.');
+      }
       cursor = current.parents[0].sha;
     }
     const files = await snapshot(head);
@@ -151,22 +141,53 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     for (const [path, sha] of Object.entries(meta.assets)) if (files.get(`${IMAGE_DIRECTORY}/${path}`)?.sha !== sha || baseFiles.has(`${IMAGE_DIRECTORY}/${path}`)) throw failure(409, 'Invalid draft asset manifest.');
     return { branch, head, meta, area, filename, files, content: await text(files.get(meta.path)), mainChanged: (baseline.files.get(meta.path)?.sha || null) !== meta.baseBlob, lastSavedBy: latest.author?.name, lastSavedAt: latest.author?.date };
   }
-  async function discover(baseline) {
+  async function discover(baseline, { verifyRetired = true } = {}) {
+    const heads = await inventory(), documents = new Map(), all = new Map();
+    for (const item of heads) {
+      const meta = draftMetadata(await commit(item.head));
+      const parts = typeof meta.path === 'string' && meta.path.startsWith(`${CONTENT_ROOT}/`) ? meta.path.slice(CONTENT_ROOT.length + 1).split('/') : [];
+      const area = parts.shift(), filename = parts.join('/');
+      if (!area || !filename || documentPath(area, filename) !== meta.path || await draftBranch(area, filename, meta) !== item.branch) throw failure(409, 'Draft branch identity does not match its document.');
+      documents.set(meta.path, { area, filename });
+      if (verifyRetired) all.set(item.branch, await inspect(item.branch, item.head, baseline));
+    }
     const output = [];
-    // Sequential verification bounds hosted subrequests and memory. Never hide an
-    // unreadable branch and then treat its route as free.
-    for (const item of await refs()) {
-      if (item?.prefix !== 'refs/heads/cms/drafts/' || typeof item.name !== 'string' || !item.name || typeof item.target?.oid !== 'string' || !item.target.oid) throw failure(503, 'Invalid draft discovery result.');
-      // GraphQL names are relative to the queried refPrefix, not refs/heads/.
-      const branch = (item.prefix + item.name).slice('refs/heads/'.length);
-      output.push(await inspect(branch, item.target.oid, baseline));
+    for (const { area, filename } of documents.values()) {
+      const selected = await selectDraft(area, filename, heads, commit);
+      if (selected) output.push(all.get(selected.branch) || await inspect(selected.branch, selected.head, baseline));
     }
     return output;
   }
   const record = draft => ({ filename: draft.filename, sha: draft.files.get(draft.meta.path).sha, content: draft.content, branch: draft.branch, head: draft.head, hasDraft: true, baselineExists: draft.meta.baseBlob !== null, mainChanged: draft.mainChanged, lastSavedBy: draft.lastSavedBy, lastSavedAt: draft.lastSavedAt });
+  const publication = createPublicationPRClient({ request, owner, repo, documentPath, draftBranch, digest });
+  async function resumed(draft, baseline) {
+    if (!draft.mainChanged) {
+      if (baseline.head === draft.meta.base || !await ref(`heads/cms/publication-state/${(await digest(draft.meta.path)).slice(0, 32)}-${publicationBaseKey(draft.meta)}`)) return null;
+    }
+    const key = `${draft.head}:${baseline.head}`;
+    if (resumeEvidence.has(key)) return resumeEvidence.get(key);
+    const status = await publication.getPublicationStatus(draft.area, draft.filename, draft);
+    if (status.state !== 'merged' || !/^[a-f0-9]{40}$/.test(status.mergeHead || '') || !status.snapshotHead) return null;
+    const published = baseline.files.get(draft.meta.path), frozen = await snapshot(status.baseHead);
+    const submitted = await inspect(draft.branch, status.selectedHead, { head: status.baseHead, files: frozen });
+    const expected = patchFrontmatter(submitted.content, { draft: false });
+    const snapshotFiles = await snapshot(status.snapshotHead);
+    if (!published || published.sha !== await gitBlobSha(expected) || snapshotFiles.get(draft.meta.path)?.sha !== published.sha) return null;
+    const comparison = await compare(status.mergeHead, baseline.head);
+    if (!['ahead', 'identical'].includes(comparison.status) || comparison.merge_base_commit?.sha !== status.mergeHead) return null;
+    const relation = await compare(status.selectedHead, draft.head);
+    if (!['ahead', 'identical'].includes(relation.status) || relation.merge_base_commit?.sha !== status.selectedHead) return null;
+    for (const image of imageReferences(expected, draft.filename)) if (submitted.meta.assets[image] && baseline.files.get(`${IMAGE_DIRECTORY}/${image}`)?.sha !== submitted.meta.assets[image]) return null;
+    const content = patchFrontmatter(draft.content, { draft: contentVisibility(expected).draft });
+    const result = { filename: draft.filename, branch: 'main', head: baseline.head, sha: published.sha, content, hasDraft: false, baselineExists: true, mainChanged: false, resumeHead: draft.head, resumeSourceSha: draft.files.get(draft.meta.path).sha, preservedEdits: content !== expected };
+    resumeEvidence.set(key, result); return result;
+  }
   async function getContent(area, filename) {
-    const path = documentPath(area, filename), branch = await draftBranch(area, filename), baseline = await main(), head = await ref(`heads/${branch}`);
-    if (head) return record(await inspect(branch, head, baseline));
+    const path = documentPath(area, filename), baseline = await main(), selected = await active(area, filename);
+    if (selected) {
+      const draft = await inspect(selected.branch, selected.head, baseline);
+      return await resumed(draft, baseline) || record(draft);
+    }
     const file = baseline.files.get(path);
     if (!file) throw failure(404, 'This document is not present on main or in a saved draft.');
     return { filename, sha: file.sha, content: await text(file), branch: 'main', head: baseline.head, hasDraft: false, baselineExists: true };
@@ -191,11 +212,29 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     const original = await inspect(draft.branch, head, baseline);
     return { ...record(original), commitSha: head, replayed: true };
   }
-  async function saveContent({ area, filename, content, sha, head: expectedHead, assets = [], creationId }) {
-    const path = documentPath(area, filename), branch = await draftBranch(area, filename);
+  async function saveContent({ area, filename, content, sha, head: expectedHead, assets = [], creationId, resumeHead }) {
+    const path = documentPath(area, filename);
     const repositoryId = await authorize();
-    const baseline = await main(), current = await ref(`heads/${branch}`);
+    const baseline = await main(), selected = await active(area, filename);
+    let branch = selected?.branch || await draftBranch(area, filename), current = selected?.head || null;
     let draft = current ? await inspect(branch, current, baseline) : null;
+    if (creationId && !sha && draft?.meta.creationId !== creationId) {
+      const legacyBranch = await draftBranch(area, filename), legacyHead = await ref(`heads/${legacyBranch}`);
+      if (legacyHead && draftMetadata(await commit(legacyHead)).creationId === creationId) return replay(await inspect(legacyBranch, legacyHead, baseline), baseline);
+    }
+    let predecessor = null;
+    if (resumeHead) {
+      if (!draft || resumeHead !== draft.head || !expectedHead || sha !== baseline.files.get(path)?.sha || !await resumed(draft, baseline)) throw draftConflict();
+      if (expectedHead !== baseline.head) {
+        const relation = await compare(expectedHead, baseline.head);
+        if (!['ahead', 'identical'].includes(relation.status) || relation.merge_base_commit?.sha !== expectedHead) throw draftConflict();
+      }
+      predecessor = draft;
+      const continuation = { version: 2, path, base: baseline.head, baseBlob: baseline.files.get(path).sha, creationId: null, assets: {}, previousBranch: draft.branch, previousHead: draft.head };
+      branch = await draftBranch(area, filename, continuation); current = null;
+      draft = null;
+    }
+
     if (draft && creationId && draft.meta.creationId === creationId && !sha) return replay(draft, baseline);
     if (draft?.mainChanged) throw failure(409, 'The main document changed since this draft began. Save Draft is blocked to protect published content. Keep or download your edits; repeat editing currently requires an ordinary GitHub PR based on current main. Do not delete drafts or locks to retry.');
     const parent = current || baseline.head, files = draft?.files || baseline.files;
@@ -206,18 +245,26 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
         if (!['ahead', 'identical'].includes(comparison.status) || comparison.merge_base_commit?.sha !== expectedHead) throw draftConflict();
       }
     } else if (files.has(path) || draft || expectedHead) throw draftConflict();
-    const meta = draft ? { ...draft.meta, assets: { ...draft.meta.assets } } : { version: 1, path, base: baseline.head, baseBlob: baseline.files.get(path)?.sha || null, creationId: creationId || null, assets: {} };
+    const meta = draft ? { ...draft.meta, assets: { ...draft.meta.assets } } : { version: predecessor ? 2 : 1, path, base: baseline.head, baseBlob: baseline.files.get(path)?.sha || null, creationId: creationId || null, assets: {}, ...(predecessor ? { previousBranch: predecessor.branch, previousHead: predecessor.head } : {}) };
+    if (predecessor) for (const [image, imageSha] of Object.entries(predecessor.meta.assets)) {
+      const imagePath = `${IMAGE_DIRECTORY}/${image}`, published = baseline.files.get(imagePath);
+      if (published && published.sha !== imageSha) throw failure(409, 'A retained image conflicts with main. Your draft is preserved.');
+      if (!published) { meta.assets[image] = imageSha; }
+    }
+
     const original = files.has(path) ? await text(files.get(path)) : null;
     // Defense in depth: the serializer's absence/presence handling must survive
     // direct store use too. Do not let draft saves change visibility or slugs.
     if (original && (contentVisibility(original).draft !== contentVisibility(content).draft || documentSlug(original) !== documentSlug(content))) throw failure(400, 'Save Draft cannot change publication metadata or the document URL.');
+    if (predecessor) await validateDocument(content, { filename, originalBody: original ? parseContent(original).body : '' });
     if (!original && contentVisibility(content).draft !== true) throw failure(400, 'New documents must be saved as drafts.');
-    const drafts = await discover(baseline);
+    const drafts = await discover(baseline, { verifyRetired: false });
     const claims = await snapshotRoutes([...baseline.files.values()], request, owner, repo);
     for (const other of drafts) if (other.meta.path !== path) claims.set(documentRoute(`${other.area}/${other.filename}`, documentSlug(other.content)), other.meta.path);
     const route = documentRoute(`${area}/${filename}`, documentSlug(content));
     if (claims.has(route) && claims.get(route) !== path) throw Object.assign(failure(409, routeConflictMessage(route, claims.get(route))), { creationState: 'not-created' });
     const entries = [{ path, mode: '100644', type: 'blob', content }];
+    if (predecessor) for (const [image, imageSha] of Object.entries(meta.assets)) entries.push({ path: `${IMAGE_DIRECTORY}/${image}`, mode: '100644', type: 'blob', sha: imageSha });
     if (!Array.isArray(assets) || assets.length > 20) throw failure(400, 'Save at most 20 pending images at a time.');
     if (assets.reduce((sum, asset) => sum + (typeof asset?.content === 'string' ? asset.content.length : 0), 0) > 20_000_000) throw failure(413, 'Pending images exceed the 15 MB save limit. Save fewer images at a time.');
     const references = imageReferences(content, filename);
@@ -227,7 +274,7 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
       const prepared = await prepareDraftImage({ area, documentFilename: filename, filename: asset.filename, mimeType: asset.mimeType, bytes });
       if (!references.has(prepared.path)) continue; // Unused pending uploads never enter Git.
       const assetPath = `${IMAGE_DIRECTORY}/${prepared.path}`;
-      const old = files.get(assetPath), published = baseline.files.get(assetPath);
+      const old = files.get(assetPath) || predecessor?.files.get(assetPath), published = baseline.files.get(assetPath);
       const blobSha = await gitBlobShaBytes(bytes);
       if ((old && old.sha !== blobSha) || (published && published.sha !== blobSha)) throw failure(409, 'An immutable image filename has different bytes in the repository.');
       if (!old) {
@@ -244,11 +291,18 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     if (!nextTree.sha) throw failure(503, 'GitHub did not confirm the draft tree.');
     const next = await request('/git/commits', write({ message: `[CF-Pages-Skip] Save draft: ${filename}\n\n${MARKER}${JSON.stringify(meta)}`, tree: nextTree.sha, parents: [parent] }));
     if (!next.sha) throw failure(503, 'GitHub did not confirm the draft commit.');
-    const saved = { filename, sha: await gitBlobSha(content), content, branch, head: next.sha, commitSha: next.sha, hasDraft: true, baselineExists: meta.baseBlob !== null, lastSavedBy: next.author?.name, lastSavedAt: next.author?.date };
+    const saved = { resumeHead: null, filename, sha: await gitBlobSha(content), content, branch, head: next.sha, commitSha: next.sha, hasDraft: true, baselineExists: meta.baseBlob !== null, lastSavedBy: next.author?.name, lastSavedAt: next.author?.date };
     const updates = [{ name: `refs/heads/${branch}`, beforeOid: current || ZERO, afterOid: next.sha }];
+    if (predecessor) {
+      const retired = await request('/git/commits', write({ tree: (await commit(predecessor.head)).tree.sha, parents: [predecessor.head], message: `[CF-Pages-Skip] Preserve prior draft: ${filename}\n\n${MARKER}${JSON.stringify({ ...predecessor.meta, retiredTo: { branch, head: next.sha } })}` }));
+      if (!retired.sha) throw failure(503, 'The previous draft preservation could not be confirmed. Nothing was switched.');
+      updates.push({ name: `refs/heads/${predecessor.branch}`, beforeOid: predecessor.head, afterOid: retired.sha });
+    }
+
     // Reserve new routes across .md/.mdx, aliases and index equivalents. The
     // immutable tag and working branch are created in ONE atomic transaction.
     if (!original) updates.push({ name: `refs/tags/cms-draft-routes/${await digest(route)}`, beforeOid: ZERO, afterOid: next.sha });
+    if (predecessor && await ref('heads/main') !== baseline.head) throw draftConflict();
     try { await atomic(updates, repositoryId); }
     catch (error) {
       const actual = await ref(`heads/${branch}`).catch(() => null);
@@ -264,12 +318,13 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
   }
   // Publication reads immutable saved objects. It never advances the working ref.
   async function publicationPlan(area, filename, selectedHead, baseline = null, { historical = false } = {}) {
-    const path = documentPath(area, filename), branch = await draftBranch(area, filename);
+    const path = documentPath(area, filename);
     if (!/^[a-f0-9]{40}$/.test(selectedHead || '')) throw failure(400, 'Select a saved document revision before publishing.');
     baseline ||= await main();
+    const branch = await draftBranch(area, filename, draftMetadata(await commit(selectedHead)));
     const current = await ref(`heads/${branch}`);
     if (!current) throw failure(409, 'The saved draft is unavailable.');
-    const relation = await request(`/compare/${selectedHead}...${current}`);
+    const relation = await compare(selectedHead, current);
     if (!['ahead', 'identical'].includes(relation.status) || relation.merge_base_commit?.sha !== selectedHead) throw failure(409, 'The selected revision is not part of this working draft.');
     const draft = await inspect(branch, selectedHead, baseline);
     if (draft.mainChanged) throw failure(409, 'The public document changed since this draft began. A maintainer must reconcile the versions before publishing.');
@@ -312,7 +367,7 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
       }
     }
     const identity = (await digest(path)).slice(0, 32);
-    return { area, filename, path, selectedHead, baseline, entries, identity, branch: `cms/publish/${identity}-${selectedHead}`, lock: `refs/tags/cms-publication-locks/${identity}-${draft.meta.baseBlob || 'new'}` };
+    return { area, filename, path, selectedHead, baseline, entries, identity, branch: `cms/publish/${identity}-${selectedHead}`, lock: `refs/tags/cms-publication-locks/${identity}-${publicationBaseKey(draft.meta)}` };
   }
   async function verifyPublication(branch, head) {
     const value = await commit(head);
@@ -327,178 +382,25 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     const files = await snapshot(head), expected = new Map(baseline.files);
     for (const entry of plan.entries) expected.set(entry.path, { ...entry, sha: entry.sha || await gitBlobSha(entry.content) });
     if (files.size !== expected.size || [...expected].some(([path, file]) => { const actual = files.get(path); return !actual || actual.sha !== file.sha || actual.mode !== file.mode || actual.type !== file.type; })) throw failure(409, 'Publication diff contains unexpected content or assets.');
-    const stateHead = await ref(`heads/cms/publication-state/${plan.identity}-${(await inspect(await draftBranch(meta.area, meta.filename), meta.selectedHead, baseline)).meta.baseBlob || 'new'}`);
+    const stateHead = await ref(`heads/cms/publication-state/${plan.identity}-${publicationBaseKey((await inspect(await draftBranch(meta.area, meta.filename, draftMetadata(await commit(meta.selectedHead))), meta.selectedHead, baseline)).meta)}`);
     if (!stateHead) throw failure(409, 'Publication coordinator is missing.');
-    const state = await readPublicationState(stateHead, plan.path);
-    if (await ref(`tags/cms-publication-locks/${plan.identity}-${(await inspect(await draftBranch(meta.area, meta.filename), meta.selectedHead, baseline)).meta.baseBlob || 'new'}`) !== state.attempts[0].head) throw failure(409, 'Publication lock identity mismatch.');
+    const state = await readPublicationState(stateHead, plan.path, commit);
+    if (await ref(`tags/cms-publication-locks/${plan.identity}-${publicationBaseKey((await inspect(await draftBranch(meta.area, meta.filename, draftMetadata(await commit(meta.selectedHead))), meta.selectedHead, baseline)).meta)}`) !== state.attempts[0].head) throw failure(409, 'Publication lock identity mismatch.');
     const active = state.attempts.at(-1);
     if (state.selectedHead !== meta.selectedHead || active?.head !== head || active?.branch !== branch) throw failure(409, 'This publication attempt was superseded.');
     return plan;
   }
-  function publicationState(value, path) {
-    const lines = value.message?.split('\n').filter(line => line.startsWith('CMS-Publication-State-v1: '));
-    let state;
-    try { if (lines?.length !== 1) throw new Error(); state = JSON.parse(lines[0].slice('CMS-Publication-State-v1: '.length)); } catch { throw failure(409, 'Publication coordinator is corrupt. Ask a maintainer; do not delete its lock.'); }
-    if (state.path !== path || !/^[a-f0-9]{40}$/.test(state.selectedHead || '') || !Array.isArray(state.attempts) || !state.attempts.length || state.attempts.some((item, index) => !/^[a-f0-9]{40}$/.test(item.head || '') || !/^[a-f0-9]{40}$/.test(item.base || '') || typeof item.branch !== 'string' || item.attempt !== index + 1)) throw failure(409, 'Invalid publication coordinator history.');
-    return state;
-  }
-  async function readPublicationState(head, path) {
-    const latest = publicationState(await commit(head), path);
-    let current = latest, value = await commit(head), steps = 0;
-    while (true) {
-      if (++steps > 100 || value.parents?.length !== 1) throw failure(409, 'Invalid publication coordinator ancestry.');
-      const parent = await commit(value.parents[0].sha);
-      if (!parent.message?.includes('CMS-Publication-State-v1: ')) {
-        if (current.attempts.length !== 1) throw failure(409, 'Publication attempt history was removed.');
-        break;
-      }
-      const previous = publicationState(parent, path);
-      if (previous.selectedHead !== latest.selectedHead || previous.attempts.length !== current.attempts.length - 1 || JSON.stringify(previous.attempts) !== JSON.stringify(current.attempts.slice(0, -1))) throw failure(409, 'Publication attempt history was rewritten.');
-      current = previous; value = parent;
-    }
-    return latest;
-  }
-  async function getPublicationStatus(area, filename) {
-    const path = documentPath(area, filename);
-    try {
-      const draftHead = await ref(`heads/${await draftBranch(area, filename)}`);
-      if (!draftHead) return { state: 'none' };
-      const meta = metadata(await commit(draftHead)), identity = (await digest(path)).slice(0, 32);
-      if (meta.path !== path) throw failure(409, 'Draft identity mismatch.');
-      const stateHead = await ref(`heads/cms/publication-state/${identity}-${meta.baseBlob || 'new'}`);
-      if (!stateHead) return { state: 'none' };
-      const state = await readPublicationState(stateHead, path);
-      if (await ref(`tags/cms-publication-locks/${identity}-${meta.baseBlob || 'new'}`) !== state.attempts[0].head) throw failure(409, 'Publication lock identity mismatch.');
-      let publication;
-      for (const attempt of state.attempts) {
-        const pulls = await request(`/pulls?state=all&head=${encodeURIComponent(`${owner}:${attempt.branch}`)}&base=main&per_page=100`);
-        if (!Array.isArray(pulls) || pulls.length > 1) throw failure(503, 'Publication PR history is incomplete.');
-        let pr = pulls[0];
-        if (pr) pr = await request(`/pulls/${pr.number}`);
-        publication = { attempt, pr, selectedHead: state.selectedHead, path };
-        if (pr?.merged_at) break;
-      }
-      const readExpectedSnapshot = async ({ attempt, selectedHead }) => {
-        // Revalidate against the frozen base, never against today's main. This
-        // remains possible after a merge and while newer working edits exist.
-        const frozen = { head: attempt.base, files: await snapshot(attempt.base) };
-        const plan = await publicationPlan(area, filename, selectedHead, frozen, { historical: true });
-        const value = await commit(attempt.head);
-        if (value.parents?.length !== 1 || value.parents[0].sha !== attempt.base || attempt.branch !== `${plan.branch}-${attempt.base}-${attempt.attempt}`) throw failure(409, 'Publication snapshot identity mismatch.');
-        const files = await snapshot(attempt.head), expectedFiles = new Map(frozen.files);
-        for (const entry of plan.entries) expectedFiles.set(entry.path, { ...entry, sha: entry.sha || await gitBlobSha(entry.content) });
-        if (files.size !== expectedFiles.size || [...expectedFiles].some(([path, file]) => { const actual = files.get(path); return !actual || actual.sha !== file.sha || actual.mode !== file.mode || actual.type !== file.type; })) throw failure(409, 'Publication snapshot scope changed.');
-        return { blob: files.get(path).sha, route: documentRoute(`${area}/${filename}`, documentSlug(plan.entries[0].content)), entries: plan.entries.map(entry => ({ path: entry.path, sha: files.get(entry.path).sha })) };
-      };
-      const status = await trackPublication({ request, publication, repository: `${owner}/${repo}`, readMarker, readDocumentHash, snapshot: readExpectedSnapshot,
-        contains: async (base, head) => { const result = await request(`/compare/${base}...${head}`); return ['ahead', 'identical'].includes(result.status) && result.merge_base_commit?.sha === base; },
-        matches: async (expected, head) => { const files = await snapshot(head); return expected.entries.every(entry => { const file = files.get(entry.path); return file?.sha === entry.sha && file.mode === '100644' && file.type === 'blob'; }); },
-      });
-      if (await ref(`heads/cms/publication-state/${identity}-${meta.baseBlob || 'new'}`) !== stateHead) return { state: 'checking', message: 'Publication changed while checking. Refresh status.' };
-      return { ...status, newerDraft: draftHead !== state.selectedHead };
-    } catch (error) {
-      if ([401, 403].includes(error.status)) throw error;
-      return { state: 'checking', message: `Publication status could not be verified: ${error.message} Retry status; the saved draft is intact.` };
-    }
-  }
-  async function publishContent({ area, filename, head }) {
-    const repositoryId = await authorize();
-    if (!/^[a-f0-9]{40}$/.test(head || '')) throw failure(400, 'Select a saved revision.');
-    const path = documentPath(area, filename), identity = (await digest(path)).slice(0, 32);
-    const findPR = async branch => {
-      const pulls = await request(`/pulls?state=all&head=${encodeURIComponent(`${owner}:${branch}`)}&base=main&per_page=100`);
-      if (!Array.isArray(pulls) || pulls.length > 1) throw failure(503, 'Publication PR identity is uncertain. Retry after GitHub recovers.');
-      const pr = pulls[0];
-      if (pr && (!Number.isInteger(pr.number) || pr.head?.ref !== branch || pr.base?.ref !== 'main' || pr.head?.repo?.full_name !== `${owner}/${repo}`)) throw failure(409, 'Unexpected publication PR identity.');
-      return pr;
-    };
-    const response = (pr, state, message) => ({ state, message, number: pr.number, url: pr.html_url, selectedHead: head });
-    // The original document blob fixes the coordinator identity across unrelated
-    // main updates. No existing draft or route tag is modified by this protocol.
-    const draftHead = await ref(`heads/${await draftBranch(area, filename)}`), baseline = await main();
-    if (!draftHead) throw failure(409, 'The saved draft is unavailable.');
-    const selected = await commit(head), meta = metadata(selected);
-    if (meta.path !== path) throw failure(409, 'Selected revision identity mismatch.');
-    const stateBranch = `cms/publication-state/${identity}-${meta.baseBlob || 'new'}`;
-    const lock = `refs/tags/cms-publication-locks/${identity}-${meta.baseBlob || 'new'}`;
-    let stateHead = await ref(`heads/${stateBranch}`), state = stateHead ? await readPublicationState(stateHead, path) : null;
-    if (state && await ref(lock.slice('refs/'.length)) !== state.attempts[0].head) throw failure(409, 'Publication lock identity mismatch. Ask a maintainer.');
-    if (state && state.selectedHead !== head) throw failure(409, 'Another saved revision owns this publication. Retry that revision or ask a maintainer to reconcile; the draft is intact.');
-    // Recover terminal merges before main/blob validation; never submit twice.
-    if (state) for (const attempt of state.attempts) {
-      const pr = await findPR(attempt.branch);
-      if (pr?.merged_at) return response(pr, 'merged');
-    }
-    await verifyPublicationPolicy(request);
-    const plan = await publicationPlan(area, filename, head, baseline);
-    if (!state && await ref(lock.slice('refs/'.length))) throw failure(409, 'A legacy publication lock has no coordinator. A maintainer must inspect its PR and migrate it; do not delete it or retry another revision.');
-    // Detect pre-coordinator/other-baseline open requests as well.
-    for (let page = 1; ; page++) {
-      const active = await request(`/pulls?state=open&base=main&per_page=100&page=${page}`);
-      if (!Array.isArray(active) || page > 50) throw failure(503, 'Active publication inventory is incomplete.');
-      if (active.some(pr => pr.head?.repo?.full_name === `${owner}/${repo}` && pr.head?.ref?.startsWith(`cms/publish/${identity}-`) && !state?.attempts.some(item => item.branch === pr.head.ref))) throw failure(409, 'Another publication PR requires maintainer reconciliation.');
-      if (active.length < 100) break;
-    }
-    let attempt = state?.attempts.at(-1), pr = attempt ? await findPR(attempt.branch) : null;
-    if (attempt && await ref(`heads/${attempt.branch}`) !== attempt.head) throw failure(409, 'Immutable publication snapshot was changed or removed. Ask a maintainer.');
-    const replace = !attempt || attempt.base !== plan.baseline.head || pr?.state === 'closed';
-    if (replace) {
-      if (pr?.state === 'open') {
-        // Closing is the serialization barrier against native auto-merge. If a
-        // merge wins the race, its readback is terminal. Uncertainty blocks retry.
-        try { await request(`/pulls/${pr.number}`, { ...write({ state: 'closed' }), method: 'PATCH' }); } catch { /* Read authoritative state after an uncertain close. */ }
-        pr = await request(`/pulls/${pr.number}`);
-        if (pr.merged_at) return response(pr, 'merged');
-        if (pr.state !== 'closed' || pr.head?.sha !== attempt.head) throw failure(409, 'Could not confirm retirement of the earlier PR. Retry safely; no replacement was created.');
-      }
-      const ordinal = (attempt?.attempt || 0) + 1;
-      if (ordinal > 100) throw failure(409, 'Publication retry limit reached. Ask a maintainer.');
-      const branch = `${plan.branch}-${plan.baseline.head}-${ordinal}`;
-      const treeResult = await request('/git/trees', write({ base_tree: (await commit(plan.baseline.head)).tree.sha, tree: plan.entries }));
-      if (!treeResult.sha) throw failure(503, 'Publication tree was not confirmed.');
-      const next = await request('/git/commits', write({ tree: treeResult.sha, parents: [plan.baseline.head], message: `[CF-Pages-Skip] Publish: ${filename}\n\nCMS-Publication-v1: ${JSON.stringify({ area, filename, selectedHead: head, attempt: ordinal })}` }));
-      if (!next.sha) throw failure(503, 'Publication commit was not confirmed.');
-      attempt = { branch, head: next.sha, base: plan.baseline.head, attempt: ordinal };
-      const nextState = { path, selectedHead: head, attempts: [...(state?.attempts || []), attempt] };
-      const coordinator = await request('/git/commits', write({ tree: (await commit(plan.baseline.head)).tree.sha, parents: [stateHead || plan.baseline.head], message: `[CF-Pages-Skip] Publication coordinator\n\nCMS-Publication-State-v1: ${JSON.stringify(nextState)}` }));
-      if (!coordinator.sha) throw failure(503, 'Publication coordinator was not confirmed.');
-      if (await ref('heads/main') !== plan.baseline.head) throw failure(409, 'Main changed during publication. Retry the same revision.');
-      try { await atomic([{ name: `refs/heads/${branch}`, beforeOid: ZERO, afterOid: next.sha }, { name: `refs/heads/${stateBranch}`, beforeOid: stateHead || ZERO, afterOid: coordinator.sha }, ...(!stateHead ? [{ name: lock, beforeOid: ZERO, afterOid: next.sha }] : [])], repositoryId); }
-      catch {
-        const actual = await ref(`heads/${stateBranch}`);
-        if (!actual) throw failure(503, 'Publication reservation could not be confirmed. Retry the same revision; the draft is intact.');
-        const winner = await readPublicationState(actual, path);
-        if (winner.selectedHead !== head) throw failure(409, 'Another revision won the publication reservation.');
-        attempt = winner.attempts.at(-1); stateHead = actual;
-      }
-      stateHead ||= coordinator.sha;
-      if (await ref(`heads/${stateBranch}`) === coordinator.sha) stateHead = coordinator.sha;
-      pr = await findPR(attempt.branch);
-    }
-    if (pr?.merged_at) return response(pr, 'merged');
-    if (pr?.state === 'closed') throw failure(409, 'An attempt was closed concurrently. Retry the same revision to recover.');
-    await verifyPublication(attempt.branch, attempt.head);
-    if (await ref('heads/main') !== attempt.base || await ref(`heads/${stateBranch}`) !== stateHead) throw failure(409, 'Publication changed concurrently. Retry the same revision.');
-    if (!pr) {
-      try { pr = await request('/pulls', write({ title: `Publish ${filename}`, head: attempt.branch, base: 'main', body: `CMS saved revision ${head}; attempt ${attempt.attempt}. Scope is verified independently by CI.` })); }
-      catch (error) { pr = await findPR(attempt.branch); if (!pr) throw error; }
-    }
-    if (!pr.node_id || pr.head?.sha !== attempt.head || pr.base?.ref !== 'main' || pr.head?.ref !== attempt.branch || pr.head?.repo?.full_name !== `${owner}/${repo}`) throw failure(409, 'GitHub returned an unexpected publication PR.');
-    try {
-      await verifyPublicationPolicy(request);
-      await verifyPublication(attempt.branch, attempt.head);
-      const result = await request('/graphql', write({ query: 'mutation CMSPublish($input:EnablePullRequestAutoMergeInput!){enablePullRequestAutoMerge(input:$input){pullRequest{id}}}', variables: { input: { pullRequestId: pr.node_id, expectedHeadOid: attempt.head, mergeMethod: 'SQUASH' } } }));
-      if (result.errors?.length || result.data?.enablePullRequestAutoMerge?.pullRequest?.id !== pr.node_id) throw new Error('Native auto-merge could not be confirmed; check GitHub checks, approvals and account permissions.');
-    } catch (error) { return response(pr, 'action-required', `PR saved. ${error.message} Retry Publish with the same saved revision; the draft is intact.`); }
-    return response(pr, 'publishing');
-  }
   return {
-    publicationPlan, verifyPublication, publishContent, getPublicationStatus,
+    publicationPlan, verifyPublication,
+    ...publication,
     drafts: true, workspace: `${owner}/${repo}#cms-drafts-v1`, getContent, saveContent,
     async listContent(area) {
-      const prefix = `${contentDirectory(area)}/`, baseline = await main(), drafts = await discover(baseline);
+      const prefix = `${contentDirectory(area)}/`, baseline = await main(), drafts = await discover(baseline, { verifyRetired: false });
       const entries = new Map([...baseline.files].filter(([path]) => path.startsWith(prefix) && /\.mdx?$/.test(path) && !path.split('/').at(-1).startsWith('_')).map(([path, file]) => [path, { name: path.slice(prefix.length), path, sha: file.sha, baselineExists: true, hasDraft: false }]));
-      for (const draft of drafts.filter(item => item.area === area)) entries.set(draft.meta.path, { name: draft.filename, path: draft.meta.path, ...record(draft) });
+      for (const draft of drafts.filter(item => item.area === area)) {
+        const fresh = await resumed(draft, baseline);
+        entries.set(draft.meta.path, { name: draft.filename, path: draft.meta.path, ...(fresh || record(draft)), hasDraft: fresh ? fresh.preservedEdits : true });
+      }
       await preloadText([...entries.values()].filter(item => !item.content).map(item => baseline.files.get(item.path)));
       const visible = await withContentVisibility([...entries.values()], async item => item.content ?? text(baseline.files.get(item.path)));
       return { branch: 'main', entries: visible.map(({ content, ...item }) => item) };
@@ -522,12 +424,12 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     },
     async listImages({ area, filename } = {}) {
       const baseline = await main(); let files = baseline.files;
-      if (area && filename) { const branch = await draftBranch(area, filename), head = await ref(`heads/${branch}`); if (head) files = (await inspect(branch, head, baseline)).files; }
+      if (area && filename) { const selected = await active(area, filename); if (selected) files = (await inspect(selected.branch, selected.head, baseline)).files; }
       return { images: [...files].filter(([path]) => path.startsWith(`${IMAGE_DIRECTORY}/`) && /\.(png|jpe?g|gif|webp)$/i.test(path)).map(([path, file]) => ({ path, name: path.slice(IMAGE_DIRECTORY.length + 1), sha: file.sha })) };
     },
     async getImage(path) {
       path = validateImagePath(path); const baseline = await main(); let item = baseline.files.get(`${IMAGE_DIRECTORY}/${path}`);
-      if (!item) for (const draft of await discover(baseline)) if (draft.meta.assets[path]) { item = draft.files.get(`${IMAGE_DIRECTORY}/${path}`); break; }
+      if (!item) for (const draft of await discover(baseline, { verifyRetired: false })) if (draft.meta.assets[path]) { item = draft.files.get(`${IMAGE_DIRECTORY}/${path}`); break; }
       if (!item) throw failure(404, 'Image not found on main or in a verified draft.');
       const bytes = await blob(item.sha); return { bytes, content: bytes };
     },

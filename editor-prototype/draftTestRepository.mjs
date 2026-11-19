@@ -65,12 +65,39 @@ export async function draftTestRepository(initial = {}) {
       if (url.pathname === '/pulls') {
         if (options.method === 'POST') {
           if (repository.pulls.some(pr => pr.head.ref === input.head)) fail(422);
-          const pr = { number: repository.pulls.length + 1, node_id: `pr-${repository.pulls.length + 1}`, state: 'open', html_url: 'https://github.test/pr', base: { ref: input.base }, head: { ref: input.head, sha: refs.get(`refs/heads/${input.head}`), repo: { full_name: 'geobtaa/geobtaa.github.io' } } };
+          const pr = { number: repository.pulls.length + 1, node_id: `pr-${repository.pulls.length + 1}`, state: 'open', html_url: `https://github.com/geobtaa/geobtaa.github.io/pull/${repository.pulls.length + 1}`, base: { ref: input.base }, head: { ref: input.head, sha: refs.get(`refs/heads/${input.head}`), repo: { full_name: 'geobtaa/geobtaa.github.io' } } };
           repository.pulls.push(pr); return pr;
         }
         return repository.pulls.filter(pr => url.searchParams.has('head') ? `geobtaa:${pr.head.ref}` === url.searchParams.get('head') : pr.state === 'open').slice((Number(url.searchParams.get('page') || 1) - 1) * 100, Number(url.searchParams.get('page') || 1) * 100);
       }
       if (path === '/graphql') {
+        if (input.query.includes('query CMSPublicationHistory') || input.query.includes('query CMSDraftHistory')) {
+          if (Number(input.query.match(/history\(first:(\d+)/)[1]) > 100) throw new Error('GitHub GraphQL first limit is 100');
+          const sha = input.variables.head || JSON.parse(input.query.match(/object\(oid:("[a-f0-9]+")/)[1]), nodes = []; let current = sha;
+          while (current && nodes.length < 100) {
+            const value = commits.get(current); if (!value) break;
+            nodes.push({ oid: current, message: value.message, tree: { oid: value.tree.sha }, parents: { nodes: value.parents.slice(0, 2).map(parent => ({ oid: parent.sha })) }, author: value.author });
+            current = value.parents[0]?.sha;
+          }
+          return { data: { repository: { object: { oid: sha, history: { nodes } } } } };
+        }
+        if (input.query.includes('query CMSPublicationPRs')) {
+          const found = {};
+          for (const [, alias, name] of input.query.matchAll(/(p\d+):pullRequests\(headRefName:("[^"\n]+")/g)) {
+            const branch = JSON.parse(name);
+            found[alias] = { nodes: repository.pulls.filter(pr => pr.head.ref === branch).map(pr => ({ number: pr.number, id: pr.node_id, url: pr.html_url, state: pr.merged_at ? 'MERGED' : pr.state.toUpperCase(), mergedAt: pr.merged_at || null, mergeCommit: pr.merge_commit_sha ? { oid: pr.merge_commit_sha } : null, headRefName: pr.head.ref, headRefOid: pr.head.sha, baseRefName: pr.base.ref, headRepository: { nameWithOwner: pr.head.repo.full_name }, mergeable: pr.mergeable === false ? 'CONFLICTING' : 'UNKNOWN' })) };
+          }
+          return { data: { repository: found } };
+        }
+        if (input.query.includes('query CMSPublicationFiles')) {
+          const found = {};
+          for (const [, alias, encoded] of input.query.matchAll(/(b\d+): object\(expression:("(?:[^"\\]|\\.)*")/g)) {
+            const expression = JSON.parse(encoded), colon = expression.indexOf(':'), head = expression.slice(0, colon), path = expression.slice(colon + 1);
+            const file = filesAt(head).get(path), bytes = file && objects.get(file.sha);
+            found[alias] = file ? { oid: file.sha, text: new TextDecoder().decode(bytes), isTruncated: false } : null;
+          }
+          return { data: { repository: found } };
+        }
         if (input.query.includes('mutation CMSPublish')) {
           if (repository.autoMergeFailure) return { errors: [{ message: 'Required policy prevents auto-merge' }] };
           const pr = repository.pulls.find(pr => pr.node_id === input.variables.input.pullRequestId);
@@ -80,7 +107,7 @@ export async function draftTestRepository(initial = {}) {
         }
 
         if (input.query.includes('query CMSDrafts')) {
-          const nodes = [...refs].filter(([name]) => name.startsWith('refs/heads/cms/drafts/')).map(([name, oid]) => ({ name: name.slice('refs/heads/cms/drafts/'.length), prefix: 'refs/heads/cms/drafts/', target: { oid } }));
+          const nodes = [...refs].filter(([name]) => name.startsWith('refs/heads/cms/drafts/')).map(([name, oid]) => ({ name: name.slice('refs/heads/cms/drafts/'.length), prefix: 'refs/heads/cms/drafts/', target: { oid, message: commits.get(oid).message, tree: { oid: commits.get(oid).tree.sha }, parents: { nodes: commits.get(oid).parents.map(p => ({ oid: p.sha, message: commits.get(p.sha).message, tree: { oid: commits.get(p.sha).tree.sha }, parents: { nodes: commits.get(p.sha).parents.map(pp => ({ oid: pp.sha })) } })) }, author: commits.get(oid).author } }));
           const start = Number(input.variables.after || 0), end = start + repository.pageSize;
           return { data: { repository: { refs: { nodes: nodes.slice(start, end), pageInfo: { hasNextPage: end < nodes.length, endCursor: String(end) } } } } };
         }
@@ -108,7 +135,7 @@ export async function draftTestRepository(initial = {}) {
         for (const item of input.tree) files.set(item.path, { ...item, sha: item.sha || await makeBlob(item.content) });
         const sha = id(); trees.set(sha, files); return { sha, tree: [...files.values()] };
       }
-      if (path === '/git/commits') { const sha = await makeCommit(trees.get(input.tree), input.parents[0], input.message); return { sha }; }
+      if (path === '/git/commits') { const sha = await makeCommit(trees.get(input.tree), input.parents[0], input.message); commits.get(sha).tree = { sha: input.tree }; return { sha }; }
       if (url.pathname.startsWith('/compare/')) {
         const [base, head] = url.pathname.slice('/compare/'.length).split('...');
         const visit = [head], seen = new Set();
