@@ -701,7 +701,8 @@ export default function ProjectEditor() {
   };
   const activateRoute = async (next: EditorRoute) => {
     const sequence = ++requestSequence.current;
-    setArea(next.area); setRoute(next); setProject(null); setBaseline(null); setProjects([]);
+    setArea(next.area); setRoute(next); setProject(null); setBaseline(null);
+    if (next.area !== area) setProjects([]);
     setPreviewMode(false);
     setRecoveryManager(null);
     setResumeRequest(null);
@@ -710,11 +711,13 @@ export default function ProjectEditor() {
     setBusy(true);
     try {
       const [list, loaded] = await Promise.all([
-        api<{ entries: ProjectListItem[]; branch: string }>(`/api/content/${next.area}`),
+        // Opening a document needs its authoritative response, not a second
+        // verification of the entire list. Refresh on list/new-entry routes.
+        next.filename ? Promise.resolve(null) : api<{ entries: ProjectListItem[]; branch: string }>(`/api/content/${next.area}`),
         next.filename ? api<Project>(`/api/content/${next.area}/${encodeURIComponent(next.filename)}`) : Promise.resolve(null),
       ]);
       if (sequence !== requestSequence.current) return;
-      setProjects(list.entries);
+      if (list) setProjects(list.entries);
       const entry = loaded || (next.draftId ? freshEntry(next.area) : null);
       if (entry) {
         setPendingImagePreviews(entry.assets);

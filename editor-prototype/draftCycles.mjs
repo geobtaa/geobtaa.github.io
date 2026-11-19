@@ -49,10 +49,10 @@ export async function selectDraft(area, filename, heads, commit) {
   if (!current || visited.size !== entries.length) throw fail('Competing saved draft continuations require maintainer review. No draft was replaced.');
   return current;
 }
-export async function activeDraft(area, filename, { request, owner, repo, ref, commit }) {
+export async function activeDraft(area, filename, { request, owner, repo, ref, commit, inventory = () => draftHeads({ request, owner, repo }) }) {
   const branch = await draftBranch(area, filename), head = await ref(`heads/${branch}`);
   if (!head) return null;
   const value = await commit(head);
   if (!draftMetadata(value).retiredTo) return { branch, head, value };
-  return selectDraft(area, filename, await draftHeads({ request, owner, repo }), commit);
+  return selectDraft(area, filename, await inventory(), commit);
 }
