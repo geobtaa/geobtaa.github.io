@@ -35,3 +35,21 @@ test('policy verifier rejects weak checks, missing enforcement, bypasses, permis
   for (const status of [403, 404, 500]) await assert.rejects(verifyPublicationPolicy(() => { throw Object.assign(new Error('Denied'), { status }); }), /policy-read permission/);
   repo.rules = [{ type: 'pull_request' }]; await assert.rejects(verifyPublicationPolicy(repo.request), /ruleset protection is unsupported/);
 });
+test('missing or null effective PR protection fails closed even when inactive review preferences remain readable', async () => {
+  const repo = await draftTestRepository(), baseline = await repo.request('/branches/main/protection');
+  for (const reviews of [undefined, null]) {
+    const policy = { ...baseline };
+    if (reviews === undefined) delete policy.required_pull_request_reviews;
+    else policy.required_pull_request_reviews = reviews;
+    const calls = [];
+    const request = async path => {
+      calls.push(path);
+      if (path === '/branches/main/protection') return policy;
+      if (path.endsWith('/required_pull_request_reviews')) return { required_approving_review_count: 0, require_code_owner_reviews: false, require_last_push_approval: false };
+      return repo.request(path);
+    };
+    await assert.rejects(verifyPublicationPolicy(request, { manual: true }), /does not report enabled pull-request protection/);
+    assert.equal(calls.some(path => path.endsWith('/required_pull_request_reviews')), false, 'inactive preferences cannot substitute for enabled protection');
+  }
+  await verifyPublicationPolicy(repo.request, { manual: true }); // Enabled PR requirement with zero approvals remains valid.
+});

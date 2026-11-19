@@ -41,6 +41,23 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
   const once = async (cache, key, read) => { if (!cache.has(key)) cache.set(key, await read()); return cache.get(key); };
   const compare = (base, head) => once(comparisons, `${base}:${head}`, () => base === head ? Promise.resolve({ status: 'identical', merge_base_commit: { sha: base } }) : request(`/compare/${base}...${head}`));
   const commit = sha => once(commits, sha, () => request(`/git/commits/${sha}`));
+  async function historyCommit(sha) {
+    if (!commits.has(sha)) {
+      // Read immutable objects in bounded batches. The inspector below still
+      // follows and verifies every exact parent; GraphQL order is not trusted.
+      const result = await request('/graphql', write({ query: `query CMSDraftHistory($owner:String!,$repo:String!,$head:GitObjectID!){repository(owner:$owner,name:$repo){object(oid:$head){...on Commit{oid history(first:100){nodes{oid message tree{oid} parents(first:2){nodes{oid}} author{name date}}}}}}}`, variables: { owner, repo, head: sha } }));
+      const object = result.data?.repository?.object, nodes = object?.history?.nodes;
+      const oid = value => typeof value === 'string' && /^[a-f0-9]{40,64}$/.test(value);
+      if (result.errors?.length || object?.oid !== sha || !Array.isArray(nodes) || !nodes.length || nodes.length > 100 || !nodes.some(value => value?.oid === sha)) throw failure(503, 'Draft history is incomplete. Nothing was saved; your edits are preserved.');
+      const values = new Map();
+      for (const value of nodes) {
+        if (!oid(value?.oid) || values.has(value.oid) || typeof value.message !== 'string' || !oid(value.tree?.oid) || !Array.isArray(value.parents?.nodes) || value.parents.nodes.length > 2 || value.parents.nodes.some(parent => !oid(parent?.oid))) throw failure(503, 'Draft history is incomplete. Nothing was saved; your edits are preserved.');
+        values.set(value.oid, { sha: value.oid, message: value.message, tree: { sha: value.tree.oid }, parents: value.parents.nodes.map(parent => ({ sha: parent.oid })), author: value.author });
+      }
+      for (const [oid, value] of values) if (!commits.has(oid)) commits.set(oid, value);
+    }
+    return commits.get(sha);
+  }
   const tree = sha => once(trees, sha, async () => {
     const result = await request(`/git/trees/${sha}?recursive=1`);
     if (result.truncated !== false || !Array.isArray(result.tree)) throw failure(503, 'The repository tree is incomplete. Nothing was saved.');
@@ -98,7 +115,7 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     let cursor = head, steps = 0;
     while (cursor !== meta.base) {
       if (++steps > 1000) throw failure(503, 'Draft history exceeds the verification limit. A maintainer must inspect it.');
-      const current = await commit(cursor), identity = draftMetadata(current);
+      const current = await historyCommit(cursor), identity = draftMetadata(current);
       if (current.parents?.length !== 1 || ['version','path','base','baseBlob','creationId','previousBranch','previousHead'].some(key => identity[key] !== meta[key])) throw failure(409, 'Draft ancestry or identity was changed outside the editor.');
       if (cursor !== head && identity.retiredTo) throw failure(409, 'A retired draft was changed outside the editor. Your edits are preserved.');
       if (current.parents[0].sha === meta.base && meta.version === 2) {

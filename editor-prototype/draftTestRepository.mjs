@@ -71,15 +71,15 @@ export async function draftTestRepository(initial = {}) {
         return repository.pulls.filter(pr => url.searchParams.has('head') ? `geobtaa:${pr.head.ref}` === url.searchParams.get('head') : pr.state === 'open').slice((Number(url.searchParams.get('page') || 1) - 1) * 100, Number(url.searchParams.get('page') || 1) * 100);
       }
       if (path === '/graphql') {
-        if (input.query.includes('query CMSPublicationHistory')) {
+        if (input.query.includes('query CMSPublicationHistory') || input.query.includes('query CMSDraftHistory')) {
           if (Number(input.query.match(/history\(first:(\d+)/)[1]) > 100) throw new Error('GitHub GraphQL first limit is 100');
-          const sha = JSON.parse(input.query.match(/object\(oid:("[a-f0-9]+")/)[1]), nodes = []; let current = sha;
+          const sha = input.variables.head || JSON.parse(input.query.match(/object\(oid:("[a-f0-9]+")/)[1]), nodes = []; let current = sha;
           while (current && nodes.length < 100) {
             const value = commits.get(current); if (!value) break;
-            nodes.push({ oid: current, message: value.message, tree: { oid: value.tree.sha }, parents: { nodes: value.parents.map(parent => ({ oid: parent.sha })) } });
+            nodes.push({ oid: current, message: value.message, tree: { oid: value.tree.sha }, parents: { nodes: value.parents.slice(0, 2).map(parent => ({ oid: parent.sha })) }, author: value.author });
             current = value.parents[0]?.sha;
           }
-          return { data: { repository: { object: { history: { nodes } } } } };
+          return { data: { repository: { object: { oid: sha, history: { nodes } } } } };
         }
         if (input.query.includes('query CMSPublicationPRs')) {
           const found = {};

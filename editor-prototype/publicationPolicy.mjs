@@ -12,7 +12,10 @@ export async function verifyPublicationPolicy(request, { manual = false } = {}) 
   if (policy.allow_force_pushes?.enabled !== false || policy.allow_deletions?.enabled !== false) reject('force pushes and deletion must be disabled');
   if (policy.restrictions != null) reject('restricted push actors require an explicit compatibility review');
   const reviews = policy.required_pull_request_reviews;
-  if (!reviews || reviews.required_approving_review_count !== 0 || reviews.require_code_owner_reviews !== false || reviews.require_last_push_approval === true) reject('require PRs with zero human approvals, code-owner approval disabled, and no last-push approval requirement');
+  // A successful review-settings subresource is not evidence that PR protection
+  // is enabled. GitHub can retain those preferences with the outer rule off.
+  if (!reviews) reject('GitHub does not report enabled pull-request protection for main; inspect Require a pull request before merging with zero required approvals');
+  if (reviews.required_approving_review_count !== 0 || reviews.require_code_owner_reviews !== false || reviews.require_last_push_approval === true) reject('require PRs with zero human approvals, code-owner approval disabled, and no last-push approval requirement');
   if (Object.values(reviews.bypass_pull_request_allowances || {}).some(list => !Array.isArray(list) || list.length)) reject('PR bypass allowances must be empty');
   const checks = policy.required_status_checks;
   if (checks?.strict !== true || !['validate', 'cms-publication-scope'].every(name => checks.checks?.some(check => check.context === name && check.app_id === ACTIONS_APP_ID))) reject('strict validate and cms-publication-scope checks must be bound to GitHub Actions');
