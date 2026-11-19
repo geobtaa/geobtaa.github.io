@@ -1,0 +1,2389 @@
+{
+  "date": "2026-11-19",
+  "environment": "Node v24.13.1 on macOS; real GitHub read-only requests, locally executed Pages handler; NOT Cloudflare CPU or browser end-to-end measurements",
+  "method": "Same harness, same Library paths, two sequential rounds before and after. All mutations blocked. Decoded JSON sizes; GitHub times overlap after concurrency change and must not be summed as elapsed time.",
+  "before": {
+    "kind": "local Pages handler with real GitHub read-only requests; NOT Cloudflare or editor browser telemetry",
+    "cases": [
+      {
+        "round": 1,
+        "path": "/api/content/library",
+        "status": 200,
+        "wallMs": 17596.192084000002,
+        "nodeCpuMs": 443.104,
+        "responseBytes": 14712,
+        "calls": [
+          {
+            "label": "/git/ref/heads/main",
+            "method": "GET",
+            "startMs": 13.061333999999988,
+            "headersMs": 300.692417,
+            "totalMs": 302.84775,
+            "status": 200,
+            "bytes": 348
+          },
+          {
+            "label": "/git/commits/3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 317.02745899999996,
+            "headersMs": 217.483208,
+            "totalMs": 218.594833,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/13a5dae673e98fa5a733142502adc4c4d711fc3c",
+            "method": "GET",
+            "startMs": 536.132625,
+            "headersMs": 1029.085708,
+            "totalMs": 1096.320042,
+            "status": 200,
+            "bytes": 329253
+          },
+          {
+            "label": "CMSDrafts",
+            "method": "POST",
+            "startMs": 1634.7400420000001,
+            "headersMs": 292.7530409999997,
+            "totalMs": 293.37604099999976,
+            "status": 200,
+            "bytes": 5434
+          },
+          {
+            "label": "/git/trees/5ac599f8ce75f99d5f19b5114933daf0f7b996c9",
+            "method": "GET",
+            "startMs": 1933.6469170000003,
+            "headersMs": 191.95041700000002,
+            "totalMs": 196.4268750000001,
+            "status": 200,
+            "bytes": 328635
+          },
+          {
+            "label": "/compare/eff4d6d2e234433d5ff80e0b56bfa6c2b6120713...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 2131.480584,
+            "headersMs": 390.21879100000024,
+            "totalMs": 391.371541,
+            "status": 200,
+            "bytes": 22122
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 2523.80525,
+            "headersMs": 197.66795899999988,
+            "totalMs": 198.15141700000004,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/blobs/a6b063d9b81f30ddcbaa9c7400500aa3a75b1ce0",
+            "method": "GET",
+            "startMs": 2723.43075,
+            "headersMs": 1434.8359590000005,
+            "totalMs": 1438.3307090000003,
+            "status": 200,
+            "bytes": 47260
+          },
+          {
+            "label": "/git/blobs/1530a6bee614eff9cee789ef8e5934c9c62158cd",
+            "method": "GET",
+            "startMs": 4169.611124999999,
+            "headersMs": 191.3948330000003,
+            "totalMs": 192.3836250000004,
+            "status": 200,
+            "bytes": 774
+          },
+          {
+            "label": "/git/commits/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad",
+            "method": "GET",
+            "startMs": 4362.948542,
+            "headersMs": 230.30495800000062,
+            "totalMs": 230.9080410000006,
+            "status": 200,
+            "bytes": 2690
+          },
+          {
+            "label": "/git/trees/a98606dbcc404c282930bc97cd2e6a18d4f9f0f6",
+            "method": "GET",
+            "startMs": 4594.1459589999995,
+            "headersMs": 765.7115830000002,
+            "totalMs": 770.6705000000002,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/compare/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 5366.1516249999995,
+            "headersMs": 1997.9421249999996,
+            "totalMs": 2036.4033339999996,
+            "status": 200,
+            "bytes": 1186939
+          },
+          {
+            "label": "CMSDraftHistory",
+            "method": "POST",
+            "startMs": 7405.899375,
+            "headersMs": 828.8074999999999,
+            "totalMs": 831.6091669999996,
+            "status": 200,
+            "bytes": 33562
+          },
+          {
+            "label": "/git/trees/587ebf326f2ba1d9ecf6ef28cac94a3932209775",
+            "method": "GET",
+            "startMs": 8238.726334,
+            "headersMs": 554.9654580000006,
+            "totalMs": 614.9770420000004,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/git/blobs/feb92627674ee0437a46ea56af4d401969cc69f3",
+            "method": "GET",
+            "startMs": 8856.145,
+            "headersMs": 205.65229200000067,
+            "totalMs": 207.49045900000056,
+            "status": 200,
+            "bytes": 12241
+          },
+          {
+            "label": "/git/trees/0c8d7c18209db316486eb08b7a9fd9fe2106b48e",
+            "method": "GET",
+            "startMs": 9065.592,
+            "headersMs": 717.8689589999994,
+            "totalMs": 722.2463749999988,
+            "status": 200,
+            "bytes": 287794
+          },
+          {
+            "label": "/git/blobs/d5247186a8f0e5e021344bc51ecb26c6b15adddc",
+            "method": "GET",
+            "startMs": 9789.727209,
+            "headersMs": 289.4031670000004,
+            "totalMs": 312.5690830000003,
+            "status": 200,
+            "bytes": 345391
+          },
+          {
+            "label": "/git/blobs/c2c7d824f96fa0688b083a10ed6c3acb70b030fc",
+            "method": "GET",
+            "startMs": 10128.0105,
+            "headersMs": 205.34758299999885,
+            "totalMs": 205.83570800000052,
+            "status": 200,
+            "bytes": 754
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e-cycle-403a856cffd998b56eed614a1c5ee0ef",
+            "method": "GET",
+            "startMs": 10335.687334,
+            "headersMs": 175.8755420000016,
+            "totalMs": 176.2311669999999,
+            "status": 200,
+            "bytes": 704
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 10512.37975,
+            "headersMs": 385.7004160000015,
+            "totalMs": 385.9522500000003,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "CMSPublicationHistory",
+            "method": "POST",
+            "startMs": 10898.881459,
+            "headersMs": 488.6996249999993,
+            "totalMs": 491.1726669999989,
+            "status": 200,
+            "bytes": 28605
+          },
+          {
+            "label": "/git/ref/tags/cms-publication-locks/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 11391.311542000001,
+            "headersMs": 197.62770799999998,
+            "totalMs": 198.08862500000032,
+            "status": 200,
+            "bytes": 787
+          },
+          {
+            "label": "CMSPublicationPRs",
+            "method": "POST",
+            "startMs": 11590.2985,
+            "headersMs": 931.2167499999996,
+            "totalMs": 931.465083000001,
+            "status": 200,
+            "bytes": 575
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 12522.281584,
+            "headersMs": 172.84950000000026,
+            "totalMs": 173.1794579999987,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 12696.047084,
+            "headersMs": 677.0943329999991,
+            "totalMs": 677.5087920000005,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/6a7ecae119786eee0a2238bc251504ffdcf00baa",
+            "method": "GET",
+            "startMs": 13381.272875,
+            "headersMs": 179.1563330000008,
+            "totalMs": 179.4486250000009,
+            "status": 200,
+            "bytes": 1381
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/d63d3bdc7f3a0887d58bb0a6490006dd-ea7b4fe5188cfce127c3ff780ef1000070699dcd",
+            "method": "GET",
+            "startMs": 13571.489000000001,
+            "headersMs": 1400.2357499999998,
+            "totalMs": 1400.9207079999996,
+            "status": 404,
+            "bytes": 114
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/7e5d23edb11d9fcd7dd0635479ad625f-new",
+            "method": "GET",
+            "startMs": 14973.103042,
+            "headersMs": 209.80816699999923,
+            "totalMs": 210.35054200000013,
+            "status": 404,
+            "bytes": 114
+          },
+          {
+            "label": "CMSDraftText",
+            "method": "POST",
+            "startMs": 15184.34375,
+            "headersMs": 734.7717499999999,
+            "totalMs": 1947.032416,
+            "status": 200,
+            "bytes": 376364
+          },
+          {
+            "label": "CMSDraftText",
+            "method": "POST",
+            "startMs": 17133.826834,
+            "headersMs": 351.4355839999989,
+            "totalMs": 445.62674999999945,
+            "status": 200,
+            "bytes": 116100
+          }
+        ],
+        "entries": 48
+      },
+      {
+        "round": 1,
+        "path": "/api/content/library/cms-publishing-test.mdx",
+        "status": 200,
+        "wallMs": 6125.361666999997,
+        "nodeCpuMs": 149.331,
+        "responseBytes": 1248,
+        "calls": [
+          {
+            "label": "/git/ref/heads/main",
+            "method": "GET",
+            "startMs": 0.3932920000006561,
+            "headersMs": 199.6448339999988,
+            "totalMs": 200.0004169999993,
+            "status": 200,
+            "bytes": 348
+          },
+          {
+            "label": "/git/commits/3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 200.63387499999953,
+            "headersMs": 210.11475000000064,
+            "totalMs": 210.47029099999781,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/13a5dae673e98fa5a733142502adc4c4d711fc3c",
+            "method": "GET",
+            "startMs": 411.26445899999817,
+            "headersMs": 365.74116700000013,
+            "totalMs": 369.82087500000125,
+            "status": 200,
+            "bytes": 329253
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 783.1899169999997,
+            "headersMs": 177.41412499999933,
+            "totalMs": 177.87975000000006,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/96034bd3ddc49327754323b75245286b4bd2e9b2",
+            "method": "GET",
+            "startMs": 961.2945839999993,
+            "headersMs": 328.52270900000076,
+            "totalMs": 329.08258399999977,
+            "status": 200,
+            "bytes": 1800
+          },
+          {
+            "label": "CMSDrafts",
+            "method": "POST",
+            "startMs": 1290.679541999998,
+            "headersMs": 308.23141699999906,
+            "totalMs": 308.6690830000007,
+            "status": 200,
+            "bytes": 5434
+          },
+          {
+            "label": "/git/commits/02979736a631462d028d7072eb63976ad276c770",
+            "method": "GET",
+            "startMs": 1600.4679999999971,
+            "headersMs": 196.9914170000011,
+            "totalMs": 197.39204200000313,
+            "status": 200,
+            "bytes": 1791
+          },
+          {
+            "label": "/git/commits/eff4d6d2e234433d5ff80e0b56bfa6c2b6120713",
+            "method": "GET",
+            "startMs": 1798.302499999998,
+            "headersMs": 412.7431250000009,
+            "totalMs": 413.1891250000008,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/5ac599f8ce75f99d5f19b5114933daf0f7b996c9",
+            "method": "GET",
+            "startMs": 2211.644458999999,
+            "headersMs": 275.44537499999933,
+            "totalMs": 282.0829999999987,
+            "status": 200,
+            "bytes": 328635
+          },
+          {
+            "label": "/compare/eff4d6d2e234433d5ff80e0b56bfa6c2b6120713...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 2495.921083999998,
+            "headersMs": 387.03649999999834,
+            "totalMs": 387.7751250000001,
+            "status": 200,
+            "bytes": 22122
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 2884.1087499999994,
+            "headersMs": 190.65558299999975,
+            "totalMs": 191.05462500000067,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 3075.390292,
+            "headersMs": 177.45104100000026,
+            "totalMs": 178.08004100000107,
+            "status": 200,
+            "bytes": 1594
+          },
+          {
+            "label": "/git/blobs/a6b063d9b81f30ddcbaa9c7400500aa3a75b1ce0",
+            "method": "GET",
+            "startMs": 3254.338334,
+            "headersMs": 163.674500000001,
+            "totalMs": 166.05075000000215,
+            "status": 200,
+            "bytes": 47260
+          },
+          {
+            "label": "/git/blobs/1530a6bee614eff9cee789ef8e5934c9c62158cd",
+            "method": "GET",
+            "startMs": 3425.822541999998,
+            "headersMs": 319.95037500000035,
+            "totalMs": 320.2092080000002,
+            "status": 200,
+            "bytes": 774
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e-cycle-403a856cffd998b56eed614a1c5ee0ef",
+            "method": "GET",
+            "startMs": 3746.3755839999976,
+            "headersMs": 226.5838330000006,
+            "totalMs": 226.94787499999802,
+            "status": 200,
+            "bytes": 704
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 3973.675625,
+            "headersMs": 285.1177080000016,
+            "totalMs": 285.50516699999935,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "CMSPublicationHistory",
+            "method": "POST",
+            "startMs": 4259.492333999999,
+            "headersMs": 613.1089580000007,
+            "totalMs": 615.8210830000025,
+            "status": 200,
+            "bytes": 28605
+          },
+          {
+            "label": "/git/ref/tags/cms-publication-locks/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 4875.789916999998,
+            "headersMs": 259.9604590000017,
+            "totalMs": 260.3650000000016,
+            "status": 200,
+            "bytes": 787
+          },
+          {
+            "label": "CMSPublicationPRs",
+            "method": "POST",
+            "startMs": 5136.462874999997,
+            "headersMs": 350.7605000000003,
+            "totalMs": 351.03600000000006,
+            "status": 200,
+            "bytes": 575
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 5487.868917,
+            "headersMs": 179.0501669999976,
+            "totalMs": 179.3563749999994,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 5667.757291999998,
+            "headersMs": 231.18683299999975,
+            "totalMs": 231.53395799999998,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/6a7ecae119786eee0a2238bc251504ffdcf00baa",
+            "method": "GET",
+            "startMs": 5903.685249999999,
+            "headersMs": 215.88879100000122,
+            "totalMs": 216.0951660000028,
+            "status": 200,
+            "bytes": 1381
+          }
+        ]
+      },
+      {
+        "round": 1,
+        "path": "/api/content/library/geodata-pilot-workgroup-report.mdx",
+        "status": 200,
+        "wallMs": 3251.6404589999984,
+        "nodeCpuMs": 88.849,
+        "responseBytes": 18124,
+        "calls": [
+          {
+            "label": "/git/ref/heads/main",
+            "method": "GET",
+            "startMs": 0.5086249999985739,
+            "headersMs": 180.55595800000083,
+            "totalMs": 180.94925000000148,
+            "status": 200,
+            "bytes": 348
+          },
+          {
+            "label": "/git/commits/3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 181.6964999999982,
+            "headersMs": 212.4810409999991,
+            "totalMs": 213.0087910000002,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/13a5dae673e98fa5a733142502adc4c4d711fc3c",
+            "method": "GET",
+            "startMs": 394.9131249999991,
+            "headersMs": 298.10399999999936,
+            "totalMs": 304.90287499999977,
+            "status": 200,
+            "bytes": 329253
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/geodata-pilot-workgroup-report-d63d3bdc7f3a0887d58bb0a6490006dd",
+            "method": "GET",
+            "startMs": 701.2984169999982,
+            "headersMs": 181.04954100000032,
+            "totalMs": 181.3871250000011,
+            "status": 200,
+            "bytes": 611
+          },
+          {
+            "label": "/git/commits/8a2903057e17d445846b68eb1be287c6fcac166f",
+            "method": "GET",
+            "startMs": 882.8817500000005,
+            "headersMs": 219.27054200000202,
+            "totalMs": 219.58429199999955,
+            "status": 200,
+            "bytes": 1484
+          },
+          {
+            "label": "/git/commits/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad",
+            "method": "GET",
+            "startMs": 1102.791291999998,
+            "headersMs": 190.1905000000006,
+            "totalMs": 190.6551670000008,
+            "status": 200,
+            "bytes": 2690
+          },
+          {
+            "label": "/git/trees/a98606dbcc404c282930bc97cd2e6a18d4f9f0f6",
+            "method": "GET",
+            "startMs": 1293.604292,
+            "headersMs": 218.3689579999991,
+            "totalMs": 225.2150419999998,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/compare/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 1520.031500000001,
+            "headersMs": 467.9694579999996,
+            "totalMs": 488.870082999998,
+            "status": 200,
+            "bytes": 1186939
+          },
+          {
+            "label": "CMSDraftHistory",
+            "method": "POST",
+            "startMs": 2010.9436669999996,
+            "headersMs": 546.4112920000007,
+            "totalMs": 549.2330839999995,
+            "status": 200,
+            "bytes": 33855
+          },
+          {
+            "label": "/git/trees/587ebf326f2ba1d9ecf6ef28cac94a3932209775",
+            "method": "GET",
+            "startMs": 2561.6974169999994,
+            "headersMs": 265.1361250000009,
+            "totalMs": 330.1000840000015,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/git/blobs/feb92627674ee0437a46ea56af4d401969cc69f3",
+            "method": "GET",
+            "startMs": 2893.5575839999983,
+            "headersMs": 182.20816700000069,
+            "totalMs": 182.96395800000028,
+            "status": 200,
+            "bytes": 12241
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/d63d3bdc7f3a0887d58bb0a6490006dd-ea7b4fe5188cfce127c3ff780ef1000070699dcd",
+            "method": "GET",
+            "startMs": 3078.050124999998,
+            "headersMs": 172.10425000000032,
+            "totalMs": 172.3084170000002,
+            "status": 404,
+            "bytes": 114
+          }
+        ]
+      },
+      {
+        "round": 2,
+        "path": "/api/content/library",
+        "status": 200,
+        "wallMs": 9481.610874999998,
+        "nodeCpuMs": 298.682,
+        "responseBytes": 14712,
+        "calls": [
+          {
+            "label": "/git/ref/heads/main",
+            "method": "GET",
+            "startMs": 0.5605830000022252,
+            "headersMs": 181.4674580000028,
+            "totalMs": 181.63808300000164,
+            "status": 200,
+            "bytes": 348
+          },
+          {
+            "label": "/git/commits/3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 182.30083300000115,
+            "headersMs": 192.1743749999987,
+            "totalMs": 192.65537499999846,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/13a5dae673e98fa5a733142502adc4c4d711fc3c",
+            "method": "GET",
+            "startMs": 375.12733300000036,
+            "headersMs": 241.84129200000098,
+            "totalMs": 246.54495899999893,
+            "status": 200,
+            "bytes": 329253
+          },
+          {
+            "label": "CMSDrafts",
+            "method": "POST",
+            "startMs": 623.1566670000029,
+            "headersMs": 402.02441700000054,
+            "totalMs": 402.31145900000047,
+            "status": 200,
+            "bytes": 5434
+          },
+          {
+            "label": "/git/trees/5ac599f8ce75f99d5f19b5114933daf0f7b996c9",
+            "method": "GET",
+            "startMs": 1026.9529170000023,
+            "headersMs": 219.44358400000056,
+            "totalMs": 224.95879199999763,
+            "status": 200,
+            "bytes": 328635
+          },
+          {
+            "label": "/compare/eff4d6d2e234433d5ff80e0b56bfa6c2b6120713...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 1252.7491670000018,
+            "headersMs": 414.7458750000005,
+            "totalMs": 415.49995800000033,
+            "status": 200,
+            "bytes": 22122
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 1668.647458000003,
+            "headersMs": 207.47554200000013,
+            "totalMs": 207.75795799999833,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/blobs/a6b063d9b81f30ddcbaa9c7400500aa3a75b1ce0",
+            "method": "GET",
+            "startMs": 1877.2101250000014,
+            "headersMs": 201.63004100000035,
+            "totalMs": 205.68333299999722,
+            "status": 200,
+            "bytes": 47260
+          },
+          {
+            "label": "/git/blobs/1530a6bee614eff9cee789ef8e5934c9c62158cd",
+            "method": "GET",
+            "startMs": 2087.912083000003,
+            "headersMs": 190.40454200000022,
+            "totalMs": 190.73933300000135,
+            "status": 200,
+            "bytes": 774
+          },
+          {
+            "label": "/git/commits/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad",
+            "method": "GET",
+            "startMs": 2279.331750000001,
+            "headersMs": 281.03995900000155,
+            "totalMs": 281.6526669999985,
+            "status": 200,
+            "bytes": 2690
+          },
+          {
+            "label": "/git/trees/a98606dbcc404c282930bc97cd2e6a18d4f9f0f6",
+            "method": "GET",
+            "startMs": 2561.273333000001,
+            "headersMs": 283.940125000001,
+            "totalMs": 289.43608400000085,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/compare/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 2851.8160000000025,
+            "headersMs": 573.6191250000011,
+            "totalMs": 1138.6178330000002,
+            "status": 200,
+            "bytes": 1186939
+          },
+          {
+            "label": "CMSDraftHistory",
+            "method": "POST",
+            "startMs": 3993.6815830000014,
+            "headersMs": 458.0532919999969,
+            "totalMs": 459.9529999999977,
+            "status": 200,
+            "bytes": 33562
+          },
+          {
+            "label": "/git/trees/587ebf326f2ba1d9ecf6ef28cac94a3932209775",
+            "method": "GET",
+            "startMs": 4454.483333,
+            "headersMs": 290.8602080000019,
+            "totalMs": 364.1921660000007,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/git/blobs/feb92627674ee0437a46ea56af4d401969cc69f3",
+            "method": "GET",
+            "startMs": 4820.308000000001,
+            "headersMs": 233.41041699999914,
+            "totalMs": 234.93824999999924,
+            "status": 200,
+            "bytes": 12241
+          },
+          {
+            "label": "/git/trees/0c8d7c18209db316486eb08b7a9fd9fe2106b48e",
+            "method": "GET",
+            "startMs": 5057.510708000002,
+            "headersMs": 370.47779100000116,
+            "totalMs": 375.2925830000022,
+            "status": 200,
+            "bytes": 287794
+          },
+          {
+            "label": "/git/blobs/d5247186a8f0e5e021344bc51ecb26c6b15adddc",
+            "method": "GET",
+            "startMs": 5434.144792000003,
+            "headersMs": 194.8831250000003,
+            "totalMs": 208.47737499999494,
+            "status": 200,
+            "bytes": 345391
+          },
+          {
+            "label": "/git/blobs/c2c7d824f96fa0688b083a10ed6c3acb70b030fc",
+            "method": "GET",
+            "startMs": 5666.264542000004,
+            "headersMs": 194.0014169999995,
+            "totalMs": 194.25979200000438,
+            "status": 200,
+            "bytes": 754
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e-cycle-403a856cffd998b56eed614a1c5ee0ef",
+            "method": "GET",
+            "startMs": 5861.405666999999,
+            "headersMs": 173.76962500000081,
+            "totalMs": 173.97725000000355,
+            "status": 200,
+            "bytes": 704
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 6035.629832999999,
+            "headersMs": 218.62337500000285,
+            "totalMs": 218.98120899999776,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "CMSPublicationHistory",
+            "method": "POST",
+            "startMs": 6254.876750000003,
+            "headersMs": 678.4084590000057,
+            "totalMs": 680.8347500000018,
+            "status": 200,
+            "bytes": 28605
+          },
+          {
+            "label": "/git/ref/tags/cms-publication-locks/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 6936.702792000004,
+            "headersMs": 181.8365000000049,
+            "totalMs": 182.15133400000195,
+            "status": 200,
+            "bytes": 787
+          },
+          {
+            "label": "CMSPublicationPRs",
+            "method": "POST",
+            "startMs": 7119.150291999998,
+            "headersMs": 297.73058299999684,
+            "totalMs": 298.1218329999974,
+            "status": 200,
+            "bytes": 575
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 7417.898625000002,
+            "headersMs": 219.14449999999488,
+            "totalMs": 219.48379099999875,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 7637.9202920000025,
+            "headersMs": 151.3719590000037,
+            "totalMs": 151.6963340000002,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/6a7ecae119786eee0a2238bc251504ffdcf00baa",
+            "method": "GET",
+            "startMs": 7794.177208000001,
+            "headersMs": 297.33020899999974,
+            "totalMs": 297.75391699999454,
+            "status": 200,
+            "bytes": 1381
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/d63d3bdc7f3a0887d58bb0a6490006dd-ea7b4fe5188cfce127c3ff780ef1000070699dcd",
+            "method": "GET",
+            "startMs": 8096.998041999999,
+            "headersMs": 155.94783299999835,
+            "totalMs": 156.49229099999502,
+            "status": 404,
+            "bytes": 114
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/7e5d23edb11d9fcd7dd0635479ad625f-new",
+            "method": "GET",
+            "startMs": 8253.942917,
+            "headersMs": 174.731749999999,
+            "totalMs": 175.20587499999965,
+            "status": 404,
+            "bytes": 114
+          },
+          {
+            "label": "CMSDraftText",
+            "method": "POST",
+            "startMs": 8429.555250000005,
+            "headersMs": 480.47637499999837,
+            "totalMs": 689.5288749999963,
+            "status": 200,
+            "bytes": 376364
+          },
+          {
+            "label": "CMSDraftText",
+            "method": "POST",
+            "startMs": 9122.82125,
+            "headersMs": 298.67983300000196,
+            "totalMs": 337.6655830000018,
+            "status": 200,
+            "bytes": 116100
+          }
+        ],
+        "entries": 48
+      },
+      {
+        "round": 2,
+        "path": "/api/content/library/cms-publishing-test.mdx",
+        "status": 200,
+        "wallMs": 6040.770833999995,
+        "nodeCpuMs": 126.95,
+        "responseBytes": 1248,
+        "calls": [
+          {
+            "label": "/git/ref/heads/main",
+            "method": "GET",
+            "startMs": 0.9905419999995502,
+            "headersMs": 188.1854999999996,
+            "totalMs": 188.8921249999985,
+            "status": 200,
+            "bytes": 348
+          },
+          {
+            "label": "/git/commits/3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 190.1133339999942,
+            "headersMs": 261.7569579999981,
+            "totalMs": 262.3926250000004,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/13a5dae673e98fa5a733142502adc4c4d711fc3c",
+            "method": "GET",
+            "startMs": 452.8251669999954,
+            "headersMs": 207.5872079999972,
+            "totalMs": 212.9022909999985,
+            "status": 200,
+            "bytes": 329253
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 667.2927089999939,
+            "headersMs": 162.64504199999647,
+            "totalMs": 162.9800000000032,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/96034bd3ddc49327754323b75245286b4bd2e9b2",
+            "method": "GET",
+            "startMs": 830.4620419999992,
+            "headersMs": 235.671792000001,
+            "totalMs": 236.10045900000114,
+            "status": 200,
+            "bytes": 1800
+          },
+          {
+            "label": "CMSDrafts",
+            "method": "POST",
+            "startMs": 1066.9879999999976,
+            "headersMs": 410.63300000000163,
+            "totalMs": 411.0983750000014,
+            "status": 200,
+            "bytes": 5434
+          },
+          {
+            "label": "/git/commits/02979736a631462d028d7072eb63976ad276c770",
+            "method": "GET",
+            "startMs": 1479.3055839999943,
+            "headersMs": 209.69762499999342,
+            "totalMs": 210.23016599999391,
+            "status": 200,
+            "bytes": 1791
+          },
+          {
+            "label": "/git/commits/eff4d6d2e234433d5ff80e0b56bfa6c2b6120713",
+            "method": "GET",
+            "startMs": 1690.1643339999937,
+            "headersMs": 298.42054199999984,
+            "totalMs": 299.0392920000013,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/5ac599f8ce75f99d5f19b5114933daf0f7b996c9",
+            "method": "GET",
+            "startMs": 1989.481958999997,
+            "headersMs": 252.65625,
+            "totalMs": 257.93854199999623,
+            "status": 200,
+            "bytes": 328635
+          },
+          {
+            "label": "/compare/eff4d6d2e234433d5ff80e0b56bfa6c2b6120713...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 2248.965083999996,
+            "headersMs": 456.20745799999713,
+            "totalMs": 456.92579199999454,
+            "status": 200,
+            "bytes": 22122
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 2706.419541999996,
+            "headersMs": 181.38587499999994,
+            "totalMs": 181.88404200000514,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 2888.5574999999953,
+            "headersMs": 228.35208299999795,
+            "totalMs": 228.82437500000378,
+            "status": 200,
+            "bytes": 1594
+          },
+          {
+            "label": "/git/blobs/a6b063d9b81f30ddcbaa9c7400500aa3a75b1ce0",
+            "method": "GET",
+            "startMs": 3118.356541999994,
+            "headersMs": 202.0104169999977,
+            "totalMs": 205.26454200000444,
+            "status": 200,
+            "bytes": 47260
+          },
+          {
+            "label": "/git/blobs/1530a6bee614eff9cee789ef8e5934c9c62158cd",
+            "method": "GET",
+            "startMs": 3329.4813749999958,
+            "headersMs": 172.35199999999895,
+            "totalMs": 172.80858399999852,
+            "status": 200,
+            "bytes": 774
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e-cycle-403a856cffd998b56eed614a1c5ee0ef",
+            "method": "GET",
+            "startMs": 3502.871208999997,
+            "headersMs": 328.1370420000021,
+            "totalMs": 328.5331670000014,
+            "status": 200,
+            "bytes": 704
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 3831.8849589999954,
+            "headersMs": 239.9116670000003,
+            "totalMs": 240.3266250000015,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "CMSPublicationHistory",
+            "method": "POST",
+            "startMs": 4072.5296669999952,
+            "headersMs": 578.1099170000016,
+            "totalMs": 579.1324170000007,
+            "status": 200,
+            "bytes": 28605
+          },
+          {
+            "label": "/git/ref/tags/cms-publication-locks/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 4652.637416999998,
+            "headersMs": 317.69433300000674,
+            "totalMs": 318.2100830000054,
+            "status": 200,
+            "bytes": 787
+          },
+          {
+            "label": "CMSPublicationPRs",
+            "method": "POST",
+            "startMs": 4971.228124999994,
+            "headersMs": 394.0557919999992,
+            "totalMs": 394.359749999996,
+            "status": 200,
+            "bytes": 575
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 5366.083374999995,
+            "headersMs": 190.1860000000015,
+            "totalMs": 190.60329199999978,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 5557.360499999995,
+            "headersMs": 240.31462499999907,
+            "totalMs": 240.68541600000026,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/6a7ecae119786eee0a2238bc251504ffdcf00baa",
+            "method": "GET",
+            "startMs": 5802.174499999994,
+            "headersMs": 233.8309999999983,
+            "totalMs": 234.17712500000198,
+            "status": 200,
+            "bytes": 1381
+          }
+        ]
+      },
+      {
+        "round": 2,
+        "path": "/api/content/library/geodata-pilot-workgroup-report.mdx",
+        "status": 200,
+        "wallMs": 3552.3053750000036,
+        "nodeCpuMs": 111.286,
+        "responseBytes": 18124,
+        "calls": [
+          {
+            "label": "/git/ref/heads/main",
+            "method": "GET",
+            "startMs": 0.6644579999992857,
+            "headersMs": 196.85733299999993,
+            "totalMs": 197.2007500000036,
+            "status": 200,
+            "bytes": 348
+          },
+          {
+            "label": "/git/commits/3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 198.0509579999998,
+            "headersMs": 255.0578749999986,
+            "totalMs": 255.55591699999786,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/13a5dae673e98fa5a733142502adc4c4d711fc3c",
+            "method": "GET",
+            "startMs": 453.8345830000035,
+            "headersMs": 207.15633399999933,
+            "totalMs": 214.47000000000116,
+            "status": 200,
+            "bytes": 329253
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/geodata-pilot-workgroup-report-d63d3bdc7f3a0887d58bb0a6490006dd",
+            "method": "GET",
+            "startMs": 669.963125000002,
+            "headersMs": 187.3159999999989,
+            "totalMs": 187.66108299999905,
+            "status": 200,
+            "bytes": 611
+          },
+          {
+            "label": "/git/commits/8a2903057e17d445846b68eb1be287c6fcac166f",
+            "method": "GET",
+            "startMs": 857.8096250000017,
+            "headersMs": 172.12370800000645,
+            "totalMs": 172.60216700000456,
+            "status": 200,
+            "bytes": 1484
+          },
+          {
+            "label": "/git/commits/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad",
+            "method": "GET",
+            "startMs": 1030.7714160000032,
+            "headersMs": 212.98845900000015,
+            "totalMs": 213.43383399999584,
+            "status": 200,
+            "bytes": 2690
+          },
+          {
+            "label": "/git/trees/a98606dbcc404c282930bc97cd2e6a18d4f9f0f6",
+            "method": "GET",
+            "startMs": 1244.4481250000026,
+            "headersMs": 335.65545900000143,
+            "totalMs": 340.7769169999956,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/compare/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 1586.5922910000008,
+            "headersMs": 607.8171250000014,
+            "totalMs": 712.7244170000049,
+            "status": 200,
+            "bytes": 1186939
+          },
+          {
+            "label": "CMSDraftHistory",
+            "method": "POST",
+            "startMs": 2302.155082999998,
+            "headersMs": 607.8704999999973,
+            "totalMs": 610.2332089999982,
+            "status": 200,
+            "bytes": 33855
+          },
+          {
+            "label": "/git/trees/587ebf326f2ba1d9ecf6ef28cac94a3932209775",
+            "method": "GET",
+            "startMs": 2912.979416000002,
+            "headersMs": 228.82387500000186,
+            "totalMs": 296.76104099999793,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/git/blobs/feb92627674ee0437a46ea56af4d401969cc69f3",
+            "method": "GET",
+            "startMs": 3211.9335409999985,
+            "headersMs": 171.981749999999,
+            "totalMs": 173.40437499999825,
+            "status": 200,
+            "bytes": 12241
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/d63d3bdc7f3a0887d58bb0a6490006dd-ea7b4fe5188cfce127c3ff780ef1000070699dcd",
+            "method": "GET",
+            "startMs": 3387.221749999997,
+            "headersMs": 161.62441599999875,
+            "totalMs": 162.39179100000183,
+            "status": 404,
+            "bytes": 114
+          }
+        ]
+      }
+    ]
+  },
+  "after": {
+    "kind": "local Pages handler with real GitHub read-only requests; NOT Cloudflare or editor browser telemetry",
+    "cases": [
+      {
+        "round": 1,
+        "path": "/api/content/library",
+        "status": 200,
+        "wallMs": 10723.053917000001,
+        "nodeCpuMs": 410.453,
+        "responseBytes": 14712,
+        "calls": [
+          {
+            "label": "/git/ref/heads/main",
+            "method": "GET",
+            "startMs": 7.205250000000007,
+            "headersMs": 296.125,
+            "totalMs": 297.87237500000003,
+            "status": 200,
+            "bytes": 348
+          },
+          {
+            "label": "/git/commits/3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 306.03262500000005,
+            "headersMs": 201.71195799999992,
+            "totalMs": 202.84262499999994,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/13a5dae673e98fa5a733142502adc4c4d711fc3c",
+            "method": "GET",
+            "startMs": 509.5305000000001,
+            "headersMs": 206.80145800000003,
+            "totalMs": 270.15,
+            "status": 200,
+            "bytes": 329253
+          },
+          {
+            "label": "CMSDrafts",
+            "method": "POST",
+            "startMs": 782.049708,
+            "headersMs": 258.3303750000001,
+            "totalMs": 259.05483400000014,
+            "status": 200,
+            "bytes": 5434
+          },
+          {
+            "label": "/git/commits/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad",
+            "method": "GET",
+            "startMs": 1044.465917,
+            "headersMs": 173.53870800000004,
+            "totalMs": 174.3799160000001,
+            "status": 200,
+            "bytes": 2690
+          },
+          {
+            "label": "/compare/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 1045.059042,
+            "headersMs": 411.54870800000003,
+            "totalMs": 412.2963750000001,
+            "status": 200,
+            "bytes": 15618
+          },
+          {
+            "label": "/git/trees/587ebf326f2ba1d9ecf6ef28cac94a3932209775",
+            "method": "GET",
+            "startMs": 1219.255333,
+            "headersMs": 234.36262499999998,
+            "totalMs": 240.82058400000005,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/compare/eff4d6d2e234433d5ff80e0b56bfa6c2b6120713...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 1457.776583,
+            "headersMs": 354.249417,
+            "totalMs": 354.7932079999998,
+            "status": 200,
+            "bytes": 16242
+          },
+          {
+            "label": "/git/trees/5ac599f8ce75f99d5f19b5114933daf0f7b996c9",
+            "method": "GET",
+            "startMs": 1461.474708,
+            "headersMs": 255.145708,
+            "totalMs": 318.0163749999999,
+            "status": 200,
+            "bytes": 328635
+          },
+          {
+            "label": "/git/trees/a98606dbcc404c282930bc97cd2e6a18d4f9f0f6",
+            "method": "GET",
+            "startMs": 1781.4644170000001,
+            "headersMs": 218.2523749999998,
+            "totalMs": 223.36408300000016,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 1813.287667,
+            "headersMs": 173.24145899999985,
+            "totalMs": 173.7289169999999,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/blobs/a6b063d9b81f30ddcbaa9c7400500aa3a75b1ce0",
+            "method": "GET",
+            "startMs": 1988.275875,
+            "headersMs": 236.70608300000004,
+            "totalMs": 240.30812500000002,
+            "status": 200,
+            "bytes": 47260
+          },
+          {
+            "label": "CMSDraftHistory",
+            "method": "POST",
+            "startMs": 2006.169208,
+            "headersMs": 480.494291,
+            "totalMs": 482.9078330000002,
+            "status": 200,
+            "bytes": 33562
+          },
+          {
+            "label": "/git/blobs/1530a6bee614eff9cee789ef8e5934c9c62158cd",
+            "method": "GET",
+            "startMs": 2233.8044999999997,
+            "headersMs": 203.46420799999987,
+            "totalMs": 203.84291699999994,
+            "status": 200,
+            "bytes": 774
+          },
+          {
+            "label": "/git/blobs/feb92627674ee0437a46ea56af4d401969cc69f3",
+            "method": "GET",
+            "startMs": 2490.9956669999997,
+            "headersMs": 203.54037500000004,
+            "totalMs": 205.06608400000005,
+            "status": 200,
+            "bytes": 12241
+          },
+          {
+            "label": "/git/trees/0c8d7c18209db316486eb08b7a9fd9fe2106b48e",
+            "method": "GET",
+            "startMs": 2697.8179579999996,
+            "headersMs": 733.8482089999998,
+            "totalMs": 738.4816249999999,
+            "status": 200,
+            "bytes": 287794
+          },
+          {
+            "label": "/git/blobs/d5247186a8f0e5e021344bc51ecb26c6b15adddc",
+            "method": "GET",
+            "startMs": 3438.094875,
+            "headersMs": 222.66900000000032,
+            "totalMs": 261.42387499999995,
+            "status": 200,
+            "bytes": 345391
+          },
+          {
+            "label": "/git/blobs/c2c7d824f96fa0688b083a10ed6c3acb70b030fc",
+            "method": "GET",
+            "startMs": 3728.6506249999998,
+            "headersMs": 211.03049999999985,
+            "totalMs": 211.66775000000007,
+            "status": 200,
+            "bytes": 754
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e-cycle-403a856cffd998b56eed614a1c5ee0ef",
+            "method": "GET",
+            "startMs": 3943.6490419999996,
+            "headersMs": 201.47450000000026,
+            "totalMs": 201.74666700000034,
+            "status": 200,
+            "bytes": 704
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 4146.023375000001,
+            "headersMs": 181.60187499999938,
+            "totalMs": 182.0586659999999,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "CMSPublicationHistory",
+            "method": "POST",
+            "startMs": 4328.644417,
+            "headersMs": 526.937833,
+            "totalMs": 529.6296249999996,
+            "status": 200,
+            "bytes": 28605
+          },
+          {
+            "label": "/git/ref/tags/cms-publication-locks/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 4859.5073330000005,
+            "headersMs": 1372.1287499999999,
+            "totalMs": 1372.3067499999997,
+            "status": 200,
+            "bytes": 787
+          },
+          {
+            "label": "CMSPublicationPRs",
+            "method": "POST",
+            "startMs": 6232.120542000001,
+            "headersMs": 2388.8534580000005,
+            "totalMs": 2389.0397079999993,
+            "status": 200,
+            "bytes": 575
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 8621.499708,
+            "headersMs": 221.38833300000078,
+            "totalMs": 221.7888750000002,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 8844.125042,
+            "headersMs": 191.87375000000065,
+            "totalMs": 192.2593340000003,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/6a7ecae119786eee0a2238bc251504ffdcf00baa",
+            "method": "GET",
+            "startMs": 9044.354375,
+            "headersMs": 197.07895800000006,
+            "totalMs": 197.5007910000004,
+            "status": 200,
+            "bytes": 1381
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/d63d3bdc7f3a0887d58bb0a6490006dd-ea7b4fe5188cfce127c3ff780ef1000070699dcd",
+            "method": "GET",
+            "startMs": 9255.240042,
+            "headersMs": 191.38387499999953,
+            "totalMs": 191.90658299999996,
+            "status": 404,
+            "bytes": 114
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/7e5d23edb11d9fcd7dd0635479ad625f-new",
+            "method": "GET",
+            "startMs": 9447.680375,
+            "headersMs": 174.91929099999834,
+            "totalMs": 175.5566659999986,
+            "status": 404,
+            "bytes": 114
+          },
+          {
+            "label": "CMSDraftText",
+            "method": "POST",
+            "startMs": 9624.286542,
+            "headersMs": 682.8366249999999,
+            "totalMs": 782.1357500000013,
+            "status": 200,
+            "bytes": 376364
+          },
+          {
+            "label": "CMSDraftText",
+            "method": "POST",
+            "startMs": 9624.671292,
+            "headersMs": 750.0635420000017,
+            "totalMs": 1078.5645840000016,
+            "status": 200,
+            "bytes": 116100
+          }
+        ],
+        "entries": 48
+      },
+      {
+        "round": 1,
+        "path": "/api/content/library/cms-publishing-test.mdx",
+        "status": 200,
+        "wallMs": 6586.426749999999,
+        "nodeCpuMs": 174.115,
+        "responseBytes": 1248,
+        "calls": [
+          {
+            "label": "/git/ref/heads/main",
+            "method": "GET",
+            "startMs": 0.5441659999996773,
+            "headersMs": 193.29312500000015,
+            "totalMs": 194.18679200000042,
+            "status": 200,
+            "bytes": 348
+          },
+          {
+            "label": "/git/commits/3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 195.02954099999988,
+            "headersMs": 225.58266600000024,
+            "totalMs": 226.2074160000011,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/13a5dae673e98fa5a733142502adc4c4d711fc3c",
+            "method": "GET",
+            "startMs": 421.5711659999997,
+            "headersMs": 278.29920800000036,
+            "totalMs": 284.2049169999991,
+            "status": 200,
+            "bytes": 329253
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 707.5054579999996,
+            "headersMs": 188.1668750000008,
+            "totalMs": 188.62370900000133,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/96034bd3ddc49327754323b75245286b4bd2e9b2",
+            "method": "GET",
+            "startMs": 896.3889579999995,
+            "headersMs": 193.48075000000063,
+            "totalMs": 194.0081250000003,
+            "status": 200,
+            "bytes": 1800
+          },
+          {
+            "label": "CMSDrafts",
+            "method": "POST",
+            "startMs": 1090.7849999999999,
+            "headersMs": 223.61162499999955,
+            "totalMs": 224.32820900000115,
+            "status": 200,
+            "bytes": 5434
+          },
+          {
+            "label": "/compare/eff4d6d2e234433d5ff80e0b56bfa6c2b6120713...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 1316.6267499999994,
+            "headersMs": 305.3954159999994,
+            "totalMs": 306.2459999999992,
+            "status": 200,
+            "bytes": 16242
+          },
+          {
+            "label": "/git/trees/5ac599f8ce75f99d5f19b5114933daf0f7b996c9",
+            "method": "GET",
+            "startMs": 1317.2250829999994,
+            "headersMs": 217.5236249999998,
+            "totalMs": 223.46229099999982,
+            "status": 200,
+            "bytes": 328635
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 1623.428582999999,
+            "headersMs": 173.47204199999942,
+            "totalMs": 174.21108300000014,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/blobs/a6b063d9b81f30ddcbaa9c7400500aa3a75b1ce0",
+            "method": "GET",
+            "startMs": 1798.828207999999,
+            "headersMs": 177.39541699999972,
+            "totalMs": 180.49733399999968,
+            "status": 200,
+            "bytes": 47260
+          },
+          {
+            "label": "/git/blobs/1530a6bee614eff9cee789ef8e5934c9c62158cd",
+            "method": "GET",
+            "startMs": 1986.3571249999986,
+            "headersMs": 165.88416700000016,
+            "totalMs": 166.2838329999995,
+            "status": 200,
+            "bytes": 774
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e-cycle-403a856cffd998b56eed614a1c5ee0ef",
+            "method": "GET",
+            "startMs": 2153.236916,
+            "headersMs": 184.7270410000001,
+            "totalMs": 185.20266600000105,
+            "status": 200,
+            "bytes": 704
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 2338.8933749999997,
+            "headersMs": 197.72254199999952,
+            "totalMs": 198.0785419999993,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "CMSPublicationHistory",
+            "method": "POST",
+            "startMs": 2537.2441249999993,
+            "headersMs": 592.8216249999987,
+            "totalMs": 595.1770829999987,
+            "status": 200,
+            "bytes": 28605
+          },
+          {
+            "label": "/git/ref/tags/cms-publication-locks/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 3133.3693329999987,
+            "headersMs": 170.26187500000015,
+            "totalMs": 170.71862500000134,
+            "status": 200,
+            "bytes": 787
+          },
+          {
+            "label": "CMSPublicationPRs",
+            "method": "POST",
+            "startMs": 3304.3957499999997,
+            "headersMs": 2686.1922919999997,
+            "totalMs": 2686.5236250000016,
+            "status": 200,
+            "bytes": 575
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 5991.341415999999,
+            "headersMs": 202.69020799999998,
+            "totalMs": 203.09237500000017,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 6195.177415999999,
+            "headersMs": 181.6657090000008,
+            "totalMs": 182.04675000000134,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/6a7ecae119786eee0a2238bc251504ffdcf00baa",
+            "method": "GET",
+            "startMs": 6381.3423330000005,
+            "headersMs": 197.92666600000302,
+            "totalMs": 198.3282500000023,
+            "status": 200,
+            "bytes": 1381
+          }
+        ]
+      },
+      {
+        "round": 1,
+        "path": "/api/content/library/geodata-pilot-workgroup-report.mdx",
+        "status": 200,
+        "wallMs": 2504.201582999998,
+        "nodeCpuMs": 60.336,
+        "responseBytes": 18124,
+        "calls": [
+          {
+            "label": "/git/ref/heads/main",
+            "method": "GET",
+            "startMs": 0.6905829999996058,
+            "headersMs": 202.86537499999758,
+            "totalMs": 203.2705419999984,
+            "status": 200,
+            "bytes": 348
+          },
+          {
+            "label": "/git/commits/3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 204.2323749999996,
+            "headersMs": 216.9053750000021,
+            "totalMs": 217.53550000000178,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/13a5dae673e98fa5a733142502adc4c4d711fc3c",
+            "method": "GET",
+            "startMs": 422.05025000000023,
+            "headersMs": 230.70641700000124,
+            "totalMs": 237.20229200000176,
+            "status": 200,
+            "bytes": 329253
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/geodata-pilot-workgroup-report-d63d3bdc7f3a0887d58bb0a6490006dd",
+            "method": "GET",
+            "startMs": 660.768250000001,
+            "headersMs": 171.98433400000067,
+            "totalMs": 172.36624999999913,
+            "status": 200,
+            "bytes": 611
+          },
+          {
+            "label": "/git/commits/8a2903057e17d445846b68eb1be287c6fcac166f",
+            "method": "GET",
+            "startMs": 833.3811669999996,
+            "headersMs": 176.57908300000054,
+            "totalMs": 176.93162500000108,
+            "status": 200,
+            "bytes": 1484
+          },
+          {
+            "label": "/git/commits/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad",
+            "method": "GET",
+            "startMs": 1010.8341670000009,
+            "headersMs": 226.30149999999776,
+            "totalMs": 226.8414159999993,
+            "status": 200,
+            "bytes": 2690
+          },
+          {
+            "label": "/compare/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 1011.1691250000003,
+            "headersMs": 335.3276670000014,
+            "totalMs": 336.0429589999985,
+            "status": 200,
+            "bytes": 15618
+          },
+          {
+            "label": "/git/trees/587ebf326f2ba1d9ecf6ef28cac94a3932209775",
+            "method": "GET",
+            "startMs": 1237.9153750000005,
+            "headersMs": 198.53179100000125,
+            "totalMs": 204.20375000000058,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/git/trees/a98606dbcc404c282930bc97cd2e6a18d4f9f0f6",
+            "method": "GET",
+            "startMs": 1347.541333000001,
+            "headersMs": 263.6378339999974,
+            "totalMs": 269.0961669999997,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "CMSDraftHistory",
+            "method": "POST",
+            "startMs": 1618.4956669999992,
+            "headersMs": 458.0589169999985,
+            "totalMs": 460.7270419999986,
+            "status": 200,
+            "bytes": 33855
+          },
+          {
+            "label": "/git/blobs/feb92627674ee0437a46ea56af4d401969cc69f3",
+            "method": "GET",
+            "startMs": 2080.8197919999984,
+            "headersMs": 217.83487500000047,
+            "totalMs": 219.9046249999992,
+            "status": 200,
+            "bytes": 12241
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/d63d3bdc7f3a0887d58bb0a6490006dd-ea7b4fe5188cfce127c3ff780ef1000070699dcd",
+            "method": "GET",
+            "startMs": 2301.303208000001,
+            "headersMs": 199.99179200000071,
+            "totalMs": 200.71479199999885,
+            "status": 404,
+            "bytes": 114
+          }
+        ]
+      },
+      {
+        "round": 2,
+        "path": "/api/content/library",
+        "status": 200,
+        "wallMs": 6275.344749999997,
+        "nodeCpuMs": 225.44,
+        "responseBytes": 14712,
+        "calls": [
+          {
+            "label": "/git/ref/heads/main",
+            "method": "GET",
+            "startMs": 0.7114169999986188,
+            "headersMs": 187.83424999999988,
+            "totalMs": 188.210667000003,
+            "status": 200,
+            "bytes": 348
+          },
+          {
+            "label": "/git/commits/3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 189.1237089999995,
+            "headersMs": 206.09579200000007,
+            "totalMs": 206.67070800000147,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/13a5dae673e98fa5a733142502adc4c4d711fc3c",
+            "method": "GET",
+            "startMs": 396.0649169999997,
+            "headersMs": 208.03995799999757,
+            "totalMs": 212.97087499999907,
+            "status": 200,
+            "bytes": 329253
+          },
+          {
+            "label": "CMSDrafts",
+            "method": "POST",
+            "startMs": 610.2711249999993,
+            "headersMs": 280.87300000000323,
+            "totalMs": 281.37066600000253,
+            "status": 200,
+            "bytes": 5434
+          },
+          {
+            "label": "/git/commits/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad",
+            "method": "GET",
+            "startMs": 893.2466669999994,
+            "headersMs": 322.8522919999996,
+            "totalMs": 323.24825000000055,
+            "status": 200,
+            "bytes": 2690
+          },
+          {
+            "label": "/compare/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 893.5722499999974,
+            "headersMs": 309.6563750000023,
+            "totalMs": 310.74800000000323,
+            "status": 200,
+            "bytes": 15618
+          },
+          {
+            "label": "/git/trees/587ebf326f2ba1d9ecf6ef28cac94a3932209775",
+            "method": "GET",
+            "startMs": 1204.7318339999983,
+            "headersMs": 218.25945800000045,
+            "totalMs": 222.78700000000026,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/compare/eff4d6d2e234433d5ff80e0b56bfa6c2b6120713...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 1216.6593749999993,
+            "headersMs": 350.6931250000016,
+            "totalMs": 351.3236250000009,
+            "status": 200,
+            "bytes": 16242
+          },
+          {
+            "label": "/git/trees/5ac599f8ce75f99d5f19b5114933daf0f7b996c9",
+            "method": "GET",
+            "startMs": 1428.7729999999974,
+            "headersMs": 199.75795799999833,
+            "totalMs": 205.41720799999894,
+            "status": 200,
+            "bytes": 328635
+          },
+          {
+            "label": "/git/trees/a98606dbcc404c282930bc97cd2e6a18d4f9f0f6",
+            "method": "GET",
+            "startMs": 1568.2382499999985,
+            "headersMs": 206.52812500000073,
+            "totalMs": 210.97183399999994,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 1635.5585839999985,
+            "headersMs": 179.25170900000012,
+            "totalMs": 179.60704199999964,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "CMSDraftHistory",
+            "method": "POST",
+            "startMs": 1780.5867919999982,
+            "headersMs": 485.35212500000125,
+            "totalMs": 487.97858300000007,
+            "status": 200,
+            "bytes": 33562
+          },
+          {
+            "label": "/git/blobs/a6b063d9b81f30ddcbaa9c7400500aa3a75b1ce0",
+            "method": "GET",
+            "startMs": 1816.2127089999994,
+            "headersMs": 182.9150840000002,
+            "totalMs": 186.7452090000006,
+            "status": 200,
+            "bytes": 47260
+          },
+          {
+            "label": "/git/blobs/1530a6bee614eff9cee789ef8e5934c9c62158cd",
+            "method": "GET",
+            "startMs": 2009.1853749999973,
+            "headersMs": 183.12825000000157,
+            "totalMs": 183.55670800000007,
+            "status": 200,
+            "bytes": 774
+          },
+          {
+            "label": "/git/blobs/feb92627674ee0437a46ea56af4d401969cc69f3",
+            "method": "GET",
+            "startMs": 2270.3862499999996,
+            "headersMs": 191.573042,
+            "totalMs": 193.3316670000022,
+            "status": 200,
+            "bytes": 12241
+          },
+          {
+            "label": "/git/trees/0c8d7c18209db316486eb08b7a9fd9fe2106b48e",
+            "method": "GET",
+            "startMs": 2465.2945,
+            "headersMs": 229.47533399999884,
+            "totalMs": 233.88454199999978,
+            "status": 200,
+            "bytes": 287794
+          },
+          {
+            "label": "/git/blobs/d5247186a8f0e5e021344bc51ecb26c6b15adddc",
+            "method": "GET",
+            "startMs": 2700.745959,
+            "headersMs": 243.9599159999998,
+            "totalMs": 304.7498749999977,
+            "status": 200,
+            "bytes": 345391
+          },
+          {
+            "label": "/git/blobs/c2c7d824f96fa0688b083a10ed6c3acb70b030fc",
+            "method": "GET",
+            "startMs": 3018.3817089999975,
+            "headersMs": 202.99533299999894,
+            "totalMs": 203.23045799999818,
+            "status": 200,
+            "bytes": 754
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e-cycle-403a856cffd998b56eed614a1c5ee0ef",
+            "method": "GET",
+            "startMs": 3222.2909999999974,
+            "headersMs": 178.8898339999978,
+            "totalMs": 179.35270899999887,
+            "status": 200,
+            "bytes": 704
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 3402.0133339999993,
+            "headersMs": 173.39837500000067,
+            "totalMs": 173.76683400000184,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "CMSPublicationHistory",
+            "method": "POST",
+            "startMs": 3576.095291999998,
+            "headersMs": 429.0462080000034,
+            "totalMs": 431.8129170000029,
+            "status": 200,
+            "bytes": 28605
+          },
+          {
+            "label": "/git/ref/tags/cms-publication-locks/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 4008.7541249999995,
+            "headersMs": 208.6322500000024,
+            "totalMs": 209.0752500000017,
+            "status": 200,
+            "bytes": 787
+          },
+          {
+            "label": "CMSPublicationPRs",
+            "method": "POST",
+            "startMs": 4218.140208999997,
+            "headersMs": 655.3045420000017,
+            "totalMs": 655.8508340000008,
+            "status": 200,
+            "bytes": 575
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 4874.604916999997,
+            "headersMs": 223.53395799999998,
+            "totalMs": 224.04975000000195,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 5099.354292,
+            "headersMs": 204.92116600000008,
+            "totalMs": 205.15970799999923,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/6a7ecae119786eee0a2238bc251504ffdcf00baa",
+            "method": "GET",
+            "startMs": 5308.305084,
+            "headersMs": 199.42404199999874,
+            "totalMs": 199.91358400000172,
+            "status": 200,
+            "bytes": 1381
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/d63d3bdc7f3a0887d58bb0a6490006dd-ea7b4fe5188cfce127c3ff780ef1000070699dcd",
+            "method": "GET",
+            "startMs": 5513.574666999997,
+            "headersMs": 177.39979200000016,
+            "totalMs": 177.87579200000255,
+            "status": 404,
+            "bytes": 114
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/7e5d23edb11d9fcd7dd0635479ad625f-new",
+            "method": "GET",
+            "startMs": 5691.8844169999975,
+            "headersMs": 169.6263340000005,
+            "totalMs": 170.25779200000034,
+            "status": 404,
+            "bytes": 114
+          },
+          {
+            "label": "CMSDraftText",
+            "method": "POST",
+            "startMs": 5862.678,
+            "headersMs": 359.93783299999996,
+            "totalMs": 399.17966700000034,
+            "status": 200,
+            "bytes": 376364
+          },
+          {
+            "label": "CMSDraftText",
+            "method": "POST",
+            "startMs": 5862.977166999997,
+            "headersMs": 232.39841700000034,
+            "totalMs": 269.06429200000275,
+            "status": 200,
+            "bytes": 116100
+          }
+        ],
+        "entries": 48
+      },
+      {
+        "round": 2,
+        "path": "/api/content/library/cms-publishing-test.mdx",
+        "status": 200,
+        "wallMs": 4689.872708999999,
+        "nodeCpuMs": 116.215,
+        "responseBytes": 1248,
+        "calls": [
+          {
+            "label": "/git/ref/heads/main",
+            "method": "GET",
+            "startMs": 0.3138749999998254,
+            "headersMs": 204.4684589999997,
+            "totalMs": 204.88175000000047,
+            "status": 200,
+            "bytes": 348
+          },
+          {
+            "label": "/git/commits/3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 205.43458399999872,
+            "headersMs": 205.2282090000008,
+            "totalMs": 205.86383399999977,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/13a5dae673e98fa5a733142502adc4c4d711fc3c",
+            "method": "GET",
+            "startMs": 411.59662500000195,
+            "headersMs": 246.12133299999914,
+            "totalMs": 250.28891699999804,
+            "status": 200,
+            "bytes": 329253
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 663.3222500000011,
+            "headersMs": 166.43683299999975,
+            "totalMs": 167.7908329999991,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/96034bd3ddc49327754323b75245286b4bd2e9b2",
+            "method": "GET",
+            "startMs": 831.3957499999997,
+            "headersMs": 209.42983399999866,
+            "totalMs": 210.04537499999788,
+            "status": 200,
+            "bytes": 1800
+          },
+          {
+            "label": "CMSDrafts",
+            "method": "POST",
+            "startMs": 1041.7969589999993,
+            "headersMs": 218.67095800000243,
+            "totalMs": 219.09358300000167,
+            "status": 200,
+            "bytes": 5434
+          },
+          {
+            "label": "/compare/eff4d6d2e234433d5ff80e0b56bfa6c2b6120713...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 1262.1304170000003,
+            "headersMs": 313.1062079999974,
+            "totalMs": 313.8160829999979,
+            "status": 200,
+            "bytes": 16242
+          },
+          {
+            "label": "/git/trees/5ac599f8ce75f99d5f19b5114933daf0f7b996c9",
+            "method": "GET",
+            "startMs": 1262.551292,
+            "headersMs": 205.21924999999828,
+            "totalMs": 210.18233300000065,
+            "status": 200,
+            "bytes": 328635
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 1576.3660000000018,
+            "headersMs": 185.93112499999916,
+            "totalMs": 186.3550839999989,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/blobs/a6b063d9b81f30ddcbaa9c7400500aa3a75b1ce0",
+            "method": "GET",
+            "startMs": 1763.4777920000015,
+            "headersMs": 193.05808400000024,
+            "totalMs": 196.46058399999674,
+            "status": 200,
+            "bytes": 47260
+          },
+          {
+            "label": "/git/blobs/1530a6bee614eff9cee789ef8e5934c9c62158cd",
+            "method": "GET",
+            "startMs": 1965.106917000001,
+            "headersMs": 181.46658399999797,
+            "totalMs": 181.93204200000037,
+            "status": 200,
+            "bytes": 774
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e-cycle-403a856cffd998b56eed614a1c5ee0ef",
+            "method": "GET",
+            "startMs": 2147.8126250000023,
+            "headersMs": 236.36833399999887,
+            "totalMs": 236.54087499999878,
+            "status": 200,
+            "bytes": 704
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 2384.5469169999997,
+            "headersMs": 202.04683400000067,
+            "totalMs": 202.42908399999942,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "CMSPublicationHistory",
+            "method": "POST",
+            "startMs": 2587.276249999999,
+            "headersMs": 1059.3759590000009,
+            "totalMs": 1061.911709,
+            "status": 200,
+            "bytes": 28605
+          },
+          {
+            "label": "/git/ref/tags/cms-publication-locks/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 3650.087542000001,
+            "headersMs": 190.34741700000086,
+            "totalMs": 190.7375830000019,
+            "status": 200,
+            "bytes": 787
+          },
+          {
+            "label": "CMSPublicationPRs",
+            "method": "POST",
+            "startMs": 3841.114292000002,
+            "headersMs": 220.98383300000205,
+            "totalMs": 221.20795799999905,
+            "status": 200,
+            "bytes": 575
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/c1de3a76e29f995f2a2acfd04cbc657e-2194416d7854b12f107b6f9cbd8b0837f3d7a449-74ba98c29eab154e43c220e241d8d94525daf3ea",
+            "method": "GET",
+            "startMs": 4062.687334000002,
+            "headersMs": 193.04112499999974,
+            "totalMs": 193.3522499999999,
+            "status": 200,
+            "bytes": 791
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/cms-publishing-test-c1de3a76e29f995f2a2acfd04cbc657e",
+            "method": "GET",
+            "startMs": 4256.775750000001,
+            "headersMs": 211.14454199999818,
+            "totalMs": 211.5371669999986,
+            "status": 200,
+            "bytes": 574
+          },
+          {
+            "label": "/git/commits/6a7ecae119786eee0a2238bc251504ffdcf00baa",
+            "method": "GET",
+            "startMs": 4472.113000000001,
+            "headersMs": 212.90979199999856,
+            "totalMs": 213.28949999999895,
+            "status": 200,
+            "bytes": 1381
+          }
+        ]
+      },
+      {
+        "round": 2,
+        "path": "/api/content/library/geodata-pilot-workgroup-report.mdx",
+        "status": 200,
+        "wallMs": 2800.7839170000007,
+        "nodeCpuMs": 84.945,
+        "responseBytes": 18124,
+        "calls": [
+          {
+            "label": "/git/ref/heads/main",
+            "method": "GET",
+            "startMs": 0.5682500000002619,
+            "headersMs": 166.4213340000024,
+            "totalMs": 166.77733400000216,
+            "status": 200,
+            "bytes": 348
+          },
+          {
+            "label": "/git/commits/3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 167.5367499999993,
+            "headersMs": 478.75824999999895,
+            "totalMs": 479.6724580000009,
+            "status": 200,
+            "bytes": 2926
+          },
+          {
+            "label": "/git/trees/13a5dae673e98fa5a733142502adc4c4d711fc3c",
+            "method": "GET",
+            "startMs": 647.6063749999994,
+            "headersMs": 216.64129200000025,
+            "totalMs": 222.3794170000001,
+            "status": 200,
+            "bytes": 329253
+          },
+          {
+            "label": "/git/ref/heads/cms/drafts/library/geodata-pilot-workgroup-report-d63d3bdc7f3a0887d58bb0a6490006dd",
+            "method": "GET",
+            "startMs": 871.4611670000013,
+            "headersMs": 175.4188749999994,
+            "totalMs": 175.8229169999977,
+            "status": 200,
+            "bytes": 611
+          },
+          {
+            "label": "/git/commits/8a2903057e17d445846b68eb1be287c6fcac166f",
+            "method": "GET",
+            "startMs": 1047.5407919999998,
+            "headersMs": 184.01387500000055,
+            "totalMs": 184.43433300000106,
+            "status": 200,
+            "bytes": 1484
+          },
+          {
+            "label": "/git/commits/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad",
+            "method": "GET",
+            "startMs": 1232.5567919999994,
+            "headersMs": 225.40504200000214,
+            "totalMs": 225.96483400000216,
+            "status": 200,
+            "bytes": 2690
+          },
+          {
+            "label": "/compare/ab86dd67a0b9b09d3bacaf23fe8425c0421460ad...3c3a965556f9d548f4824cb502edc481b2e80567",
+            "method": "GET",
+            "startMs": 1232.9122500000012,
+            "headersMs": 386.14316600000166,
+            "totalMs": 390.9299580000006,
+            "status": 200,
+            "bytes": 15618
+          },
+          {
+            "label": "/git/trees/587ebf326f2ba1d9ecf6ef28cac94a3932209775",
+            "method": "GET",
+            "startMs": 1458.755709000001,
+            "headersMs": 230.4305000000022,
+            "totalMs": 234.0002910000003,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "/git/trees/a98606dbcc404c282930bc97cd2e6a18d4f9f0f6",
+            "method": "GET",
+            "startMs": 1624.104833999998,
+            "headersMs": 228.7405409999992,
+            "totalMs": 232.89237500000309,
+            "status": 200,
+            "bytes": 286915
+          },
+          {
+            "label": "CMSDraftHistory",
+            "method": "POST",
+            "startMs": 1858.5089169999992,
+            "headersMs": 555.8007499999949,
+            "totalMs": 557.0978340000001,
+            "status": 200,
+            "bytes": 33855
+          },
+          {
+            "label": "/git/blobs/feb92627674ee0437a46ea56af4d401969cc69f3",
+            "method": "GET",
+            "startMs": 2416.2408339999965,
+            "headersMs": 195.34108299999934,
+            "totalMs": 197.27479100000346,
+            "status": 200,
+            "bytes": 12241
+          },
+          {
+            "label": "/git/ref/heads/cms/publication-state/d63d3bdc7f3a0887d58bb0a6490006dd-ea7b4fe5188cfce127c3ff780ef1000070699dcd",
+            "method": "GET",
+            "startMs": 2614.6542090000003,
+            "headersMs": 183.33904099999927,
+            "totalMs": 183.71887500000594,
+            "status": 404,
+            "bytes": 114
+          }
+        ]
+      }
+    ]
+  }
+}

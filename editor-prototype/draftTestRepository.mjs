@@ -140,7 +140,7 @@ export async function draftTestRepository(initial = {}) {
         const [base, head] = url.pathname.slice('/compare/'.length).split('...');
         const visit = [head], seen = new Set();
         while (visit.length) { const sha = visit.pop(); if (sha === base) return { status: head === base ? 'identical' : 'ahead', merge_base_commit: { sha: base } }; if (seen.has(sha)) continue; seen.add(sha); visit.push(...(commits.get(sha)?.parents || []).map(parent => parent.sha)); }
-        return { status: 'diverged', merge_base_commit: { sha: '' } };
+        return { status: 'diverged', merge_base_commit: { sha: '0'.repeat(40) } };
       }
       throw new Error(`Unexpected GitHub operation: ${path}`);
     },

@@ -1,5 +1,6 @@
 import { publicationBaseKey } from './draftIdentity.mjs';
 import { activeDraft } from './draftCycles.mjs';
+import { compareAncestry } from './gitComparison.mjs';
 // Lightweight proposal submission only. The required trusted-base CI checker
 // remains the authority for complete draft, MDX, route, image and tree validation.
 import { readPublicationState } from './publicationCoordinator.mjs';
@@ -55,7 +56,7 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
       const current = await ref(`heads/${branch}`);
       if (!current) throw fail(409, 'The saved draft is unavailable.');
       if (head !== current) {
-        const relation = await ask(`/compare/${head}...${current}`);
+        const relation = await compareAncestry(ask, head, current);
         if (!['ahead', 'identical'].includes(relation.status) || relation.merge_base_commit?.sha !== head) throw fail(409, 'The selected revision is not part of this working draft.');
       }
       return { area, filename, path, branch, identity, meta, head, value };

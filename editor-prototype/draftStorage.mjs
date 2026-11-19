@@ -14,6 +14,7 @@ import { readPublicationState } from './publicationCoordinator.mjs';
 import { createPublicationPRClient } from './publicationPR.mjs';
 import { validateDocument } from './validateDocument.mjs';
 import { PAGE_METADATA_FIELDS, validatePageMetadata, patchFrontmatter } from './pageMetadata.mjs';
+import { compareAncestry } from './gitComparison.mjs';
 
 const ZERO = '0'.repeat(40);
 const MARKER = 'CMS-Draft-v1: ';
@@ -38,14 +39,32 @@ export async function prepareDraftImage({ area, documentFilename, filename, mime
 // Shared by the local gateway and Cloudflare. No application-host branch is used.
 export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.github.io' }) {
   const commits = new Map(), trees = new Map(), blobs = new Map(), comparisons = new Map(), resumeEvidence = new Map();
-  const once = async (cache, key, read) => { if (!cache.has(key)) cache.set(key, await read()); return cache.get(key); };
-  const compare = (base, head) => once(comparisons, `${base}:${head}`, () => base === head ? Promise.resolve({ status: 'identical', merge_base_commit: { sha: base } }) : request(`/compare/${base}...${head}`));
-  const commit = sha => once(commits, sha, () => request(`/git/commits/${sha}`));
+  // Invocation-local only: share in-flight immutable reads as well as results.
+  const once = async (cache, key, read) => { if (!cache.has(key)) cache.set(key, Promise.resolve().then(read)); return cache.get(key); };
+  const queue = []; let reading = 0;
+  const drain = () => { while (reading < 2 && queue.length) queue.shift()(); };
+  const immutableRead = (path, options) => new Promise((resolve, reject) => {
+    queue.push(() => { reading++; Promise.resolve().then(() => request(path, options)).then(resolve, reject).finally(() => { reading--; drain(); }); });
+    drain();
+  });
+  const readEvidence = async jobs => {
+    const settled = await Promise.allSettled(jobs.map(job => job()));
+    const failed = settled.find(item => item.status === 'rejected');
+    if (failed) throw failed.reason;
+    return settled.map(item => item.value);
+  };
+  const batchReads = async jobs => {
+    const result = [];
+    for (let i = 0; i < jobs.length; i += 2) result.push(...await readEvidence(jobs.slice(i, i + 2)));
+    return result;
+  };
+  const compare = (base, head) => once(comparisons, `${base}:${head}`, () => compareAncestry(immutableRead, base, head));
+  const commit = sha => once(commits, sha, () => immutableRead(`/git/commits/${sha}`));
   async function historyCommit(sha) {
     if (!commits.has(sha)) {
       // Read immutable objects in bounded batches. The inspector below still
       // follows and verifies every exact parent; GraphQL order is not trusted.
-      const result = await request('/graphql', write({ query: `query CMSDraftHistory($owner:String!,$repo:String!,$head:GitObjectID!){repository(owner:$owner,name:$repo){object(oid:$head){...on Commit{oid history(first:100){nodes{oid message tree{oid} parents(first:2){nodes{oid}} author{name date}}}}}}}`, variables: { owner, repo, head: sha } }));
+      const result = await immutableRead('/graphql', write({ query: `query CMSDraftHistory($owner:String!,$repo:String!,$head:GitObjectID!){repository(owner:$owner,name:$repo){object(oid:$head){...on Commit{oid history(first:100){nodes{oid message tree{oid} parents(first:2){nodes{oid}} author{name date}}}}}}}`, variables: { owner, repo, head: sha } }));
       const object = result.data?.repository?.object, nodes = object?.history?.nodes;
       const oid = value => typeof value === 'string' && /^[a-f0-9]{40,64}$/.test(value);
       if (result.errors?.length || object?.oid !== sha || !Array.isArray(nodes) || !nodes.length || nodes.length > 100 || !nodes.some(value => value?.oid === sha)) throw failure(503, 'Draft history is incomplete. Nothing was saved; your edits are preserved.');
@@ -59,13 +78,13 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     return commits.get(sha);
   }
   const tree = sha => once(trees, sha, async () => {
-    const result = await request(`/git/trees/${sha}?recursive=1`);
+    const result = await immutableRead(`/git/trees/${sha}?recursive=1`);
     if (result.truncated !== false || !Array.isArray(result.tree)) throw failure(503, 'The repository tree is incomplete. Nothing was saved.');
     return new Map(result.tree.filter(item => item.type !== 'tree').map(item => [item.path, item]));
   });
   const snapshot = async head => tree((await commit(head)).tree.sha);
   const blob = sha => once(blobs, sha, async () => {
-    const result = await request(`/git/blobs/${sha}`);
+    const result = await immutableRead(`/git/blobs/${sha}`);
     if (result.encoding !== 'base64' || typeof result.content !== 'string') throw failure(503, 'The repository blob could not be read.');
     return decodeBytes(result.content);
   });
@@ -75,17 +94,21 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
   };
   async function preloadText(items) {
     const missing = [...new Set(items.filter(item => !blobs.has(item.sha)).map(item => item.sha))];
+    const jobs = [];
     for (let start = 0; start < missing.length; start += 32) {
       const batch = missing.slice(start, start + 32);
-      const fields = batch.map((sha, index) => `b${index}: object(oid: ${JSON.stringify(sha)}){...on Blob{oid text isTruncated}}`).join(' ');
-      const result = await request('/graphql', write({ query: `query CMSDraftText($owner:String!,$repo:String!){repository(owner:$owner,name:$repo){${fields}}}`, variables: { owner, repo } }));
-      if (result.errors?.length) throw failure(503, 'Document metadata could not be read.');
-      for (const [index, sha] of batch.entries()) {
-        const value = result.data?.repository?.[`b${index}`];
-        if (value?.oid !== sha || value.isTruncated !== false || typeof value.text !== 'string') throw failure(503, 'Document metadata is incomplete.');
-        blobs.set(sha, new TextEncoder().encode(value.text));
-      }
+      jobs.push(async () => {
+        const fields = batch.map((sha, index) => `b${index}: object(oid: ${JSON.stringify(sha)}){...on Blob{oid text isTruncated}}`).join(' ');
+        const result = await immutableRead('/graphql', write({ query: `query CMSDraftText($owner:String!,$repo:String!){repository(owner:$owner,name:$repo){${fields}}}`, variables: { owner, repo } }));
+        if (result.errors?.length) throw failure(503, 'Document metadata could not be read.');
+        for (const [index, sha] of batch.entries()) {
+          const value = result.data?.repository?.[`b${index}`];
+          if (value?.oid !== sha || value.isTruncated !== false || typeof value.text !== 'string') throw failure(503, 'Document metadata is incomplete.');
+          blobs.set(sha, new TextEncoder().encode(value.text));
+        }
+      });
     }
+    await batchReads(jobs);
   }
   const ref = async name => {
     try { const result = await request(`/git/ref/${name.split('/').map(encodeURIComponent).join('/')}`); if (!result.object?.sha) throw failure(503, 'Unreadable repository reference.'); return result.object.sha; }
@@ -100,17 +123,16 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     }
     return heads;
   };
-  const active = (area, filename) => activeDraft(area, filename, { request, owner, repo, ref, commit });
+  const active = (area, filename) => activeDraft(area, filename, { request, owner, repo, ref, commit, inventory });
   async function inspect(branch, head, baseline) {
     const latest = await commit(head), meta = draftMetadata(latest);
     const parts = typeof meta.path === 'string' && meta.path.startsWith(`${CONTENT_ROOT}/`) ? meta.path.slice(CONTENT_ROOT.length + 1).split('/') : [];
     const area = parts.shift(), filename = parts.join('/');
     if (!area || !filename || await draftBranch(area, filename, meta) !== branch || ![1, 2].includes(meta.version) || typeof meta.base !== 'string' || !/^[a-f0-9]{40,64}$/.test(meta.base) || !meta.assets || typeof meta.assets !== 'object' || Array.isArray(meta.assets)) throw failure(409, 'Draft branch identity does not match its document.');
-    const baseFiles = await snapshot(meta.base);
+    const [baseFiles, files, comparison] = await readEvidence([() => snapshot(meta.base), () => snapshot(head), () => compare(meta.base, baseline.head)]);
     const baseDocument = baseFiles.get(meta.path);
     if (baseDocument && (baseDocument.type !== 'blob' || baseDocument.mode !== '100644')) throw failure(409, 'The original draft document is not a regular file.');
     if ((baseFiles.get(meta.path)?.sha || null) !== meta.baseBlob) throw failure(409, 'The draft base document does not match its recorded revision.');
-    const comparison = await compare(meta.base, baseline.head);
     if (!['ahead', 'identical'].includes(comparison.status) || comparison.merge_base_commit?.sha !== meta.base) throw failure(409, 'The draft base is not an ancestor of main.');
     let cursor = head, steps = 0;
     while (cursor !== meta.base) {
@@ -125,7 +147,6 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
       }
       cursor = current.parents[0].sha;
     }
-    const files = await snapshot(head);
     const changes = new Set([...files.keys(), ...baseFiles.keys()]);
     for (const path of changes) {
       const before = baseFiles.get(path), after = files.get(path);
@@ -152,10 +173,10 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
       if (verifyRetired) all.set(item.branch, await inspect(item.branch, item.head, baseline));
     }
     const output = [];
-    for (const { area, filename } of documents.values()) {
+    for (const draft of await batchReads([...documents.values()].map(({ area, filename }) => async () => {
       const selected = await selectDraft(area, filename, heads, commit);
-      if (selected) output.push(all.get(selected.branch) || await inspect(selected.branch, selected.head, baseline));
-    }
+      return selected ? all.get(selected.branch) || await inspect(selected.branch, selected.head, baseline) : null;
+    }))) if (draft) output.push(draft);
     return output;
   }
   const record = draft => ({ filename: draft.filename, sha: draft.files.get(draft.meta.path).sha, content: draft.content, branch: draft.branch, head: draft.head, hasDraft: true, baselineExists: draft.meta.baseBlob !== null, mainChanged: draft.mainChanged, lastSavedBy: draft.lastSavedBy, lastSavedAt: draft.lastSavedAt });
@@ -241,7 +262,7 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     if (sha) {
       if (!expectedHead || files.get(path)?.sha !== sha || (current && expectedHead !== parent)) throw draftConflict();
       if (!current && expectedHead !== baseline.head) {
-        const comparison = await request(`/compare/${encodeURIComponent(expectedHead)}...${baseline.head}`);
+        const comparison = await compare(expectedHead, baseline.head);
         if (!['ahead', 'identical'].includes(comparison.status) || comparison.merge_base_commit?.sha !== expectedHead) throw draftConflict();
       }
     } else if (files.has(path) || draft || expectedHead) throw draftConflict();
