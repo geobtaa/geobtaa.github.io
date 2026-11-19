@@ -49,9 +49,23 @@ jobs:
       - run: npm run astro -- check
       - run: npm run test:config
       - run: npm run test:editor
-      - run: npm run test:editor:render
       - run: npm run build -- --timings
       - run: npm run test:navigation
+
+  # Fixtures add temporary source pages: use a separate checkout while the real
+  # site builds, and require this result for CMS snapshots as well as source PRs.
+  render-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+          cache: npm
+      - run: npm ci
+      - run: npm run test:editor:render
 
   browser-tests:
     needs: publication-plan
@@ -73,7 +87,7 @@ jobs:
 
   validate:
     if: always()
-    needs: [publication-plan, site-validation, browser-tests]
+    needs: [publication-plan, site-validation, browser-tests, render-tests]
     runs-on: ubuntu-latest
     steps:
       - name: Fail closed on missing proof or incomplete validation
@@ -82,8 +96,9 @@ jobs:
           PLAN_RESULT: ${{ needs.publication-plan.result }}
           SITE_RESULT: ${{ needs.site-validation.result }}
           BROWSER_RESULT: ${{ needs.browser-tests.result }}
+          RENDER_RESULT: ${{ needs.render-tests.result }}
         run: |
-          test "$PLAN_RESULT" = "success" && test "$SITE_RESULT" = "success" || exit 1
+          test "$PLAN_RESULT" = "success" && test "$SITE_RESULT" = "success" && test "$RENDER_RESULT" = "success" || exit 1
           case "$KIND" in
             cms-snapshot) test "$BROWSER_RESULT" = "skipped" ;;
             validated-source|full-suite) test "$BROWSER_RESULT" = "success" ;;
