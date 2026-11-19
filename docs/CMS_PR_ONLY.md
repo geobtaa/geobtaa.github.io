@@ -2,7 +2,7 @@
 
 The approved release direction is Edit → Save Draft → Create Publication PR → manually merge in GitHub → GitHub Pages deployment. The six-stage privileged Actions migration is abandoned. No GitHub App, control issue, signing credentials, background publishing worker, automatic merging, deployment polling, or status cache is introduced.
 
-Checkpoint 1 prepares submission and basic PR status only. Do not authorize wider use before checkpoint 2 provides intuitive repeat editing and representative Cloudflare Free runtime testing passes. Existing published documents, working drafts and route tags are preserved.
+Checkpoint 1 prepares submission and basic PR status. [Checkpoint 2](CMS_REPEAT_EDITING.md) now implements repeat editing locally. Do not authorize wider use before representative Cloudflare Free runtime testing passes. Existing published documents, working drafts and route tags are preserved.
 
 ## Execution and security
 
@@ -39,6 +39,6 @@ The 10 ms Free CPU allowance is NOT certified by local Node/browser success. Git
 
 Before any rollout, an administrator must disable the legacy live Publish flag during application replacement, verify the existing required checks and Cloudflare branch exclusions (`cms/drafts/*`, `cms/publish/*`, `cms/publication-state/*`), then authorize only a controlled PR-only test. Generated commits retain `[CF-Pages-Skip]`. No settings are changed by this implementation. Existing staging `geobtaa-github-io` and the GitHub Pages workflow remain unchanged.
 
-## Next checkpoint
+## Repeat editing
 
-Checkpoint 2 must let an editor resume normal editing after a merged publication without understanding branch generations. Preserve newer saved/browser edits, historical snapshots and locks; never silently reset or discard a retained draft. The current post-publication Save Draft blocker remains until that separately reviewed implementation is complete. No checkpoint 2 implementation is included here.
+[Checkpoint 2](CMS_REPEAT_EDITING.md) supplies the intuitive next-edit cycle while preserving historical drafts and locks. It is local and not deployed. The full Free-plan release gates remain outstanding.

@@ -33,7 +33,7 @@ test('the queried GitHub prefix is returned separately from the relative referen
   assert.equal(ref.target.oid, saved.head);
   const list = await store.listContent('library');
   assert.equal(list.entries.find(item => item.name === filename).head, saved.head);
-  const query = repo.requests.find(item => item.body?.includes('nodes{name prefix target{oid}}'));
+  const query = repo.requests.find(item => item.body?.includes('nodes{name prefix target{oid'));
   assert.ok(query, 'production discovery explicitly requests both name and prefix');
 });
 

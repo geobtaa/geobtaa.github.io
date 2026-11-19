@@ -85,7 +85,7 @@ export async function draftTestRepository(initial = {}) {
           const found = {};
           for (const [, alias, name] of input.query.matchAll(/(p\d+):pullRequests\(headRefName:("[^"\n]+")/g)) {
             const branch = JSON.parse(name);
-            found[alias] = { nodes: repository.pulls.filter(pr => pr.head.ref === branch).map(pr => ({ number: pr.number, id: pr.node_id, url: pr.html_url, state: pr.merged_at ? 'MERGED' : pr.state.toUpperCase(), mergedAt: pr.merged_at || null, headRefName: pr.head.ref, headRefOid: pr.head.sha, baseRefName: pr.base.ref, headRepository: { nameWithOwner: pr.head.repo.full_name }, mergeable: pr.mergeable === false ? 'CONFLICTING' : 'UNKNOWN' })) };
+            found[alias] = { nodes: repository.pulls.filter(pr => pr.head.ref === branch).map(pr => ({ number: pr.number, id: pr.node_id, url: pr.html_url, state: pr.merged_at ? 'MERGED' : pr.state.toUpperCase(), mergedAt: pr.merged_at || null, mergeCommit: pr.merge_commit_sha ? { oid: pr.merge_commit_sha } : null, headRefName: pr.head.ref, headRefOid: pr.head.sha, baseRefName: pr.base.ref, headRepository: { nameWithOwner: pr.head.repo.full_name }, mergeable: pr.mergeable === false ? 'CONFLICTING' : 'UNKNOWN' })) };
           }
           return { data: { repository: found } };
         }
@@ -107,7 +107,7 @@ export async function draftTestRepository(initial = {}) {
         }
 
         if (input.query.includes('query CMSDrafts')) {
-          const nodes = [...refs].filter(([name]) => name.startsWith('refs/heads/cms/drafts/')).map(([name, oid]) => ({ name: name.slice('refs/heads/cms/drafts/'.length), prefix: 'refs/heads/cms/drafts/', target: { oid } }));
+          const nodes = [...refs].filter(([name]) => name.startsWith('refs/heads/cms/drafts/')).map(([name, oid]) => ({ name: name.slice('refs/heads/cms/drafts/'.length), prefix: 'refs/heads/cms/drafts/', target: { oid, message: commits.get(oid).message, tree: { oid: commits.get(oid).tree.sha }, parents: { nodes: commits.get(oid).parents.map(p => ({ oid: p.sha, message: commits.get(p.sha).message, tree: { oid: commits.get(p.sha).tree.sha }, parents: { nodes: commits.get(p.sha).parents.map(pp => ({ oid: pp.sha })) } })) }, author: commits.get(oid).author } }));
           const start = Number(input.variables.after || 0), end = start + repository.pageSize;
           return { data: { repository: { refs: { nodes: nodes.slice(start, end), pageInfo: { hasNextPage: end < nodes.length, endCursor: String(end) } } } } };
         }
@@ -135,7 +135,7 @@ export async function draftTestRepository(initial = {}) {
         for (const item of input.tree) files.set(item.path, { ...item, sha: item.sha || await makeBlob(item.content) });
         const sha = id(); trees.set(sha, files); return { sha, tree: [...files.values()] };
       }
-      if (path === '/git/commits') { const sha = await makeCommit(trees.get(input.tree), input.parents[0], input.message); return { sha }; }
+      if (path === '/git/commits') { const sha = await makeCommit(trees.get(input.tree), input.parents[0], input.message); commits.get(sha).tree = { sha: input.tree }; return { sha }; }
       if (url.pathname.startsWith('/compare/')) {
         const [base, head] = url.pathname.slice('/compare/'.length).split('...');
         const visit = [head], seen = new Set();

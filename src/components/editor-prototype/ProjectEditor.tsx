@@ -7,7 +7,7 @@ import { UnsavedChangesDialog } from './UnsavedChangesDialog';
 import { RecoveryManager } from './RecoveryManager';
 import { useEditorNavigation, routeKey, type EditorRoute } from './editorNavigation';
 import { useEditorRecovery, type EditorRecovery } from './useEditorRecovery';
-import { downloadRecovery, groupRecoveryCopies, parseRecovery, recoveryFields, recoveryKey, restoreRecovery, type RecoveryCopy } from './editorRecovery';
+import { downloadRecovery, groupRecoveryCopies, parseRecovery, recoveryFields, recoveryMatches, recoveryKey, restoreRecovery, type RecoveryCopy } from './editorRecovery';
 import { ToolbarButton } from './ToolbarButton';
 import { useEditor, useEditorState, EditorContent } from '@tiptap/react';
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -829,6 +829,7 @@ export default function ProjectEditor() {
           description: project.description,
           body: project.body,
           head: project.head,
+          resumeHead: project.resumeHead,
           assets: project.assets,
           sha: project.sha,
           originalContent: project.content,
@@ -873,7 +874,7 @@ export default function ProjectEditor() {
 
   const entryCopies = recovery.copies.filter(copy => routeKey(copy.route) === routeKey(route));
   const candidate = entryCopies.find(copy => copy.id === selectedRecovery) || entryCopies[0];
-  const staleRecovery = !!candidate && (candidate.baseSha !== (project?.sha || null));
+  const staleRecovery = !!candidate && (!project || !recoveryMatches(project, candidate));
   const restore = async (copy: RecoveryCopy) => {
     if (!project || !area || busyRef.current || recovery.hasChanges || !recoveryScope) return;
     setRestoringChanges(true);
@@ -883,7 +884,7 @@ export default function ProjectEditor() {
       if (!stored || stored.revision !== copy.revision) { recovery.refresh(); throw new Error('These unsaved changes were updated or removed in another tab. Review the latest version before restoring.'); }
       const fresh = route.filename ? await api<Project>(`/api/content/${area}/${encodeURIComponent(route.filename)}`) : project;
       if (!route.filename) await api(`/api/content/${area}`);
-      if ((fresh.sha || null) !== copy.baseSha) {
+      if (!recoveryMatches(fresh, copy)) {
         setProject(fresh); setBaseline(fresh); setSavedSnapshot(JSON.stringify(fresh)); setBodyEditorSession(session => session + 1);
         throw new Error('This page changed in GitHub. The latest saved version is open below. Your unsaved changes have been kept separately. Download a backup to compare and copy your edits into the latest version.');
       }
@@ -917,7 +918,7 @@ export default function ProjectEditor() {
   const manageRecovery = (reason: string) => setRecoveryManager(reason);
   const recoveryTools = recoveryManager !== null && <RecoveryManager
     copies={project ? entryCopies : recovery.copies} reason={recoveryManager}
-    canResume={copy => !busy && !authIssue && (project ? !recovery.hasChanges && copy.baseSha === (project.sha || null) : routeKey(copy.route) !== routeKey(route))}
+    canResume={copy => !busy && !authIssue && (project ? !recovery.hasChanges && recoveryMatches(project, copy) : routeKey(copy.route) !== routeKey(route))}
     onResume={copy => { setRecoveryManager(null); if (project) void restore(copy); else resumeEditing(copy); }}
     onBackup={downloadRecovery} onDiscard={discardRecovery} onClose={() => setRecoveryManager(null)} />;
   const recoveryPanel = <>
@@ -1012,6 +1013,7 @@ export default function ProjectEditor() {
           <span className="document-control-label">Draft status</span>
           <span className="draft-status">{project.hasDraft ? project.baselineExists ? 'Draft changes saved · main unchanged' : 'Draft saved' : project.sha ? 'Main version · no saved draft' : 'Draft · not saved yet'}</span>
           {project.lastSavedBy && <small>Last saved by {project.lastSavedBy}{project.lastSavedAt ? ` on ${project.lastSavedAt}` : ''}</small>}
+          {project.resumeHead && <p className="message">{project.preservedEdits ? 'Your previous PR merged. Your later saved edits are preserved below. Use Save Draft to include them in another PR.' : 'Your previous PR merged. Continue editing and use Save Draft as usual.'}</p>}
           {project.mainChanged && <p className="message error">This draft is based on an earlier main revision. Save Draft is blocked to protect published content. Keep or download your edits. For repeat editing, <a href={`https://github.com/geobtaa/geobtaa.github.io/edit/main/src/content/docs/${area}/${encodeContentPath(project.filename)}`} target="_blank" rel="noopener noreferrer">edit the current published source on GitHub</a> and propose a PR, or ask a maintainer for help. Do not delete drafts or locks.</p>}
         </div>
         <div className="document-control-group document-view-group">

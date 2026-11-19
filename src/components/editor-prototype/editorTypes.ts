@@ -20,6 +20,9 @@ export type Project = {
   hasDraft?: boolean;
   baselineExists?: boolean;
   mainChanged?: boolean;
+  resumeHead?: string | null;
+  resumeSourceSha?: string;
+  preservedEdits?: boolean;
   lastSavedBy?: string;
   lastSavedAt?: string;
   assets?: PendingImage[];

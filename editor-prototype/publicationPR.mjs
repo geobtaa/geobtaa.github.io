@@ -1,3 +1,5 @@
+import { publicationBaseKey } from './draftIdentity.mjs';
+import { activeDraft } from './draftCycles.mjs';
 // Lightweight proposal submission only. The required trusted-base CI checker
 // remains the authority for complete draft, MDX, route, image and tree validation.
 import { readPublicationState } from './publicationCoordinator.mjs';
@@ -40,15 +42,16 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
       return found;
     }
     async function selected(area, filename, head) {
-      const path = documentPath(area, filename), branch = await draftBranch(area, filename), identity = (await digest(path)).slice(0, 32);
+      const path = documentPath(area, filename), identity = (await digest(path)).slice(0, 32);
       if (!SHA.test(head || '')) throw fail(400, 'Select a saved document revision.');
       const value = await commit(head), lines = value.message?.split('\n').filter(line => line.startsWith('CMS-Draft-v1: '));
       let meta;
       try { if (lines?.length !== 1) throw new Error(); meta = JSON.parse(lines[0].slice('CMS-Draft-v1: '.length)); } catch { throw fail(409, 'Invalid saved draft identity.'); }
-      if (meta.version !== 1 || meta.path !== path || !SHA.test(meta.base || '') || !(meta.baseBlob === null || SHA.test(meta.baseBlob || '')) || !meta.assets || typeof meta.assets !== 'object' || Array.isArray(meta.assets) || value.parents?.length !== 1) throw fail(409, 'Invalid saved draft identity.');
+      if (![1, 2].includes(meta.version) || meta.path !== path || !SHA.test(meta.base || '') || !(meta.baseBlob === null || SHA.test(meta.baseBlob || '')) || !meta.assets || typeof meta.assets !== 'object' || Array.isArray(meta.assets) || value.parents?.length !== 1) throw fail(409, 'Invalid saved draft identity.');
       const assets = Object.entries(meta.assets);
       if (assets.length > 100) throw fail(413, 'This draft has too many retained assets for bounded PR submission. Ask a maintainer; the draft is preserved.');
       for (const [asset, sha] of assets) if (validateImagePath(asset) !== asset || !asset.startsWith(`cms-${identity}/`) || !SHA.test(sha)) throw fail(409, 'Invalid draft asset identity.');
+      const branch = await draftBranch(area, filename, meta);
       const current = await ref(`heads/${branch}`);
       if (!current) throw fail(409, 'The saved draft is unavailable.');
       if (head !== current) {
@@ -72,14 +75,14 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
     async function pullRequests(attempts) {
       const output = [];
       for (let offset = 0; offset < attempts.length; offset += 16) {
-        const fields = attempts.slice(offset, offset + 16).map((item, i) => `p${i}:pullRequests(headRefName:${JSON.stringify(item.branch)},baseRefName:"main",first:2,states:[OPEN,CLOSED,MERGED]){nodes{number id url state mergedAt headRefName headRefOid baseRefName headRepository{nameWithOwner} mergeable}}`).join('\n');
+        const fields = attempts.slice(offset, offset + 16).map((item, i) => `p${i}:pullRequests(headRefName:${JSON.stringify(item.branch)},baseRefName:"main",first:2,states:[OPEN,CLOSED,MERGED]){nodes{number id url state mergedAt headRefName headRefOid baseRefName headRepository{nameWithOwner} mergeCommit{oid} mergeable}}`).join('\n');
         const data = await query(`query CMSPublicationPRs($owner:String!,$repo:String!){repository(owner:$owner,name:$repo){${fields}}}`);
         for (const [i, attempt] of attempts.slice(offset, offset + 16).entries()) {
           const nodes = data[`p${i}`]?.nodes;
           if (!Array.isArray(nodes) || nodes.length > 1) throw fail(503, 'Publication PR identity is uncertain. Ask a maintainer; no replacement was created.');
           const value = nodes[0];
           if (!value) { output.push(null); continue; }
-          const pr = { number: value.number, node_id: value.id, html_url: value.url, state: value.state === 'OPEN' ? 'open' : 'closed', merged_at: value.mergedAt, mergeable: value.mergeable === 'CONFLICTING' ? false : null, head: { ref: value.headRefName, sha: value.headRefOid, repo: { full_name: value.headRepository?.nameWithOwner } }, base: { ref: value.baseRefName } };
+          const pr = { number: value.number, node_id: value.id, html_url: value.url, state: value.state === 'OPEN' ? 'open' : 'closed', merged_at: value.mergedAt, merge_commit_sha: value.mergeCommit?.oid, mergeable: value.mergeable === 'CONFLICTING' ? false : null, head: { ref: value.headRefName, sha: value.headRefOid, repo: { full_name: value.headRepository?.nameWithOwner } }, base: { ref: value.baseRefName } };
           verifyPR(pr, attempt); output.push(pr);
         }
       }
@@ -91,7 +94,7 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
       if (pr.html_url !== expected) throw fail(409, 'Unexpected publication PR URL.');
     }
     async function coordinator(draft) {
-      const branch = `cms/publication-state/${draft.identity}-${draft.meta.baseBlob || 'new'}`, lock = `refs/tags/cms-publication-locks/${draft.identity}-${draft.meta.baseBlob || 'new'}`;
+      const branch = `cms/publication-state/${draft.identity}-${publicationBaseKey(draft.meta)}`, lock = `refs/tags/cms-publication-locks/${draft.identity}-${publicationBaseKey(draft.meta)}`;
       const head = await ref(`heads/${branch}`), state = head ? await stateAt(head, draft.path) : null;
       if (state && state.attempts.some(a => a.branch !== `cms/publish/${draft.identity}-${state.selectedHead}-${a.base}-${a.attempt}`)) throw fail(409, 'Publication attempt identity mismatch. Ask a maintainer.');
       const held = await ref(lock.slice(5));
@@ -197,15 +200,27 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
       op.verifyPR(pr, attempt);
       return response(pr, head);
     },
-    async getPublicationStatus(area, filename) {
+    async getPublicationStatus(area, filename, knownDraft = null) {
       const op = operation();
       try {
-        const branch = await draftBranch(area, filename), head = await op.ref(`heads/${branch}`);
-        if (!head) return { state: 'none' };
-        const draft = await op.selected(area, filename, head), held = await op.coordinator(draft);
+        // Internal callers may reuse an already inspected immutable draft. The
+        // HTTP status endpoint never accepts this object from the browser.
+        let draft;
+        if (knownDraft) {
+          const path = documentPath(area, filename), branch = await draftBranch(area, filename, knownDraft.meta);
+          if (knownDraft.meta.path !== path || knownDraft.branch !== branch || await op.ref(`heads/${branch}`) !== knownDraft.head) throw retry();
+          draft = { ...knownDraft, path, identity: (await digest(path)).slice(0, 32) };
+        } else {
+          const current = await activeDraft(area, filename, { request: op.ask, owner, repo, ref: op.ref, commit: op.commit });
+          if (!current) return { state: 'none' };
+          draft = await op.selected(area, filename, current.head);
+        }
+        const head = draft.head, held = await op.coordinator(draft);
         if (!held.state) return { state: 'none' };
         const prs = await op.pullRequests(held.state.attempts), pr = prs.find(pr => pr?.merged_at) || prs.at(-1);
-        const extra = { selectedHead: held.state.selectedHead, newerDraft: head !== held.state.selectedHead };
+        const index = prs.findIndex(pr => pr?.merged_at);
+        const attempt = held.state.attempts[index < 0 ? held.state.attempts.length - 1 : index];
+        const extra = { selectedHead: held.state.selectedHead, newerDraft: head !== held.state.selectedHead, snapshotHead: attempt.head, baseHead: attempt.base, mergeHead: pr?.merge_commit_sha };
         if (await op.ref(`heads/${held.branch}`) !== held.head) throw retry();
         if (!pr) return { state: 'reserved', message: 'Snapshot reserved; retry PR creation for this saved revision.', ...extra };
         const result = response(pr, held.state.selectedHead);

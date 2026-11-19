@@ -125,6 +125,6 @@ export async function saveBlog(github, filename, input) {
   // Use authoritative frontmatter, never a client-supplied originalContent.
   const content = serializeBlog(loaded.content, { ...parseBlog(loaded.content), ...input, ...(github.drafts ? { draft: parseBlog(loaded.content).draft } : {}) });
   await validateDocument(content, { filename, originalBody: parseBlog(loaded.content).body });
-  const saved = await github.saveContent({ area: 'posts', filename, content, sha: input.sha, head: input.head, assets: input.assets });
+  const saved = await github.saveContent({ area: 'posts', filename, content, sha: input.sha, head: input.head, resumeHead: input.resumeHead, assets: input.assets });
   return { ...saved, filename, content, ...parseBlog(content), ...parsePageMetadata(content), ...contentVisibility(content) };
 }

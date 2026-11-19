@@ -218,7 +218,7 @@ export async function saveProgramUpdate(github, filename, input) {
     content = serializeProgramUpdate(loaded.content, { ...input, ...(github.drafts ? { draft: parsePage(loaded.content).draft } : {}) });
     const originalBody = input.convertProgramUpdate === true ? programUpdateConversion(loaded.content).body : parsePage(loaded.content).body;
     await validateDocument(content, { filename, originalBody });
-    saved = await github.saveContent({ area: 'updates', filename, content, sha: input.sha, head: input.head, assets: input.assets });
+    saved = await github.saveContent({ area: 'updates', filename, content, sha: input.sha, head: input.head, resumeHead: input.resumeHead, assets: input.assets });
   }
   return { ...saved, ...(filename ? { filename } : {}), content, ...parseProgramUpdate(content), ...contentVisibility(content) };
 }

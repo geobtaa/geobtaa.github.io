@@ -139,14 +139,21 @@ test('empty and final Text blocks can be removed immediately, restored, and repl
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
     await waitFor('!!document.querySelector(".text-block-footer button")');
-    await evaluate(`(() => {
-      const editor = document.querySelector('.rich-editor .tiptap'); editor.focus();
-      const range = document.createRange(); range.selectNodeContents(editor);
-      const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range);
+    // A DOM Range can race ProseMirror's selection observer. Use the same
+    // native select-all synchronization as the card formatting regression.
+    await evaluate("document.querySelector('.rich-editor .tiptap').focus()");
+    const modifiers = await evaluate('/Mac/.test(navigator.platform) ? 4 : 2');
+    await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65, modifiers });
+    await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65, modifiers });
+    await waitFor(`(() => { const element = document.querySelector('.rich-editor .tiptap'), editor = element?.editor;
+      if (!editor || document.activeElement !== element) return false;
+      const {from,to}=editor.state.selection;
+      return from !== to && editor.state.doc.textBetween(from,to,' ').trim() === 'Only text.' && window.getSelection().toString().trim() === 'Only text.';
     })()`);
     await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
     await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
-    await waitFor('document.querySelector(".text-block-empty")?.textContent === "Empty Text block."');
+    try { await waitFor('document.querySelector(".text-block-empty")?.textContent === "Empty Text block."'); }
+    catch (error) { throw new Error(`${error.message}; editor state: ${JSON.stringify(await evaluate(`(() => { const element=document.querySelector('.rich-editor .tiptap');return {text:element?.textContent,markdown:element?.editor?.getMarkdown(),selection:element?.editor?.state.selection.toJSON()}; })()`))}`); }
     await evaluate('document.querySelector(".text-block-footer button").click()');
     await waitFor('!!document.querySelector(".empty-body") && !document.querySelector(".rich-editor")');
     assert.equal(await evaluate('document.activeElement.tagName'), 'SUMMARY');
