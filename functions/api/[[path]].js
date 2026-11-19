@@ -89,7 +89,7 @@ function cookie(name, value, options = '') {
 
 async function githubRequest(token, path, options = {}) {
   const response = await fetch(`https://api.github.com${path}`, {
-    ...options,
+    ...options, redirect: 'error',
     headers: {
       Accept: 'application/vnd.github+json',
       Authorization: `Bearer ${token}`,
@@ -202,7 +202,7 @@ async function contentApi(request, env, pathname) {
     const route = contentRoute(pathname.replace('/api/publish/', '/api/content/'));
     if (!route?.filename) throw new HttpError(400, 'A saved document is required.');
     const input = await request.json();
-    return json(await github.publishContent({ ...route, head: input.head }));
+    return json(await (input.prepare === true ? github.preparePublication({ ...route, head: input.head }) : github.publishContent({ ...route, head: input.head, candidate: input.candidate })));
   }
   if (request.method === 'GET' && pathname === '/api/content') return json({ areas: CONTENT_AREAS });
   const route = contentRoute(pathname);

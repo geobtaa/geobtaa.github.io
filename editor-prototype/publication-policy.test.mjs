@@ -1,13 +1,13 @@
+import { publicationTestClient } from './publicationTestHelpers.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { verifyPublicationPolicy } from './publicationPolicy.mjs';
 import { verifyPullRequestEligibility } from './pullRequestEligibility.mjs';
 import { draftTestRepository } from './draftTestRepository.mjs';
-import { createDraftStore } from './draftStorage.mjs';
 import { parsePage, savePage } from './page.mjs';
 test('only the complete current snapshot contract gives CMS eligibility; a name or document-shaped diff cannot', async () => {
   const repo = await draftTestRepository({ 'src/content/docs/library/report.mdx': '---\ntitle: Report\n---\n\nOriginal.' });
-  const store = () => createDraftStore({ request: repo.request });
+  const store = () => publicationTestClient({ request: repo.request });
   const file = await store().getContent('library', 'report.mdx');
   const saved = await savePage(store(), 'library', 'report.mdx', { ...file, ...parsePage(file.content), body: 'Safe edit.' });
   await store().publishContent({ area: 'library', filename: 'report.mdx', head: saved.head });

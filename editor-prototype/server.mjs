@@ -84,7 +84,7 @@ export const createEditorServer = (github) => http.createServer(async (request, 
       const route = contentRoute(url.pathname.replace('/api/publish/', '/api/content/'));
       if (!route?.filename) throw Object.assign(new Error('A saved document is required.'), { status: 400 });
       const input = await readJson(request);
-      return respond(response, 200, await github.publishContent({ ...route, head: input.head }), origin);
+      return respond(response, 200, await (input.prepare === true ? github.preparePublication({ ...route, head: input.head }) : github.publishContent({ ...route, head: input.head, candidate: input.candidate })), origin);
     }
     if (url.pathname === '/api/content') return respond(response, 200, { areas: CONTENT_AREAS }, origin);
     const route = contentRoute(url.pathname);

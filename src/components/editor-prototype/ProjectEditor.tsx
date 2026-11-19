@@ -1,3 +1,4 @@
+import { preparePublicationCandidate } from '../../../editor-prototype/publicationCandidate.mjs';
 import { PublicationStatus, type PublicationState } from './PublicationStatus';
 import { setPendingImagePreviews, pendingImagePreview, type PendingImage } from './pendingImages';
 import type { Project, PageMetadata } from './editorTypes';
@@ -664,6 +665,7 @@ export default function ProjectEditor() {
   const [showConversionPreview, setShowConversionPreview] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [publicationVersion, setPublicationVersion] = useState(0);
+  const [submittedPR, setSubmittedPR] = useState<{ path: string; status: PublicationState }>();
   const [authIssue, setAuthIssue] = useState('');
   const [checkingSignIn, setCheckingSignIn] = useState(false);
   type LeavePrompt = { leave: () => void; backedUp: boolean; message: string };
@@ -857,11 +859,14 @@ export default function ProjectEditor() {
     if (!area || !project?.hasDraft || !project.head || dirty || busy) return;
     setBusy(true); setError(''); setNotice('');
     try {
-      const result = await api<{ state: string; number: number; message?: string }>(`/api/publish/${area}/${encodeContentPath(project.filename)}`, {
-        method: 'POST', body: JSON.stringify({ head: selectedHead }),
-      });
-      if (!Number.isInteger(result.number) || !['publishing', 'action-required', 'closed', 'merged'].includes(result.state)) throw new Error('Publication could not be confirmed. Retry Publish safely; your saved draft is intact.');
-      setNotice(result.message || (result.state === 'publishing' ? `Publication request recorded · PR #${result.number}.` : result.state === 'merged' ? `Publication request recovered · PR #${result.number}.` : `PR #${result.number} is closed. Contact a maintainer before retrying.`));
+      const path = `/api/publish/${area}/${encodeContentPath(project.filename)}`;
+      const prepared = await api<{ head: string; content: string; assets: Record<string, string> }>(path, { method: 'POST', body: JSON.stringify({ head: selectedHead, prepare: true }) });
+      if (prepared.head !== selectedHead) throw new Error('The selected saved revision changed. Your edits remain here.');
+      const candidate = preparePublicationCandidate(prepared, project.filename);
+      const result = await api<{ state: string; number: number; url: string; message?: string }>(path, { method: 'POST', body: JSON.stringify({ head: selectedHead, candidate }) });
+      if (!Number.isInteger(result.number) || !['pr-open', 'closed', 'merged'].includes(result.state)) throw new Error('PR creation could not be confirmed. Refresh PR status before retrying; your saved draft is intact.');
+      setSubmittedPR({ path, status: result });
+      setNotice(result.message || `Publication PR #${result.number}.`);
     } catch (err) { setError((err as Error).message); }
     finally { setBusy(false); setPublicationVersion(value => value + 1); }
   };
@@ -999,7 +1004,7 @@ export default function ProjectEditor() {
       {leavePrompt && <UnsavedChangesDialog message={leavePrompt.message} onKeepEditing={() => showLeavePrompt(null)} onLeave={leaveEditor} />}
       <nav className="editor-navigation" aria-label="Editor navigation">
         <button className="back" type="button" disabled={busy} onClick={backToList}>← Back to {config.label}</button>
-        <div className="navigation-actions"><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue} onClick={() => publish()}>Publish</button><button className="dashboard-link" type="button" disabled={busy} onClick={backToDashboard}>Dashboard</button><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button></div>
+        <div className="navigation-actions"><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue} onClick={() => publish()}>Create Publication PR</button><button className="dashboard-link" type="button" disabled={busy} onClick={backToDashboard}>Dashboard</button><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button></div>
       </nav>
       <h1>{project.sha ? `Edit ${config.itemLabel}` : `New ${config.itemLabel}`}</h1>
       <section className={`visibility-panel document-controls ${project.draft ? 'is-draft' : 'is-ready'}`} aria-label="Document controls">
@@ -1021,7 +1026,7 @@ export default function ProjectEditor() {
           {project.sidebarHidden && <span className="visibility-badge status-navigation">Hidden from navigation</span>}
         </div>
       </section>
-      {project.hasDraft && <PublicationStatus key={`${area}/${project.filename}`} path={`/api/publish/${area}/${encodeContentPath(project.filename)}`} head={project.head} dirty={dirty} refreshVersion={publicationVersion} disabled={busy || !!authIssue} load={loadPublicationStatus} onRetry={head => { void publish(head); }} />}
+      {project.hasDraft && <PublicationStatus key={`${area}/${project.filename}`} path={`/api/publish/${area}/${encodeContentPath(project.filename)}`} head={project.head} dirty={dirty} refreshVersion={publicationVersion} disabled={busy || !!authIssue} load={loadPublicationStatus} submitted={submittedPR?.path === `/api/publish/${area}/${encodeContentPath(project.filename)}` ? submittedPR.status : undefined} onRetry={head => { void publish(head); }} />}
       {recoveryPanel}
       {notice && <p className="message success" role="status">{notice}</p>}
       {error && <p className="message error" role="alert">{error}</p>}

@@ -1,3 +1,4 @@
+import { preparePublicationCandidate } from './publicationCandidate.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { draftTestRepository } from './draftTestRepository.mjs';
@@ -26,13 +27,16 @@ test('hosted Publish requires canonical origin, same-origin POST, an authorized 
     assert.equal((await call({ ...enabled, ALLOWED_GITHUB_USERS: 'someone-else' })).status, 403);
     repo.push = false; assert.equal((await call(enabled)).status, 403); repo.push = true;
     assert.equal(repo.pulls.length, 0);
-    const response = await call(enabled);
-    assert.equal(response.status, 200); assert.equal((await response.json()).state, 'publishing');
+    const prepared = await call(enabled, undefined, origin, { head: saved.head, prepare: true });
+    assert.equal(prepared.status, 200);
+    const candidate = preparePublicationCandidate(await prepared.json(), 'report.mdx');
+    const response = await call(enabled, undefined, origin, { head: saved.head, candidate });
+    assert.equal(response.status, 200); assert.equal((await response.json()).state, 'pr-open');
     assert.equal(repo.pulls.length, 1);
     assert.equal((await call(enabled)).status, 200); assert.equal(repo.pulls.length, 1);
     const statusRequest = (host = origin, session = cookie) => onRequest({ request: new Request(host + '/api/publish/library/report.mdx', { headers: { Cookie: session } }), env });
     const before = [...repo.refs];
-    const status = await statusRequest(); assert.equal(status.status, 200); assert.equal((await status.json()).state, 'publishing');
+    const status = await statusRequest(); assert.equal(status.status, 200); assert.equal((await status.json()).state, 'pr-open');
     assert.deepEqual([...repo.refs], before, 'status reads work with publishing disabled and never move refs');
     assert.equal((await statusRequest('https://preview.gin-editor.pages.dev')).status, 403);
     assert.equal((await statusRequest(origin, '')).status, 401);

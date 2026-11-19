@@ -1,13 +1,13 @@
 // Trusted-base policy. CODEOWNERS is advisory; all required gates are automated.
 export const ACTIONS_APP_ID = 15368;
 const blocked = message => Object.assign(new Error(message), { status: 403 });
-export async function verifyPublicationPolicy(request) {
+export async function verifyPublicationPolicy(request, { manual = false } = {}) {
   let repo, policy, rules;
   try { [repo, policy, rules] = await Promise.all([request(''), request('/branches/main/protection'), request('/rules/branches/main')]); }
   catch (error) { throw blocked(`Cannot verify main protection (${error.status || 'network error'}). Ask a maintainer to verify classic branch protection and this account's policy-read permission. Publishing remains blocked.`); }
   const reject = detail => { throw blocked(`Publication policy blocked: ${detail}. Ask a maintainer to correct repository policy; no protection bypass is supported.`); };
   if (!Array.isArray(rules) || rules.length) reject('ruleset protection is unsupported; review effective rules before enabling publishing');
-  if (repo.allow_auto_merge !== true || repo.allow_squash_merge !== true) reject('native auto-merge and squash merges must be enabled');
+  if ((!manual && repo.allow_auto_merge !== true) || repo.allow_squash_merge !== true) reject(manual ? 'squash merges must be enabled' : 'native auto-merge and squash merges must be enabled');
   if (policy.enforce_admins?.enabled !== true) reject('administrator enforcement is required');
   if (policy.allow_force_pushes?.enabled !== false || policy.allow_deletions?.enabled !== false) reject('force pushes and deletion must be disabled');
   if (policy.restrictions != null) reject('restricted push actors require an explicit compatibility review');

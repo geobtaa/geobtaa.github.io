@@ -28,7 +28,7 @@ window.fetch=async(url,options={})=>{
  const parsed=new URL(String(url),location.origin),pathname=parsed.pathname;
  try{
   if(pathname.startsWith('/api/publish/')&&(!options.method||options.method==='GET'))return Response.json(await window.store.getPublicationStatus('library','report.mdx'));
-  if(pathname.startsWith('/api/publish/'))return Response.json(await window.store.publishContent({area:'library',filename:'report.mdx',head:JSON.parse(options.body).head}));
+  if(pathname.startsWith('/api/publish/'))return Response.json(await (JSON.parse(options.body).prepare ? window.store.preparePublication({area:'library',filename:'report.mdx',head:JSON.parse(options.body).head}) : window.store.publishContent({area:'library',filename:'report.mdx',...JSON.parse(options.body)})));
   if(pathname==='/api/session')return Response.json({authenticated:true,login:localStorage.getItem('test-draft-login')||'first-editor',workspace:window.store.workspace});
   if(pathname==='/api/images'&&options.method==='POST'){const input=JSON.parse(options.body);return Response.json(await window.store.uploadImage({...input,bytes:Uint8Array.from(atob(input.content),char=>char.charCodeAt(0))}))}
   if(pathname==='/api/images')return Response.json(await window.store.listImages({area:parsed.searchParams.get('area'),filename:parsed.searchParams.get('filename')}));
@@ -105,12 +105,12 @@ test('Publish is separate from Save Draft, requires a clean saved revision, and 
     await evaluate('document.querySelector(".top-save").click()');
     await waitFor('document.querySelector(".save-state").textContent==="No unsaved changes"');
     assert.equal(await evaluate('window.repo.pulls.length'), 0, 'Save Draft never opens a PR');
-    await evaluate('window.repo.autoMergeFailure=true;document.querySelector(".publish-document").click()');
-    await waitFor('document.querySelector(".message")?.textContent.includes("auto-merge could not be confirmed")');
+    await evaluate('window.repo.protection={};document.querySelector(".publish-document").click()');
+    await waitFor('document.querySelector(".message")?.textContent.includes("policy blocked")');
     assert.equal(await evaluate(`${title}.value`), 'Publication test');
-    assert.equal(await evaluate('window.repo.pulls.length'), 1);
-    await evaluate('window.repo.autoMergeFailure=false;document.querySelector(".publish-document").click()');
-    await waitFor('document.querySelector(".message")?.textContent.includes("Publication request recorded · PR #1")');
+    assert.equal(await evaluate('window.repo.pulls.length'), 0);
+    await evaluate('window.repo.protection=undefined;document.querySelector(".publish-document").click()');
+    await waitFor('document.querySelector(".message")?.textContent.includes("Publication PR created")');
     assert.equal(await evaluate('window.repo.pulls.length'), 1);
     await fill(browser, 'Unsaved newer text');
     assert.equal(await evaluate('document.querySelector(".publish-document").disabled'), true);

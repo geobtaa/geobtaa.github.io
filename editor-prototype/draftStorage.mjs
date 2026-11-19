@@ -5,10 +5,10 @@ import { contentVisibility, parseContent, withContentVisibility } from './conten
 import { postSlug } from './blog.mjs';
 import { validateCreationAttempt, gitBlobSha, uncertainCreation } from './articleCreation.mjs';
 import { validateImageUpload, validateImagePath, imageContentType, IMAGE_DIRECTORY } from './imageAssets.mjs';
-import { parseBodySyntax } from '../src/components/editor-prototype/contentSyntax.ts';
+import { imageReferences } from './publicationCandidate.mjs';
 import { parse } from 'yaml';
-import { readProductionMarker, productionDocumentHash, trackPublication } from './publicationStatus.mjs';
-import { verifyPublicationPolicy } from './publicationPolicy.mjs';
+import { readPublicationState } from './publicationCoordinator.mjs';
+import { createPublicationPRClient } from './publicationPR.mjs';
 import { validateDocument } from './validateDocument.mjs';
 import { PAGE_METADATA_FIELDS, validatePageMetadata, patchFrontmatter } from './pageMetadata.mjs';
 
@@ -45,20 +45,6 @@ export async function prepareDraftImage({ area, documentFilename, filename, mime
   const name = safe.replace(/\.[^.]+$/, '');
   return { path: `cms-${(await digest(path)).slice(0, 32)}/${name}-${await digest(bytes)}.${safe.split('.').at(-1)}`, mimeType, content: encodeBytes(bytes), filename: safe };
 }
-function imageReferences(content, filename, unknown = null) {
-  const data = parse(content.match(/^---\r?\n([\s\S]*?)\r?\n---/)[1]);
-  const refs = new Set();
-  const add = source => {
-    if (typeof source !== 'string') return;
-    const match = source.match(/^(?:@images\/|\/?src\/assets\/images\/|(?:\.\.\/)+assets\/images\/)(.+)$/);
-    if (match) refs.add(validateImagePath(match[1]));
-    else unknown?.add(source);
-  };
-  const walk = node => { if (node.type === 'image') add(node.url); for (const child of node.children || []) walk(child); };
-  walk(parseBodySyntax(parseContent(content).body, filename.endsWith('.md') ? 'md' : 'mdx'));
-  for (const field of ['image', 'light', 'dark']) add(data.cover?.[field]);
-  return refs;
-}
 function metadata(commit) {
   const lines = commit.message?.split('\n').filter(line => line.startsWith(MARKER));
   if (lines?.length !== 1) throw failure(409, 'A draft branch has unrecognized metadata. A maintainer must inspect it.');
@@ -66,7 +52,7 @@ function metadata(commit) {
 }
 
 // Shared by the local gateway and Cloudflare. No application-host branch is used.
-export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.github.io', readMarker = readProductionMarker, readDocumentHash = productionDocumentHash }) {
+export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.github.io' }) {
   const commits = new Map(), trees = new Map(), blobs = new Map();
   const once = async (cache, key, read) => { if (!cache.has(key)) cache.set(key, await read()); return cache.get(key); };
   const commit = sha => once(commits, sha, () => request(`/git/commits/${sha}`));
@@ -329,171 +315,15 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     if (files.size !== expected.size || [...expected].some(([path, file]) => { const actual = files.get(path); return !actual || actual.sha !== file.sha || actual.mode !== file.mode || actual.type !== file.type; })) throw failure(409, 'Publication diff contains unexpected content or assets.');
     const stateHead = await ref(`heads/cms/publication-state/${plan.identity}-${(await inspect(await draftBranch(meta.area, meta.filename), meta.selectedHead, baseline)).meta.baseBlob || 'new'}`);
     if (!stateHead) throw failure(409, 'Publication coordinator is missing.');
-    const state = await readPublicationState(stateHead, plan.path);
+    const state = await readPublicationState(stateHead, plan.path, commit);
     if (await ref(`tags/cms-publication-locks/${plan.identity}-${(await inspect(await draftBranch(meta.area, meta.filename), meta.selectedHead, baseline)).meta.baseBlob || 'new'}`) !== state.attempts[0].head) throw failure(409, 'Publication lock identity mismatch.');
     const active = state.attempts.at(-1);
     if (state.selectedHead !== meta.selectedHead || active?.head !== head || active?.branch !== branch) throw failure(409, 'This publication attempt was superseded.');
     return plan;
   }
-  function publicationState(value, path) {
-    const lines = value.message?.split('\n').filter(line => line.startsWith('CMS-Publication-State-v1: '));
-    let state;
-    try { if (lines?.length !== 1) throw new Error(); state = JSON.parse(lines[0].slice('CMS-Publication-State-v1: '.length)); } catch { throw failure(409, 'Publication coordinator is corrupt. Ask a maintainer; do not delete its lock.'); }
-    if (state.path !== path || !/^[a-f0-9]{40}$/.test(state.selectedHead || '') || !Array.isArray(state.attempts) || !state.attempts.length || state.attempts.some((item, index) => !/^[a-f0-9]{40}$/.test(item.head || '') || !/^[a-f0-9]{40}$/.test(item.base || '') || typeof item.branch !== 'string' || item.attempt !== index + 1)) throw failure(409, 'Invalid publication coordinator history.');
-    return state;
-  }
-  async function readPublicationState(head, path) {
-    const latest = publicationState(await commit(head), path);
-    let current = latest, value = await commit(head), steps = 0;
-    while (true) {
-      if (++steps > 100 || value.parents?.length !== 1) throw failure(409, 'Invalid publication coordinator ancestry.');
-      const parent = await commit(value.parents[0].sha);
-      if (!parent.message?.includes('CMS-Publication-State-v1: ')) {
-        if (current.attempts.length !== 1) throw failure(409, 'Publication attempt history was removed.');
-        break;
-      }
-      const previous = publicationState(parent, path);
-      if (previous.selectedHead !== latest.selectedHead || previous.attempts.length !== current.attempts.length - 1 || JSON.stringify(previous.attempts) !== JSON.stringify(current.attempts.slice(0, -1))) throw failure(409, 'Publication attempt history was rewritten.');
-      current = previous; value = parent;
-    }
-    return latest;
-  }
-  async function getPublicationStatus(area, filename) {
-    const path = documentPath(area, filename);
-    try {
-      const draftHead = await ref(`heads/${await draftBranch(area, filename)}`);
-      if (!draftHead) return { state: 'none' };
-      const meta = metadata(await commit(draftHead)), identity = (await digest(path)).slice(0, 32);
-      if (meta.path !== path) throw failure(409, 'Draft identity mismatch.');
-      const stateHead = await ref(`heads/cms/publication-state/${identity}-${meta.baseBlob || 'new'}`);
-      if (!stateHead) return { state: 'none' };
-      const state = await readPublicationState(stateHead, path);
-      if (await ref(`tags/cms-publication-locks/${identity}-${meta.baseBlob || 'new'}`) !== state.attempts[0].head) throw failure(409, 'Publication lock identity mismatch.');
-      let publication;
-      for (const attempt of state.attempts) {
-        const pulls = await request(`/pulls?state=all&head=${encodeURIComponent(`${owner}:${attempt.branch}`)}&base=main&per_page=100`);
-        if (!Array.isArray(pulls) || pulls.length > 1) throw failure(503, 'Publication PR history is incomplete.');
-        let pr = pulls[0];
-        if (pr) pr = await request(`/pulls/${pr.number}`);
-        publication = { attempt, pr, selectedHead: state.selectedHead, path };
-        if (pr?.merged_at) break;
-      }
-      const readExpectedSnapshot = async ({ attempt, selectedHead }) => {
-        // Revalidate against the frozen base, never against today's main. This
-        // remains possible after a merge and while newer working edits exist.
-        const frozen = { head: attempt.base, files: await snapshot(attempt.base) };
-        const plan = await publicationPlan(area, filename, selectedHead, frozen, { historical: true });
-        const value = await commit(attempt.head);
-        if (value.parents?.length !== 1 || value.parents[0].sha !== attempt.base || attempt.branch !== `${plan.branch}-${attempt.base}-${attempt.attempt}`) throw failure(409, 'Publication snapshot identity mismatch.');
-        const files = await snapshot(attempt.head), expectedFiles = new Map(frozen.files);
-        for (const entry of plan.entries) expectedFiles.set(entry.path, { ...entry, sha: entry.sha || await gitBlobSha(entry.content) });
-        if (files.size !== expectedFiles.size || [...expectedFiles].some(([path, file]) => { const actual = files.get(path); return !actual || actual.sha !== file.sha || actual.mode !== file.mode || actual.type !== file.type; })) throw failure(409, 'Publication snapshot scope changed.');
-        return { blob: files.get(path).sha, route: documentRoute(`${area}/${filename}`, documentSlug(plan.entries[0].content)), entries: plan.entries.map(entry => ({ path: entry.path, sha: files.get(entry.path).sha })) };
-      };
-      const status = await trackPublication({ request, publication, repository: `${owner}/${repo}`, readMarker, readDocumentHash, snapshot: readExpectedSnapshot,
-        contains: async (base, head) => { const result = await request(`/compare/${base}...${head}`); return ['ahead', 'identical'].includes(result.status) && result.merge_base_commit?.sha === base; },
-        matches: async (expected, head) => { const files = await snapshot(head); return expected.entries.every(entry => { const file = files.get(entry.path); return file?.sha === entry.sha && file.mode === '100644' && file.type === 'blob'; }); },
-      });
-      if (await ref(`heads/cms/publication-state/${identity}-${meta.baseBlob || 'new'}`) !== stateHead) return { state: 'checking', message: 'Publication changed while checking. Refresh status.' };
-      return { ...status, newerDraft: draftHead !== state.selectedHead };
-    } catch (error) {
-      if ([401, 403].includes(error.status)) throw error;
-      return { state: 'checking', message: `Publication status could not be verified: ${error.message} Retry status; the saved draft is intact.` };
-    }
-  }
-  async function publishContent({ area, filename, head }) {
-    const repositoryId = await authorize();
-    if (!/^[a-f0-9]{40}$/.test(head || '')) throw failure(400, 'Select a saved revision.');
-    const path = documentPath(area, filename), identity = (await digest(path)).slice(0, 32);
-    const findPR = async branch => {
-      const pulls = await request(`/pulls?state=all&head=${encodeURIComponent(`${owner}:${branch}`)}&base=main&per_page=100`);
-      if (!Array.isArray(pulls) || pulls.length > 1) throw failure(503, 'Publication PR identity is uncertain. Retry after GitHub recovers.');
-      const pr = pulls[0];
-      if (pr && (!Number.isInteger(pr.number) || pr.head?.ref !== branch || pr.base?.ref !== 'main' || pr.head?.repo?.full_name !== `${owner}/${repo}`)) throw failure(409, 'Unexpected publication PR identity.');
-      return pr;
-    };
-    const response = (pr, state, message) => ({ state, message, number: pr.number, url: pr.html_url, selectedHead: head });
-    // The original document blob fixes the coordinator identity across unrelated
-    // main updates. No existing draft or route tag is modified by this protocol.
-    const draftHead = await ref(`heads/${await draftBranch(area, filename)}`), baseline = await main();
-    if (!draftHead) throw failure(409, 'The saved draft is unavailable.');
-    const selected = await commit(head), meta = metadata(selected);
-    if (meta.path !== path) throw failure(409, 'Selected revision identity mismatch.');
-    const stateBranch = `cms/publication-state/${identity}-${meta.baseBlob || 'new'}`;
-    const lock = `refs/tags/cms-publication-locks/${identity}-${meta.baseBlob || 'new'}`;
-    let stateHead = await ref(`heads/${stateBranch}`), state = stateHead ? await readPublicationState(stateHead, path) : null;
-    if (state && await ref(lock.slice('refs/'.length)) !== state.attempts[0].head) throw failure(409, 'Publication lock identity mismatch. Ask a maintainer.');
-    if (state && state.selectedHead !== head) throw failure(409, 'Another saved revision owns this publication. Retry that revision or ask a maintainer to reconcile; the draft is intact.');
-    // Recover terminal merges before main/blob validation; never submit twice.
-    if (state) for (const attempt of state.attempts) {
-      const pr = await findPR(attempt.branch);
-      if (pr?.merged_at) return response(pr, 'merged');
-    }
-    await verifyPublicationPolicy(request);
-    const plan = await publicationPlan(area, filename, head, baseline);
-    if (!state && await ref(lock.slice('refs/'.length))) throw failure(409, 'A legacy publication lock has no coordinator. A maintainer must inspect its PR and migrate it; do not delete it or retry another revision.');
-    // Detect pre-coordinator/other-baseline open requests as well.
-    for (let page = 1; ; page++) {
-      const active = await request(`/pulls?state=open&base=main&per_page=100&page=${page}`);
-      if (!Array.isArray(active) || page > 50) throw failure(503, 'Active publication inventory is incomplete.');
-      if (active.some(pr => pr.head?.repo?.full_name === `${owner}/${repo}` && pr.head?.ref?.startsWith(`cms/publish/${identity}-`) && !state?.attempts.some(item => item.branch === pr.head.ref))) throw failure(409, 'Another publication PR requires maintainer reconciliation.');
-      if (active.length < 100) break;
-    }
-    let attempt = state?.attempts.at(-1), pr = attempt ? await findPR(attempt.branch) : null;
-    if (attempt && await ref(`heads/${attempt.branch}`) !== attempt.head) throw failure(409, 'Immutable publication snapshot was changed or removed. Ask a maintainer.');
-    const replace = !attempt || attempt.base !== plan.baseline.head || pr?.state === 'closed';
-    if (replace) {
-      if (pr?.state === 'open') {
-        // Closing is the serialization barrier against native auto-merge. If a
-        // merge wins the race, its readback is terminal. Uncertainty blocks retry.
-        try { await request(`/pulls/${pr.number}`, { ...write({ state: 'closed' }), method: 'PATCH' }); } catch { /* Read authoritative state after an uncertain close. */ }
-        pr = await request(`/pulls/${pr.number}`);
-        if (pr.merged_at) return response(pr, 'merged');
-        if (pr.state !== 'closed' || pr.head?.sha !== attempt.head) throw failure(409, 'Could not confirm retirement of the earlier PR. Retry safely; no replacement was created.');
-      }
-      const ordinal = (attempt?.attempt || 0) + 1;
-      if (ordinal > 100) throw failure(409, 'Publication retry limit reached. Ask a maintainer.');
-      const branch = `${plan.branch}-${plan.baseline.head}-${ordinal}`;
-      const treeResult = await request('/git/trees', write({ base_tree: (await commit(plan.baseline.head)).tree.sha, tree: plan.entries }));
-      if (!treeResult.sha) throw failure(503, 'Publication tree was not confirmed.');
-      const next = await request('/git/commits', write({ tree: treeResult.sha, parents: [plan.baseline.head], message: `[CF-Pages-Skip] Publish: ${filename}\n\nCMS-Publication-v1: ${JSON.stringify({ area, filename, selectedHead: head, attempt: ordinal })}` }));
-      if (!next.sha) throw failure(503, 'Publication commit was not confirmed.');
-      attempt = { branch, head: next.sha, base: plan.baseline.head, attempt: ordinal };
-      const nextState = { path, selectedHead: head, attempts: [...(state?.attempts || []), attempt] };
-      const coordinator = await request('/git/commits', write({ tree: (await commit(plan.baseline.head)).tree.sha, parents: [stateHead || plan.baseline.head], message: `[CF-Pages-Skip] Publication coordinator\n\nCMS-Publication-State-v1: ${JSON.stringify(nextState)}` }));
-      if (!coordinator.sha) throw failure(503, 'Publication coordinator was not confirmed.');
-      if (await ref('heads/main') !== plan.baseline.head) throw failure(409, 'Main changed during publication. Retry the same revision.');
-      try { await atomic([{ name: `refs/heads/${branch}`, beforeOid: ZERO, afterOid: next.sha }, { name: `refs/heads/${stateBranch}`, beforeOid: stateHead || ZERO, afterOid: coordinator.sha }, ...(!stateHead ? [{ name: lock, beforeOid: ZERO, afterOid: next.sha }] : [])], repositoryId); }
-      catch {
-        const actual = await ref(`heads/${stateBranch}`);
-        if (!actual) throw failure(503, 'Publication reservation could not be confirmed. Retry the same revision; the draft is intact.');
-        const winner = await readPublicationState(actual, path);
-        if (winner.selectedHead !== head) throw failure(409, 'Another revision won the publication reservation.');
-        attempt = winner.attempts.at(-1); stateHead = actual;
-      }
-      stateHead ||= coordinator.sha;
-      if (await ref(`heads/${stateBranch}`) === coordinator.sha) stateHead = coordinator.sha;
-      pr = await findPR(attempt.branch);
-    }
-    if (pr?.merged_at) return response(pr, 'merged');
-    if (pr?.state === 'closed') throw failure(409, 'An attempt was closed concurrently. Retry the same revision to recover.');
-    await verifyPublication(attempt.branch, attempt.head);
-    if (await ref('heads/main') !== attempt.base || await ref(`heads/${stateBranch}`) !== stateHead) throw failure(409, 'Publication changed concurrently. Retry the same revision.');
-    if (!pr) {
-      try { pr = await request('/pulls', write({ title: `Publish ${filename}`, head: attempt.branch, base: 'main', body: `CMS saved revision ${head}; attempt ${attempt.attempt}. Scope is verified independently by CI.` })); }
-      catch (error) { pr = await findPR(attempt.branch); if (!pr) throw error; }
-    }
-    if (!pr.node_id || pr.head?.sha !== attempt.head || pr.base?.ref !== 'main' || pr.head?.ref !== attempt.branch || pr.head?.repo?.full_name !== `${owner}/${repo}`) throw failure(409, 'GitHub returned an unexpected publication PR.');
-    try {
-      await verifyPublicationPolicy(request);
-      await verifyPublication(attempt.branch, attempt.head);
-      const result = await request('/graphql', write({ query: 'mutation CMSPublish($input:EnablePullRequestAutoMergeInput!){enablePullRequestAutoMerge(input:$input){pullRequest{id}}}', variables: { input: { pullRequestId: pr.node_id, expectedHeadOid: attempt.head, mergeMethod: 'SQUASH' } } }));
-      if (result.errors?.length || result.data?.enablePullRequestAutoMerge?.pullRequest?.id !== pr.node_id) throw new Error('Native auto-merge could not be confirmed; check GitHub checks, approvals and account permissions.');
-    } catch (error) { return response(pr, 'action-required', `PR saved. ${error.message} Retry Publish with the same saved revision; the draft is intact.`); }
-    return response(pr, 'publishing');
-  }
   return {
-    publicationPlan, verifyPublication, publishContent, getPublicationStatus,
+    publicationPlan, verifyPublication,
+    ...createPublicationPRClient({ request, owner, repo, documentPath, draftBranch, digest }),
     drafts: true, workspace: `${owner}/${repo}#cms-drafts-v1`, getContent, saveContent,
     async listContent(area) {
       const prefix = `${contentDirectory(area)}/`, baseline = await main(), drafts = await discover(baseline);

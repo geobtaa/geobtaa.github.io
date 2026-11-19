@@ -65,12 +65,39 @@ export async function draftTestRepository(initial = {}) {
       if (url.pathname === '/pulls') {
         if (options.method === 'POST') {
           if (repository.pulls.some(pr => pr.head.ref === input.head)) fail(422);
-          const pr = { number: repository.pulls.length + 1, node_id: `pr-${repository.pulls.length + 1}`, state: 'open', html_url: 'https://github.test/pr', base: { ref: input.base }, head: { ref: input.head, sha: refs.get(`refs/heads/${input.head}`), repo: { full_name: 'geobtaa/geobtaa.github.io' } } };
+          const pr = { number: repository.pulls.length + 1, node_id: `pr-${repository.pulls.length + 1}`, state: 'open', html_url: `https://github.com/geobtaa/geobtaa.github.io/pull/${repository.pulls.length + 1}`, base: { ref: input.base }, head: { ref: input.head, sha: refs.get(`refs/heads/${input.head}`), repo: { full_name: 'geobtaa/geobtaa.github.io' } } };
           repository.pulls.push(pr); return pr;
         }
         return repository.pulls.filter(pr => url.searchParams.has('head') ? `geobtaa:${pr.head.ref}` === url.searchParams.get('head') : pr.state === 'open').slice((Number(url.searchParams.get('page') || 1) - 1) * 100, Number(url.searchParams.get('page') || 1) * 100);
       }
       if (path === '/graphql') {
+        if (input.query.includes('query CMSPublicationHistory')) {
+          if (Number(input.query.match(/history\(first:(\d+)/)[1]) > 100) throw new Error('GitHub GraphQL first limit is 100');
+          const sha = JSON.parse(input.query.match(/object\(oid:("[a-f0-9]+")/)[1]), nodes = []; let current = sha;
+          while (current && nodes.length < 100) {
+            const value = commits.get(current); if (!value) break;
+            nodes.push({ oid: current, message: value.message, tree: { oid: value.tree.sha }, parents: { nodes: value.parents.map(parent => ({ oid: parent.sha })) } });
+            current = value.parents[0]?.sha;
+          }
+          return { data: { repository: { object: { history: { nodes } } } } };
+        }
+        if (input.query.includes('query CMSPublicationPRs')) {
+          const found = {};
+          for (const [, alias, name] of input.query.matchAll(/(p\d+):pullRequests\(headRefName:("[^"\n]+")/g)) {
+            const branch = JSON.parse(name);
+            found[alias] = { nodes: repository.pulls.filter(pr => pr.head.ref === branch).map(pr => ({ number: pr.number, id: pr.node_id, url: pr.html_url, state: pr.merged_at ? 'MERGED' : pr.state.toUpperCase(), mergedAt: pr.merged_at || null, headRefName: pr.head.ref, headRefOid: pr.head.sha, baseRefName: pr.base.ref, headRepository: { nameWithOwner: pr.head.repo.full_name }, mergeable: pr.mergeable === false ? 'CONFLICTING' : 'UNKNOWN' })) };
+          }
+          return { data: { repository: found } };
+        }
+        if (input.query.includes('query CMSPublicationFiles')) {
+          const found = {};
+          for (const [, alias, encoded] of input.query.matchAll(/(b\d+): object\(expression:("(?:[^"\\]|\\.)*")/g)) {
+            const expression = JSON.parse(encoded), colon = expression.indexOf(':'), head = expression.slice(0, colon), path = expression.slice(colon + 1);
+            const file = filesAt(head).get(path), bytes = file && objects.get(file.sha);
+            found[alias] = file ? { oid: file.sha, text: new TextDecoder().decode(bytes), isTruncated: false } : null;
+          }
+          return { data: { repository: found } };
+        }
         if (input.query.includes('mutation CMSPublish')) {
           if (repository.autoMergeFailure) return { errors: [{ message: 'Required policy prevents auto-merge' }] };
           const pr = repository.pulls.find(pr => pr.node_id === input.variables.input.pullRequestId);
