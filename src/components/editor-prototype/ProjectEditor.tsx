@@ -1017,7 +1017,7 @@ export default function ProjectEditor() {
         {(item.hasDraft || (item.draft && item.visibilityKnown === true)) && <span className="visibility-badge status-draft">Draft</span>}
         {item.discovery === 'provisional' && <>
           <span className="visibility-badge">{item.onMain ? 'Published' : 'New draft'}</span>
-          {(item.needsReview || item.draftHint === 'review') ? <span className="visibility-badge">Needs review</span> : item.draftHint === 'saved' && item.onMain ? <span className="visibility-badge">Saved draft</span> : null}
+          {(item.needsReview || item.draftHint === 'review') ? <span className="visibility-badge">Needs review</span> : item.draftHint === 'saved' && item.onMain ? <span className="visibility-badge">Editing history</span> : null}
         </>}
       </button></li>)}</ul>}
     </main>
@@ -1038,11 +1038,12 @@ export default function ProjectEditor() {
       <h1>{project.sha ? `Edit ${config.itemLabel}` : `New ${config.itemLabel}`}</h1>
       <section className={`visibility-panel document-controls ${project.draft ? 'is-draft' : 'is-ready'}`} aria-label="Document controls">
         <div className="document-control-group">
-          <span className="document-control-label">Draft status</span>
-          <span className="draft-status">{project.hasDraft ? project.baselineExists ? 'Draft changes saved · main unchanged' : 'Draft saved' : project.sha ? 'Main version · no saved draft' : 'Draft · not saved yet'}</span>
+          <span className="document-control-label">Document status</span>
+          <span className="draft-status">{project.hasDraft || project.preservedEdits ? 'Saved draft' : project.sha ? 'Published version' : 'New draft · not saved yet'}</span>
           {project.lastSavedBy && <small>Last saved by {project.lastSavedBy}{project.lastSavedAt ? ` on ${project.lastSavedAt}` : ''}</small>}
-          {project.resumeHead && <p className="message">{project.preservedEdits ? 'Your previous PR merged. Your later saved edits are preserved below. Use Save Draft to include them in another PR.' : 'Your previous PR merged. Continue editing and use Save Draft as usual.'}</p>}
-          {project.mainChanged && <p className="message error">This draft is based on an earlier main revision. Save Draft is blocked to protect published content. Keep or download your edits. For repeat editing, <a href={`https://github.com/geobtaa/geobtaa.github.io/edit/main/src/content/docs/${area}/${encodeContentPath(project.filename)}`} target="_blank" rel="noopener noreferrer">edit the current published source on GitHub</a> and propose a PR, or ask a maintainer for help. Do not delete drafts or locks.</p>}
+          {project.resumeHead && project.preservedEdits && <p className="message">Earlier changes were published. Your newer saved changes are preserved below. Use Save Draft before creating another publication PR.</p>}
+          {project.sha && !project.hasDraft && !project.preservedEdits && <p>You're editing the current published page.</p>}
+          {project.mainChanged && <p className="message error">This draft is based on an earlier published version. Save Draft is blocked to protect published content. Keep or download your edits. For repeat editing, <a href={`https://github.com/geobtaa/geobtaa.github.io/edit/main/src/content/docs/${area}/${encodeContentPath(project.filename)}`} target="_blank" rel="noopener noreferrer">edit the current published source on GitHub</a> and propose a PR, or ask a maintainer for help. Do not delete drafts or locks.</p>}
         </div>
         <div className="document-control-group document-view-group">
           <span className="document-control-label" id="document-view-label">Editor view</span>

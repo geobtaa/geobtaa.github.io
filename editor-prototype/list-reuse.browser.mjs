@@ -43,7 +43,7 @@ test('content areas use staff-facing labels and keep account and shared-draft ex
   assert.doesNotMatch(await evaluate('document.body.textContent'),/Signed in as|On main|New saved draft|Saved work available|Published content comes from/);
   assert.equal(await evaluate('[...document.querySelectorAll("button")].some(button=>button.textContent==="Sign out")'),true);
   const badges=await evaluate('[...document.querySelectorAll(".project-list button")].map(button=>({name:button.querySelector(".content-name").textContent,badges:[...button.querySelectorAll(".visibility-badge")].map(badge=>badge.textContent)}))');
-  assert.deepEqual(Object.fromEntries(badges.map(row=>[row.name,row.badges])),{new:['New draft'],published:['Published'],review:['Published','Needs review'],revised:['Published','Saved draft']});
+  assert.deepEqual(Object.fromEntries(badges.map(row=>[row.name,row.badges])),{new:['New draft'],published:['Published'],review:['Published','Needs review'],revised:['Published','Editing history']});
   assert.deepEqual(await evaluate('window.requests'),['/api/session','/api/content/library']);
   await evaluate('document.querySelector(".project-list button").click()');
   await waitFor('!!document.querySelector(".editor-workspace")');
