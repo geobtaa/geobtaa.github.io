@@ -1,5 +1,7 @@
 # Cloudflare Free qualification — focused corrections
 
+> Subsequent read-only verification passes after the maintainer corrected GitHub protection: effective PRs are required with zero approvals, strict Actions checks, administrator enforcement and no bypasses. The diagnosis below records the earlier configuration; the verifier was not relaxed. Actual Cloudflare runtime qualification remains outstanding.
+
 This records the authorized correction phase after checkpoint 3. No GitHub settings, Cloudflare settings, OAuth grants or live repository content were changed. No publication was retried. [Original measurements](CMS_FREE_QUALIFICATION_RESULTS.json) remain preserved; [corrected measurements](CMS_FREE_CORRECTION_RESULTS.json) were taken with the same network-disabled Pages-handler harness.
 
 ## Protection diagnosis
@@ -69,6 +71,6 @@ Local validation passed: **245 unit/API**, **54 browser**, **1 configuration**, 
 
 An initial navigation check used a build made concurrently with render fixtures and correctly rejected a temporary source route. After render cleanup, the production build and navigation checks were run sequentially and passed. No application/test assertion was changed to address this test-ordering mistake. Run render fixtures before the final build/navigation gate.
 
-Production eligibility remains **NO-GO** until effective protection can be independently verified and actual Cloudflare runtime qualification passes. The [release checklist](CMS_FREE_RELEASE_CHECKLIST.md) still requires updated independent validation on main before use of new CMS publishing/cycle code.
+Production eligibility remains **NO-GO** until actual Cloudflare runtime qualification passes. Effective protection now passes subsequent administrator read-only verification; intended-account OAuth verification remains a live-test gate. The [release checklist](CMS_FREE_RELEASE_CHECKLIST.md) still requires updated independent validation on main before use of new CMS publishing/cycle code.
 
 The live saved revision `5fe43d83398d994fdf86beee7bcc5c01a59a38ec`, snapshot `fd2b06259282ab1421a7c6d8070932f70b880c61`, coordinator `90d87e48650a421a939531ced7ccbcc3ad03e866`, retained lock and main `b2f6e6e` were rechecked read-only and remain unchanged. No draft, route reservation or publication ref was modified.
