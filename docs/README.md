@@ -7,6 +7,11 @@ published as pages on the website.
 This is different from `src/content/docs/`, which contains the website's public
 content and is processed by Astro and Starlight into published pages.
 
+## Editing website content
+
+- [Custom CMS user guide](CMS_USER_GUIDE.md): sign in, write with blocks, save
+  drafts, submit pages for publication, and resolve common errors
+
 ## Setup and development
 
 - [Local setup](LOCAL_SETUP.md): first-time installation and local development
@@ -19,14 +24,9 @@ content and is processed by Astro and Starlight into published pages.
 
 ## Feature documentation
 
-- [Permanent GIN editor deployment](GIN_EDITOR_DEPLOYMENT.md): project isolation, canonical-origin security, dashboard settings, and cutover
+- [CMS editor development decisions](cms-editor/README.md): design, hosting,
+  validation, operational limits, and recovery constraints
 
-- [Per-document Save Draft](CMS_SAVE_DRAFT.md): shared working branches, associated images, recovery, no-build controls, and rollout gates
-
-- [Custom CMS application release audit](CMS_RELEASE_AUDIT.md): transfer scope,
-  excluded content, validation, and publishing prerequisites
-- [Cloudflare content editor prototype](CLOUDFLARE_EDITOR_PROTOTYPE.md): current
-  application and staging configuration
 - [Data Citation Generator overview](data-citation-generator.md): purpose,
   technology stack, architecture, safeguards, and development acknowledgment
 - [Data Citation Generator autofill crosswalk](data-citation-autofill-crosswalk.md):

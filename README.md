@@ -52,9 +52,8 @@ content published on the website.
 
 - [Local setup](docs/LOCAL_SETUP.md)
 - [Local Decap CMS testing](docs/DECAP_LOCAL.md)
-- [Per-document Save Draft](docs/CMS_SAVE_DRAFT.md)
-- [Custom CMS application release audit](docs/CMS_RELEASE_AUDIT.md)
-- [Cloudflare content editor prototype](docs/CLOUDFLARE_EDITOR_PROTOTYPE.md)
+- [Custom CMS user guide](docs/CMS_USER_GUIDE.md)
+- [CMS editor development decisions](docs/cms-editor/README.md)
 - [Conference map gallery maintenance](docs/how-to-update-conf-map-gallery.md)
 - [Data Citation Generator overview](docs/data-citation-generator.md)
 - [Data Citation Generator autofill crosswalk](docs/data-citation-autofill-crosswalk.md)
