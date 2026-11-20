@@ -1,3 +1,4 @@
+import { FieldLabel } from './FieldLabel.ts';
 import { createElement, useEffect, useState, type ChangeEvent } from 'react';
 import { LinkAddressField } from './LinkAddressField.ts';
 import { Node } from '@tiptap/core';
@@ -23,8 +24,8 @@ function LinkCardEditor({ node, updateAttributes, extension }: NodeViewProps) {
     updateAttributes({ [key]: value });
   };
   const input = (label: string, key: 'title' | 'href', type = 'text') => createElement('label', null,
-    label,
-    createElement('input', {
+    createElement(FieldLabel, { text: label, required: true }),
+    createElement('input', { required: true,
       type, value: fields[key],
       onChange: (event: ChangeEvent<HTMLInputElement>) => change(key, event.target.value),
     }),
@@ -36,7 +37,7 @@ function LinkCardEditor({ node, updateAttributes, extension }: NodeViewProps) {
       rows: 2, value: fields.description,
       onChange: (event: ChangeEvent<HTMLTextAreaElement>) => change('description', event.target.value),
     })),
-    createElement(LinkAddressField, { value: fields.href, onChange: (value: string) => change('href', value) }),
+    createElement(LinkAddressField, { required: true, value: fields.href, onChange: (value: string) => change('href', value) }),
   );
 }
 

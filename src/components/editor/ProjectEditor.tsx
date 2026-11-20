@@ -1,3 +1,4 @@
+import { FieldLabel } from './FieldLabel.ts';
 import { preparePublicationCandidate } from '../../../editor/publicationCandidate.mjs';
 import { PublicationStatus, type PublicationState } from './PublicationStatus';
 import { setPendingImagePreviews, pendingImagePreview, type PendingImage } from './pendingImages';
@@ -137,9 +138,9 @@ function RepositoryImagePicker({ initialImage, showCaption = true, onSelect, onC
         <div className="image-picker-header"><h3 id="image-picker-title">{initialImage ? 'Edit image' : 'Insert repository image'}</h3><button type="button" onClick={() => onClose()} aria-label="Close image picker">×</button></div>
         <div className="image-picker-body">
           <section className="image-picker-fields" aria-label="Image details">
-            <label>Image source<input value={imageSource} onChange={(event) => setImageSource(event.target.value)} placeholder="@images/example.png or https://…" /></label>
-            {showCaption && <label>Caption (optional)<input value={imageCaption} onChange={(event) => setImageCaption(event.target.value)} /></label>}
-            <label>Alt text<input value={imageAlt} disabled={decorative} onChange={(event) => setImageAlt(event.target.value)} /></label>
+            <label><FieldLabel text="Image source" required /><input required value={imageSource} onChange={(event) => setImageSource(event.target.value)} placeholder="@images/example.png or https://…" /></label>
+            {showCaption && <label>Caption<input value={imageCaption} onChange={(event) => setImageCaption(event.target.value)} /></label>}
+            <label><FieldLabel text="Alt text" required={!decorative} /><input required={!decorative} value={imageAlt} disabled={decorative} onChange={(event) => setImageAlt(event.target.value)} /></label>
             <label className="checkbox"><input type="checkbox" checked={decorative} onChange={(event) => setDecorative(event.target.checked)} /> This image is decorative</label>
           </section>
           <section className="image-picker-library" aria-label="Choose image">
@@ -261,7 +262,7 @@ function BlockInserter({ onInsert, onAddText, mdx }: { onInsert: (component: Ins
         }
       }}>
         <div className="dialog-header"><h3 id="link-button-dialog-title">Insert Link Button</h3><button type="button" onClick={closeButton} aria-label="Close Link Button dialog">×</button></div>
-        <label>Button text<input autoFocus required value={linkButtonFields.text} onChange={(event) => setLinkButtonFields({ ...linkButtonFields, text: event.target.value })} /></label>
+        <label><FieldLabel text="Button text" required /><input autoFocus required value={linkButtonFields.text} onChange={(event) => setLinkButtonFields({ ...linkButtonFields, text: event.target.value })} /></label>
         <LinkAddressField required value={linkButtonFields.href} onChange={(href) => setLinkButtonFields((current) => ({ ...current, href }))} />
         <label>Appearance<select value={linkButtonFields.variant} onChange={(event) => setLinkButtonFields({ ...linkButtonFields, variant: event.target.value as LinkButtonFields['variant'] })}>
           <option value="primary">Primary</option><option value="secondary">Secondary</option><option value="minimal">Minimal</option>
@@ -278,8 +279,8 @@ function BlockInserter({ onInsert, onAddText, mdx }: { onInsert: (component: Ins
         }
       }}>
         <div className="dialog-header"><h3 id="link-card-dialog-title">Insert Link Card</h3><button type="button" onClick={closeCard} aria-label="Close Link Card dialog">×</button></div>
-        <label>Title<input autoFocus required value={linkCardTitle} onChange={(event) => setLinkCardTitle(event.target.value)} /></label>
-        <label>Description <span>(optional)</span><textarea rows={3} value={linkCardDescription} onChange={(event) => setLinkCardDescription(event.target.value)} /></label>
+        <label><FieldLabel text="Title" required /><input autoFocus required value={linkCardTitle} onChange={(event) => setLinkCardTitle(event.target.value)} /></label>
+        <label>Description<textarea rows={3} value={linkCardDescription} onChange={(event) => setLinkCardDescription(event.target.value)} /></label>
         <LinkAddressField required value={linkCardHref} onChange={setLinkCardHref} />
         {linkCardError && <p className="message error" role="alert">{linkCardError}</p>}
         <div className="actions"><button type="button" onClick={closeCard}>Cancel</button><button className="primary" type="button" onClick={insertLinkCard}>Insert Link Card</button></div>
@@ -532,6 +533,7 @@ function parseTagsInput(value: string) {
 
 function BlogMetadata({ project, onChange, fields, blog = false }: { project: Project; onChange: (project: Project) => void; fields: readonly string[]; blog?: boolean }) {
   const show = (field: string) => fields.includes(field);
+  const dateRequired = blog && (!project.sha || project.frontmatterFields?.includes('date') === true || !!project.date);
   const [coverPicker, setCoverPicker] = useState<string | null>(null);
   const authors = project.authors || [];
   const tags = project.tags || [];
@@ -544,27 +546,27 @@ function BlogMetadata({ project, onChange, fields, blog = false }: { project: Pr
   }, [tagsKey]);
   const cover = project.cover;
   return <>
-    {show('date') && <label>{blog ? 'Publication date' : 'Date (optional)'}<input type="date" value={project.date || ''} onChange={(event) => onChange({ ...project, date: event.target.value })} /></label>}
-    {show('excerpt') && <label>Excerpt <span>(optional)</span><textarea rows={3} value={project.excerpt || ''} onChange={(event) => onChange({ ...project, excerpt: event.target.value })} /></label>}
-    {show('authors') && <fieldset className="metadata-group"><legend>Authors (optional)</legend>
+    {show('date') && <label><FieldLabel text={blog ? 'Publication date' : 'Date'} required={dateRequired} /><input required={dateRequired} type="date" value={project.date || ''} onChange={(event) => onChange({ ...project, date: event.target.value })} /></label>}
+    {show('excerpt') && <label>Excerpt<textarea rows={3} value={project.excerpt || ''} onChange={(event) => onChange({ ...project, excerpt: event.target.value })} /></label>}
+    {show('authors') && <fieldset className="metadata-group"><legend>Authors</legend>
       {authors.map((author, index) => <div className="metadata-row" key={index}>
-        <label>Author {index + 1}<input value={typeof author === 'string' ? author : author.name} onChange={(event) => onChange({ ...project, authors: authors.map((item, at) => at === index ? typeof item === 'string' ? event.target.value : { ...item, name: event.target.value } : item) })} /></label>
+        <label><FieldLabel text={`Author ${index + 1}`} required /><input required value={typeof author === 'string' ? author : author.name} onChange={(event) => onChange({ ...project, authors: authors.map((item, at) => at === index ? typeof item === 'string' ? event.target.value : { ...item, name: event.target.value } : item) })} /></label>
         <button type="button" onClick={() => onChange({ ...project, authors: authors.filter((_, at) => at !== index) })}>Remove author {index + 1}</button>
       </div>)}
       <button type="button" onClick={() => onChange({ ...project, authors: [...authors, { name: '' }] })}>Add author</button>
     </fieldset>}
-    {show('tags') && <label>Tags <span>(optional)</span><input value={tagsText} placeholder="maps, history, aerial imagery" onChange={(event) => {
+    {show('tags') && <label>Tags<input value={tagsText} placeholder="maps, history, aerial imagery" onChange={(event) => {
       setTagsText(event.target.value);
       onChange({ ...project, tags: parseTagsInput(event.target.value) });
     }} onBlur={() => setTagsText(tags.join(', '))} /><span>Separate tags with commas.</span></label>}
-    {show('cover') && <fieldset className="metadata-group"><legend>Cover image (optional)</legend>
+    {show('cover') && <fieldset className="metadata-group"><legend>Cover image</legend>
       {cover ? <>
         {('light' in cover && !('image' in cover) ? ['light', 'dark'] : ['image']).map((field) => <div key={field}>
-          <label>{field === 'image' ? 'Image' : `${field} image`} URL or repository path<input value={String(cover[field] || '')} placeholder="@images/example.png or https://…" onChange={(event) => onChange({ ...project, cover: { ...cover, [field]: event.target.value } })} /></label>
+          <label><FieldLabel text={`${field === 'image' ? 'Image' : `${field} image`} URL or repository path`} required /><input required value={String(cover[field] || '')} placeholder="@images/example.png or https://…" onChange={(event) => onChange({ ...project, cover: { ...cover, [field]: event.target.value } })} /></label>
           <button type="button" onClick={() => setCoverPicker(field)}>Choose or upload {field === 'image' ? 'image' : `${field} image`}</button>
         </div>)}
         <label>Cover alt text<input value={cover.alt || ''} onChange={(event) => onChange({ ...project, cover: { ...cover, alt: event.target.value } })} /></label>
-        <label>Cover caption <span>(optional)</span><input value={cover.caption || ''} onChange={(event) => onChange({ ...project, cover: { ...cover, caption: event.target.value } })} /></label>
+        <label>Cover caption<input value={cover.caption || ''} onChange={(event) => onChange({ ...project, cover: { ...cover, caption: event.target.value } })} /></label>
         <button type="button" onClick={() => onChange({ ...project, cover: null })}>Remove cover</button>
       </> : <button type="button" onClick={() => onChange({ ...project, cover: { image: '', alt: '' } })}>Add cover image</button>}
       <p>Uploads stay in this browser until Save Draft saves referenced images with this document.</p>
@@ -582,7 +584,7 @@ function PageMetadataControls({ area, project, onChange }: { area: AreaName; pro
   const isYearArea = ['library', 'scholarship'].includes(area) || metadata.year != null;
   const sharing = (metadata.head || []).map((item, index) => ({ item, index })).filter(({ item }) => item.tag === 'meta' && (item.attrs?.property === 'og:image' || item.attrs?.name === 'twitter:image'));
   return <>
-    {isYearArea && <label>Year (optional)<input type="number" min={1800} max={2100} value={metadata.year ?? ''} onChange={(event) => set('year', event.target.value === '' ? null : Number(event.target.value))} /></label>}
+    {isYearArea && <label>Year<input type="number" min={1800} max={2100} value={metadata.year ?? ''} onChange={(event) => set('year', event.target.value === '' ? null : Number(event.target.value))} /></label>}
     {(area === 'workgroups' || metadata.committee != null || metadata.members != null) && <fieldset className="metadata-group"><legend>Working group</legend>
       <label>Committee<input value={metadata.committee || ''} onChange={(event) => set('committee', event.target.value || null)} /></label>
       <label>Lead<input value={metadata.lead || ''} onChange={(event) => set('lead', event.target.value || null)} /></label>
@@ -1067,8 +1069,8 @@ export default function ProjectEditor() {
       {previewMode && <DocumentPreview project={project} area={area} apiBase={API} />}
       <form id="document-edit" hidden={previewMode} inert={previewMode} onSubmit={(event) => event.preventDefault()}>
         <fieldset className="editor-fields" disabled={busy}>
-        {!project.sha && !isArticle && <label>Filename <span>(optional; generated from title)</span><input value={project.filename} onChange={(event) => setProject({ ...project, filename: slugify(event.target.value) })} placeholder="example-project" /></label>}
-        <label>Title<input required value={project.title} onChange={(event) => setProject({ ...project, title: event.target.value })} /></label>
+        {!project.sha && !isArticle && <label>Filename <span>(generated from title)</span><input value={project.filename} onChange={(event) => setProject({ ...project, filename: slugify(event.target.value) })} placeholder="example-project" /></label>}
+        <label><FieldLabel text="Title" required /><input required value={project.title} onChange={(event) => setProject({ ...project, title: event.target.value })} /></label>
         {(config.description || project.frontmatterFields?.includes('description')) && <label>Description<textarea rows={3} value={project.description} onChange={(event) => setProject({ ...project, description: event.target.value })} /></label>}
         <BlogMetadata project={project} onChange={setProject} blog={isArticle} fields={[...new Set([...config.metadataFields, ...(project.frontmatterFields || []).filter((field) => ['date', 'excerpt', 'authors', 'tags', 'cover'].includes(field))])]} />
         <PageMetadataControls area={area} project={project} onChange={setProject} />

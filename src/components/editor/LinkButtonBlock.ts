@@ -1,3 +1,4 @@
+import { FieldLabel } from './FieldLabel.ts';
 import { createElement, useEffect, useState, type ChangeEvent } from 'react';
 import { LinkAddressField } from './LinkAddressField.ts';
 import { Node } from '@tiptap/core';
@@ -19,8 +20,8 @@ function LinkButtonEditor({ node, updateAttributes, extension }: NodeViewProps) 
   return createElement(NodeViewWrapper, { className: 'structured-link-card structured-link-button', contentEditable: false },
     createElement('strong', null, 'Link button'),
     createElement('span', { className: `link-button-preview ${fields.variant}` }, fields.text || 'Button text'),
-    createElement('label', null, 'Button text', createElement('input', { value: fields.text, onChange: (event: ChangeEvent<HTMLInputElement>) => change('text', event.target.value) })),
-    createElement(LinkAddressField, { value: fields.href, onChange: (value: string) => change('href', value) }),
+    createElement('label', null, createElement(FieldLabel, { text: 'Button text', required: true }), createElement('input', { required: true, value: fields.text, onChange: (event: ChangeEvent<HTMLInputElement>) => change('text', event.target.value) })),
+    createElement(LinkAddressField, { required: true, value: fields.href, onChange: (value: string) => change('href', value) }),
     createElement('label', null, 'Appearance', createElement('select', { value: fields.variant, onChange: (event: ChangeEvent<HTMLSelectElement>) => change('variant', event.target.value) },
       ...['primary', 'secondary', 'minimal'].map((value) => createElement('option', { key: value, value }, value[0].toUpperCase() + value.slice(1))),
     )),
