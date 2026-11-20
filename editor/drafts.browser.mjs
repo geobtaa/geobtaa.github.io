@@ -62,20 +62,20 @@ test('retained published generations show Editing history; authoritative opening
     await withEditorBrowser(scenario,async browser=>{
       const {evaluate,waitFor}=browser;
       await waitFor('!!document.querySelector(".project-list button")');
-      assert.deepEqual(await evaluate('[...document.querySelectorAll(".project-list .visibility-badge")].map(b=>b.textContent)'),['Published','Editing history']);
+      assert.deepEqual(await evaluate('[...document.querySelectorAll(".project-list .visibility-badge")].map(b=>b.textContent)'),['Saved page','Editing history']);
       assert.equal(await evaluate('document.querySelector(".project-list").textContent.includes("Saved draft")'),false);
       await evaluate('document.querySelector(".project-list button").click()');await waitFor(`!!${title}`);
-      assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),later?'Saved draft':'Published version');
+      assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),later?'Saved draft':'Saved page');
       assert.equal(await evaluate(`${title}.value`),later?'Newer saved revision':'Selected revision');
       assert.equal(await evaluate('document.querySelector(".save-state").textContent'),'No unsaved changes','browser status is independent of publication');
       const text=await evaluate('document.body.textContent');
       if(later){assert.match(text,/newer saved changes are preserved/);assert.doesNotMatch(text,/editing the current published page/);}
-      else {assert.match(text,/You're editing the current published page\./);assert.doesNotMatch(text,/previous PR merged|no saved draft/);}
+      else {assert.match(text,/Publication status unavailable/);assert.doesNotMatch(text,/previous PR merged|no saved draft/);}
       assert.equal(await evaluate('JSON.stringify([...window.repo.refs])===window.beforeRefs'),true,'listing and opening never alter retained generations');
       assert.equal(await evaluate('document.querySelector(".publish-document").disabled'),true,'continuation still requires Save Draft');
       await fill(browser,'Browser-only change');
       await waitFor('document.querySelector(".save-state").textContent==="Unsaved changes"');
-      assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),later?'Saved draft':'Published version','typing does not change saved publication state');
+      assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),later?'Saved draft':'Saved page','typing does not change saved publication state');
     },{initialSearch:'?area=library'});
   }
 });
@@ -145,7 +145,7 @@ test('Publish is separate from Save Draft, requires a clean saved revision, and 
     assert.equal(await evaluate(`${title}.value`), 'Publication test');
     assert.equal(await evaluate('window.repo.pulls.length'), 0);
     await evaluate('window.repo.protection=undefined;document.querySelector(".publish-document").click()');
-    await waitFor('document.querySelector(".publication-status strong")?.textContent === "Submitted for publishing"');
+    await waitFor('document.querySelector(".publication-status")?.dataset.state === "pr-open"');
     assert.equal(await evaluate('window.repo.pulls.length'), 1);
     await fill(browser, 'Unsaved newer text');
     assert.equal(await evaluate('document.querySelector(".publish-document").disabled'), true);
@@ -166,7 +166,7 @@ test('after manual merge, reopening and saving another edit works without branch
     await send('Page.enable'); browser.onEvent('Page.javascriptDialogOpening',()=>{void send('Page.handleJavaScriptDialog',{accept:true})});
     await send('Page.reload');
     await waitFor(`!!${title} && !!${button('Restore changes')}`);
-    assert.match(await evaluate('document.body.textContent'),/You're editing the current published page\./);
+    assert.match(await evaluate('document.body.textContent'),/Publication status unavailable/);
     const restore=await evaluate(`[...document.querySelectorAll('button')].find(button=>button.textContent.startsWith('Restore')&&!button.disabled)?.textContent`);
     assert.ok(restore,'same saved source can restore pre-merge unsaved edits');
     await evaluate(`[...document.querySelectorAll('button')].find(button=>button.textContent===${JSON.stringify(restore)}).click()`);

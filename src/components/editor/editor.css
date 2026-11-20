@@ -322,3 +322,7 @@ code { font-size: .9em; }
 .publication-status a, .publication-status button { margin-right: .75rem; }
 .publication-status[data-state="published"] { border-color: #3b8052; }
 .publication-status[data-state="validation-failed"], .publication-status[data-state="deployment-failed"], .publication-status[data-state="conflict"] { border-color: #b64455; }
+
+.publication-heading { display: block; font-size: 1.15rem; color: var(--editor-text); }
+.unpublish-action { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: .75rem; }
+.unpublish-action small { color: var(--editor-muted); }

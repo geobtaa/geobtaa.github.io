@@ -9,6 +9,7 @@ const endpoints = [
   ['GET','/api/session'], ['POST','/api/auth/logout'], ['GET','/api/content'],
   ['GET','/api/content/posts'], ['GET','/api/content/posts/example.mdx'],
   ['POST','/api/content/posts'], ['PUT','/api/content/posts/example.mdx'],
+  ['GET','/api/publication-status/library/report.mdx'], ['POST','/api/publication-status/library/report.mdx'],
   ['GET','/api/images'], ['GET','/api/images/file/image.png'], ['POST','/api/images'],
 ];
 

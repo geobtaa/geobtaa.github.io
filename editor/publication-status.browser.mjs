@@ -7,7 +7,7 @@ import {createRoot} from 'react-dom/client';
 import ProjectEditor from '../src/components/editor/ProjectEditor.tsx';
 import '../src/components/editor/editor.css';
 window.record={filename:'report.mdx',head:'${head}',sha:'${'b'.repeat(40)}',hasDraft:true,baselineExists:true,title:'Newer saved draft',description:'',draft:true,body:'Working draft text.',content:'---\\ntitle: Newer saved draft\\ndraft: true\\n---\\n\\nWorking draft text.'};
-window.statusResult=JSON.parse(localStorage.getItem('publication-server-status')||'null')||{state:'pr-open',message:'Publication PR created. Wait for required checks, then merge in GitHub.',selectedHead:'${selected}',number:42,url:'https://github.com/geobtaa/geobtaa.github.io/pull/42',newerDraft:true};
+window.statusResult=JSON.parse(localStorage.getItem('publication-server-status')||'null')||{state:'pr-open',message:'Publication PR created. Wait for required checks, then merge in GitHub.',selectedHead:'${selected}',number:42,url:'https://github.com/geobtaa/geobtaa.github.io/pull/42',newerDraft:true,website:{publication:'published'}};
 window.writes=[];window.loadId=crypto.randomUUID();
 window.setStatus=value=>{window.statusResult=value;localStorage.setItem('publication-server-status',JSON.stringify(value))};
 window.fetch=async(url,options={})=>{
@@ -16,6 +16,7 @@ window.fetch=async(url,options={})=>{
  if(path==='/api/session')return Response.json({authenticated:true,login:localStorage.getItem('publication-login')||'first-editor',workspace:'geobtaa/geobtaa.github.io#cms-drafts-v1'});
  if(path==='/api/content/library')return Response.json({branch:'main',entries:[{name:'report.mdx',path:'src/content/docs/library/report.mdx',sha:window.record.sha,hasDraft:true}]});
  if(path==='/api/content/library/report.mdx')return Response.json(window.record);
+ if(path.startsWith('/api/publication-status/'))return Response.json(window.statusResult);
  if(path.startsWith('/api/publish/')) {
   if(options.method==='POST') {const input=JSON.parse(options.body); if(input.prepare)return Response.json({head:input.head,content:window.record.content,assets:{}});return Response.json({...window.statusResult,state:'pr-open',selectedHead:input.head});}
   if(window.failStatus)throw new Error('Status temporarily unavailable');
@@ -27,7 +28,7 @@ window.fetch=async(url,options={})=>{
 createRoot(document.getElementById('root')).render(React.createElement(ProjectEditor));`;
 const options = { skip: chrome ? false : 'Chrome/Chromium is required.', timeout: 45000 };
 const title = 'document.querySelector(".editor-fields input[required]")';
-test('document title leads the editor and empty publication status stays hidden until a request exists',options,async()=>{
+test('document title and publication status remain visible independently of requests',options,async()=>{
   const empty=fixture.replace("createRoot(document.getElementById('root'))",`window.setStatus({state:'none'});
     const gateway=window.fetch;window.statusReads=0;
     window.fetch=async(url,options={})=>{if(String(url).includes('/api/publish/')&&!options.method){window.statusReads++;if(window.statusReads===1)return new Promise(resolve=>{window.finishStatus=()=>resolve(Response.json({state:'none'}));});}return gateway(url,options);};
@@ -36,13 +37,13 @@ test('document title leads the editor and empty publication status stays hidden 
     await waitFor(`!!${title} && !!window.finishStatus`);
     assert.equal(await evaluate('document.querySelector("h1").textContent'),'Newer saved draft');
     assert.equal(await evaluate('!!document.querySelector(".dashboard-link")'),false);
-    assert.equal(await evaluate('!!document.querySelector(".publication-status")'),false,'initial checking does not show an empty panel');
+    assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'),'Checking publication status…');
     assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),'Saved draft');
     assert.equal(await evaluate('document.body.textContent.includes("This creates a GitHub publication request.")'),false);
     await evaluate('window.finishStatus()');
     await evaluate(`${title}.focus();${title}.select()`);await send('Input.insertText',{text:'Actual revised title'});
     await waitFor('document.querySelector("h1").textContent==="Actual revised title"');
-    assert.equal(await evaluate('!!document.querySelector(".publication-status")'),false,'a confirmed empty result remains hidden');
+    assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'),'Publication status unavailable');
     assert.equal(await evaluate('window.statusReads'),1,'presentation changes add no status requests');
     await evaluate(`${title}.select()`);await send('Input.insertText',{text:'Newer saved draft'});
     await waitFor('document.querySelector(".publish-document").disabled===false');
@@ -55,8 +56,8 @@ test('manual PR status refresh preserves unsaved text, never writes, and recover
   await withEditorBrowser(fixture, async browser => {
     const {evaluate,waitFor,send}=browser;
     await waitFor(`!!${title} && document.querySelector('.publication-status')?.dataset.state==='pr-open'`);
-    assert.equal(await evaluate('document.querySelector(".publication-status strong").textContent'),'Submitted for publishing');
-    assert.equal(await evaluate('document.querySelector(".publication-status [role=status] p").textContent'),'Your changes have been submitted. Open the publication request in GitHub to review the changes. Once the automated checks pass, merge the request to publish the page.');
+    assert.equal(await evaluate('document.querySelector(".publication-status strong").textContent'),'Published');
+    assert.equal(await evaluate('document.querySelector(".publication-status p[role=status]").textContent'),'Submitted for publishing. Review and merge the request after its checks pass.');
     assert.equal(await evaluate('document.querySelector(".publication-status a").textContent'),'Review publication request #42');
     assert.equal(await evaluate('document.querySelector(".publication-status button").textContent'),'Check status');
     await evaluate(`window.originalEditor=document.querySelector('.tiptap');${title}.focus();${title}.select()`);

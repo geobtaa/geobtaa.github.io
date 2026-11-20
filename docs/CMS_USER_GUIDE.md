@@ -29,7 +29,7 @@ You need a GitHub account with permission to edit the website. GitHub is the ser
 
 The list may show filenames with hyphens instead of page titles. Open an entry to see its title and current editing status.
 
-The list can show **Published**, **New draft**, **Editing history**, or **Needs review**. These labels help you find content. Open the entry to check its current state. A **Published** label in the list does not confirm that the latest website update succeeded.
+The list can show **Saved page**, **New draft**, **Editing history**, or **Needs review**. These labels help you find content. Open the entry to check its current state. A **Saved page** label means the file is available to edit; it does not confirm that the page is online.
 
 Saved drafts are shared with other authorized editors. Ask other editors before working on the same page at the same time.
 
@@ -232,7 +232,7 @@ A **Merged** message means GitHub accepted the changes. It does not confirm that
 3. Wait for both **Build** and **Deploy** to succeed. If you need to find this screen again, open the [website deployment history](https://github.com/geobtaa/geobtaa.github.io/actions/workflows/astro.yml). GitHub's [workflow history instructions](https://docs.github.com/en/actions/how-tos/monitor-workflows/view-workflow-run-history?tool=webui) explain how to open a run and see its details.
 4. Open the public page and refresh it. Check that the expected text and images appear.
 
-If the update fails, send the deployment run link and publication request link to a maintainer. The CMS does not automatically monitor website deployment; use **Check status** to refresh the request status.
+If the update fails, send the deployment run link and publication request link to a maintainer. Use **Check status** to check the request and the deployed website. The editor checks when you open a page or request a refresh; it does not keep checking in the background.
 
 ### Changes made after submission
 
@@ -241,6 +241,23 @@ A publication request contains the saved version selected when it was created. E
 If you need to correct a submitted version before it goes online, tell the person handling publication to wait and ask a maintainer to help replace the request with the correct version. Do not assume clicking Submit again will replace it.
 
 After the earlier request merges, reopen the page from the content list to make the next update. If you saved newer edits while the request was open, the editor keeps them and shows a notice. Review them, click **Save Draft**, and submit again when ready.
+
+## Unpublish a page
+
+The status below the page title describes the public website. **Published** means the page is included in a verified website deployment. **Unpublished** means it is excluded from that deployment. **Publication status unavailable** means the editor could not confirm the result; it does not mean the page is offline.
+
+Working drafts and pending requests are shown as smaller details beneath that status. Saving a draft does not change the website status.
+
+1. Save any work you want to keep with **Save Draft**.
+2. Click **Unpublish page**, then read the confirmation. Choose **Cancel** to leave the page online, or **Submit unpublish request** to continue.
+3. Open the publication request in GitHub. Review it and wait for the required checks, then merge it or send its link to the person handling publication.
+4. Return to the editor and click **Check status**. The page remains Published until the website update has been confirmed. A merged request alone does not mean it is offline.
+
+Unpublishing changes only the visibility of the current main version. It keeps the page file, its images, and your separate saved editorial work. It also keeps your Site search and Navigation visibility settings. After unpublishing, reopen the page normally to continue editing. Save your draft and use **Submit for publishing** to republish it.
+
+If an explicit navigation entry prevents unpublishing, ask a maintainer to update that entry. Ordinary links from other pages produce warnings so they can be fixed later; the editor does not change them automatically. If another website change makes a request out of date, use **Refresh request** in the editor. Review the latest page first if its content changed. Do not use GitHub's Update branch button on CMS publication requests.
+
+If the website update fails, the editor explains that deployment is not confirmed and keeps your work. Open the deployment link for help from a maintainer. If Unpublish page is unavailable, save outstanding edits or contact the maintainer; the feature may not yet be enabled.
 
 ## Work with Program Updates
 

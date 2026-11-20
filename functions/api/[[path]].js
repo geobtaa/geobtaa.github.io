@@ -195,6 +195,14 @@ function contentRoute(pathname) {
 async function contentApi(request, env, pathname) {
   const session = await authenticatedSession(request, env);
   const github = createGitHubClient(env, session.token);
+  if (pathname.startsWith('/api/publication-status/')) {
+    const route = contentRoute(pathname.replace('/api/publication-status/', '/api/content/'));
+    if (!route?.filename) throw new HttpError(400, 'A saved document is required.');
+    if (request.method !== 'GET') throw new HttpError(405, 'Method not allowed.');
+    const params = new URL(request.url).searchParams;
+    const publicationRequest = { state: 'merged', mergeHead: params.get('mergeHead'), snapshotHead: params.get('snapshotHead') };
+    return json(await github.getWebsiteInfo(route.area, route.filename, { unpublishEnabled: env.CMS_PUBLISH_ENABLED === 'true' ? env.CMS_UNPUBLISH_ENABLED : undefined, publicationRequest }));
+  }
   if (pathname.startsWith('/api/publish/')) {
     const statusRoute = contentRoute(pathname.replace('/api/publish/', '/api/content/'));
     if (!statusRoute?.filename) throw new HttpError(400, 'A saved document is required.');
@@ -204,8 +212,8 @@ async function contentApi(request, env, pathname) {
     const route = contentRoute(pathname.replace('/api/publish/', '/api/content/'));
     if (!route?.filename) throw new HttpError(400, 'A saved document is required.');
     const input = await request.json();
-      if (input.action !== undefined && input.action !== 'publish') throw Object.assign(new Error('Unpublish submissions are not enabled. Install trusted validation before enabling this feature.'), { status: 403 });
-    return json(await (input.prepare === true ? github.preparePublication({ ...route, head: input.head }) : github.publishContent({ ...route, head: input.head, candidate: input.candidate })));
+      if (input.action === 'unpublish') await github.assertUnpublishEnabled(env.CMS_UNPUBLISH_ENABLED);
+    return json(await (input.prepare === true ? github.preparePublication({ ...route, head: input.head, action: input.action }) : github.publishContent({ ...route, head: input.head, action: input.action, candidate: input.candidate })));
   }
   if (request.method === 'GET' && pathname === '/api/content') return json({ areas: CONTENT_AREAS });
   const route = contentRoute(pathname);

@@ -53,3 +53,10 @@ test('manual publication still preserves the post-merge draft; intuitive repeat 
   assert.equal((await f.store().publishContent({ area: 'library', filename, head: f.saved.head })).state, 'merged');
   assert.equal(f.repo.pulls.length, 1);
 });
+
+
+test('failed request checks are reported separately from deployment and preserve the saved draft', async () => {
+ const f = await fixture(); f.pr.checksFailed = true;
+ const refs = [...f.repo.refs], result = await f.status();
+ assert.equal(result.state, 'pr-open'); assert.equal(result.checks, 'failed'); assert.deepEqual([...f.repo.refs], refs);
+});

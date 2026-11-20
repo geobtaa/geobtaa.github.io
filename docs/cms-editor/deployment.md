@@ -38,6 +38,7 @@ Hosted settings:
 | `GITHUB_CLIENT_SECRET` | Encrypted OAuth App secret |
 | `SESSION_SECRET` | Independent encrypted secret of at least 32 characters |
 | `ALLOWED_GITHUB_USERS` | Comma-separated approved GitHub handles; restrict during testing |
+| `CMS_UNPUBLISH_ENABLED` | Defaults disabled; enable only after trusted protocol and marker rollout |
 | `CMS_PUBLISH_ENABLED` | `true` permits publication PR creation after rollout gates pass |
 
 Leave `PUBLIC_PROJECT_EDITOR_API_URL` unset for hosted use. No hosted personal access token, local gateway token, storage binding, or separate publishing credential is needed. Do not put secrets in tracked files or browser variables. Preview deployments should have no OAuth/session secrets, including inherited bindings.

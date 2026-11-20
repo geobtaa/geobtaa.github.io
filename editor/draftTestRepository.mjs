@@ -104,7 +104,7 @@ export async function draftTestRepository(initial = {}) {
           const found = {};
           for (const [, alias, name] of input.query.matchAll(/(p\d+):pullRequests\(headRefName:("[^"\n]+")/g)) {
             const branch = JSON.parse(name);
-            found[alias] = { nodes: repository.pulls.filter(pr => pr.head.ref === branch).map(pr => ({ number: pr.number, id: pr.node_id, url: pr.html_url, state: pr.merged_at ? 'MERGED' : pr.state.toUpperCase(), mergedAt: pr.merged_at || null, mergeCommit: pr.merge_commit_sha ? { oid: pr.merge_commit_sha } : null, headRefName: pr.head.ref, headRefOid: pr.head.sha, baseRefName: pr.base.ref, headRepository: { nameWithOwner: pr.head.repo.full_name }, mergeable: pr.mergeable === false ? 'CONFLICTING' : 'UNKNOWN' })) };
+            found[alias] = { nodes: repository.pulls.filter(pr => pr.head.ref === branch).map(pr => ({ number: pr.number, id: pr.node_id, url: pr.html_url, state: pr.merged_at ? 'MERGED' : pr.state.toUpperCase(), mergedAt: pr.merged_at || null, mergeCommit: pr.merge_commit_sha ? { oid: pr.merge_commit_sha } : null, headRefName: pr.head.ref, headRefOid: pr.head.sha, baseRefName: pr.base.ref, headRepository: { nameWithOwner: pr.head.repo.full_name }, commits: { nodes: [{ commit: { statusCheckRollup: { state: pr.checksFailed ? 'FAILURE' : 'SUCCESS' } } }] }, mergeable: pr.mergeable === false ? 'CONFLICTING' : 'UNKNOWN' })) };
           }
           return { data: { repository: found } };
         }
@@ -143,6 +143,14 @@ export async function draftTestRepository(initial = {}) {
           return { data: { updateRefs: { clientMutationId: null } } };
         }
         return blobQueryResponse(input, [...objects].map(([sha, bytes]) => ({ sha, content: new TextDecoder().decode(bytes) })));
+      }
+      if (url.pathname.startsWith('/contents/')) {
+        const name = decodeURIComponent(url.pathname.slice('/contents/'.length)), revision = url.searchParams.get('ref') || 'main';
+        const head = refs.get(`refs/heads/${revision}`) || revision;
+        if (!commits.has(head)) return fail(404);
+        const file = filesAt(head).get(name);
+        if (!file) return fail(404);
+        return { sha: file.sha, encoding: 'base64', content: encodeBytes(objects.get(file.sha)) };
       }
       if (url.pathname.startsWith('/git/ref/')) { const name = `refs/${decodeURIComponent(url.pathname.slice('/git/ref/'.length))}`; if (!refs.has(name)) fail(404); return { ref: name, object: { sha: refs.get(name) } }; }
       if (url.pathname.startsWith('/git/commits/')) return commits.get(url.pathname.split('/').at(-1)) || fail(404);
