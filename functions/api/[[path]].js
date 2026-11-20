@@ -201,17 +201,24 @@ async function contentApi(request, env, pathname) {
     if (request.method !== 'GET') throw new HttpError(405, 'Method not allowed.');
     const params = new URL(request.url).searchParams;
     const publicationRequest = { state: 'merged', mergeHead: params.get('mergeHead'), snapshotHead: params.get('snapshotHead') };
-    return json(await github.getWebsiteInfo(route.area, route.filename, { unpublishEnabled: env.CMS_PUBLISH_ENABLED === 'true' ? env.CMS_UNPUBLISH_ENABLED : undefined, publicationRequest }));
+    return json({ autoMergeEnabled: env.CMS_PUBLISH_ENABLED === 'true' && env.CMS_AUTO_MERGE_ENABLED === 'true', ...await github.getWebsiteInfo(route.area, route.filename, { unpublishEnabled: env.CMS_PUBLISH_ENABLED === 'true' ? env.CMS_UNPUBLISH_ENABLED : undefined, publicationRequest }) });
   }
   if (pathname.startsWith('/api/publish/')) {
     const statusRoute = contentRoute(pathname.replace('/api/publish/', '/api/content/'));
     if (!statusRoute?.filename) throw new HttpError(400, 'A saved document is required.');
     if (request.method === 'GET') return json(await github.getPublicationStatus(statusRoute.area, statusRoute.filename));
     if (request.method !== 'POST') throw new HttpError(405, 'Method not allowed.');
-    if (env.CMS_PUBLISH_ENABLED !== 'true') throw new HttpError(403, 'Publish is disabled until repository protection and required checks are configured.');
     const route = contentRoute(pathname.replace('/api/publish/', '/api/content/'));
     if (!route?.filename) throw new HttpError(400, 'A saved document is required.');
     const input = await request.json();
+    if (Object.hasOwn(input, 'autoMerge')) {
+      if (typeof input.autoMerge !== 'boolean') throw Object.assign(new Error('Choose whether to authorize or cancel automatic publication.'), { status: 400 });
+      if (input.autoMerge && (env.CMS_PUBLISH_ENABLED !== 'true' || env.CMS_AUTO_MERGE_ENABLED !== 'true')) throw Object.assign(new Error('Automatic publication is not enabled yet. You can still submit a manual request.'), { status: 403 });
+      if (input.autoMerge && input.action === 'unpublish') await github.assertUnpublishEnabled(env.CMS_UNPUBLISH_ENABLED);
+      const result = await github.setPublicationAutoMerge({ ...route, head: input.head, snapshotHead: input.snapshotHead, action: input.action, enabled: input.autoMerge });
+      return json(result);
+    }
+    if (env.CMS_PUBLISH_ENABLED !== 'true') throw new HttpError(403, 'Publish is disabled until repository protection and required checks are configured.');
     if (input.action === 'unpublish') await github.assertUnpublishEnabled(env.CMS_UNPUBLISH_ENABLED);
     if (input.initialize === true) {
       if (input.action !== 'unpublish') throw Object.assign(new Error('Internal working-copy preparation is only available for unpublishing.'), { status: 400 });

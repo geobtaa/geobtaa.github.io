@@ -2,19 +2,20 @@
 
 Use the custom CMS (content management system) to create and update website pages. You can write, format text, add images, and save your work in the editor. When the page is ready, submit it for publication.
 
-**Use Text blocks for most of your content. Choose Save Draft while you are working. Choose Submit for publishing when your saved page is ready for review.**
+**Use Text blocks for most of your content. Choose Save Draft while you are working. Choose Publish when ready only when your saved page is ready to go online. Use the manual option if someone should review and merge it first.**
 
 Saving, submitting, and publishing are separate steps:
 
 | Step | What happens | Does the public website change? |
 | --- | --- | --- |
 | Save Draft | Saves the page and its attached new images in GitHub. Other authorized editors can open and edit this draft. | No. |
-| Submit for publishing | Creates a publication request in GitHub for the saved version. | No. |
+| Publish when ready | Creates a request and authorizes automatic merging after required checks and reviews pass. | Yes, after the merge and successful website update. |
+| Submit for manual merge / Submit for publishing | Creates a publication request for a person to merge. | No. |
 | Merge the publication request | Accepts the changes into the website's main set of files. This starts the website update. | The changes appear after the website update succeeds. |
 
 Jump to [blocks](#work-with-blocks), [images](#add-and-edit-images),
 [saving drafts](#save-a-draft-and-return-later),
-[publication](#submit-a-page-for-publication), or
+[publication](#publish-a-page), or
 [troubleshooting](#troubleshooting-and-common-errors).
 
 ## Sign in and find a page
@@ -173,7 +174,7 @@ Choose **Save Draft** whenever you want to keep your progress without publishing
 
 Saved drafts can be reopened from another browser or computer. Other authorized editors can also open and continue them. Saving changes to an existing page leaves its public version in place until the changes are published.
 
-There is no Draft/Published switch to set. Use Save Draft and Submit for publishing for those tasks.
+There is no Draft/Published switch to set. Use Save Draft to keep work and Publish when ready to authorize publication, or submit for manual merging.
 
 ### Browser backups and downloaded backups
 
@@ -194,19 +195,27 @@ A downloaded backup is a `.json` file. Keep it for recovery or give it to a main
 
 If you try to leave with unsaved changes, choose **Keep editing** to return and save. **Leave editor** leaves without saving to GitHub; recovery depends on the browser copy being available.
 
-## Submit a page for publication
-
-Submit when your saved page is ready for review. Submission uses the saved version, so save any final changes first.
+## Publish a page
 
 1. Review the page in **Preview**.
 2. Click **Save Draft** and wait for **All changes saved**.
-3. Click **Submit for publishing** at the top of the editor.
-4. Wait for **Submitted for publishing** and the **Review publication request #…** link.
-5. Open that link to review the request in GitHub, or copy the link and send it to the person who handles website publication.
+3. Click **Publish when ready**. This authorizes GitHub to merge this saved version automatically when its required checks and reviews pass.
+4. Follow the progress notice below the title. GitHub checks the request, merges it, then updates the website. You can also return to the content list to see progress beside the entry.
+5. Wait for the verified website update. A merged request alone does not mean the new version is online. You do not need to visit GitHub to find out whether deployment succeeded.
 
-GitHub calls this request a **pull request**, often shortened to **PR**. It is a proposal to include your saved changes in the website. The number identifies that request.
+You can close the editor after automatic publication has been authorized. GitHub continues waiting. When you return, open the page to check progress. Visible pending requests are checked about every 20 seconds. Checks pause in hidden tabs and stop after a limited period or when attention is needed; open the page and use **Check again** to resume.
 
-Submitting does not finish publication. The request must pass automated checks and be merged in GitHub. Merging means accepting the proposed changes. The website then builds and deploys, meaning it prepares and puts the updated pages online.
+While the request is pending, **Cancel automatic publication** turns off automatic merging. Your draft and request remain available. Cancellation cannot undo a merge that has already happened; the editor will tell you if the merge won the race.
+
+If the website changed while the request was waiting, use **Update publication request**. This creates an updated request for the same selected saved work. Then explicitly choose **Publish when ready** again. If this page's content changed on the website, keep your saved work and ask a maintainer to reconcile it. Failed checks or requested reviews remain visible with a request link for inspection and help.
+
+A publication request contains the saved version selected when it was created. Later edits are kept separately and are not automatically added to that request. **All changes saved** describes your working copy, not whether it is deployed.
+
+### Submit for manual merging
+
+To keep a person in charge of merging, open **Manual publishing** and choose **Submit for manual merge**. If automatic publication is not enabled, the top button remains **Submit for publishing**. These options do not enable automatic merging.
+
+Open **Review publication request #…**, or send its link to the person handling publication. GitHub calls this a **pull request**, often shortened to **PR**. The number identifies it. A manual request must pass checks and be merged before the website updates.
 
 If submission is disabled or reports that publishing is unavailable, keep the saved draft and ask the website maintainer for help.
 
@@ -248,13 +257,15 @@ The status below the page title describes the public website. **Published** mean
 Working drafts and pending requests are shown as smaller details beneath that status. Saving a draft does not change the website status.
 
 1. If you have unsaved changes, keep them with **Save Draft**. An unchanged page does not need a manual save.
-2. Click **Unpublish page**, then read the confirmation. Choose **Cancel** to leave the page online, or **Submit unpublish request** to continue.
-3. Open the publication request in GitHub. Review it and wait for the required checks, then merge it or send its link to the person handling publication.
+2. Click **Unpublish page**, then read the confirmation. Choose **Cancel** to leave the page online. **Unpublish when ready** explicitly authorizes automatic merging after the required checks and reviews pass. **Submit unpublish request** keeps merging manual.
+3. Follow the progress notice. With automatic unpublishing, GitHub handles merging. For a manual request, open it in GitHub and merge after its checks pass, or send its link to the person handling publication.
 4. Return to the editor and click **Check again**. The page remains Published until the website update has been confirmed. A merged request alone does not mean it is offline.
+
+While an automatic unpublish request is pending, **Cancel automatic unpublishing** stops its automatic merge without removing the saved work. A completed merge cannot be cancelled.
 
 After confirmation, the editor prepares any required internal working copy automatically. Cancelling does not create one. If preparation succeeds but submission fails, the copy remains available and is reused when you retry.
 
-Unpublishing changes only the visibility of the current main version. It keeps the page file, its images, and your separate saved editorial work. It also keeps your Site search and Navigation visibility settings. After unpublishing, reopen the page normally to continue editing. Save your draft and use **Submit for publishing** to republish it.
+Unpublishing changes only the visibility of the current main version. It keeps the page file, its images, and your separate saved editorial work. It also keeps your Site search and Navigation visibility settings. After unpublishing, reopen the page normally to continue editing. Save your draft and use **Publish when ready** to republish it, or submit for manual merging.
 
 If an explicit navigation entry prevents unpublishing, ask a maintainer to update that entry. Ordinary links from other pages produce warnings so they can be fixed later; the editor does not change them automatically. If another website change makes a request out of date, use **Update publication request** in the editor. Review the latest page first if its content changed. Do not use GitHub's Update branch button on CMS publication requests.
 
@@ -307,7 +318,7 @@ Do not delete drafts or other CMS records to get around the error.
 
 For a new page with a Filename field, choose a different filename and save again. For a new Blog Post or Program Update, the editor may offer **Create as …** with an alternative name. Choose it if that address works for your page. If creation is unconfirmed, use **Retry creation safely** instead of making a duplicate.
 
-### Submit for publishing is greyed out or unavailable
+### Publishing is greyed out or unavailable
 
 Save the draft first and wait for the save to finish. Submission requires a saved draft with no unsaved changes and a valid sign-in. If submission reports that publishing is disabled, contact the maintainer; your draft can remain saved.
 
@@ -315,13 +326,13 @@ Save the draft first and wait for the save to finish. Submission requires a save
 
 Click **Check again** before submitting again. A request may already exist even if the browser did not receive its confirmation. Your saved draft remains available.
 
-If the status says the request is reserved, closed, or in conflict, the editor may offer **Recreate PR for this saved revision**. This retries the version selected for that request, not newer edits. Use it only when that is still the version you want. It can replace an out-of-date request when other pages changed. Changes to this same page may require maintainer help.
+If the status says the request is reserved, closed, or in conflict, the editor may offer **Update publication request**. This retries the version selected for that request, not newer edits. Use it only when that is still the version you want. It can replace an out-of-date request when other pages changed. Changes to this same page may require maintainer help.
 
 For repeated errors, failed checks, or messages about limits or uncertain request identity, give the maintainer the exact message and any request link. Do not use **Update branch** or remove CMS records to bypass the problem.
 
 ### I saved or submitted, but the public page has not changed
 
-Check which step is complete. Save Draft keeps working content. Submit for publishing opens a request. The request must then merge and the website's Build and Deploy must succeed. Follow the publication steps above, then refresh the public page.
+Check which step is complete. Save Draft keeps working content. Publish when ready opens a request and authorizes automatic merging; manual submission leaves merging to a person. The request must then merge and the website's Build and Deploy must succeed. Follow the publication steps above, then refresh the public page.
 
 ### An image will not upload or save
 

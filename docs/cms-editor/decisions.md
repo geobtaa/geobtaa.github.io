@@ -30,11 +30,11 @@ Assets use `src/assets/images/cms-<document-path-hash>/` with an understandable 
 
 Body and cover images use the same image library and upload safeguards. Pending bytes participate in browser recovery, subject to browser storage capacity.
 
-## Submit immutable publication requests and merge manually
+## Submit immutable publication requests and explicitly authorize merging
 
-The chosen workflow is **Edit → Save Draft → Submit for publishing → review and manually merge in GitHub → GitHub Pages deployment**.
+The preferred workflow, when enabled, is **Edit → Save Draft → Publish when ready → required GitHub checks/reviews → native squash merge → GitHub Pages deployment → verified update**. Manual submission and merging remain available. Unpublish when ready uses the same explicit authorization after the unpublish confirmation; it changes only current main visibility and preserves independent saved work.
 
-Automatic merging, privileged Actions orchestration, a GitHub App migration, background publishing workers, CMS deployment polling, and automatic branch cleanup were abandoned. The CMS keeps request status separate from deployment status. Merged does not mean deployed. On-demand website verification uses the existing production marker and matching GitHub Pages run/deployment; missing or contradictory evidence remains unverified.
+GitHub native auto-merge performs the waiting. There is no privileged Actions merger, GitHub App migration, background publishing worker, status database, automatic branch cleanup, or unattended request refresh. The CMS keeps request status separate from deployment status. Merged does not mean deployed. On-demand website verification uses the existing production marker and matching GitHub Pages run/deployment; missing or contradictory evidence remains unverified.
 
 Submission operates on one exact saved head, never unsaved form contents:
 
@@ -46,7 +46,11 @@ The working draft is never merged directly. Later draft saves cannot change an o
 
 Lost responses use authoritative readback and same-revision recovery. A merged historical request is terminal. Unrelated main advances can produce a replacement immutable attempt after the previous PR's closure is confirmed. Same-document changes stop for reconciliation. Do not use GitHub's Update branch on CMS snapshots or delete coordinator/lock state to retry.
 
-`CMS_PUBLISH_ENABLED` gates PR creation, not merging. Status reads remain available when creation is disabled. Status is refreshed on opening or explicit Check status; there is no deployment polling timer.
+`CMS_PUBLISH_ENABLED` gates PR creation. Both it and `CMS_AUTO_MERGE_ENABLED` must be true to authorize native auto-merge; automatic unpublishing also retains the unpublish capability/flag checks. A separate authenticated POST derives the current attempt from the coordinator, verifies identity, policy and freshness, and enables squash auto-merge with `expectedHeadOid`. If the request is already ready, a protected head-pinned squash merge implements the same explicit authorization. GitHub's protection remains authoritative. Native authorization also requires automatic head-branch deletion to be off so completed snapshots are retained. Reads and manual submissions never authorize merges.
+
+Authorization and cancellation use readback, including after uncertain mutations. Cancellation remains available with publishing flags disabled and cannot undo a merge that wins the race. It never deletes the draft or PR. Refreshing an outdated request creates a new immutable attempt without transferring authorization; the editor must explicitly authorize the replacement. No consent is inferred from branch names or earlier requests.
+
+The visible editor and visible saved-work rows check pending progress at 20-second intervals, with error backoff, a 30-read bound, hidden-tab pausing, abort on unmount, and explicit Check again recovery. Completed, closed and outdated requests stop automatic checks, as do failed deployments and failed manual requests. Authorized open requests remain observed within the bound because GitHub can merge after checks or reviews recover. After a newly observed deployment is verified, one guarded catalog refresh updates stale New draft/Unpublished changes chips. List status reads are limited to two visible rows at once; only merged requests require deployment verification. Recently observed completed updates can be shown without restoring historical chips on every ordinary page. Verified website state remains separate from pending editorial work and request progress.
 
 Implementation: `publicationPR.mjs`, `publicationCoordinator.mjs`, `publicationCandidate.mjs`, and `PublicationStatus.tsx`.
 

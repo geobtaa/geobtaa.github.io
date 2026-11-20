@@ -329,3 +329,7 @@ code { font-size: .9em; }
 .publication-history p { margin-block: .25rem; }
 
 .publication-heading { font-size: .8rem; }
+
+.library-publication-progress { display: inline-block; min-height: 1px; min-width: 1px; font-size: .85rem; color: var(--editor-muted); overflow-wrap: anywhere; }
+
+.publication-complete { color: var(--editor-success-text); font-size: .85rem; font-weight: 650; }

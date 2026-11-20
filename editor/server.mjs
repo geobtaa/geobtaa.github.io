@@ -79,17 +79,24 @@ export const createEditorServer = (github) => http.createServer(async (request, 
       const route = contentRoute(url.pathname.replace('/api/publication-status/', '/api/content/'));
       if (!route?.filename || request.method !== 'GET') throw Object.assign(new Error('A saved document and GET request are required.'), { status: 400 });
       const publicationRequest = { state: 'merged', mergeHead: url.searchParams.get('mergeHead'), snapshotHead: url.searchParams.get('snapshotHead') };
-      return respond(response, 200, await github.getWebsiteInfo(route.area, route.filename, { unpublishEnabled: process.env.CMS_PUBLISH_ENABLED === 'true' ? process.env.CMS_UNPUBLISH_ENABLED : undefined, publicationRequest }), origin);
+      return respond(response, 200, { autoMergeEnabled: process.env.CMS_PUBLISH_ENABLED === 'true' && process.env.CMS_AUTO_MERGE_ENABLED === 'true', ...await github.getWebsiteInfo(route.area, route.filename, { unpublishEnabled: process.env.CMS_PUBLISH_ENABLED === 'true' ? process.env.CMS_UNPUBLISH_ENABLED : undefined, publicationRequest }) }, origin);
     }
     if (url.pathname.startsWith('/api/publish/')) {
       const statusRoute = contentRoute(url.pathname.replace('/api/publish/', '/api/content/'));
       if (!statusRoute?.filename) throw Object.assign(new Error('A saved document is required.'), { status: 400 });
       if (request.method === 'GET') return respond(response, 200, await github.getPublicationStatus(statusRoute.area, statusRoute.filename), origin);
       if (request.method !== 'POST') throw Object.assign(new Error('Method not allowed.'), { status: 405 });
-      if (process.env.CMS_PUBLISH_ENABLED !== 'true') throw Object.assign(new Error('Publish is disabled pending repository policy review.'), { status: 403 });
       const route = contentRoute(url.pathname.replace('/api/publish/', '/api/content/'));
       if (!route?.filename) throw Object.assign(new Error('A saved document is required.'), { status: 400 });
       const input = await readJson(request);
+      if (Object.hasOwn(input, 'autoMerge')) {
+        if (typeof input.autoMerge !== 'boolean') throw Object.assign(new Error('Choose whether to authorize or cancel automatic publication.'), { status: 400 });
+        if (input.autoMerge && (process.env.CMS_PUBLISH_ENABLED !== 'true' || process.env.CMS_AUTO_MERGE_ENABLED !== 'true')) throw Object.assign(new Error('Automatic publication is not enabled yet. You can still submit a manual request.'), { status: 403 });
+        if (input.autoMerge && input.action === 'unpublish') await github.assertUnpublishEnabled(process.env.CMS_UNPUBLISH_ENABLED);
+        const result = await github.setPublicationAutoMerge({ ...route, head: input.head, snapshotHead: input.snapshotHead, action: input.action, enabled: input.autoMerge });
+        return respond(response, 200, result, origin);
+      }
+      if (process.env.CMS_PUBLISH_ENABLED !== 'true') throw Object.assign(new Error('Publish is disabled pending repository policy review.'), { status: 403 });
       if (input.action === 'unpublish') await github.assertUnpublishEnabled(process.env.CMS_UNPUBLISH_ENABLED);
       if (input.initialize === true) {
         if (input.action !== 'unpublish') throw Object.assign(new Error('Internal working-copy preparation is only available for unpublishing.'), { status: 400 });
