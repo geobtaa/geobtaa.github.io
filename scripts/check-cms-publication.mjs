@@ -1,7 +1,7 @@
 // Run only from trusted base code. PR source is inspected as data, never executed.
 import { appendFile, readFile } from 'node:fs/promises';
-import { createDraftStore } from '../editor-prototype/draftStorage.mjs';
-import { verifyPullRequestEligibility } from '../editor-prototype/pullRequestEligibility.mjs';
+import { createDraftStore } from '../editor/draftStorage.mjs';
+import { verifyPullRequestEligibility } from '../editor/pullRequestEligibility.mjs';
 const event = JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, 'utf8'));
 const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
 const request = async (path, options = {}) => {

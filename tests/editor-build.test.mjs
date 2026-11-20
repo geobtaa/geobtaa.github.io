@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import test from 'node:test';
 import { build } from 'esbuild';
 import { parseHTML } from 'linkedom';
-import { chrome, withEditorBrowser } from '../editor-prototype/browserHarness.mjs';
+import { chrome, withEditorBrowser } from '../editor/browserHarness.mjs';
 
 const directory = resolve('dist-editor');
 

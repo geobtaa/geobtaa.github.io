@@ -3,7 +3,7 @@ import type { MdxjsEsm } from 'mdast-util-mdxjs-esm';
 import type { Plugin } from 'unified';
 import { visitParents } from 'unist-util-visit-parents';
 import { escapeHtml } from '../components/editor-blocks/data.mjs';
-import { COMPONENT_LINK_ERROR, isSafeComponentHref } from '../components/editor-prototype/componentLinkSafety.ts';
+import { COMPONENT_LINK_ERROR, isSafeComponentHref } from '../components/editor/componentLinkSafety.ts';
 
 /** Starlight renders LinkCard strings with set:html after MDX entity decoding. */
 const remarkSafeComponentLinks: Plugin<[], Root> = () => (tree, file) => {
