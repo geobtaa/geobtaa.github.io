@@ -1,10 +1,10 @@
-import { createDraftStore } from '../../editor-prototype/draftStorage.mjs';
-import { parsePage, savePage } from '../../editor-prototype/page.mjs';
-import { contentVisibility } from '../../editor-prototype/content.mjs';
-import { saveBlog } from '../../editor-prototype/blog.mjs';
-import { parseProgramUpdate, saveProgramUpdate } from '../../editor-prototype/programUpdates.mjs';
-import { CONTENT_AREAS, contentArea, validateContentPath } from '../../editor-prototype/contentAreas.mjs';
-import { imageContentType, validateImagePath, validateImageUpload } from '../../editor-prototype/imageAssets.mjs';
+import { createDraftStore } from '../../editor/draftStorage.mjs';
+import { parsePage, savePage } from '../../editor/page.mjs';
+import { contentVisibility } from '../../editor/content.mjs';
+import { saveBlog } from '../../editor/blog.mjs';
+import { parseProgramUpdate, saveProgramUpdate } from '../../editor/programUpdates.mjs';
+import { CONTENT_AREAS, contentArea, validateContentPath } from '../../editor/contentAreas.mjs';
+import { imageContentType, validateImagePath, validateImageUpload } from '../../editor/imageAssets.mjs';
 const SESSION_COOKIE = 'editor_session';
 const STATE_COOKIE = 'editor_oauth_state';
 const VERIFIER_COOKIE = 'editor_oauth_verifier';

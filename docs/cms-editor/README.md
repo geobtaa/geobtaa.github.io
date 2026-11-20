@@ -6,7 +6,7 @@ These documents explain the custom CMS design and the constraints to preserve wh
 - [Hosting and deployment](deployment.md): project separation, build configuration, OAuth, and rollout checks.
 - [Validation and operational limits](validation.md): required checks, measurement methods, limits, and retained recovery state.
 
-For editorial instructions, use the [CMS user guide](../CMS_USER_GUIDE.md). For local development, see the [application README](../../editor-prototype/README.md) and [local setup](../LOCAL_SETUP.md).
+For editorial instructions, use the [CMS user guide](../CMS_USER_GUIDE.md). For local development, see the [application README](../../editor/README.md) and [local setup](../LOCAL_SETUP.md).
 
 ## Documentation policy
 

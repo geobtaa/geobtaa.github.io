@@ -46,7 +46,7 @@ Use a dedicated OAuth App, separate from staging. Preserve its callback `https:/
 
 Before cookies, OAuth, request parsing, or GitHub calls, the Function compares the actual request origin with `EDITOR_ORIGIN`. Missing/malformed configuration fails closed. Other origins receive 403 for all API routes, even with a copied valid session. Forwarding headers cannot select the canonical host. Mutations also require matching Origin headers. Preview hosts must not be configured as separate authorized origins.
 
-The local Node gateway is separate: `npm run editor` uses `GITHUB_TOKEN` and optional `PROJECT_EDITOR_OWNER`/`PROJECT_EDITOR_REPO`, with loopback/CORS development behavior. It does not require the hosted origin setting. See [local development](../../editor-prototype/README.md).
+The local Node gateway is separate: `npm run editor` uses `GITHUB_TOKEN` and optional `PROJECT_EDITOR_OWNER`/`PROJECT_EDITOR_REPO`, with loopback/CORS development behavior. It does not require the hosted origin setting. See [local development](../../editor/README.md).
 
 ## Release and rollback checks
 

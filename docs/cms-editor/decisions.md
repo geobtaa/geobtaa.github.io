@@ -4,7 +4,7 @@
 
 Cloudflare Pages hosts the editor and its same-origin API. GitHub Pages hosts the public website. The editor reads the content baseline from `main`, regardless of the branch used to deploy the application. Application releases must not import legacy staging content or staging ancestry as code.
 
-The editor covers the areas in `editor-prototype/contentAreas.mjs`. The React/Tiptap interface edits metadata and supported body content. Text blocks are the default writing tool; specialized components are optional. Existing Markdown files retain their format and cannot acquire MDX-only components through the editor. Program Updates can be converted individually to editable articles; unsupported content remains protected. There is no bulk conversion.
+The editor covers the areas in `editor/contentAreas.mjs`. The React/Tiptap interface edits metadata and supported body content. Text blocks are the default writing tool; specialized components are optional. Existing Markdown files retain their format and cannot acquire MDX-only components through the editor. Program Updates can be converted individually to editable articles; unsupported content remains protected. There is no bulk conversion.
 
 ## Save drafts on shared document branches
 
@@ -20,7 +20,7 @@ A draft belongs to a canonical repository path, not an editor account, browser, 
 
 Do not delete route reservations, rewrite history, force-update branches, or expire drafts to bypass a conflict. A maintainer must inspect retained identity and history before any cleanup.
 
-Implementation: `draftIdentity.mjs`, `draftStorage.mjs`, `draftCycles.mjs`, and `contentRoutes.mjs` under `editor-prototype/`.
+Implementation: `draftIdentity.mjs`, `draftStorage.mjs`, `draftCycles.mjs`, and `contentRoutes.mjs` under `editor/`.
 
 ## Keep uploads immutable and associated with a document
 

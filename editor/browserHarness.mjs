@@ -1,0 +1,148 @@
+import assert from 'node:assert/strict';
+import { access, mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
+import { tmpdir } from 'node:os';
+import { extname, join, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { setTimeout as delay } from 'node:timers/promises';
+import { createServer } from 'vite';
+import { waitForChrome } from './browserStartup.mjs';
+
+const root = fileURLToPath(new URL('../', import.meta.url));
+const candidates = [process.env.CHROME_BIN, '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome', '/usr/bin/chromium'].filter(Boolean);
+export let chrome;
+for (const candidate of candidates) {
+  try { await access(candidate); chrome = candidate; break; } catch { /* Try the next installed browser. */ }
+}
+
+// Run browser tests against an isolated fixture without accessing GitHub.
+export async function withEditorBrowser(fixtureCode, run, { images = {}, initialSearch = '', builtDirectory } = {}) {
+  assert.ok(chrome, 'Chrome/Chromium is required.');
+  const fixtureName = `.editor-browser-fixture-${process.pid}.tsx`;
+  const fixture = join(root, 'editor', fixtureName);
+  const profile = await mkdtemp(join(tmpdir(), 'editor-browser-'));
+  let server, browser, socket;
+  try {
+    await writeFile(fixture, fixtureCode, { flag: 'wx' });
+    server = await createServer({
+      root, configFile: false, logLevel: 'error', cacheDir: join(profile, 'vite'), esbuild: { jsx: 'automatic' }, server: { host: '127.0.0.1', port: 0 },
+      define: Object.keys(images).length ? { 'import.meta.env.PUBLIC_PROJECT_EDITOR_API_URL': JSON.stringify('/__mock-gateway') } : {},
+      plugins: [{
+        name: 'editor-test-page',
+        configureServer(vite) {
+          if (builtDirectory) {
+            // Serve production bytes without Vite transforming/rebuilding their imports.
+            vite.middlewares.use(async (request, response) => {
+              const directory = resolve(root, builtDirectory);
+              const pathname = new URL(request.url, 'http://localhost').pathname;
+              if (pathname.startsWith('/api/images/file/')) {
+                const image = images[decodeURIComponent(pathname.slice('/api/images/file/'.length))];
+                response.statusCode = image ? 200 : 404;
+                response.setHeader('Content-Type', image ? 'image/png' : 'text/plain');
+                response.end(image || 'Image not found');
+                return;
+              }
+              const file = resolve(directory, '.' + (pathname === '/' ? '/index.html' : pathname));
+              try {
+                if (!file.startsWith(directory + sep)) throw new Error('Invalid asset path');
+                const contents = await readFile(file);
+                response.setHeader('Content-Type', ({ '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' })[extname(file)] || 'application/octet-stream');
+                response.end(pathname === '/' ? contents.toString().replace('</head>', `<script>${fixtureCode}</script></head>`) : contents);
+              } catch {
+                response.statusCode = 404; response.end('Not found');
+              }
+            });
+            return;
+          }
+          vite.middlewares.use('/__mock-gateway/api/images/file/', (request, response) => {
+            const image = images[decodeURIComponent(request.url.split('?')[0].replace(/^\//, ''))];
+            response.statusCode = image ? 200 : 404;
+            response.setHeader('Content-Type', image ? 'image/png' : 'text/plain');
+            response.end(image || 'Image not found');
+          });
+          vite.middlewares.use('/__editor-test', async (_request, response) => {
+            response.setHeader('Content-Type', 'text/html');
+            response.end(await vite.transformIndexHtml('/__editor-test', `<html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="root"></div><script type="module" src="/editor/${fixtureName}"></script></body></html>`));
+          });
+        },
+      }],
+    });
+    await server.listen();
+    browser = spawn(chrome, ['--headless', '--disable-gpu', '--no-first-run', '--no-default-browser-check', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
+    const debugUrl = await waitForChrome(browser, profile);
+    const pages = await (await fetch(`http://${new URL(debugUrl).host}/json/list`)).json();
+    socket = new WebSocket(pages.find((page) => page.type === 'page').webSocketDebuggerUrl);
+    await once(socket, 'open');
+    let sequence = 0;
+    const pending = new Map();
+    const listeners = new Map();
+    socket.addEventListener('message', (event) => {
+      const message = JSON.parse(event.data);
+      if (message.method) {
+        for (const listener of listeners.get(message.method) || []) listener(message.params);
+        return;
+      }
+      const item = pending.get(message.id);
+      if (!item) return;
+      clearTimeout(item.timer); pending.delete(message.id);
+      if (message.error) item.reject(new Error(JSON.stringify(message.error)));
+      else item.resolve(message.result);
+    });
+    const send = (method, params = {}) => new Promise((resolve, reject) => {
+      const id = ++sequence;
+      const timer = setTimeout(() => { pending.delete(id); reject(new Error(`Browser command timed out: ${method}`)); }, 5_000);
+      pending.set(id, { resolve, reject, timer });
+      socket.send(JSON.stringify({ id, method, params }));
+    });
+    const evaluate = async (expression) => {
+      const result = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
+      assert.equal(result.exceptionDetails, undefined, JSON.stringify(result.exceptionDetails));
+      return result.result.value;
+    };
+    const waitFor = async (expression) => {
+      for (let attempt = 0; attempt < 100; attempt += 1) {
+        try { if (await evaluate(expression)) return; }
+        catch (error) {
+          // A real reload briefly destroys the previous JavaScript context.
+          // Retry that transition; syntax errors and other failures still fail.
+          if (!/Inspected target navigated or closed|Execution context was destroyed|Cannot find (?:default execution context|context with specified id)/.test(error.message)) throw error;
+        }
+        await delay(50);
+      }
+      assert.fail(`Browser condition did not become true: ${expression}`);
+    };
+    const arrow = async (key, code) => {
+      await send('Input.dispatchKeyEvent', { type: 'keyDown', key, code: key, windowsVirtualKeyCode: code });
+      await send('Input.dispatchKeyEvent', { type: 'keyUp', key, code: key, windowsVirtualKeyCode: code });
+    };
+    const onEvent = (method, listener) => {
+      const handlers = listeners.get(method) || new Set(); handlers.add(listener); listeners.set(method, handlers);
+      return () => handlers.delete(listener);
+    };
+    await send('Page.navigate', { url: `http://127.0.0.1:${server.httpServer.address().port}/${builtDirectory ? '' : '__editor-test'}${initialSearch}` });
+    await run({ evaluate, waitFor, send, arrow, onEvent });
+  } finally {
+    socket?.close();
+    if (browser && browser.exitCode === null) { const exited = once(browser, 'exit'); browser.kill(); await exited; }
+    await server?.close();
+    await rm(fixture, { force: true });
+    await rm(profile, { recursive: true, force: true, maxRetries: 4, retryDelay: 100 });
+  }
+}
+
+// Exercise the visible side menu rather than clicking buttons in closed details.
+export async function openNewBlockMenu({ evaluate, waitFor }, label, row) {
+  if (!['Text', 'Link Card', 'Link Button', 'Badge', 'Callout', 'Card', 'Chip List', 'Card Grid', 'Metrics'].includes(label)) return;
+  const target = row || (label === 'Text' ? 'document.querySelector(".block-row:last-child")' : '(document.querySelector(".rich-editor")?.closest(".block-row") || document.querySelector(".block-row:last-child"))');
+  const menu = `(${target}).querySelector('.block-inserter-menu')`;
+  await evaluate(`if (!${menu}.open) ${menu}.querySelector('summary').click()`);
+  await waitFor(`${menu}.open && [...${menu}.querySelectorAll('button')].some(button => button.textContent === ${JSON.stringify(label)} && button.offsetWidth > 0)`);
+  return menu;
+}
+
+export async function answerLeaveDialog({ evaluate, waitFor }, leave = true) {
+  await waitFor('!!document.querySelector(".unsaved-changes-dialog[open]")');
+  await evaluate(`[...document.querySelector('.unsaved-changes-dialog').querySelectorAll('button')].find(button => button.textContent === '${leave ? 'Leave editor' : 'Keep editing'}').click()`);
+  await waitFor('!document.querySelector(".unsaved-changes-dialog[open]")');
+}

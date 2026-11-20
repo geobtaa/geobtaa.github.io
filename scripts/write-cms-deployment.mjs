@@ -3,8 +3,8 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
-import { contentVisibility } from '../editor-prototype/content.mjs';
-import { documentRoute, documentSlug, isRoutedDocument } from '../editor-prototype/contentRoutes.mjs';
+import { contentVisibility } from '../editor/content.mjs';
+import { documentRoute, documentSlug, isRoutedDocument } from '../editor/contentRoutes.mjs';
 
 export async function buildDeploymentMarker({ sha, runId, runAttempt, repository, files, readSource, readOutput }) {
   if (!/^[a-f0-9]{40}$/.test(sha || '') || !Number.isSafeInteger(runId) || runId < 1 || !Number.isSafeInteger(runAttempt) || runAttempt < 1 || repository !== 'geobtaa/geobtaa.github.io') throw new Error('Invalid production build identity.');

@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import test from 'node:test';
 import { parseHTML } from 'linkedom';
-import { createLinkCardMdx, parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor-prototype/linkCardMdx.ts';
-import { createLinkButtonMdx } from '../src/components/editor-prototype/linkButtonMdx.ts';
+import { createLinkCardMdx, parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor/linkCardMdx.ts';
+import { createLinkButtonMdx } from '../src/components/editor/linkButtonMdx.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const execute = promisify(execFile);

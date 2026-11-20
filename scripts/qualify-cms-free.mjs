@@ -7,10 +7,10 @@ import { join } from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { deflateSync } from 'node:zlib';
-import { draftTestRepository } from '../editor-prototype/draftTestRepository.mjs';
-import { createDraftStore, prepareDraftImage } from '../editor-prototype/draftStorage.mjs';
-import { parsePage, savePage } from '../editor-prototype/page.mjs';
-import { preparePublicationCandidate } from '../editor-prototype/publicationCandidate.mjs';
+import { draftTestRepository } from '../editor/draftTestRepository.mjs';
+import { createDraftStore, prepareDraftImage } from '../editor/draftStorage.mjs';
+import { parsePage, savePage } from '../editor/page.mjs';
+import { preparePublicationCandidate } from '../editor/publicationCandidate.mjs';
 import { onRequest } from '../functions/api/[[path]].js';
 const self = fileURLToPath(import.meta.url), origin = 'https://gin-editor.pages.dev';
 const area = 'library', filename = 'qualification.mdx', path = `src/content/docs/${area}/${filename}`;
@@ -157,7 +157,7 @@ if(process.argv[2]==='--child'){
   const report={schema:1,revision:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),node:process.version,platform:`${process.platform}/${process.arch}`,measuredAt:new Date().toISOString(),actualCloudflareMeasurements:false,network:'disabled; in-memory GitHub only',cpuMeaning:'Node process CPU including mock transport; not Cloudflare CPU. Module initialization and fixture/session setup excluded. Fresh means fresh compiler/route module caches, not an observed Cloudflare cold isolate.',cases:[]};
   report.trackedChanges=execFileSync('git',['diff','--name-only','HEAD'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
   report.sourceSha256={};
-  for(const path of ['functions/api/[[path]].js','editor-prototype/draftStorage.mjs','editor-prototype/publicationPolicy.mjs','editor-prototype/draftTestRepository.mjs','scripts/qualify-cms-free.mjs'])report.sourceSha256[path]=Buffer.from(await crypto.subtle.digest('SHA-256',await readFile(path))).toString('hex');
+  for(const path of ['functions/api/[[path]].js','editor/draftStorage.mjs','editor/publicationPolicy.mjs','editor/draftTestRepository.mjs','scripts/qualify-cms-free.mjs'])report.sourceSha256[path]=Buffer.from(await crypto.subtle.digest('SHA-256',await readFile(path))).toString('hex');
   try{for(const spec of selected){process.stderr.write(`Measuring ${spec.id}\n`);const data=await fixture(spec),file=join(directory,'case.json');await writeFile(file,JSON.stringify(data));const child=spawnSync(process.execPath,[self,'--child',file,String(warm)],{encoding:'utf8',maxBuffer:8_000_000});if(child.status!==0)throw Error(child.stderr||child.stdout);report.cases.push({fixture:data.spec,url:data.url,method:data.method,samples:JSON.parse(child.stdout)});}}
   finally{await rm(directory,{recursive:true,force:true});}
   const text=JSON.stringify(report,null,2)+'\n';

@@ -84,6 +84,8 @@ jobs:
       - name: Full browser regressions (sequential)
         env:
           CHROME_BIN: /usr/bin/google-chrome
+        # Compatibility entry point runs the full editor/ suite. Switch this
+        # command after the renamed trusted validator reaches main.
         run: node --test --test-concurrency=1 editor-prototype/*.browser.mjs
 
   validate:

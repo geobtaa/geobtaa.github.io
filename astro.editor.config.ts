@@ -8,7 +8,7 @@ export default defineConfig({
   output: 'static',
   // No public pages or content collections are discovered from this source root.
   srcDir: './src/pages/editor',
-  publicDir: './editor-prototype/cloudflare-public',
+  publicDir: './editor/cloudflare-public',
   outDir: './dist-editor',
   cacheDir: './node_modules/.astro-editor',
   compressHTML: true,
