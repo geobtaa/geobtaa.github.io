@@ -121,7 +121,7 @@ test('preview renders unsaved content and supported blocks without writes, and p
     await send('Input.insertText', { text: ' Unsaved sentence.' });
     await waitFor('document.querySelector(".save-state").textContent === "Unsaved changes"');
     await evaluate(`window.selectionBefore = window.originalView.state.selection.toJSON();
-      const input = [...document.querySelectorAll('label')].find(label => label.firstChild?.textContent === 'Title').querySelector('input'); input.focus(); input.select();`);
+      const input = document.querySelector('#document-edit input[required]'); input.focus(); input.select();`);
     await send('Input.insertText', { text: 'Unsaved title' });
     await evaluate('document.querySelector(".structured-link-card input").focus(); document.querySelector(".structured-link-card input").select()');
     await send('Input.insertText', { text: 'Unsaved card title' });

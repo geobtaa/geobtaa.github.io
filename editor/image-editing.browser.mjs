@@ -92,8 +92,8 @@ test('image controls insert, edit, cancel, render real images, and preserve Mark
     await waitFor(`document.querySelector('.image-picker-body').scrollTop < ${wheel.before}`);
     assert.equal(await evaluate('document.querySelector(".image-grid").scrollTop'), 0, 'the grid has no nested scrollbar');
     await send('Emulation.setDeviceMetricsOverride', { width: 800, height: 600, deviceScaleFactor: 1, mobile: false });
-    assert.equal(await evaluate('[...document.querySelectorAll(".image-picker label")].find(label => label.textContent === "Caption (optional)").querySelector("input").value'), 'Original caption');
-    await fill('Caption (optional)', 'Canceled caption');
+    assert.equal(await evaluate('[...document.querySelectorAll(".image-picker label")].find(label => label.textContent === "Caption").querySelector("input").value'), 'Original caption');
+    await fill('Caption', 'Canceled caption');
     await click('Cancel', 'document.querySelector(".image-picker")');
     await waitFor('!document.querySelector(".image-picker")');
     // ProseMirror counts clicks at the same coordinates within 500ms as a double click.
@@ -103,7 +103,7 @@ test('image controls insert, edit, cancel, render real images, and preserve Mark
     await click('Edit image', 'document.querySelector(".ProseMirror-selectednode")');
     await fill('Image source', '@images/replacement.png');
     await fill('Alt text', 'Replacement alt');
-    await fill('Caption (optional)', 'Replacement "caption"');
+    await fill('Caption', 'Replacement "caption"');
     await click('Apply Changes', 'document.querySelector(".image-picker")');
     await waitFor('document.querySelector(".editor-image img")?.naturalWidth > 0 && document.querySelector(".editor-image img").alt === "Replacement alt"');
     assert.equal(await evaluate('document.querySelector(".editor-image figcaption").textContent'), 'Replacement "caption"');
@@ -138,9 +138,9 @@ test('image controls insert, edit, cancel, render real images, and preserve Mark
     // Upload through the existing picker, then insert a second image without a caption.
     await click('Image');
     await evaluate(`(() => { const input = document.querySelector('.image-picker input[type=file]'); const data = new DataTransfer(); data.items.add(new File([Uint8Array.from(atob('${png.toString('base64')}'), c => c.charCodeAt(0))], 'uploaded.png', { type: 'image/png' })); input.files = data.files; input.dispatchEvent(new Event('change', { bubbles: true })); })()`);
-    await waitFor('!!window.upload && [...document.querySelectorAll(".image-picker label")].find(label => label.textContent === "Image source").querySelector("input").value === "@images/uploaded.png"');
+    await waitFor('!!window.upload && [...document.querySelectorAll(".image-picker label")].find(label => label.textContent.startsWith("Image source")).querySelector("input").value === "@images/uploaded.png"');
     await fill('Alt text', 'Uploaded alt');
-    await fill('Caption (optional)', 'Uploaded caption');
+    await fill('Caption', 'Uploaded caption');
     await click('Insert image', 'document.querySelector(".image-picker")');
     await waitFor('document.querySelectorAll(".editor-image").length === 2');
     await click('Image');

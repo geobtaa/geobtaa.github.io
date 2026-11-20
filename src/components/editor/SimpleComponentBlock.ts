@@ -1,20 +1,21 @@
+import { FieldLabel } from './FieldLabel.ts';
 import { createElement, Fragment, useEffect, useState, type ChangeEvent } from 'react';
 import { Node } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
 import { BADGE_SIZES, BADGE_VARIANTS, CALLOUT_TYPES, SIMPLE_COMPONENTS, SIMPLE_KINDS, createSimpleComponentMdx, emptySimpleFields, matchSimpleComponentBlock, parseSimpleComponentMdx, simpleKindForNode, updateSimpleComponentMdx, type SimpleFields, type SimpleKind } from './simpleComponents.ts';
 
 export function SimpleComponentFields({ kind, fields, onChange, autoFocus = false }: { autoFocus?: boolean; kind: SimpleKind; fields: SimpleFields; onChange: (key: keyof SimpleFields, value: string) => void }) {
-  const input = (label: string, key: keyof SimpleFields, required = false) => createElement('label', { key }, label,
+  const input = (label: string, key: keyof SimpleFields, required = false) => createElement('label', { key }, createElement(FieldLabel, { text: label, required }),
     createElement('input', { value: fields[key], required, autoFocus, onChange: (event: ChangeEvent<HTMLInputElement>) => onChange(key, event.target.value) }));
   const select = (label: string, key: keyof SimpleFields, options: string[]) => createElement('label', { key }, label,
     createElement('select', { value: fields[key], onChange: (event: ChangeEvent<HTMLSelectElement>) => onChange(key, event.target.value) },
       ...options.map((option) => createElement('option', { key: option, value: option }, option[0].toUpperCase() + option.slice(1)))));
   return createElement(Fragment, null,
-    kind === 'badge' ? input('Badge text', 'text', true) : input(kind === 'card' ? 'Title' : 'Title (optional)', 'title', kind === 'card'),
+    kind === 'badge' ? input('Badge text', 'text', true) : input('Title', 'title', kind === 'card'),
     kind === 'badge' ? select('Style', 'variant', BADGE_VARIANTS) : null,
     kind === 'badge' ? select('Size', 'size', BADGE_SIZES) : null,
     kind === 'callout' ? select('Type', 'type', CALLOUT_TYPES) : null,
-    kind !== 'badge' ? createElement('label', null, 'Message', createElement('textarea', { rows: 4, required: true, value: fields.text, onChange: (event: ChangeEvent<HTMLTextAreaElement>) => onChange('text', event.target.value) })) : null,
+    kind !== 'badge' ? createElement('label', null, createElement(FieldLabel, { text: 'Message', required: true }), createElement('textarea', { rows: 4, required: true, value: fields.text, onChange: (event: ChangeEvent<HTMLTextAreaElement>) => onChange('text', event.target.value) })) : null,
   );
 }
 function SimpleEditor({ node, updateAttributes, extension }: NodeViewProps) {

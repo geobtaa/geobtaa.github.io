@@ -52,6 +52,8 @@ h2 { margin: 0; }
 .project-list button { width: 100%; padding: .9rem .25rem; border: 0; background: transparent; color: var(--editor-accent); text-align: left; }
 label { display: grid; gap: .4rem; margin: 1.25rem 0 .5rem; font-weight: 650; }
 label span { color: var(--editor-muted); font-size: .85rem; font-weight: 400; }
+label .field-label { color: inherit; font-size: inherit; font-weight: inherit; }
+.required-marker { margin-left: .4rem; color: var(--editor-accent-hover); font-size: .8rem; font-weight: 750; }
 input, textarea, .area-selector select { width: 100%; padding: .7rem; border: 1px solid var(--editor-border-strong); border-radius: .35rem; }
 .area-selector { max-width: 24rem; }
 .checkbox { display: flex; grid-template-columns: auto 1fr; align-items: center; margin-top: 1.25rem; }

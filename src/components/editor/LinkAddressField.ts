@@ -1,3 +1,4 @@
+import { FieldLabel } from './FieldLabel.ts';
 import { createElement, useRef, type ChangeEvent, type FocusEvent } from 'react';
 import { normalizeLinkAddress } from './linkAddress.ts';
 import { COMPONENT_LINK_ERROR, isSafeComponentHref } from './componentLinkSafety.ts';
@@ -7,7 +8,7 @@ type Props = { value: string; onChange: (value: string) => void; required?: bool
 export function LinkAddressField({ value, onChange, required = false }: Props) {
   const edited = useRef(false);
   const invalid = !isSafeComponentHref(value);
-  return createElement('label', { className: 'link-address-field' }, 'URL',
+  return createElement('label', { className: 'link-address-field' }, createElement(FieldLabel, { text: 'URL', required }),
     createElement('input', {
       value, required, type: 'text', inputMode: 'url', autoCapitalize: 'none', spellCheck: false, 'aria-invalid': invalid || undefined,
       placeholder: 'example.com or /guides/help/',

@@ -36,7 +36,7 @@ test('opening/reopening a document skips list reads; return and Save Draft refre
   await waitFor('document.querySelectorAll(".project-list button").length===2');assert.equal(await listCount(),2);
   await evaluate('[...document.querySelectorAll(".project-list button")].find(b=>b.querySelector(".content-name").textContent==="one").click()');
   await waitFor('!!document.querySelector(".top-save")');assert.equal(await listCount(),2);
-  await evaluate("[...document.querySelectorAll('label')].find(l=>l.firstChild?.textContent==='Title').querySelector('input').focus()");
+  await evaluate("document.querySelector('#document-edit input[required]').focus()");
   await send('Input.insertText',{text:' edited'});
   await evaluate('document.querySelector(".top-save").click()');
   await waitFor('window.record.sha === "saved" && !document.querySelector(".top-save").disabled');
@@ -48,11 +48,11 @@ test('direct document links do not depend on list availability; stale saves pres
  await withEditorBrowser(fixture,async({evaluate,waitFor,send})=>{
   await waitFor('!!document.querySelector(".top-save")');
   assert.equal(await evaluate("window.calls.some(c=>c.path==='/api/content/library')"),false);
-  await evaluate("window.stale=true;[...document.querySelectorAll('label')].find(l=>l.firstChild?.textContent==='Title').querySelector('input').focus()");
+  await evaluate("window.stale=true;document.querySelector('#document-edit input[required]').focus()");
   await send('Input.insertText',{text:' unsaved'});
   await evaluate('document.querySelector(".top-save").click()');
   await waitFor('!!document.querySelector(".message.error")');
-  assert.match(await evaluate("[...document.querySelectorAll('label')].find(l=>l.firstChild?.textContent==='Title').querySelector('input').value"),/unsaved/);
+  assert.match(await evaluate("document.querySelector('#document-edit input[required]').value"),/unsaved/);
   assert.equal(await evaluate("window.calls.some(c=>c.path==='/api/content/library')"),false);
  },{initialSearch:'?area=library&file=one.mdx'});
 });

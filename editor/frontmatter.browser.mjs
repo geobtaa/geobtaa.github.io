@@ -70,12 +70,12 @@ test('every content area edits and reopens metadata using the existing controls 
       await fill('Navigation order', '7');
       await setValue('Navigation visibility', 'true');
       await setValue('Table of contents', 'true');
-      if (area === 'library' || area === 'scholarship') await fill('Year (optional)', '2026');
+      if (area === 'library' || area === 'scholarship') await fill('Year', '2026');
       if (['library', 'posts', 'updates'].includes(area)) {
-        await setValue(['posts', 'updates'].includes(area) ? 'Publication date' : 'Date (optional)', '2026-03-01');
+        await setValue(['posts', 'updates'].includes(area) ? 'Publication date' : 'Date', '2026-03-01');
         await fill('Author 1', 'Revised author');
       }
-      if (['guides', 'library', 'posts', 'updates', 'scholarship'].includes(area)) await fill('Tags (optional)', 'Revised tag,  Another tag, , ');
+      if (['guides', 'library', 'posts', 'updates', 'scholarship'].includes(area)) await fill('Tags', 'Revised tag,  Another tag, , ');
       if (area === 'workgroups') {
         await fill('Committee', 'Metadata'); await fill('Lead', 'New lead'); await fill('Member 1', 'New member'); await fill('Active dates', 'October 2026 – present');
       }
@@ -109,9 +109,9 @@ test('every content area edits and reopens metadata using the existing controls 
       assert.equal(await evaluate(`${field('Description')}.value`), `Revised ${area} summary.\nSecond line.`);
       assert.equal(await evaluate(`${field('Navigation label')}.value`), `${area} navigation`);
       assert.equal(await evaluate(`${field('Navigation visibility')}.value`), 'true');
-      if (['guides', 'library', 'posts', 'updates', 'scholarship'].includes(area)) assert.equal(await evaluate(`${field('Tags (optional)')}.value`), 'Revised tag, Another tag');
+      if (['guides', 'library', 'posts', 'updates', 'scholarship'].includes(area)) assert.equal(await evaluate(`${field('Tags')}.value`), 'Revised tag, Another tag');
       if (area === 'workgroups') assert.equal(await evaluate(`${field('Member 1')}.value`), 'New member');
-      if (area === 'library' || area === 'scholarship') assert.equal(await evaluate(`${field('Year (optional)')}.value`), '2026');
+      if (area === 'library' || area === 'scholarship') assert.equal(await evaluate(`${field('Year')}.value`), '2026');
       await evaluate('document.querySelector(".editor-navigation .back").click()');
       await waitFor('!!document.querySelector(".project-list")');
       await evaluate('document.querySelector(".editor-navigation .back").click()');
@@ -122,9 +122,9 @@ test('every content area edits and reopens metadata using the existing controls 
     await waitFor('!!document.querySelector(".list-heading .primary")');
     await evaluate('document.querySelector(".list-heading .primary").click()');
     await waitFor('!!document.querySelector(".editor-fields")');
-    assert.equal(await evaluate(`${field('Date (optional)')}.value`), '');
+    assert.equal(await evaluate(`${field('Date')}.value`), '');
     await fill('Title', 'New library document');
-    await fill('Year (optional)', '2026');
+    await fill('Year', '2026');
     await evaluate('document.querySelector(".top-save").click()');
     await waitFor(`window.writes.length === ${Object.keys(CONTENT_AREAS).length + 1} && document.querySelector(".save-state").textContent === "No unsaved changes"`);
     assert.equal(await evaluate('window.writes.at(-1).input.date'), '');
@@ -141,7 +141,7 @@ test('comma-separated tags support continuous typing, mid-field edits, and clear
     await evaluate('[...document.querySelectorAll(".dashboard-card")].find(button => button.textContent.includes("Blog Posts")).click()');
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
-    const input = `([...document.querySelectorAll('.editor-fields label')].find(label => label.textContent.startsWith('Tags '))?.querySelector('input'))`;
+    const input = `([...document.querySelectorAll('.editor-fields label')].find(label => label.textContent.startsWith('Tags'))?.querySelector('input'))`;
     await waitFor(`!!${input}`);
     await evaluate(`${input}.focus(); ${input}.select()`);
     for (const text of 'First, Second') await send('Input.insertText', { text });
