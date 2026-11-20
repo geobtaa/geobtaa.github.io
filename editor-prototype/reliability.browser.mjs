@@ -166,7 +166,7 @@ test('returning to the original editor URL preserves an uncertain creation and r
     await evaluate('window.responseFault = "lost"; document.querySelector(".top-save").click()');
     await waitFor('document.querySelector(".top-save").textContent === "Retry creation safely" && !document.querySelector(".top-save").disabled');
     const originalDraftUrl = await evaluate('location.href');
-    await evaluate('document.querySelector(".dashboard-link").click()');
+    await evaluate('document.querySelector(".editor-navigation .back").click()');
     await answerLeaveDialog(browser);
     assert.equal(await evaluate(`!!(${button('Find unsaved work')})`), false);
     await evaluate('history.back()');

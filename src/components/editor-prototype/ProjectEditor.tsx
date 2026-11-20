@@ -1033,12 +1033,12 @@ export default function ProjectEditor() {
       {leavePrompt && <UnsavedChangesDialog message={leavePrompt.message} onKeepEditing={() => showLeavePrompt(null)} onLeave={leaveEditor} />}
       <nav className="editor-navigation" aria-label="Editor navigation">
         <button className="back" type="button" disabled={busy} onClick={backToList}>← Back to {config.label}</button>
-        <div className="navigation-actions"><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue} onClick={() => publish()}>Create Publication PR</button><button className="dashboard-link" type="button" disabled={busy} onClick={backToDashboard}>Dashboard</button><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button></div>
+        <div className="navigation-actions"><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue} aria-describedby="publish-help" onClick={() => publish()}>Prepare to publish</button><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button></div>
       </nav>
-      <h1>{project.sha ? `Edit ${config.itemLabel}` : `New ${config.itemLabel}`}</h1>
+      <h1>{project.title.trim() || 'Untitled page'}</h1>
+      <p id="publish-help">This creates a GitHub publication request. Review and merge it in GitHub after the required checks pass.</p>
       <section className={`visibility-panel document-controls ${project.draft ? 'is-draft' : 'is-ready'}`} aria-label="Document controls">
         <div className="document-control-group">
-          <span className="document-control-label">Document status</span>
           <span className="draft-status">{project.hasDraft || project.preservedEdits ? 'Saved draft' : project.sha ? 'Published version' : 'New draft · not saved yet'}</span>
           {project.lastSavedBy && <small>Last saved by {project.lastSavedBy}{project.lastSavedAt ? ` on ${project.lastSavedAt}` : ''}</small>}
           {project.resumeHead && project.preservedEdits && <p className="message">Earlier changes were published. Your newer saved changes are preserved below. Use Save Draft before creating another publication PR.</p>}

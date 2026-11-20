@@ -112,7 +112,9 @@ test('every content area edits and reopens metadata using the existing controls 
       if (['guides', 'library', 'posts', 'updates', 'scholarship'].includes(area)) assert.equal(await evaluate(`${field('Tags (optional)')}.value`), 'Revised tag, Another tag');
       if (area === 'workgroups') assert.equal(await evaluate(`${field('Member 1')}.value`), 'New member');
       if (area === 'library' || area === 'scholarship') assert.equal(await evaluate(`${field('Year (optional)')}.value`), '2026');
-      await evaluate('document.querySelector(".dashboard-link").click()');
+      await evaluate('document.querySelector(".editor-navigation .back").click()');
+      await waitFor('!!document.querySelector(".project-list")');
+      await evaluate('document.querySelector(".editor-navigation .back").click()');
     }
     // A new non-blog page can be created without acquiring an automatic date.
     await waitFor('!!document.querySelector(".dashboard-card")');

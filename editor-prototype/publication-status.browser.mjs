@@ -27,6 +27,30 @@ window.fetch=async(url,options={})=>{
 createRoot(document.getElementById('root')).render(React.createElement(ProjectEditor));`;
 const options = { skip: chrome ? false : 'Chrome/Chromium is required.', timeout: 45000 };
 const title = 'document.querySelector(".editor-fields input[required]")';
+test('document title leads the editor and empty publication status stays hidden until a request exists',options,async()=>{
+  const empty=fixture.replace("createRoot(document.getElementById('root'))",`window.setStatus({state:'none'});
+    const gateway=window.fetch;window.statusReads=0;
+    window.fetch=async(url,options={})=>{if(String(url).includes('/api/publish/')&&!options.method){window.statusReads++;if(window.statusReads===1)return new Promise(resolve=>{window.finishStatus=()=>resolve(Response.json({state:'none'}));});}return gateway(url,options);};
+    createRoot(document.getElementById('root'))`);
+  await withEditorBrowser(empty,async({evaluate,waitFor,send})=>{
+    await waitFor(`!!${title} && !!window.finishStatus`);
+    assert.equal(await evaluate('document.querySelector("h1").textContent'),'Newer saved draft');
+    assert.equal(await evaluate('!!document.querySelector(".dashboard-link")'),false);
+    assert.equal(await evaluate('!!document.querySelector(".publication-status")'),false,'initial checking does not show an empty panel');
+    assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),'Saved draft');
+    assert.match(await evaluate('document.getElementById(document.querySelector(".publish-document").getAttribute("aria-describedby")).textContent'),/Review and merge it in GitHub/);
+    await evaluate('window.finishStatus()');
+    await evaluate(`${title}.focus();${title}.select()`);await send('Input.insertText',{text:'Actual revised title'});
+    await waitFor('document.querySelector("h1").textContent==="Actual revised title"');
+    assert.equal(await evaluate('!!document.querySelector(".publication-status")'),false,'a confirmed empty result remains hidden');
+    assert.equal(await evaluate('window.statusReads'),1,'presentation changes add no status requests');
+    await evaluate(`${title}.select()`);await send('Input.insertText',{text:'Newer saved draft'});
+    await waitFor('document.querySelector(".publish-document").disabled===false');
+    await evaluate(`window.setStatus({state:'pr-open',number:42,url:'https://github.com/geobtaa/geobtaa.github.io/pull/42'});document.querySelector('.publish-document').click()`);
+    await waitFor('document.querySelector(".publication-status")?.dataset.state==="pr-open"');
+    assert.equal(await evaluate('window.writes.length'),2,'prepare and creation remain separate');
+  },{initialSearch:'?area=library&file=report.mdx'});
+});
 test('manual PR status refresh preserves unsaved text, never writes, and recovers after another login/reload', options, async () => {
   await withEditorBrowser(fixture, async browser => {
     const {evaluate,waitFor,send}=browser;
@@ -54,10 +78,10 @@ test('manual PR status refresh preserves unsaved text, never writes, and recover
     assert.equal(await evaluate('[...document.querySelectorAll(".publication-status a")].some(link=>link.textContent==="View live")'),false);
   },{initialSearch:'?area=library&file=report.mdx'});
 });
-test('Create Publication PR prepares the saved revision in the browser and retains a PR link if status refresh fails', options, async () => {
+test('Prepare to publish prepares the saved revision in the browser and retains a PR link if status refresh fails', options, async () => {
   await withEditorBrowser(fixture, async ({evaluate,waitFor}) => {
     await waitFor(`!!${title} && document.querySelector('.publish-document')?.disabled===false`);
-    assert.equal(await evaluate('document.querySelector(".publish-document").textContent'),'Create Publication PR');
+    assert.equal(await evaluate('document.querySelector(".publish-document").textContent'),'Prepare to publish');
     await evaluate('window.failStatus=true;document.querySelector(".publish-document").click()');
     await waitFor('window.writes.length===2 && !!document.querySelector(".publication-status a") && document.querySelector(".publish-document").disabled===false');
     const writes=await evaluate('window.writes');
