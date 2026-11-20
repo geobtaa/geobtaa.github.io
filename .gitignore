@@ -9,6 +9,7 @@ node_modules/
 
 # Astro build output
 dist/
+dist-editor/
 .astro/
 
 # IDE-specific files

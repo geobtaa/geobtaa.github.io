@@ -51,6 +51,7 @@ jobs:
       - run: npm run test:editor
       - run: npm run build -- --timings
       - run: npm run test:navigation
+      - run: npm run test:editor:build
 
   # Fixtures add temporary source pages: use a separate checkout while the real
   # site builds, and require this result for CMS snapshots as well as source PRs.

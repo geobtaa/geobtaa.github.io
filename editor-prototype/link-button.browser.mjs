@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { answerLeaveDialog, chrome, withEditorBrowser, openNewBlockMenu } from './browserHarness.mjs';
+import { chrome, withEditorBrowser, openNewBlockMenu } from './browserHarness.mjs';
 
 const protectedBlock = '<CenterLayout>\nKeep this legacy content.\n</CenterLayout>\n\n<LinkButton href="/" icon="external">Protected button</LinkButton>\n';
 const fixture = `import React from 'react';
@@ -15,7 +15,7 @@ window.fetch = async (url, options = {}) => {
   if (path === '/api/session') return Response.json({ authenticated: true, login: 'tester' });
   if (path === '/api/content/posts') return Response.json({ branch: 'custom-cms', entries: [{ name: 'buttons.mdx', path: 'src/content/docs/posts/buttons.mdx', sha: window.record.sha, draft: true, visibilityKnown: true }] });
   if (path === '/api/content/posts/buttons.mdx') {
-    if (options.method === 'PUT') { const fields = JSON.parse(options.body); window.writes.push(fields); window.record = { ...window.record, ...fields, sha: 'saved' }; }
+    if (options.method === 'PUT') { const fields = JSON.parse(options.body); window.writes.push(fields); window.record = { ...window.record, ...fields, sha: 'saved', commitSha: 'saved-commit' }; }
     return Response.json(window.record);
   }
   throw new Error('Unexpected API call: ' + path);
@@ -66,20 +66,20 @@ test('LinkButton inserts, edits without cursor jumps, and saves/reopens with pro
     await evaluate('const appearance = document.querySelector(".structured-link-button select"); appearance.value = "minimal"; appearance.dispatchEvent(new Event("change", { bubbles: true }))');
     await waitFor('!!document.querySelector(".link-button-preview.minimal")');
     await click('Save Draft', 'document.querySelector(".editor-navigation")');
-    await waitFor('window.writes.length === 1');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
     const saved = await evaluate('window.record.body');
     assert.ok(saved.includes(protectedBlock));
     assert.match(saved, /<LinkButton href="https:\/\/example.com\/maps" variant="minimal">Vixyzsit the catalog<\/LinkButton>/);
     assert.equal([...saved.matchAll(/import \{ LinkButton \}/g)].length, 1);
     await evaluate('document.querySelector(".editor-navigation .back").click()');
-    await answerLeaveDialog({ evaluate, waitFor });
+    // A completed save leaves a clean document, so navigation needs no leave dialog.
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
     await waitFor('document.querySelector(".structured-link-button input")?.value === "Vixyzsit the catalog"');
     assert.equal(await evaluate('document.querySelectorAll(".structured-link-button input")[1].value'), 'https://example.com/maps');
     assert.equal(await evaluate('document.querySelector(".structured-link-button select").value'), 'minimal');
     await click('Save Draft', 'document.querySelector(".editor-navigation")');
-    await waitFor('window.writes.length === 2');
+    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "No unsaved changes"');
     assert.equal(await evaluate('window.record.body'), saved);
   });
 });
@@ -116,9 +116,8 @@ for (const first of ['Link Card', 'Link Button']) {
       assert.equal(await evaluate('document.querySelectorAll(".body-editor .rich-editor").length'), 0, 'no empty text editor is created');
       assert.equal(await evaluate('document.querySelectorAll(".component-editor .tiptap p").length'), 0, 'no trailing paragraph is created');
       await click('Save Draft', 'document.querySelector(".editor-navigation")');
-      await waitFor('window.writes.length === 1');
+      await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
       await evaluate('document.querySelector(".editor-navigation .back").click()');
-      await answerLeaveDialog({ evaluate, waitFor });
       await waitFor('!!document.querySelector(".project-list button")');
       await evaluate('document.querySelector(".project-list button").click()');
       await waitFor('document.querySelectorAll(".component-editor").length === 1');
@@ -134,7 +133,7 @@ for (const first of ['Link Card', 'Link Button']) {
       assert.equal(await evaluate('document.querySelectorAll(".rich-editor").length'), 1);
       assert.equal(await evaluate('document.querySelector(".rich-editor .tiptap").textContent'), 'Text after the component.');
       await click('Save Draft', 'document.querySelector(".editor-navigation")');
-      await waitFor('window.writes.length === 2');
+      await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "No unsaved changes"');
       const saved = await evaluate('window.record.body');
       assert.match(saved, /Text after the component\./);
       assert.match(saved, /<LinkCard/);
@@ -200,7 +199,7 @@ test('bare website addresses work for links, cards, and buttons while existing a
     const point = await evaluate('(() => { const r = document.querySelector(".top-save").getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()');
     await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button: 'left', clickCount: 1 });
     await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button: 'left', clickCount: 1 });
-    await waitFor('window.writes.length === 1');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
     const saved = await evaluate('window.record.body');
     assert.match(saved, /href="https:\/\/maps.example.edu\/catalog"/);
     assert.match(saved, /href="\/guides\/help\/"/);
@@ -210,7 +209,6 @@ test('bare website addresses work for links, cards, and buttons while existing a
     assert.ok(saved.includes(protectedBlock));
     await waitFor('!document.querySelector(".top-save").disabled');
     await evaluate('document.querySelector(".editor-navigation .back").click()');
-    await answerLeaveDialog({ evaluate, waitFor });
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
     await waitFor('document.querySelectorAll(".link-address-field input").length === 4');

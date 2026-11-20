@@ -1,5 +1,81 @@
 # Permanent GIN editor deployment
 
+## CMS-only build for gin-editor
+
+The repository now provides `npm run build:editor`, selected explicitly with
+`astro.editor.config.ts`, and output directory `dist-editor`. This section
+supersedes the historical full-site build instructions below. Implementation
+alone does not change any Cloudflare dashboard setting or deploy the project.
+
+Change **only gin-editor** to use build command `npm run build:editor` and output
+directory `dist-editor`. Keep its root directory at the repository root so Pages
+can bundle `functions/` and its imported server modules separately. Keep the
+current production branch, compatibility settings, environment variables,
+secrets, publishing flag, and disabled previews. Do not change the older
+`geobtaa-github-io` project's build settings or its `custom-cms` branch. The normal
+Astro configuration, `npm run build`, and GitHub Pages deployment remain unchanged.
+Do not add a deployable root Wrangler configuration.
+
+The dedicated config injects the existing `src/pages/editor/index.astro` at `/`;
+there is no second editor application. Its source root excludes public pages and
+content collections, and its public directory contains only CMS support files.
+Astro retains every generated JS/CSS/asset dependency in `dist-editor/_astro/`.
+There is no deletion or pruning step. The build copies `public/_routes.json`
+unchanged and also preserves `public/_headers` if one is present. Do not replace
+this with copying selected hashed assets from the public site's build.
+
+The CMS-only artifact contains `index.html`, `_astro/`, `_routes.json`,
+`_redirects`, and a small `404.html` (plus `_headers` if configured). It omits
+public pages, CNAME, sitemaps, Pagefind, gallery files, and the legacy Decap admin.
+The custom 404 prevents Pages from returning the editor for every unknown URL.
+`/editor` and `/editor/` temporarily redirect to `/` with status 302; check query
+and browser-fragment preservation before considering permanent redirects.
+
+The browser API base is fixed to the same origin in this build. Repository images
+continue through `/api/images/file/`; preview fonts remain externally hosted.
+Root-relative public-content links in text, cards, and buttons resolve to
+`https://gin.btaa.org` only in this build, without changing saved Markdown.
+Other link destinations and ordinary public/staging builds retain their behavior.
+
+OAuth accepts exact same-origin `/` and `/editor/` return paths, including their
+query and fragment. The legacy default remains `/editor/`, which redirects to `/`
+on gin-editor. The callback remains
+`https://gin-editor.pages.dev/api/auth/callback`; do not rotate credentials or
+change callback registration. The OAuth App homepage may be updated to `/`, but
+the existing homepage continues through the redirect. All API routing, origin
+gates, cookie security, allowlists, and authorization checks remain in place.
+Before rollout, inspect live header/redirect rules for any `/editor/`-specific
+security policy and preserve equivalent coverage at `/`.
+
+Validation commands (run builds sequentially):
+
+```sh
+npm run test:editor
+npm run astro -- check
+npm run build
+npm run test:navigation
+npm run test:editor:build
+node --test --test-concurrency=1 editor-prototype/*.browser.mjs
+```
+
+`test:editor:build` checks the actual artifact's contents and transitive imports,
+then uses an installed Chrome/Chromium to load the production files at `/` with
+mock API responses. It verifies hydration, repository-image URLs, public-content
+links, and the sign-in return URL. Run with `CHROME_BIN` if needed. Unit/API tests
+exercise root/legacy OAuth returns and canonical/preview-host security. Local
+tests use no live GitHub credentials and perform no repository writes.
+
+After separately authorized deployment, verify the served revision, `/`, old
+editor redirects with document queries, actual 404s, same-origin `/api/`, OAuth,
+Save Draft/reopen, image reads, and recovery. Keep publishing at its existing
+setting. Verify the public website and older project's deployment/settings are
+unchanged. Cloudflare redirect/header processing and real OAuth still require
+this hosted smoke test. Rollback means restoring gin-editor's prior deployment
+and its previous build command/output directory; no source or data migration is
+needed.
+
+## Historical setup
+
 Current code is on `editor/cms-release`. No project, credentials, deployment, push, merge, or live settings have been changed by this work. `geobtaa-cms-integration` and the earlier proposed `geobtaa-editor` project are superseded by **`gin-editor`**. Do not use the old temporary Direct Upload preparation.
 
 ## Project configuration ownership
@@ -31,14 +107,14 @@ The separate local Node gateway (`npm run editor`) retains its loopback/CORS dev
 | Automatic production deployment | Enabled | Enabled |
 | Automatic preview deployments | **None** | **None** |
 | Root directory | Repository root | Same |
-| Build command | `npm run build` | Same |
-| Output directory | `dist` | Same |
+| Build command | `npm run build:editor` | Same |
+| Output directory | `dist-editor` | Same |
 | Node version | `24.13.1` (set `NODE_VERSION` in build environment if needed) | Same |
 | Function compatibility date | `2026-09-19` in dashboard | Same |
 | Additional compatibility flags | None initially | Same |
 | Hostname | `https://gin-editor.pages.dev` | Same |
 
-Use Pages' current Git build system; normal dependency installation must include build dependencies and the existing patch-package install hook. Pages automatically bundles repository-root `functions/` separately from static `dist`; retain both and do not deploy the Node development gateway. Do not configure a public-site custom domain on this project. `gin.btaa.org` remains GitHub Pages.
+Use Pages' current Git build system; normal dependency installation must include build dependencies and the existing patch-package install hook. Pages automatically bundles repository-root `functions/` separately from static `dist-editor`; retain both and do not deploy the Node development gateway. Do not configure a public-site custom domain on this project. `gin.btaa.org` remains GitHub Pages.
 
 The working release is currently local. You may create the project with previews disabled, but do not enable authenticated testing against old remote code: a separately authorized push and successful deployment of the new origin-gated commit are prerequisites. Confirm the actual served commit, canonical login redirect, and preview rejection before entering test content. Project creation can start an initial Git build, so stage credentials only when the reviewed code is available.
 
@@ -62,7 +138,7 @@ For Preview, leave OAuth/session secrets absent and inspect inherited/shared bin
 
 Create one dedicated OAuth App for GIN Editor, separate from the existing staging App:
 
-- Homepage: `https://gin-editor.pages.dev/editor/`
+- Homepage: `https://gin-editor.pages.dev/`
 - Authorization callback: `https://gin-editor.pages.dev/api/auth/callback`
 - Device flow: disabled; use the existing web flow with PKCE and state.
 - The code requests `public_repo`, verifies push permission at login and before draft writes, and keeps tokens in encrypted HttpOnly eight-hour sessions. No token-refresh feature or Publish endpoint is added here.

@@ -14,6 +14,8 @@
     "test:navigation": "node --test tests/site-navigation.test.mjs",
     "test:config": "node --test tests/fullview-mode.test.mjs",
     "build": "astro build",
+    "build:editor": "astro build --config astro.editor.config.ts",
+    "test:editor:build": "npm run build:editor && node --test tests/editor-build.test.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "optimize-gallery": "node scripts/optimize-gallery.mjs"
