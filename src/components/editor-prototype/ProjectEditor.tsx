@@ -886,9 +886,9 @@ export default function ProjectEditor() {
       if (prepared.head !== selectedHead) throw new Error('The selected saved revision changed. Your edits remain here.');
       const candidate = preparePublicationCandidate(prepared, project.filename);
       const result = await api<{ state: string; number: number; url: string; message?: string }>(path, { method: 'POST', body: JSON.stringify({ head: selectedHead, candidate }) });
-      if (!Number.isInteger(result.number) || !['pr-open', 'closed', 'merged'].includes(result.state)) throw new Error('PR creation could not be confirmed. Refresh PR status before retrying; your saved draft is intact.');
+      if (!Number.isInteger(result.number) || !['pr-open', 'closed', 'merged'].includes(result.state)) throw new Error('PR creation could not be confirmed. Use Check status before retrying; your saved draft is intact.');
       setSubmittedPR({ path, status: result });
-      setNotice(result.message || `Publication PR #${result.number}.`);
+      setNotice(result.state === 'pr-open' ? '' : result.message || `Publication PR #${result.number}.`);
     } catch (err) { setError((err as Error).message); }
     finally { setBusy(false); setPublicationVersion(value => value + 1); }
   };

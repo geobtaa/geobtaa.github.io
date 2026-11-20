@@ -55,6 +55,10 @@ test('manual PR status refresh preserves unsaved text, never writes, and recover
   await withEditorBrowser(fixture, async browser => {
     const {evaluate,waitFor,send}=browser;
     await waitFor(`!!${title} && document.querySelector('.publication-status')?.dataset.state==='pr-open'`);
+    assert.equal(await evaluate('document.querySelector(".publication-status strong").textContent'),'Publication request created');
+    assert.equal(await evaluate('document.querySelector(".publication-status [role=status] p").textContent'),'Your changes are ready for review. Before they appear on the public website, GitHub must complete its automated checks and someone must merge the request.');
+    assert.equal(await evaluate('document.querySelector(".publication-status a").textContent'),'Review publication request #42');
+    assert.equal(await evaluate('document.querySelector(".publication-status button").textContent'),'Check status');
     await evaluate(`window.originalEditor=document.querySelector('.tiptap');${title}.focus();${title}.select()`);
     await send('Input.insertText',{text:'Keep my unsaved title'});
     await evaluate(`window.setStatus({...window.statusResult,state:'closed',message:'Publication PR closed without merging.'});document.querySelector('.publication-status button').click()`);
