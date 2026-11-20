@@ -22,10 +22,39 @@ window.fetch=async(url,options={})=>{
 createRoot(document.getElementById('root')).render(React.createElement(ProjectEditor));`;
 const options={skip:chrome?false:'Chrome required.',timeout:30_000};
 
+test('content areas use staff-facing labels and keep account and shared-draft explanations on the dashboard',options,async()=>{
+ const rows=[
+  {name:'published.mdx',onMain:true,draftHint:'none-observed'},
+  {name:'revised.mdx',onMain:true,draftHint:'saved'},
+  {name:'new.mdx',onMain:false,draftHint:'saved'},
+  {name:'review.mdx',onMain:true,draftHint:'review'},
+ ].map(row=>({...row,path:'src/content/docs/library/'+row.name,discovery:'provisional',visibilityKnown:false}));
+ const catalogFixture=fixture.replace('if(!filename){',`if(!filename){return Response.json({branch:'main',discovery:'provisional',entries:${JSON.stringify(rows)}});`);
+ await withEditorBrowser(catalogFixture,async({evaluate,waitFor})=>{
+  const shared='Saved drafts can be viewed and edited by other authorized editors.';
+  await waitFor('!!document.querySelector(".dashboard-card")');
+  assert.match(await evaluate('document.body.textContent'),/Signed in as test-editor/);
+  assert.equal(await evaluate(`document.body.textContent.split(${JSON.stringify(shared)}).length-1`),1);
+  await evaluate('[...document.querySelectorAll(".dashboard-card")].find(button=>button.textContent.includes("Library")).click()');
+  await waitFor('document.querySelectorAll(".project-list button").length===4');
+  const intro="Choose a page to edit, or continue working on a saved draft. Changes won't appear on the public website until they're published.";
+  assert.equal(await evaluate('document.querySelector(".list-heading").nextElementSibling.textContent'),intro);
+  assert.equal(await evaluate(`document.body.textContent.includes(${JSON.stringify(shared)})`),false);
+  assert.doesNotMatch(await evaluate('document.body.textContent'),/Signed in as|On main|New saved draft|Saved work available|Published content comes from/);
+  assert.equal(await evaluate('[...document.querySelectorAll("button")].some(button=>button.textContent==="Sign out")'),true);
+  const badges=await evaluate('[...document.querySelectorAll(".project-list button")].map(button=>({name:button.querySelector(".content-name").textContent,badges:[...button.querySelectorAll(".visibility-badge")].map(badge=>badge.textContent)}))');
+  assert.deepEqual(Object.fromEntries(badges.map(row=>[row.name,row.badges])),{new:['New draft'],published:['Published'],review:['Published','Needs review'],revised:['Published','Editing history']});
+  assert.deepEqual(await evaluate('window.requests'),['/api/session','/api/content/library']);
+  await evaluate('document.querySelector(".project-list button").click()');
+  await waitFor('!!document.querySelector(".editor-workspace")');
+  assert.doesNotMatch(await evaluate('document.body.textContent'),/Signed in as|Saved drafts can be viewed and edited/);
+ });
+});
+
 test('returning to a list shows memory rows during refresh, while opening still waits for authoritative verification',options,async()=>{
  await withEditorBrowser(fixture,async({evaluate,waitFor})=>{
   await waitFor('!!document.querySelector(".project-list button")');
-  assert.equal(await evaluate('document.querySelector(".project-list").textContent.includes("On main")'),true);
+  assert.equal(await evaluate('document.querySelector(".project-list").textContent.includes("Published")'),true);
   await evaluate('document.querySelector(".project-list button").click()');
   await waitFor('!!document.querySelector(".editor-workspace")');
   await evaluate('window.holdList=true;document.querySelector(".editor-navigation .back").click()');

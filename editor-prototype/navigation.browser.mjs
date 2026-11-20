@@ -37,19 +37,19 @@ test('dashboard starts without an area, back buttons navigate safely, and naviga
     assert.equal(await evaluate('document.querySelector(".area-selector select").value'), 'posts');
     assert.equal(await evaluate('document.querySelector(".editor-navigation .back").textContent'), '← Back to dashboard');
     await evaluate('document.querySelector(".project-list button").click()');
-    await waitFor('document.querySelector("h1")?.textContent === "Edit Blog Post"');
+    await waitFor('document.querySelector("h1")?.textContent === "Example"');
     assert.equal(await evaluate('document.querySelector(".editor-navigation .back").textContent'), '← Back to Blog Posts');
     await evaluate('document.querySelector(".editor-navigation .back").click()');
     await waitFor('!!document.querySelector(".project-list")');
     assert.equal(await evaluate('window.confirmCalls'), 0, 'unchanged posts do not prompt');
     await evaluate('document.querySelector(".list-heading .primary").click()');
-    await waitFor('document.querySelector("h1")?.textContent === "New Blog Post"');
+    await waitFor('document.querySelector("h1")?.textContent === "Untitled page"');
     await evaluate('document.querySelector(".editor-navigation .back").click()');
     await answerLeaveDialog(browser, false);
-    assert.equal(await evaluate('document.querySelector("h1").textContent'), 'New Blog Post', 'canceling discard keeps the editor open');
-    await evaluate('document.querySelector(".dashboard-link").click()');
+    assert.equal(await evaluate('document.querySelector("h1").textContent'), 'Untitled page', 'canceling discard keeps the editor open');
+    await evaluate('document.querySelector(".editor-navigation .back").click()');
     await answerLeaveDialog(browser, false);
-    assert.equal(await evaluate('document.querySelector("h1").textContent'), 'New Blog Post');
+    assert.equal(await evaluate('document.querySelector("h1").textContent'), 'Untitled page');
     await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
     await evaluate('new Promise(resolve => requestAnimationFrame(() => { window.scrollTo(0, 600); requestAnimationFrame(resolve); }))');
     const layout = await evaluate(`(() => {
@@ -70,9 +70,11 @@ test('dashboard starts without an area, back buttons navigate safely, and naviga
     await evaluate('[...document.querySelectorAll(".dashboard-card")].find(button => button.textContent.includes("Blog Posts")).click()');
     await waitFor('!!document.querySelector(".project-list")');
     await evaluate('document.querySelector(".list-heading .primary").click()');
-    await waitFor('document.querySelector("h1")?.textContent === "New Blog Post"');
-    await evaluate('document.querySelector(".dashboard-link").click()');
+    await waitFor('document.querySelector("h1")?.textContent === "Untitled page"');
+    await evaluate('document.querySelector(".editor-navigation .back").click()');
     await answerLeaveDialog(browser);
+    await waitFor('!!document.querySelector(".project-list")');
+    await evaluate('document.querySelector(".editor-navigation .back").click()');
     await waitFor('document.querySelector("h1")?.textContent === "Editor dashboard"');
   });
 });
@@ -124,7 +126,7 @@ test('draft metadata is read-only, navigation visibility stays separate, and bot
     await waitFor('!!document.querySelector(".project-list")');
     await evaluate('[...document.querySelectorAll(".project-list button")].find(button => button.querySelector(".content-name").textContent === "navigation-only").click()');
     await waitFor('!!document.querySelector(".status-navigation")');
-    assert.equal(await evaluate('document.querySelector(".visibility-panel").textContent.includes("Main version")'), true);
+    assert.equal(await evaluate('document.querySelector(".visibility-panel").textContent.includes("Published version")'), true);
     assert.equal(await evaluate('document.querySelectorAll("[data-publication-state]").length'), 0);
     await evaluate('document.querySelector(".top-save").click()');
     await waitFor('window.writes.length === 3');

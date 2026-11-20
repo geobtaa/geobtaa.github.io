@@ -30,7 +30,7 @@ test('opening/reopening a document skips list reads; return and Save Draft refre
   const listCount=()=>evaluate("window.calls.filter(c=>c.path==='/api/content/library').length");
   await waitFor('!!document.querySelector(".project-list button")');assert.equal(await listCount(),1);
   await evaluate('window.rejectList=true;[...document.querySelectorAll(".project-list button")].find(b=>b.querySelector(".content-name").textContent==="one").click()');
-  await waitFor('document.querySelector("h1")?.textContent === "Edit Library document"');
+  await waitFor('document.querySelector("h1")?.textContent === "One"');
   assert.equal(await listCount(),1);
   await evaluate('window.rejectList=false;window.extra=true;document.querySelector(".editor-navigation .back").click()');
   await waitFor('document.querySelectorAll(".project-list button").length===2');assert.equal(await listCount(),2);

@@ -62,7 +62,9 @@ test('routine recovery uses a list indicator and concise editor notice, without 
   await withEditorBrowser(fixture, async browser => {
     const { evaluate, waitFor } = browser;
     await open(browser); await fill(browser, 'Routine unsaved work');
-    await evaluate('document.querySelector(".dashboard-link").click()'); await answerLeaveDialog(browser);
+    await evaluate('document.querySelector(".editor-navigation .back").click()'); await answerLeaveDialog(browser);
+    await waitFor('!!document.querySelector(".project-list")');
+    await evaluate('document.querySelector(".editor-navigation .back").click()');
     await waitFor('!!document.querySelector(".dashboard-card")');
     assert.equal(await evaluate('document.querySelectorAll(".recovery-panel, .unsaved-documents, .recovery-options").length'), 0);
     assert.equal(await evaluate(`!!(${button('Find unsaved work')})`), false);
@@ -82,7 +84,9 @@ test('routine recovery uses a list indicator and concise editor notice, without 
     await evaluate(`${button('Restore changes')}.click()`);
     await waitFor(`${title}.value === 'Routine unsaved work' && !document.querySelector('.top-save').disabled`);
     assert.match(await evaluate('document.querySelector(".message.success").textContent'), /restored changes.*not been confirmed saved/s);
-    await evaluate('document.querySelector(".dashboard-link").click()'); await answerLeaveDialog(browser);
+    await evaluate('document.querySelector(".editor-navigation .back").click()'); await answerLeaveDialog(browser);
+    await waitFor('!!document.querySelector(".project-list")');
+    await evaluate('document.querySelector(".editor-navigation .back").click()');
     await open(browser);
     await evaluate(`window.allowLeave = true; ${button('Discard')}.click()`);
     await waitFor(`${recoveryKeys}.length === 0 && !document.querySelector('.recovery-notice')`);
@@ -96,7 +100,9 @@ for (const index of [0, 1]) test(`editor notice supports choosing divergent vers
   await withEditorBrowser(fixture, async browser => {
     const { evaluate, waitFor } = browser;
     await open(browser); await fill(browser, 'Latest work');
-    await evaluate('document.querySelector(".dashboard-link").click()'); await answerLeaveDialog(browser);
+    await evaluate('document.querySelector(".editor-navigation .back").click()'); await answerLeaveDialog(browser);
+    await waitFor('!!document.querySelector(".project-list")');
+    await evaluate('document.querySelector(".editor-navigation .back").click()');
     await waitFor('!!document.querySelector(".dashboard-card")');
     await evaluate(`const key = ${recoveryKeys}[0]; const original = JSON.parse(localStorage.getItem(key));
       const older = { ...original, id: 'older-session', revision: 'older-revision', savedAt: '2000-01-01T00:00:00Z', fields: { ...original.fields, title: 'Older work' } };

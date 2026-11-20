@@ -8,7 +8,7 @@ export function PublicationStatus({ path, head, dirty, refreshVersion, disabled,
   path: string; head?: string; dirty: boolean; refreshVersion: number; disabled: boolean; submitted?: PublicationState;
   load: (path: string, signal: AbortSignal) => Promise<PublicationState>; onRetry: (head: string) => void;
 }) {
-  const [status, setStatus] = useState<PublicationState>({ state: 'checking', message: 'Checking publication PR…' });
+  const [status, setStatus] = useState<PublicationState | null>(null);
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     let active = true;
@@ -22,6 +22,7 @@ export function PublicationStatus({ path, head, dirty, refreshVersion, disabled,
     });
     return () => { active = false; controller.abort(); };
   }, [path, head, refreshVersion, retry, load, submitted]);
+  if (!status || status.state === 'none') return null;
   const pr = prLink(status);
   const canRetry = ['reserved', 'closed', 'conflict'].includes(status.state) && /^[a-f0-9]{40}$/.test(status.selectedHead || '');
   return <section className="publication-status" aria-label="Publication PR" data-state={status.state}>

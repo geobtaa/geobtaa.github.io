@@ -45,6 +45,41 @@ const title = `document.querySelector('.editor-fields input[required]')`;
 const button = text => `[...document.querySelectorAll('button')].find(button=>button.textContent===${JSON.stringify(text)})`;
 async function fill(browser, value) { await browser.evaluate(`${title}.focus();${title}.select()`); await browser.send('Input.insertText', {text:value}); }
 
+test('retained published generations show Editing history; authoritative opening distinguishes published content from newer saved work',options,async()=>{
+  for(const later of [false,true]){
+    const setup=`
+    import {publicationTestClient} from './publicationTestHelpers.mjs';
+    const saveTitle=async title=>{const file=await window.store.getContent('library','report.mdx');return savePage(window.store,'library','report.mdx',{...file,...parsePage(file.content),title});};
+    const submit=async saved=>{await publicationTestClient({request:window.repo.request}).publishContent({area:'library',filename:'report.mdx',head:saved.head});return window.repo.pulls.at(-1);};
+    const merge=async pr=>{const file=window.repo.filesAt(pr.head.sha).get(path);pr.merge_commit_sha=await window.repo.put(path,new TextDecoder().decode(window.repo.objects.get(file.sha)));pr.state='closed';pr.merged_at='2026-11-19T21:47:35Z';};
+    await merge(await submit(await saveTitle('First generation')));
+    const pr=await submit(await saveTitle('Selected revision'));
+    ${later?"await saveTitle('Newer saved revision');":''}
+    await merge(pr);persist();
+    window.beforeRefs=JSON.stringify([...window.repo.refs]);
+    `;
+    const scenario=fixture.replace('window.store.listContent(area)','window.store.discoverContent(area)').replace("createRoot(document.getElementById('root'))",setup+"createRoot(document.getElementById('root'))");
+    await withEditorBrowser(scenario,async browser=>{
+      const {evaluate,waitFor}=browser;
+      await waitFor('!!document.querySelector(".project-list button")');
+      assert.deepEqual(await evaluate('[...document.querySelectorAll(".project-list .visibility-badge")].map(b=>b.textContent)'),['Published','Editing history']);
+      assert.equal(await evaluate('document.querySelector(".project-list").textContent.includes("Saved draft")'),false);
+      await evaluate('document.querySelector(".project-list button").click()');await waitFor(`!!${title}`);
+      assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),later?'Saved draft':'Published version');
+      assert.equal(await evaluate(`${title}.value`),later?'Newer saved revision':'Selected revision');
+      assert.equal(await evaluate('document.querySelector(".save-state").textContent'),'No unsaved changes','browser status is independent of publication');
+      const text=await evaluate('document.body.textContent');
+      if(later){assert.match(text,/newer saved changes are preserved/);assert.doesNotMatch(text,/editing the current published page/);}
+      else {assert.match(text,/You're editing the current published page\./);assert.doesNotMatch(text,/previous PR merged|no saved draft/);}
+      assert.equal(await evaluate('JSON.stringify([...window.repo.refs])===window.beforeRefs'),true,'listing and opening never alter retained generations');
+      assert.equal(await evaluate('document.querySelector(".publish-document").disabled'),true,'continuation still requires Save Draft');
+      await fill(browser,'Browser-only change');
+      await waitFor('document.querySelector(".save-state").textContent==="Unsaved changes"');
+      assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),later?'Saved draft':'Published version','typing does not change saved publication state');
+    },{initialSearch:'?area=library'});
+  }
+});
+
 test('real draft store saves, reloads under another account, and rejects a concurrent save while preserving the live form and undo', options, async () => {
   await withEditorBrowser(fixture, async browser => {
     const { evaluate, waitFor, send } = browser;
@@ -54,7 +89,7 @@ test('real draft store saves, reloads under another account, and rejects a concu
     await evaluate('document.querySelector(".top-save").click()');
     await waitFor('document.querySelector(".save-state").textContent==="No unsaved changes"');
     assert.equal(await evaluate('document.querySelector(".message.error")?.textContent || ""'), '', 'post-save discovery refresh succeeds with GitHub prefix-relative refs');
-    assert.equal(await evaluate('document.querySelector(".draft-status").textContent'), 'Draft changes saved · main unchanged');
+    assert.equal(await evaluate('document.querySelector(".draft-status").textContent'), 'Saved draft');
     const loadId = await evaluate('window.loadId');
     await evaluate('localStorage.setItem("test-draft-login","second-editor")');
     await send('Page.reload');
@@ -131,7 +166,7 @@ test('after manual merge, reopening and saving another edit works without branch
     await send('Page.enable'); browser.onEvent('Page.javascriptDialogOpening',()=>{void send('Page.handleJavaScriptDialog',{accept:true})});
     await send('Page.reload');
     await waitFor(`!!${title} && !!${button('Restore changes')}`);
-    assert.match(await evaluate('document.body.textContent'),/previous PR merged/);
+    assert.match(await evaluate('document.body.textContent'),/You're editing the current published page\./);
     const restore=await evaluate(`[...document.querySelectorAll('button')].find(button=>button.textContent.startsWith('Restore')&&!button.disabled)?.textContent`);
     assert.ok(restore,'same saved source can restore pre-merge unsaved edits');
     await evaluate(`[...document.querySelectorAll('button')].find(button=>button.textContent===${JSON.stringify(restore)}).click()`);
