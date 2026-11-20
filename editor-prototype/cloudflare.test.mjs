@@ -88,7 +88,16 @@ test('sign-in preserves editor deep links and rejects external or non-editor ret
     return Response.json({ permissions: { push: true } });
   };
   try {
-    for (const [requested, expected] of [['/editor/?area=posts&file=nested%2Fentry.mdx', '/editor/?area=posts&file=nested%2Fentry.mdx'], ['https://outside.example/editor/', '/editor/'], ['//outside.example/editor/', '/editor/'], ['/api/content/posts', '/editor/']]) {
+    for (const [requested, expected] of [
+      ['/?area=posts&file=nested%2Fentry.mdx#body', '/?area=posts&file=nested%2Fentry.mdx#body'],
+      ['/?area=guides&new=local-draft', '/?area=guides&new=local-draft'],
+      ['/editor/?area=posts&file=nested%2Fentry.mdx', '/editor/?area=posts&file=nested%2Fentry.mdx'],
+      ['https://outside.example/', '/editor/'],
+      ['https://user:password@geobtaa-github-io.pages.dev/', '/editor/'],
+      ['https://outside.example/editor/', '/editor/'],
+      ['//outside.example/editor/', '/editor/'],
+      ['/api/content/posts', '/editor/'],
+    ]) {
       const login = await onRequest({ request: new Request(`${origin}/api/auth/login?returnTo=${encodeURIComponent(requested)}`), env });
       const state = new URL(login.headers.get('location')).searchParams.get('state');
       const cookies = login.headers.getSetCookie().map(cookie => cookie.split(';')[0]).join('; ');

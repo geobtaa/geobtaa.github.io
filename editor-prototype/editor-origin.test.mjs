@@ -66,11 +66,12 @@ test('a real canonical-origin session cannot authenticate on deployment aliases,
   const previous=globalThis.fetch;let calls=0;
   globalThis.fetch=async input=>{calls++;const url=String(input);if(url==='https://github.com/login/oauth/access_token')return Response.json({access_token:'server-only-token'});if(url.endsWith('/user'))return Response.json({login:'tester'});return Response.json({permissions:{push:true}})};
   try {
-    const login=await onRequest({env,request:new Request(canonical+'/api/auth/login')});
+    const returnTo='/?area=projects&file=nested%2Fexample.mdx#body';
+    const login=await onRequest({env,request:new Request(canonical+'/api/auth/login?returnTo='+encodeURIComponent(returnTo))});
     const state=new URL(login.headers.get('location')).searchParams.get('state');
     const cookies=login.headers.getSetCookie().map(value=>value.split(';')[0]).join('; ');
     const callback=await onRequest({env,request:new Request(canonical+`/api/auth/callback?code=test&state=${state}`,{headers:{Cookie:cookies,'X-Forwarded-Host':'evil.example'}})});
-    assert.equal(callback.status,302);assert.equal(callback.headers.get('location'),canonical+'/editor/');
+    assert.equal(callback.status,302);assert.equal(callback.headers.get('location'),canonical+returnTo);
     const cookie=callback.headers.getSetCookie().find(value=>value.startsWith('editor_session=')).split(';')[0];
     const session=await onRequest({env,request:new Request(canonical+'/api/session',{headers:{Cookie:cookie}})});
     assert.equal((await session.json()).login,'tester');

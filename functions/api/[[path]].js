@@ -13,7 +13,7 @@ const RETURN_COOKIE = 'editor_oauth_return';
 function editorReturnPath(value, origin) {
   try {
     const url = new URL(value || '/editor/', origin);
-    if (url.origin === origin && url.pathname === '/editor/' && !url.username && !url.password) return url.pathname + url.search + url.hash;
+    if (url.origin === origin && ['/', '/editor/'].includes(url.pathname) && !url.username && !url.password) return url.pathname + url.search + url.hash;
   } catch { /* Use the dashboard for invalid or external destinations. */ }
   return '/editor/';
 }

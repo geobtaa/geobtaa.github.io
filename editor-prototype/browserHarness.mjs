@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { access, mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { access, mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { createServer } from 'vite';
@@ -17,7 +17,7 @@ for (const candidate of candidates) {
 }
 
 // Run browser tests against an isolated fixture without accessing GitHub.
-export async function withEditorBrowser(fixtureCode, run, { images = {}, initialSearch = '' } = {}) {
+export async function withEditorBrowser(fixtureCode, run, { images = {}, initialSearch = '', builtDirectory } = {}) {
   assert.ok(chrome, 'Chrome/Chromium is required.');
   const fixtureName = `.editor-browser-fixture-${process.pid}.tsx`;
   const fixture = join(root, 'editor-prototype', fixtureName);
@@ -31,6 +31,30 @@ export async function withEditorBrowser(fixtureCode, run, { images = {}, initial
       plugins: [{
         name: 'editor-test-page',
         configureServer(vite) {
+          if (builtDirectory) {
+            // Serve production bytes without Vite transforming/rebuilding their imports.
+            vite.middlewares.use(async (request, response) => {
+              const directory = resolve(root, builtDirectory);
+              const pathname = new URL(request.url, 'http://localhost').pathname;
+              if (pathname.startsWith('/api/images/file/')) {
+                const image = images[decodeURIComponent(pathname.slice('/api/images/file/'.length))];
+                response.statusCode = image ? 200 : 404;
+                response.setHeader('Content-Type', image ? 'image/png' : 'text/plain');
+                response.end(image || 'Image not found');
+                return;
+              }
+              const file = resolve(directory, '.' + (pathname === '/' ? '/index.html' : pathname));
+              try {
+                if (!file.startsWith(directory + sep)) throw new Error('Invalid asset path');
+                const contents = await readFile(file);
+                response.setHeader('Content-Type', ({ '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' })[extname(file)] || 'application/octet-stream');
+                response.end(pathname === '/' ? contents.toString().replace('</head>', `<script>${fixtureCode}</script></head>`) : contents);
+              } catch {
+                response.statusCode = 404; response.end('Not found');
+              }
+            });
+            return;
+          }
           vite.middlewares.use('/__mock-gateway/api/images/file/', (request, response) => {
             const image = images[decodeURIComponent(request.url.split('?')[0].replace(/^\//, ''))];
             response.statusCode = image ? 200 : 404;
@@ -96,7 +120,7 @@ export async function withEditorBrowser(fixtureCode, run, { images = {}, initial
       const handlers = listeners.get(method) || new Set(); handlers.add(listener); listeners.set(method, handlers);
       return () => handlers.delete(listener);
     };
-    await send('Page.navigate', { url: `http://127.0.0.1:${server.httpServer.address().port}/__editor-test${initialSearch}` });
+    await send('Page.navigate', { url: `http://127.0.0.1:${server.httpServer.address().port}/${builtDirectory ? '' : '__editor-test'}${initialSearch}` });
     await run({ evaluate, waitFor, send, arrow, onEvent });
   } finally {
     socket?.close();
