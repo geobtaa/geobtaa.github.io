@@ -1033,7 +1033,7 @@ export default function ProjectEditor() {
       {leavePrompt && <UnsavedChangesDialog message={leavePrompt.message} onKeepEditing={() => showLeavePrompt(null)} onLeave={leaveEditor} />}
       <nav className="editor-navigation" aria-label="Editor navigation">
         <button className="back" type="button" disabled={busy} onClick={backToList}>← Back to {config.label}</button>
-        <div className="navigation-actions"><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue} onClick={() => publish()}>Prepare to publish</button><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button></div>
+        <div className="navigation-actions"><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue} onClick={() => publish()}>Submit for publishing</button><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button></div>
       </nav>
       <h1>{project.title.trim() || 'Untitled page'}</h1>
       <section className={`visibility-panel document-controls ${project.draft ? 'is-draft' : 'is-ready'}`} aria-label="Document controls">

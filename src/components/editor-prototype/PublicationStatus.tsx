@@ -26,7 +26,7 @@ export function PublicationStatus({ path, head, dirty, refreshVersion, disabled,
   const pr = prLink(status);
   const canRetry = ['reserved', 'closed', 'conflict'].includes(status.state) && /^[a-f0-9]{40}$/.test(status.selectedHead || '');
   return <section className="publication-status" aria-label="Publication PR" data-state={status.state}>
-    {status.state === 'pr-open' ? <div role="status"><strong>Publication request created</strong><p>Your changes are ready for review. Before they appear on the public website, GitHub must complete its automated checks and someone must merge the request.</p></div> : <p role="status">{status.message || 'Checking publication PR…'}</p>}
+    {status.state === 'pr-open' ? <div role="status"><strong>Submitted for publishing</strong><p>Your changes have been submitted. Open the publication request in GitHub to review the changes. Once the automated checks pass, merge the request to publish the page.</p></div> : <p role="status">{status.message || 'Checking publication PR…'}</p>}
     {(dirty || status.newerDraft || status.selectedHead && status.selectedHead !== head) && status.state !== 'none' && <p>Newer edits in this editor are not included in this PR.</p>}
     {pr && <a href={pr} target="_blank" rel="noopener noreferrer">Review publication request #{status.number}</a>}
     {status.state === 'merged' && <a href="https://github.com/geobtaa/geobtaa.github.io/actions/workflows/astro.yml" target="_blank" rel="noopener noreferrer">View GitHub Pages deployment</a>}

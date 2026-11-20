@@ -145,7 +145,7 @@ test('Publish is separate from Save Draft, requires a clean saved revision, and 
     assert.equal(await evaluate(`${title}.value`), 'Publication test');
     assert.equal(await evaluate('window.repo.pulls.length'), 0);
     await evaluate('window.repo.protection=undefined;document.querySelector(".publish-document").click()');
-    await waitFor('document.querySelector(".publication-status strong")?.textContent === "Publication request created"');
+    await waitFor('document.querySelector(".publication-status strong")?.textContent === "Submitted for publishing"');
     assert.equal(await evaluate('window.repo.pulls.length'), 1);
     await fill(browser, 'Unsaved newer text');
     assert.equal(await evaluate('document.querySelector(".publish-document").disabled'), true);
