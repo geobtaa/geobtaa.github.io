@@ -52,7 +52,7 @@ test('built CMS hydrates at root, preserves OAuth deep links, images and public 
     ]);
     assert.equal(await evaluate('new URL(document.querySelector(".cms-preview img").src).pathname'), '/api/images/file/example.png');
     await waitFor('document.querySelector(".cms-preview img").naturalWidth > 0');
-    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'No unsaved changes');
+    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'All changes saved');
     assert.equal(await evaluate('window.requests.some(request => request.method !== "GET")'), false);
     assert.equal(await evaluate('document.querySelector("astro-island").hasAttribute("ssr")'), false);
     const assets = await evaluate(`performance.getEntriesByType('resource').filter(entry => new URL(entry.name).pathname.startsWith('/_astro/')).map(entry => ({name: entry.name, status: entry.responseStatus}))`);

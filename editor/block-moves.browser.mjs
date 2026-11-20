@@ -65,7 +65,7 @@ test('moves preserve edits, focus, protected content and saved order; adjacent t
     assert.equal(await evaluate('document.activeElement.dataset.move'), '1');
     await evaluate(`${card}.querySelector('[data-move="-1"]').click()`);
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
     const saved = await evaluate('window.saved');
     assert.ok(saved.indexOf('<LinkCard') < saved.indexOf('Unsaved edit'));
     assert.ok(saved.indexOf('First paragraph.') < saved.indexOf('Last paragraph.'));
@@ -112,7 +112,7 @@ test('Text blocks have explicit removal and undo; saved removals preserve neighb
     await evaluate('document.querySelector(".text-block-footer button").click()');
     await waitFor('document.querySelectorAll(".rich-editor").length === 2');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
     const saved = await evaluate('window.saved');
     assert.ok(!saved.includes('First paragraph.'));
     assert.ok(saved.includes('Kept edit.'));
@@ -162,7 +162,7 @@ test('empty and final Text blocks can be removed immediately, restored, and repl
     await evaluate('document.querySelector(".text-block-footer button").click()');
     await waitFor('!!document.querySelector(".empty-body")');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
     assert.equal((await evaluate('window.writes[0].body')).trim(), '');
     const menu = await openNewBlockMenu(browser, 'Text', 'document.querySelector(".empty-body")');
     await evaluate(`[...${menu}.querySelectorAll('button')].find(button => button.textContent === 'Text').click()`);
@@ -171,7 +171,7 @@ test('empty and final Text blocks can be removed immediately, restored, and repl
     await evaluate('document.querySelector(".rich-editor .tiptap").focus()');
     await send('Input.insertText', { text: 'Replacement text.' });
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "All changes saved"');
     assert.equal((await evaluate('window.writes[1].body')).trim(), 'Replacement text.');
   });
 });

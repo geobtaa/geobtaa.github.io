@@ -1,3 +1,4 @@
+import { verifyPublicationPolicy } from './publicationPolicy.mjs';
 import { websiteStatus, pendingDeployment } from './websiteStatus.mjs';
 import { requireUnpublishCapability, CAPABILITY_PATH } from './unpublishGate.mjs';
 import { sidebarBlockers } from './publicationRoutes.mjs';
@@ -433,6 +434,44 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
       return new TextDecoder().decode(decodeBytes(file.content));
     } catch (error) { if (error.status === 404) return null; throw error; }
   }
+  // Explicit confirmed write operation. Ordinary preparePublication stays read-only.
+  async function initializeUnpublish({ area, filename, expectedSha, expectedHead, resumeHead }) {
+    if (![expectedSha, expectedHead].every(value => /^[a-f0-9]{40}$/.test(value || ''))) throw failure(400, 'Reopen the page before unpublishing.');
+    await authorize();
+    await verifyPublicationPolicy(request, { manual: true });
+    const path = documentPath(area, filename), baseline = await main(), file = baseline.files.get(path);
+    if (!file || file.sha !== expectedSha) throw draftConflict();
+    const relation = await compare(expectedHead, baseline.head);
+    if (!['ahead', 'identical'].includes(relation.status) || relation.merge_base_commit?.sha !== expectedHead) throw draftConflict();
+    const original = await text(file);
+    if (contentVisibility(original).draft) throw failure(409, 'This page is already marked unpublished. Check its website status.');
+    const navigation = baseline.files.get('navigation.groups.json');
+    if (!navigation) throw failure(409, 'Navigation configuration is unavailable. Ask a maintainer.');
+    const blockers = sidebarBlockers(JSON.parse(await text(navigation)), documentRoute(`${area}/${filename}`, documentSlug(original)));
+    if (blockers.length) throw failure(409, `Cannot unpublish: explicit navigation entry ${blockers.join(', ')}.`);
+    const current = await getContent(area, filename);
+    if (current.mainChanged) throw draftConflict();
+    // A retry may find the exact internal copy already saved. Never overwrite
+    // another editor's work or silently adopt a different carried-forward revision.
+    if (current.hasDraft && current.content !== original) {
+      const draft = await inspect(current.branch, current.head, baseline);
+      const continuedCopy = /^[a-f0-9]{40}$/.test(resumeHead || '') && draft.meta.previousHead === resumeHead
+        && current.content === patchFrontmatter(await text((await snapshot(resumeHead)).get(path)), { draft: false });
+      if (!continuedCopy) throw failure(409, 'A working draft was saved by another editor. Reopen it before unpublishing. Nothing was overwritten.');
+    }
+    if (!current.hasDraft && (current.resumeHead || null) !== (resumeHead || null)) throw draftConflict();
+    let document = current;
+    if (!current.hasDraft) document = await saveContent({ area, filename, content: current.content, sha: expectedSha, head: expectedHead, resumeHead: current.resumeHead });
+    const status = await publication.getPublicationStatus(area, filename);
+    if (status.state === 'checking') throw failure(503, 'The working copy is ready, but the request status could not be confirmed. Retry unpublishing; no duplicate copy is needed.');
+    let head = document.head;
+    if (['pr-open', 'reserved', 'closed', 'conflict'].includes(status.state)) {
+      if (status.action !== 'unpublish') throw failure(409, 'Another publication request exists. Review that request before unpublishing. Your saved work is safe.');
+      head = status.selectedHead;
+    }
+    if (!/^[a-f0-9]{40}$/.test(head || '')) throw failure(503, 'The working copy could not be confirmed. Reopen the page before retrying.');
+    return { head, document };
+  }
   async function assertUnpublishEnabled(enabled) {
     return requireUnpublishCapability({ enabled, readMainCapability: async () => {
       const content = await readMainFile(CAPABILITY_PATH);
@@ -453,7 +492,7 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     return { website, mainDraft, unpublishEnabled: enabled, ...(deployment ? { deployment } : {}) };
   }
   return {
-    assertUnpublishEnabled, getWebsiteInfo,
+    assertUnpublishEnabled, getWebsiteInfo, initializeUnpublish,
     publicationPlan, verifyPublication,
     ...publication,
     drafts: true, workspace: `${owner}/${repo}#cms-drafts-v1`, getContent, saveContent,

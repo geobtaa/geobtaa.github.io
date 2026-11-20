@@ -81,7 +81,7 @@ test('every content area edits and reopens metadata using the existing controls 
       }
       if (area === 'conference') { await fill('Banner content', 'New <b>banner</b>'); await fill('Open Graph image URL', '/new-image.png'); }
       await evaluate('document.querySelector(".top-save").click()');
-      await waitFor(`window.writes.some(write => write.area === ${JSON.stringify(area)}) && document.querySelector('.save-state').textContent === 'No unsaved changes'`);
+      await waitFor(`window.writes.some(write => write.area === ${JSON.stringify(area)}) && document.querySelector('.save-state').textContent === 'All changes saved'`);
       const saved = await evaluate(`window.records[${JSON.stringify(area)}]`);
       assert.ok(saved.includes('<CenterLayout>Protected MDX.</CenterLayout>'));
       const entry = await evaluate(`window.writes.find(write => write.area === ${JSON.stringify(area)}).input`);
@@ -126,7 +126,7 @@ test('every content area edits and reopens metadata using the existing controls 
     await fill('Title', 'New library document');
     await fill('Year', '2026');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor(`window.writes.length === ${Object.keys(CONTENT_AREAS).length + 1} && document.querySelector(".save-state").textContent === "No unsaved changes"`);
+    await waitFor(`window.writes.length === ${Object.keys(CONTENT_AREAS).length + 1} && document.querySelector(".save-state").textContent === "All changes saved"`);
     assert.equal(await evaluate('window.writes.at(-1).input.date'), '');
     assert.doesNotMatch(await evaluate('window.records.library'), /^date:/m);
   });
@@ -151,13 +151,13 @@ test('comma-separated tags support continuous typing, mid-field edits, and clear
     assert.equal(await evaluate(`${input}.value`), 'Fixyzrst, Second');
     assert.equal(await evaluate(`${input}.selectionStart`), 5);
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
     assert.deepEqual(await evaluate('window.writes[0].input.tags'), ['Fixyzrst', 'Second']);
     await evaluate(`${input}.focus(); ${input}.select()`);
     await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
     await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "All changes saved"');
     assert.deepEqual(await evaluate('window.writes[1].input.tags'), []);
     assert.doesNotMatch(await evaluate('window.records.posts'), /^tags:/m);
   });

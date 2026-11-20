@@ -66,7 +66,7 @@ test('LinkButton inserts, edits without cursor jumps, and saves/reopens with pro
     await evaluate('const appearance = document.querySelector(".structured-link-button select"); appearance.value = "minimal"; appearance.dispatchEvent(new Event("change", { bubbles: true }))');
     await waitFor('!!document.querySelector(".link-button-preview.minimal")');
     await click('Save Draft', 'document.querySelector(".editor-navigation")');
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
     const saved = await evaluate('window.record.body');
     assert.ok(saved.includes(protectedBlock));
     assert.match(saved, /<LinkButton href="https:\/\/example.com\/maps" variant="minimal">Vixyzsit the catalog<\/LinkButton>/);
@@ -79,7 +79,7 @@ test('LinkButton inserts, edits without cursor jumps, and saves/reopens with pro
     assert.equal(await evaluate('document.querySelectorAll(".structured-link-button input")[1].value'), 'https://example.com/maps');
     assert.equal(await evaluate('document.querySelector(".structured-link-button select").value'), 'minimal');
     await click('Save Draft', 'document.querySelector(".editor-navigation")');
-    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "All changes saved"');
     assert.equal(await evaluate('window.record.body'), saved);
   });
 });
@@ -116,7 +116,7 @@ for (const first of ['Link Card', 'Link Button']) {
       assert.equal(await evaluate('document.querySelectorAll(".body-editor .rich-editor").length'), 0, 'no empty text editor is created');
       assert.equal(await evaluate('document.querySelectorAll(".component-editor .tiptap p").length'), 0, 'no trailing paragraph is created');
       await click('Save Draft', 'document.querySelector(".editor-navigation")');
-      await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+      await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
       await evaluate('document.querySelector(".editor-navigation .back").click()');
       await waitFor('!!document.querySelector(".project-list button")');
       await evaluate('document.querySelector(".project-list button").click()');
@@ -133,7 +133,7 @@ for (const first of ['Link Card', 'Link Button']) {
       assert.equal(await evaluate('document.querySelectorAll(".rich-editor").length'), 1);
       assert.equal(await evaluate('document.querySelector(".rich-editor .tiptap").textContent'), 'Text after the component.');
       await click('Save Draft', 'document.querySelector(".editor-navigation")');
-      await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+      await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "All changes saved"');
       const saved = await evaluate('window.record.body');
       assert.match(saved, /Text after the component\./);
       assert.match(saved, /<LinkCard/);
@@ -199,7 +199,7 @@ test('bare website addresses work for links, cards, and buttons while existing a
     const point = await evaluate('(() => { const r = document.querySelector(".top-save").getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()');
     await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button: 'left', clickCount: 1 });
     await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button: 'left', clickCount: 1 });
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
     const saved = await evaluate('window.record.body');
     assert.match(saved, /href="https:\/\/maps.example.edu\/catalog"/);
     assert.match(saved, /href="\/guides\/help\/"/);

@@ -212,7 +212,12 @@ async function contentApi(request, env, pathname) {
     const route = contentRoute(pathname.replace('/api/publish/', '/api/content/'));
     if (!route?.filename) throw new HttpError(400, 'A saved document is required.');
     const input = await request.json();
-      if (input.action === 'unpublish') await github.assertUnpublishEnabled(env.CMS_UNPUBLISH_ENABLED);
+    if (input.action === 'unpublish') await github.assertUnpublishEnabled(env.CMS_UNPUBLISH_ENABLED);
+    if (input.initialize === true) {
+      if (input.action !== 'unpublish') throw Object.assign(new Error('Internal working-copy preparation is only available for unpublishing.'), { status: 400 });
+      const result = await github.initializeUnpublish({ ...route, expectedSha: input.expectedSha, expectedHead: input.expectedHead, resumeHead: input.resumeHead });
+      return json(result);
+    }
     return json(await (input.prepare === true ? github.preparePublication({ ...route, head: input.head, action: input.action }) : github.publishContent({ ...route, head: input.head, action: input.action, candidate: input.candidate })));
   }
   if (request.method === 'GET' && pathname === '/api/content') return json({ areas: CONTENT_AREAS });

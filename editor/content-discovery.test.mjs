@@ -46,3 +46,41 @@ test('discovery rejects incomplete pagination, permission errors and missing imm
   await assert.rejects(createDraftStore({request}).discoverContent('library'),{status:fault==='denied'?403:503});
  }
 });
+
+test('Unpublished changes compares saved editorial content, ignoring only publication metadata and YAML presentation', async () => {
+ const path='src/content/docs/library/page.mdx';
+ const original='---\ntitle: Page\npagefind: false\nsidebar:\n  hidden: true\n---\n\nOriginal.';
+ const repo=await draftTestRepository({[path]:original}),store=()=>createDraftStore({request:repo.request});
+ const opened=await store().getContent('library','page.mdx');
+ const saved=await savePage(store(),'library','page.mdx',{...opened,...parsePage(original),body:'New saved work.'});
+ const refs=[...repo.refs];
+ assert.equal((await store().discoverContent('library')).entries[0].unpublishedChanges,true);
+ assert.deepEqual([...repo.refs],refs);
+ for(const variant of [saved.content,saved.content.replace('title: Page','draft: true # Publication flag only\ntitle: Page'),saved.content.replace('title: Page','title: "Page"')]) {
+  await repo.put(path,variant);
+  assert.equal((await store().discoverContent('library')).entries[0].unpublishedChanges ?? false,false);
+ }
+ for(const variant of [saved.content.replace('pagefind: false','pagefind: true'),saved.content.replace('hidden: true','hidden: false'),saved.content+'\nMore content.']) {
+  await repo.put(path,variant);
+  assert.equal((await store().discoverContent('library')).entries[0].unpublishedChanges,true);
+ }
+});
+test('incomplete comparison evidence shows Needs review instead of claiming unpublished changes', async () => {
+ const repo=await draftTestRepository({'src/content/docs/library/page.mdx':source}),store=()=>createDraftStore({request:repo.request});
+ const opened=await store().getContent('library','page.mdx');
+ await savePage(store(),'library','page.mdx',{...opened,...parsePage(source),body:'Saved edits.'});
+ for(const fault of ['truncated','missing','identity']) {
+  const request=async(path,options)=>{
+   const result=await repo.request(path,options);
+   if(options?.body?.includes('query CMSContentObjects') && options.body.includes('isTruncated')) {
+    const value=result.data.repository.o1;
+    if(fault==='truncated')value.isTruncated=true;
+    if(fault==='missing')delete value.text;
+    if(fault==='identity')value.oid='0'.repeat(40);
+   }
+   return result;
+  };
+  const list=await createDraftStore({request}).discoverContent('library');
+  assert.equal(list.entries[0].needsReview,true);assert.equal(list.entries[0].unpublishedChanges,undefined);assert.equal(list.complete,false);
+ }
+});

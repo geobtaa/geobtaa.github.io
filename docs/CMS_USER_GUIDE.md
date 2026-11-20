@@ -29,7 +29,7 @@ You need a GitHub account with permission to edit the website. GitHub is the ser
 
 The list may show filenames with hyphens instead of page titles. Open an entry to see its title and current editing status.
 
-The list can show **Saved page**, **New draft**, **Editing history**, or **Needs review**. These labels help you find content. Open the entry to check its current state. A **Saved page** label means the file is available to edit; it does not confirm that the page is online.
+The list can show **New draft**, **Unpublished changes**, or **Needs review**. **Unpublished changes** means saved editorial content differs from the current main document; an old saved branch alone does not trigger the label. This does not confirm deployment status. Other pages have no status label. Open an entry to check its current editing and publication status.
 
 Saved drafts are shared with other authorized editors. Ask other editors before working on the same page at the same time.
 
@@ -40,7 +40,7 @@ Saved drafts are shared with other authorized editors. Ask other editors before 
 3. Fill in the other fields that apply to the page.
 4. Write the main content under **Body**, mostly using Text blocks.
 5. Click **Preview** to review your work. Click **Edit** to continue writing.
-6. Click **Save Draft**. Wait for **Draft saved** and **No unsaved changes** before leaving.
+6. Click **Save Draft**. Wait for **All changes saved** before leaving.
 
 The Save Draft buttons at the top and bottom of the editor do the same thing.
 
@@ -167,10 +167,9 @@ Before submitting, check the title, headings, spelling, links, images, captions,
 Choose **Save Draft** whenever you want to keep your progress without publishing it.
 
 1. Click **Save Draft**.
-2. Wait for **Draft saved**. The short code after “commit” identifies that saved version; you do not need to do anything with it.
-3. Confirm that the editor says **No unsaved changes**.
-4. You can now return to the content list or sign out.
-5. To continue later, sign in, choose the same content area, and open the same entry.
+2. Wait for **All changes saved** beneath the document title. The saved time uses your local timezone.
+3. You can now return to the content list or sign out.
+4. To continue later, sign in, choose the same content area, and open the same entry.
 
 Saved drafts can be reopened from another browser or computer. Other authorized editors can also open and continue them. Saving changes to an existing page leaves its public version in place until the changes are published.
 
@@ -200,7 +199,7 @@ If you try to leave with unsaved changes, choose **Keep editing** to return and 
 Submit when your saved page is ready for review. Submission uses the saved version, so save any final changes first.
 
 1. Review the page in **Preview**.
-2. Click **Save Draft** and wait for **No unsaved changes**.
+2. Click **Save Draft** and wait for **All changes saved**.
 3. Click **Submit for publishing** at the top of the editor.
 4. Wait for **Submitted for publishing** and the **Review publication request #…** link.
 5. Open that link to review the request in GitHub, or copy the link and send it to the person who handles website publication.
@@ -219,7 +218,7 @@ If someone else handles publication, give them the request link. If you are hand
 2. Open the **Files changed** tab. Review the proposed changes. The request should contain your page and any new images it needs. Ask a maintainer about unfamiliar changes. GitHub explains this view in its [guide to reviewing proposed changes](https://docs.github.com/en/get-started/start-your-journey/reviewing-your-proposed-changes).
 3. Return to the **Conversation** tab. Near the bottom, find the automated checks. Wait for both **validate** and **cms-publication-scope** to pass. If checks fail or GitHub says changes are required, ask a maintainer for help.
 4. When the checks and any required review are complete, click **Merge pull request**, then **Confirm merge**. The button wording can vary with the available merge method. If you cannot merge, send the request link to a maintainer. See [GitHub's merge instructions](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/merging-a-pull-request).
-5. Return to the CMS and click **Check status** to refresh the request's status.
+5. Return to the CMS and click **Check again** to refresh the request's status.
 
 Do not use GitHub's **Update branch** button on a CMS publication request. If GitHub says the request is out of date, follow the troubleshooting instructions below. If GitHub offers **Delete branch** after merging, leave it alone. The CMS uses those saved records to keep track of drafts and publication.
 
@@ -227,12 +226,12 @@ Do not use GitHub's **Update branch** button on a CMS publication request. If Gi
 
 A **Merged** message means GitHub accepted the changes. It does not confirm that the public website has finished updating.
 
-1. In the CMS, click **Check status**. After it reports the merge, click **View GitHub Pages deployment**.
+1. In the CMS, click **Check again**. After it reports the merge, click **View GitHub Pages deployment**.
 2. This opens the website's **Deploy Astro site to Pages** process in GitHub. Open the run for your merged changes, or a newer run that includes them. A run is one attempt to update the website; check its time and change details.
 3. Wait for both **Build** and **Deploy** to succeed. If you need to find this screen again, open the [website deployment history](https://github.com/geobtaa/geobtaa.github.io/actions/workflows/astro.yml). GitHub's [workflow history instructions](https://docs.github.com/en/actions/how-tos/monitor-workflows/view-workflow-run-history?tool=webui) explain how to open a run and see its details.
 4. Open the public page and refresh it. Check that the expected text and images appear.
 
-If the update fails, send the deployment run link and publication request link to a maintainer. Use **Check status** to check the request and the deployed website. The editor checks when you open a page or request a refresh; it does not keep checking in the background.
+If the update fails, send the deployment run link and publication request link to a maintainer. Use **Check again** to check the request and the deployed website. **Check again** appears when verification is pending or unavailable, including while a request is awaiting review or deployment. Current issues and their actions appear in a compact notice. Open **Previous publication request** to review a closed request or a completed website update. The editor checks when you open a page or request a refresh; it does not keep checking in the background.
 
 ### Changes made after submission
 
@@ -248,14 +247,16 @@ The status below the page title describes the public website. **Published** mean
 
 Working drafts and pending requests are shown as smaller details beneath that status. Saving a draft does not change the website status.
 
-1. Save any work you want to keep with **Save Draft**.
+1. If you have unsaved changes, keep them with **Save Draft**. An unchanged page does not need a manual save.
 2. Click **Unpublish page**, then read the confirmation. Choose **Cancel** to leave the page online, or **Submit unpublish request** to continue.
 3. Open the publication request in GitHub. Review it and wait for the required checks, then merge it or send its link to the person handling publication.
-4. Return to the editor and click **Check status**. The page remains Published until the website update has been confirmed. A merged request alone does not mean it is offline.
+4. Return to the editor and click **Check again**. The page remains Published until the website update has been confirmed. A merged request alone does not mean it is offline.
+
+After confirmation, the editor prepares any required internal working copy automatically. Cancelling does not create one. If preparation succeeds but submission fails, the copy remains available and is reused when you retry.
 
 Unpublishing changes only the visibility of the current main version. It keeps the page file, its images, and your separate saved editorial work. It also keeps your Site search and Navigation visibility settings. After unpublishing, reopen the page normally to continue editing. Save your draft and use **Submit for publishing** to republish it.
 
-If an explicit navigation entry prevents unpublishing, ask a maintainer to update that entry. Ordinary links from other pages produce warnings so they can be fixed later; the editor does not change them automatically. If another website change makes a request out of date, use **Refresh request** in the editor. Review the latest page first if its content changed. Do not use GitHub's Update branch button on CMS publication requests.
+If an explicit navigation entry prevents unpublishing, ask a maintainer to update that entry. Ordinary links from other pages produce warnings so they can be fixed later; the editor does not change them automatically. If another website change makes a request out of date, use **Update publication request** in the editor. Review the latest page first if its content changed. Do not use GitHub's Update branch button on CMS publication requests.
 
 If the website update fails, the editor explains that deployment is not confirmed and keeps your work. Open the deployment link for help from a maintainer. If Unpublish page is unavailable, save outstanding edits or contact the maintainer; the feature may not yet be enabled.
 
@@ -289,7 +290,7 @@ Read the message and keep the editing tab open. Fix a missing title or other fie
 
 If a new Blog Post or Program Update shows **Retry creation safely**, use that button to check and retry the original save. Do not start a second article. A lost response can leave the first save's result unconfirmed even when the page was created.
 
-If **Draft saved** appeared but the content list then failed to refresh, the confirmed save still stands. Return to the list and open the entry to check it.
+If **All changes saved** appeared but the content list then failed to refresh, the confirmed save still stands. Return to the list and open the entry to check it.
 
 ### The page changed in GitHub or the draft uses an earlier published version
 
@@ -312,7 +313,7 @@ Save the draft first and wait for the save to finish. Submission requires a save
 
 ### Submission failed or PR status is unavailable
 
-Click **Check status** before submitting again. A request may already exist even if the browser did not receive its confirmation. Your saved draft remains available.
+Click **Check again** before submitting again. A request may already exist even if the browser did not receive its confirmation. Your saved draft remains available.
 
 If the status says the request is reserved, closed, or in conflict, the editor may offer **Recreate PR for this saved revision**. This retries the version selected for that request, not newer edits. Use it only when that is still the version you want. It can replace an out-of-date request when other pages changed. Changes to this same page may require maintainer help.
 

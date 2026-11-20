@@ -38,7 +38,7 @@ test('document title and publication status remain visible independently of requ
     assert.equal(await evaluate('document.querySelector("h1").textContent'),'Newer saved draft');
     assert.equal(await evaluate('!!document.querySelector(".dashboard-link")'),false);
     assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'),'Checking publication status…');
-    assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),'Saved draft');
+    assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),'All changes saved');
     assert.equal(await evaluate('document.body.textContent.includes("This creates a GitHub publication request.")'),false);
     await evaluate('window.finishStatus()');
     await evaluate(`${title}.focus();${title}.select()`);await send('Input.insertText',{text:'Actual revised title'});
@@ -59,10 +59,10 @@ test('manual PR status refresh preserves unsaved text, never writes, and recover
     assert.equal(await evaluate('document.querySelector(".publication-status strong").textContent'),'Published');
     assert.equal(await evaluate('document.querySelector(".publication-status p[role=status]").textContent'),'Submitted for publishing. Review and merge the request after its checks pass.');
     assert.equal(await evaluate('document.querySelector(".publication-status a").textContent'),'Review publication request #42');
-    assert.equal(await evaluate('document.querySelector(".publication-status button").textContent'),'Check status');
+    assert.equal(await evaluate('document.querySelector(".publication-status button").textContent'),'Check again');
     await evaluate(`window.originalEditor=document.querySelector('.tiptap');${title}.focus();${title}.select()`);
     await send('Input.insertText',{text:'Keep my unsaved title'});
-    await evaluate(`window.setStatus({...window.statusResult,state:'closed',message:'Publication PR closed without merging.'});document.querySelector('.publication-status button').click()`);
+    await evaluate(`window.setStatus({...window.statusResult,state:'closed',website:{publication:'unavailable'},message:'Publication PR closed without merging.'});document.querySelector('.publication-status button').click()`);
     await waitFor('document.querySelector(".publication-status").dataset.state==="closed"');
     assert.equal(await evaluate(`${title}.value`),'Keep my unsaved title');
     assert.equal(await evaluate('document.querySelector(".tiptap")===window.originalEditor'),true);
@@ -72,7 +72,7 @@ test('manual PR status refresh preserves unsaved text, never writes, and recover
     assert.match(await evaluate('document.querySelector(".publication-status").textContent'),/Newer edits.*not included/);
     assert.equal(await evaluate('window.writes.length'),0);
     await evaluate(`${title}.focus();${title}.select()`);await send('Input.insertText',{text:'Newer saved draft'});
-    await waitFor('document.querySelector(".save-state").textContent==="No unsaved changes"');
+    await waitFor('document.querySelector(".save-state").textContent==="All changes saved"');
     const load=await evaluate('window.loadId');
     await evaluate('localStorage.setItem("publication-login","second-editor")');await send('Page.reload');
     await waitFor(`window.loadId!==${JSON.stringify(load)} && document.querySelector('.publication-status')?.dataset.state==='merged'`);
@@ -96,4 +96,77 @@ test('Submit for publishing prepares the saved revision in the browser and retai
     assert.deepEqual(writes[1].input.candidate.assets,[]);
     assert.equal(await evaluate('document.querySelector(".publication-status a").href'),'https://github.com/geobtaa/geobtaa.github.io/pull/42');
   },{initialSearch:'?area=library&file=report.mdx'});
+});
+
+test('compact header keeps actions stable, formats local save time, and wraps on narrow screens', options, async () => {
+  const scenario = fixture.replace("createRoot(document.getElementById('root'))", `window.record.lastSavedAt='2026-11-20T16:42:00Z';window.record.lastSavedBy='Editor';createRoot(document.getElementById('root'))`);
+  await withEditorBrowser(scenario, async ({ evaluate, waitFor, send }) => {
+    await waitFor('!!document.querySelector(".publication-status button") && !!document.querySelector(".unpublish-document")');
+    assert.deepEqual(await evaluate('[...document.querySelectorAll(".navigation-actions button")].map(button=>button.textContent)'), ['Save Draft', 'Submit for publishing', 'Unpublish page']);
+    assert.equal(await evaluate('document.querySelectorAll(".save-state").length'), 1);
+    assert.equal(await evaluate('document.querySelector(".document-controls")'), null);
+    assert.equal(await evaluate('document.querySelector("time").textContent === new Intl.DateTimeFormat(undefined,{dateStyle:"medium",timeStyle:"short"}).format(new Date(window.record.lastSavedAt))'), true);
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".publication-status")).borderTopWidth'), '0px');
+    const positions = await evaluate('[...document.querySelectorAll(".navigation-actions button")].map(button=>{const r=button.getBoundingClientRect();return [r.x,r.y]})');
+    await evaluate(`window.setStatus({state:'none',website:{publication:'published'},mainDraft:false,unpublishEnabled:true});document.querySelector('.publication-status button').click()`);
+    await waitFor('document.querySelector(".publication-status").dataset.state === "none"');
+    assert.equal(await evaluate('!!document.querySelector(".publication-status button")'), false, 'verified status has no permanent refresh button');
+    assert.deepEqual(await evaluate('[...document.querySelectorAll(".navigation-actions button")].map(button=>{const r=button.getBoundingClientRect();return [r.x,r.y]})'), positions);
+    for (const width of [1280, 768, 390, 320]) {
+      await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 500 });
+      assert.equal(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, `no horizontal overflow at ${width}px`);
+      assert.equal(await evaluate('document.querySelector(".document-toolbar").getBoundingClientRect().bottom <= document.querySelector("#document-edit").getBoundingClientRect().top'), true);
+      assert.equal(await evaluate('[...document.querySelectorAll(".navigation-actions button")].every(button=>{const r=button.getBoundingClientRect();return r.left>=0 && r.right<=window.innerWidth})'), true);
+    }
+    assert.equal(await evaluate('window.writes.length'), 0);
+  }, { initialSearch: '?area=library&file=report.mdx' });
+});
+
+test('closed requests keep their actions in keyboard-accessible history without a permanent warning', options, async () => {
+  const scenario = fixture.replace("createRoot(document.getElementById('root'))", `window.setStatus({...window.statusResult,state:'closed',checks:'failed',deployment:{state:'failed'}});createRoot(document.getElementById('root'))`);
+  await withEditorBrowser(scenario, async ({evaluate,waitFor,send}) => {
+    await waitFor('!!document.querySelector(".publication-history")');
+    assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'), 'Published');
+    assert.equal(await evaluate('!!document.querySelector(".publication-notice")'), false);
+    assert.equal(await evaluate('document.querySelector(".publication-history").open'), false);
+    assert.equal(await evaluate('[...document.querySelectorAll("button")].some(button=>button.textContent==="Check again")'), false);
+    await evaluate('document.querySelector(".publication-history summary").focus()');
+    await send('Input.dispatchKeyEvent', {type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r'});
+    await send('Input.dispatchKeyEvent', {type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+    await waitFor('document.querySelector(".publication-history").open');
+    assert.match(await evaluate('document.querySelector(".publication-history").textContent'), /closed without merging/);
+    assert.equal(await evaluate('document.querySelector(".publication-history button").textContent'), 'Update publication request');
+    assert.equal(await evaluate('document.querySelector(".publication-history a").href'), 'https://github.com/geobtaa/geobtaa.github.io/pull/42');
+    assert.equal(await evaluate('window.writes.length'), 0);
+  }, {initialSearch:'?area=library&file=report.mdx'});
+});
+test('request and website problems share a compact notice and resolved warnings move out of view', options, async () => {
+  const scenario = fixture.replace("createRoot(document.getElementById('root'))", `window.setStatus({...window.statusResult,checks:'failed',website:{publication:'unavailable',message:'The website status could not be verified. Your saved work is safe.'}});createRoot(document.getElementById('root'))`);
+  await withEditorBrowser(scenario, async ({evaluate,waitFor,send}) => {
+    await waitFor('!!document.querySelector(".publication-notice")');
+    assert.equal(await evaluate('document.querySelectorAll(".publication-notice").length'), 1);
+    assert.match(await evaluate('document.querySelector(".publication-notice").textContent'), /request failed validation/);
+    assert.equal(await evaluate('document.querySelector(".publication-notice").textContent.split("website status could not be verified").length'), 2);
+    assert.equal(await evaluate('document.querySelector(".publication-notice-actions button").textContent'), 'Check again');
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".publication-notice-actions button")).borderTopWidth'), '0px');
+    for (const width of [390,320]) {
+      await send('Emulation.setDeviceMetricsOverride', {width,height:900,deviceScaleFactor:1,mobile:true});
+      assert.equal(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, 'active notice fits narrow screens');
+    }
+    await evaluate(`window.setStatus({...window.statusResult,state:'merged',deployment:{state:'failed'},website:{publication:'published',requestApplied:false}});document.querySelector('.publication-notice button').click()`);
+    await waitFor('document.querySelector(".publication-notice").textContent.includes("Website update failed")');
+    assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'), 'Published');
+    assert.doesNotMatch(await evaluate('document.querySelector(".publication-notice").textContent'), /failed validation/);
+    await evaluate(`window.setStatus({...window.statusResult,website:{publication:'published',requestApplied:true}});document.querySelector('.publication-notice button').click()`);
+    await waitFor('!!document.querySelector(".publication-history") && !document.querySelector(".publication-notice")');
+    assert.equal(await evaluate('document.querySelector(".publication-history").open'), false);
+    assert.doesNotMatch(await evaluate('document.querySelector(".publication-status").textContent'), /Website update failed|failed validation/);
+    assert.equal(await evaluate('!!document.querySelector(".publication-history a")'), true);
+    for (const width of [1280,390,320]) {
+      await send('Emulation.setDeviceMetricsOverride', {width,height:900,deviceScaleFactor:1,mobile:width<500});
+      assert.equal(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true);
+      assert.equal(await evaluate('document.querySelector(".editor-mode-toggle").getBoundingClientRect().left === document.querySelector("#document-edit").getBoundingClientRect().left'), true);
+    }
+    assert.equal(await evaluate('window.writes.length'), 0);
+  }, {initialSearch:'?area=library&file=report.mdx'});
 });

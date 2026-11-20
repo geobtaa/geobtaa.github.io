@@ -198,7 +198,7 @@ test('documentation preview uses current library metadata and document image beh
     assert.equal(await browser.evaluate(`getComputedStyle(${previewImage('Ordinary image')}).maxWidth`), '100%');
     assert.equal(await browser.evaluate(`${previewImage('Formatted image')}.querySelector('figcaption').hidden`), false);
     await edit(browser);
-    assert.equal(await browser.evaluate('document.querySelector(".save-state").textContent'), 'No unsaved changes');
+    assert.equal(await browser.evaluate('document.querySelector(".save-state").textContent'), 'All changes saved');
     assert.equal(await browser.evaluate('window.requests.some(request => request.method !== "GET")'), false);
   }, { initialSearch: '?area=library&file=preview.mdx' });
 });

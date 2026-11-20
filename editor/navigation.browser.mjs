@@ -22,7 +22,7 @@ window.fetch = async (url, options = {}) => {
 };
 createRoot(document.getElementById('root')).render(React.createElement(ProjectEditor));`;
 
-test('dashboard starts without an area, back buttons navigate safely, and navigation stays visible on mobile', {
+test('dashboard starts without an area, back buttons navigate safely, and navigation wraps on mobile without covering the document', {
   skip: chrome ? false : 'Set CHROME_BIN to an installed Chrome/Chromium executable.',
   timeout: 30_000,
 }, async () => {
@@ -57,7 +57,7 @@ test('dashboard starts without an area, back buttons navigate safely, and naviga
       const back = nav.querySelector('.back');
       return { top: nav.getBoundingClientRect().top, height: back.getBoundingClientRect().height, overflow: document.documentElement.scrollWidth > window.innerWidth };
     })()`);
-    assert.ok(layout.top >= -1 && layout.top <= 1, `navigation sticks to the top while scrolling: ${JSON.stringify(layout)}`);
+    assert.ok(layout.top < 0, `stacked mobile navigation scrolls with the document: ${JSON.stringify(layout)}`);
     assert.ok(layout.height >= 44, 'back button remains a large touch target');
     assert.equal(layout.overflow, false, 'mobile page has no horizontal overflow');
     await evaluate('window.discard = true; document.querySelector(".editor-actions .back").click()');
@@ -83,7 +83,7 @@ const visibilityFixture = `import React from 'react';
 import { createRoot } from 'react-dom/client';
 import ProjectEditor from '../src/components/editor/ProjectEditor.tsx';
 import '../src/components/editor/editor.css';
-const page = (name, draft, sidebarHidden = false) => ({ filename: name + '.mdx', sha: 'loaded-' + name, content: '', title: name, description: 'Summary', draft, sidebarHidden, body: 'Editable text.', date: '2026-10-24', excerpt: '', authors: [], tags: [], cover: null });
+const page = (name, draft, sidebarHidden = false) => ({ filename: name + '.mdx', sha: 'loaded-' + name, content: '', title: name, description: 'Summary', draft, sidebarHidden, metadata: { sidebar: { hidden: sidebarHidden } }, body: 'Editable text.', date: '2026-10-24', excerpt: '', authors: [], tags: [], cover: null });
 window.records = { posts: { 'draft.mdx': page('draft', true), 'navigation-only.mdx': page('navigation-only', false, true), 'ready.mdx': page('ready', false) }, projects: { 'project.mdx': page('project', true) }, library: { 'report.mdx': page('report', true, true) } };
 window.writes = [];
 window.fetch = async (url, options = {}) => {
@@ -117,7 +117,7 @@ test('draft metadata is read-only, navigation visibility stays separate, and bot
     await evaluate('document.querySelector("form input[required]").focus();document.querySelector("form input[required]").select()');
     await send('Input.insertText', { text: 'Edited draft' });
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
     assert.equal(await evaluate('window.writes[0].input.draft'), true);
     assert.equal(await evaluate('window.writes[0].input.publish'), undefined);
     await evaluate('document.querySelector(".editor-actions .primary").click()');
@@ -125,8 +125,8 @@ test('draft metadata is read-only, navigation visibility stays separate, and bot
     await evaluate('document.querySelector(".editor-navigation .back").click()');
     await waitFor('!!document.querySelector(".project-list")');
     await evaluate('[...document.querySelectorAll(".project-list button")].find(button => button.querySelector(".content-name").textContent === "navigation-only").click()');
-    await waitFor('!!document.querySelector(".status-navigation")');
-    assert.equal(await evaluate('document.querySelector(".visibility-panel").textContent.includes("Saved page")'), true);
+    await waitFor('document.querySelector("form input[required]")?.value === "navigation-only"');
+    assert.equal(await evaluate('[...document.querySelectorAll("label")].find(label=>label.textContent.startsWith("Navigation visibility")).querySelector("select").value'), 'true');
     assert.equal(await evaluate('document.querySelectorAll("[data-publication-state]").length'), 0);
     await evaluate('document.querySelector(".top-save").click()');
     await waitFor('window.writes.length === 3');
