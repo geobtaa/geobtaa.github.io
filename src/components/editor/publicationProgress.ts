@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-export type PublicationState = { state: string; checks?: string; message?: string; selectedHead?: string; snapshotHead?: string; mergeHead?: string; number?: number; url?: string; newerDraft?: boolean; action?: 'publish' | 'unpublish'; autoMerge?: boolean | null; autoMergeEnabled?: boolean; mergeState?: string; reviewDecision?: string; checksState?: string; mainDraft?: boolean | null; unpublishEnabled?: boolean; website?: { publication: string; requestApplied?: boolean; message?: string }; deployment?: { state: string; url?: string } };
+export type PublicationState = { state: string; checks?: string; message?: string; selectedHead?: string; snapshotHead?: string; mergeHead?: string; number?: number; url?: string; newerDraft?: boolean; action?: 'publish' | 'unpublish'; autoMerge?: boolean | null; autoMergeEnabled?: boolean; mergeState?: string; reviewDecision?: string; checksState?: string; mainDraft?: boolean | null; unpublishEnabled?: boolean; website?: { liveUrl?: string; publication: string; requestApplied?: boolean; message?: string }; deployment?: { state: string; url?: string } };
 export function publicationLink(status: PublicationState) {
   return Number.isInteger(status.number) && status.url === `https://github.com/geobtaa/geobtaa.github.io/pull/${status.number}` ? status.url : undefined;
 }
@@ -16,7 +16,7 @@ export function publicationProgress(status: PublicationState): string {
     if (status.checks === 'failed') return 'Needs attention: checks failed';
     if (status.reviewDecision === 'CHANGES_REQUESTED') return 'Needs attention: review requested changes';
     if (status.reviewDecision === 'REVIEW_REQUIRED') return 'Waiting for review';
-    return status.autoMerge === true ? status.action === 'unpublish' ? 'Unpublishing when checks pass' : 'Publishing when checks pass' : status.autoMerge === false ? 'Waiting for manual merge' : 'Checking publication authorization…';
+    return status.autoMerge === true ? status.action === 'unpublish' ? 'Unpublishing when checks pass' : 'Publishing when checks pass' : status.autoMerge === false ? 'Needs authorization' : 'Checking publication authorization…';
   }
   return '';
 }
@@ -65,4 +65,14 @@ export function usePublicationProgress(path: string, load: (path: string, signal
     return () => { active = false; clearTimeout(timer); controller.abort(); document.removeEventListener('visibilitychange', resume); };
   }, [path, load, enabled, head, refreshVersion, retry, submitted]);
   return { status, checkAgain: () => setRetry(value => value + 1) };
+}
+
+// Only deployment-verified API data may provide this URL, never form metadata.
+export function publishedPageUrl(status?: PublicationState) {
+  if (status?.website?.publication !== 'published' || !status.website.liveUrl) return undefined;
+  try {
+    const url = new URL(status.website.liveUrl);
+    if (url.origin !== 'https://gin.btaa.org' || url.username || url.password || url.search || url.hash) return undefined;
+    return url.href;
+  } catch { return undefined; }
 }

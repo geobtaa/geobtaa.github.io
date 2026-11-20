@@ -28,7 +28,7 @@ test('dashboard starts without an area, back buttons navigate safely, and naviga
 }, async () => {
   await withEditorBrowser(fixture, async browser => {
     const { evaluate, waitFor, send } = browser;
-    await waitFor('document.querySelector("h1")?.textContent === "Editor dashboard"');
+    await waitFor('document.querySelector("h1")?.textContent === "BTAA-GIN Website Editor"');
     assert.deepEqual(await evaluate('window.requests.map(item => item.path)'), ['/api/session']);
     assert.equal(await evaluate('document.querySelector(".area-selector")'), null);
     assert.equal(await evaluate('document.querySelectorAll(".dashboard-card").length'), Object.keys(CONTENT_AREAS).length);
@@ -64,7 +64,7 @@ test('dashboard starts without an area, back buttons navigate safely, and naviga
     await answerLeaveDialog(browser);
     await waitFor('!!document.querySelector(".project-list")');
     await evaluate('document.querySelector(".editor-navigation .back").click()');
-    await waitFor('document.querySelector("h1")?.textContent === "Editor dashboard"');
+    await waitFor('document.querySelector("h1")?.textContent === "BTAA-GIN Website Editor"');
     assert.equal(await evaluate('document.querySelector(".area-selector")'), null);
     assert.equal(await evaluate('window.requests.some(item => item.path.includes("/projects"))'), false);
     await evaluate('[...document.querySelectorAll(".dashboard-card")].find(button => button.textContent.includes("Blog Posts")).click()');
@@ -75,7 +75,7 @@ test('dashboard starts without an area, back buttons navigate safely, and naviga
     await answerLeaveDialog(browser);
     await waitFor('!!document.querySelector(".project-list")');
     await evaluate('document.querySelector(".editor-navigation .back").click()');
-    await waitFor('document.querySelector("h1")?.textContent === "Editor dashboard"');
+    await waitFor('document.querySelector("h1")?.textContent === "BTAA-GIN Website Editor"');
   });
 });
 

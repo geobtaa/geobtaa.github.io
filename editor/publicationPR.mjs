@@ -237,7 +237,7 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
       if (pr.state !== 'open') throw fail(409, 'This request was closed. Use Update publication request before authorizing it.');
       if (enabled) {
         await verifyPublicationPolicy(op.ask);
-        if (await op.ref('heads/main') !== attempt.base) throw fail(409, `The website changed while this request was waiting. Use Update publication request, then choose ${action === 'unpublish' ? 'Unpublish' : 'Publish'} when ready again.`);
+        if (await op.ref('heads/main') !== attempt.base) throw fail(409, `The website changed while this request was waiting. Use Update publication request, then choose ${action === 'unpublish' ? 'Unpublish' : 'Publish'} again.`);
         const [original] = await op.files([{ head: attempt.base, path: draft.path }]);
         if ((original?.oid || null) !== draft.meta.baseBlob) throw fail(409, 'The page changed on the website. Keep your saved work and ask a maintainer to reconcile it.');
         if (pr.autoMerge === true && pr.autoMergeMethod !== 'SQUASH') throw fail(409, 'This request uses a different merge method. Cancel automatic publication before authorizing it again.');
@@ -255,7 +255,7 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
       // Read back even after an uncertain mutation; never infer success from transport.
       [pr] = await op.pullRequests([attempt]);
       if (pr?.merged_at || pr?.state === 'open' && pr.autoMerge === enabled) return result(pr);
-      throw fail(problem || 503, enabled ? 'Automatic publication could not be confirmed. Your request and draft are safe. Check status, then retry Publish when ready.' : 'Cancellation could not be confirmed. The request may still publish automatically. Check status and retry cancellation.');
+      throw fail(problem || 503, enabled ? 'Automatic publication could not be confirmed. Your request and draft are safe. Check status, then retry Publish.' : 'Cancellation could not be confirmed. The request may still publish automatically. Check status and retry cancellation.');
     },
     async getPublicationStatus(area, filename, knownDraft = null) {
       const op = operation();

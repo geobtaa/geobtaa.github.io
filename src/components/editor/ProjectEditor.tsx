@@ -1,6 +1,9 @@
 import { FieldLabel } from './FieldLabel.ts';
 import { preparePublicationCandidate } from '../../../editor/publicationCandidate.mjs';
 import { PublicationStatus, type PublicationState } from './PublicationStatus';
+import { publishedPageUrl } from './publicationProgress';
+import { PublicationDialog } from './PublicationDialog';
+import { UnpublishDialog } from './UnpublishDialog';
 import { LibraryPublicationProgress } from './LibraryPublicationProgress';
 import { setPendingImagePreviews, pendingImagePreview, type PendingImage } from './pendingImages';
 import type { Project, PageMetadata } from './editorTypes';
@@ -78,6 +81,13 @@ const loadPublicationStatus = async (path: string, signal: AbortSignal, listOnly
 const loadListPublicationStatus = (path: string, signal: AbortSignal) => loadPublicationStatus(path, signal, true);
 
 
+
+function ApplicationHeader({ compact = false, children }: { compact?: boolean; children?: React.ReactNode }) {
+  return <header className="editor-header application-header">
+    {compact ? <span className="application-name">BTAA-GIN Website Editor</span> : <h1>BTAA-GIN Website Editor</h1>}
+    <div className="application-header-links"><a href="https://gin.btaa.org/" target="_blank" rel="noopener noreferrer">Visit website</a>{children}</div>
+  </header>;
+}
 
 function slugify(value: string) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -693,6 +703,9 @@ export default function ProjectEditor() {
   const [previewMode, setPreviewMode] = useState(false);
   const [publicationActionTarget, setPublicationActionTarget] = useState<HTMLSpanElement | null>(null);
   const [publicationVersion, setPublicationVersion] = useState(0);
+  const [publicationInfo, setPublicationInfo] = useState<PublicationState>();
+  const [publicationIssue, setPublicationIssue] = useState('');
+  const [publicationConfirmation, setPublicationConfirmation] = useState<{ action: 'publish' | 'unpublish'; head: string; loaded: string; existing?: PublicationState }>();
   const [autoMergeAvailable, setAutoMergeAvailable] = useState(false);
   const recentPublications = useRef(new Set<string>());
   const refreshedDeployments = useRef(new Set<string>());
@@ -713,6 +726,9 @@ export default function ProjectEditor() {
   const leavePromptRef = useRef<LeavePrompt | null>(null);
   const showLeavePrompt = (prompt: LeavePrompt | null) => { leavePromptRef.current = prompt; setLeavePrompt(prompt); };
   const dirty = project !== null && JSON.stringify(project) !== savedSnapshot;
+  useEffect(() => {
+    if (publicationConfirmation && (dirty || publicationConfirmation.loaded !== JSON.stringify(project))) setPublicationConfirmation(undefined);
+  }, [dirty, project, publicationConfirmation]);
   const isBlog = area === 'posts';
   const isUpdate = area === 'updates';
   const isArticle = isBlog || isUpdate;
@@ -747,7 +763,7 @@ export default function ProjectEditor() {
     if (next.area !== area) { setProjects([]); setListWarnings([]); }
     if (remembered && !next.filename) showList(remembered);
     setListStale(!!remembered && !next.filename); setListRefreshing(false);
-    setPreviewMode(false);
+    setPreviewMode(false); setPublicationConfirmation(undefined); setPublicationInfo(undefined); setPublicationIssue(''); setAutoMergeAvailable(false);
     setRecoveryManager(null);
     setResumeRequest(null);
     setNotice(''); setError(''); setSuggestedFilename(''); setSelectedRecovery(''); setShowConversionPreview(false); setShowUpdateStarter(false);
@@ -920,21 +936,27 @@ export default function ProjectEditor() {
     } finally { setBusy(false); }
   };
 
+  const requestPublicationConfirmation = (action: 'publish' | 'unpublish', head = project?.head, existing?: PublicationState) => {
+    if (!project || !head || !/^[a-f0-9]{40}$/.test(head) || dirty || busy || authIssue || !autoMergeAvailable || (action === 'publish' && !project.hasDraft)) return;
+    setPublicationConfirmation({ action, head, loaded: JSON.stringify(project), existing });
+  };
+
   const setAutomaticPublication = async (status: PublicationState, enabled: boolean) => {
     if (!area || !project || busy) return;
-    setBusy(true); setError(''); setNotice('');
+    setBusy(true); setError(''); setNotice(''); setPublicationIssue('');
     const path = `/api/publish/${area}/${encodeContentPath(project.filename)}`;
     try {
       const result = await api<PublicationState>(path, { method: 'POST', body: JSON.stringify({ autoMerge: enabled, head: status.selectedHead, snapshotHead: status.snapshotHead, action: status.action || 'publish' }) });
       setSubmittedPR({ path, status: result }); recentPublications.current.add(path);
-      if (!enabled) setNotice(result.state === 'merged' ? 'The request merged before cancellation. The website update still needs verification.' : `Automatic ${status.action === 'unpublish' ? 'unpublishing' : 'publication'} cancelled. Your draft and manual request are still available.`);
-    } catch (error) { setError((error as Error).message); }
+      if (!enabled) setNotice(result.state === 'merged' ? 'This update was already accepted for deployment and could not be cancelled. The website update still needs verification.' : `Automatic ${status.action === 'unpublish' ? 'unpublishing' : 'publishing'} cancelled. Your saved work is still available.`);
+    } catch (error) { setPublicationIssue((error as Error).message); setError(enabled ? 'This action could not be authorized. Your saved work is safe. Check again before trying again.' : 'Cancellation could not be confirmed. This action may still complete. Check again and retry cancellation.'); }
     finally { setBusy(false); setPublicationVersion(value => value + 1); }
   };
 
   const publish = async (selectedHead = project?.head, action: 'publish' | 'unpublish' = 'publish', automatically = false) => {
     if (!area || !project || !project.head || (action === 'publish' && !project.hasDraft) || dirty || busy) return;
     setBusy(true); setError(''); setNotice('');
+    setPublicationIssue('');
     let copyReady = false, initializingCopy = false;
     try {
       const path = `/api/publish/${area}/${encodeContentPath(project.filename)}`;
@@ -959,9 +981,18 @@ export default function ProjectEditor() {
         const authorized = await api<PublicationState>(path, { method: 'POST', body: JSON.stringify({ autoMerge: true, head: selectedHead, snapshotHead: result.snapshotHead, action }) });
         setSubmittedPR({ path, status: authorized });
       }
-      setNotice(result.state === 'pr-open' ? '' : result.message || `Publication PR #${result.number}.`);
-    } catch (err) { setError(copyReady ? `The page has not been confirmed unpublished. Its working copy is ready, but the request could not be confirmed. Check status before retrying. ${(err as Error).message}` : initializingCopy ? `Preparation could not be confirmed. Retry Unpublish page; any prepared copy will be reused. ${(err as Error).message}` : (err as Error).message); }
+      setNotice('');
+    } catch (err) { setPublicationIssue((err as Error).message); setError(copyReady || initializingCopy ? 'Preparation or submission could not be confirmed. Your saved work is safe. Check again before trying to unpublish again.' : 'This action could not be confirmed. Your saved work is safe. Check again before trying again.'); }
     finally { setBusy(false); setPublicationVersion(value => value + 1); }
+  };
+
+  const confirmPublication = () => {
+    const selected = publicationConfirmation;
+    if (!project || !selected) return;
+    setPublicationConfirmation(undefined);
+    if (busy || dirty || authIssue || !autoMergeAvailable || selected.loaded !== JSON.stringify(project)) return;
+    if (selected.existing) void setAutomaticPublication(selected.existing, true);
+    else void publish(selected.head, selected.action, true);
   };
 
   const entryCopies = recovery.copies.filter(copy => routeKey(copy.route) === routeKey(route));
@@ -1032,20 +1063,17 @@ export default function ProjectEditor() {
     </aside>}
   </>;
 
-  if (viewer === undefined) return <main className="editor-shell"><p>Checking GitHub sign-in…</p></main>;
+  if (viewer === undefined) return <main className="editor-shell"><ApplicationHeader /><p>Checking GitHub sign-in…</p></main>;
   if (viewer === null) return (
     <main className="editor-shell">
-      <h1>Content editor</h1>
+      <ApplicationHeader />
       <p>Sign in with a GitHub account that can write to <code>geobtaa/geobtaa.github.io</code>.</p>
       {error && <p className="message error" role="alert">{error}</p>}
       <a className="button primary" href={`${API}/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)}`}>Sign in with GitHub</a>
     </main>
   );
 
-  const accountHeader = <header className="editor-header">
-    <div><h1>{area ? 'Content editor' : 'Editor dashboard'}</h1>{!area && <p>Signed in as <strong>{viewer}</strong>.</p>}</div>
-    <button className="link-button" type="button" disabled={busy} onClick={logout}>Sign out</button>
-  </header>;
+  const accountHeader = <><ApplicationHeader><button className="link-button" type="button" disabled={busy} onClick={logout}>Sign out</button></ApplicationHeader>{!area && <p>Signed in as <strong>{viewer}</strong>.</p>}</>;
 
   if (!area || !config) return (
     <main className="editor-shell">
@@ -1095,6 +1123,7 @@ export default function ProjectEditor() {
     </main>
   );
 
+  const livePage = publishedPageUrl(publicationInfo);
   const savedDate = project.lastSavedAt ? new Date(project.lastSavedAt) : null;
   const savedTime = savedDate && Number.isFinite(savedDate.getTime()) ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(savedDate) : null;
   const saveStatus = <span className="working-copy-status" role="status"><span className="save-state draft-status">{busy ? restoringChanges ? 'Restoring changes…' : 'Working…' : !project.sha ? 'Not saved yet' : dirty ? 'Unsaved changes' : 'All changes saved'}</span>{!dirty && project.sha && <>{savedTime && <> · <time dateTime={project.lastSavedAt}>{savedTime}</time></>}{project.lastSavedBy && <> · {project.lastSavedBy}</>}</>}</span>;
@@ -1106,16 +1135,27 @@ export default function ProjectEditor() {
       setProject(current => current ? { ...current, assets } : current);
     } }}>
     <main className="editor-shell editor-workspace">
+      <ApplicationHeader compact />
       {leavePrompt && <UnsavedChangesDialog message={leavePrompt.message} onKeepEditing={() => showLeavePrompt(null)} onLeave={leaveEditor} />}
+      {publicationConfirmation && (publicationConfirmation.action === 'unpublish' ? <UnpublishDialog
+        revision={{ filename: project.filename }}
+        disabled={busy || dirty || !!authIssue || !autoMergeAvailable || publicationConfirmation.loaded !== JSON.stringify(project)}
+        onCancel={() => setPublicationConfirmation(undefined)}
+        onConfirm={confirmPublication} /> : <PublicationDialog action="publish"
+        published={project.baselineExists !== false && (publicationInfo?.website?.publication === 'published' || (publicationInfo?.website?.publication !== 'unpublished' && publicationInfo?.mainDraft === false))}
+        revision={{ filename: project.filename, head: publicationConfirmation.head, earlier: publicationConfirmation.head !== project.head, savedAt: publicationConfirmation.head === project.head ? project.lastSavedAt : undefined, savedBy: publicationConfirmation.head === project.head ? project.lastSavedBy : undefined }}
+        disabled={busy || dirty || !!authIssue || !autoMergeAvailable || publicationConfirmation.loaded !== JSON.stringify(project)}
+        onCancel={() => setPublicationConfirmation(undefined)}
+        onConfirm={confirmPublication} />)}
       <nav className="editor-navigation" aria-label="Editor navigation">
         <button className="back" type="button" disabled={busy} onClick={backToList}>← Back to {config.label}</button>
-        <div className="navigation-actions"><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue || unpublishPending} onClick={() => publish(project.head, 'publish', autoMergeAvailable)}>{autoMergeAvailable ? 'Publish when ready' : 'Submit for publishing'}</button><span className="publication-action-slot" ref={setPublicationActionTarget}>{!project.sha && <button type="button" disabled>Unpublish page</button>}</span></div>
+        <div className="navigation-actions"><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue || unpublishPending || !autoMergeAvailable} title={dirty ? 'Save your changes before publishing.' : !autoMergeAvailable ? 'Publishing is not enabled yet. Ask a maintainer.' : undefined} onClick={() => requestPublicationConfirmation('publish')}>Publish</button><span className="publication-action-slot" ref={setPublicationActionTarget}>{!project.sha && <button type="button" disabled>Unpublish</button>}</span></div>
       </nav>
       <h1>{project.title.trim() || 'Untitled page'}</h1>
       {!project.sha && <div className="document-status-row"><strong className="publication-heading visibility-badge status-unknown">Not yet published</strong>{saveStatus}</div>}
-      {project.sha && <PublicationStatus onAutoMergeAvailable={setAutoMergeAvailable} onAutoMerge={(status, enabled) => { void setAutomaticPublication(status, enabled); }} onManualPublish={() => { void publish(); }} actionTarget={publicationActionTarget} saveStatus={saveStatus} key={`${area}/${project.filename}`} path={`/api/publish/${area}/${encodeContentPath(project.filename)}`} head={project.head} dirty={dirty} hasDraft={!!project.hasDraft} onUnpublishPending={setUnpublishPending} newPage={project.baselineExists === false} onUnpublish={automatically => { void publish(project.head, 'unpublish', automatically); }} refreshVersion={publicationVersion} disabled={busy || !!authIssue} load={loadPublicationStatus} submitted={submittedPR?.path === `/api/publish/${area}/${encodeContentPath(project.filename)}` ? submittedPR.status : undefined} onRetry={(head, action) => { void publish(head, action); }} />}
-      {project.resumeHead && project.preservedEdits && <p className="message">An earlier request was merged. Your newer saved changes are preserved below. Use Save Draft before creating another publication PR.</p>}
-      {project.mainChanged && <p className="message error">This draft is based on an earlier published version. Save Draft is blocked to protect published content. Keep or download your edits. For repeat editing, <a href={`https://github.com/geobtaa/geobtaa.github.io/edit/main/src/content/docs/${area}/${encodeContentPath(project.filename)}`} target="_blank" rel="noopener noreferrer">edit the current published source on GitHub</a> and propose a PR, or ask a maintainer for help. Do not delete drafts or locks.</p>}
+      {project.sha && <PublicationStatus onAutoMergeAvailable={setAutoMergeAvailable} onStatus={setPublicationInfo} technicalError={publicationIssue} technicalDetails={project.mainChanged ? <p>This draft's main document changed. For repeat editing, <a href={`https://github.com/geobtaa/geobtaa.github.io/edit/main/src/content/docs/${area}/${encodeContentPath(project.filename)}`} target="_blank" rel="noopener noreferrer">edit the current source on GitHub</a> and propose a PR, or ask a maintainer. Do not delete drafts or locks.</p> : undefined} onAutoMerge={(status, enabled) => { if (enabled) requestPublicationConfirmation(status.action || 'publish', status.selectedHead, status); else void setAutomaticPublication(status, false); }} actionTarget={publicationActionTarget} saveStatus={saveStatus} key={`${area}/${project.filename}`} path={`/api/publish/${area}/${encodeContentPath(project.filename)}`} head={project.head} dirty={dirty} hasDraft={!!project.hasDraft} onUnpublishPending={setUnpublishPending} newPage={project.baselineExists === false} onUnpublish={() => requestPublicationConfirmation('unpublish')} refreshVersion={publicationVersion} disabled={busy || !!authIssue} load={loadPublicationStatus} submitted={submittedPR?.path === `/api/publish/${area}/${encodeContentPath(project.filename)}` ? submittedPR.status : undefined} onRetry={(head, action) => requestPublicationConfirmation(action || 'publish', head)} />}
+      {project.resumeHead && project.preservedEdits && <p className="message">An earlier update was accepted for deployment. Your newer saved changes are preserved below. Use Save Draft before publishing them.</p>}
+      {project.mainChanged && <p className="message error">This saved version is based on an older website version. Saving is blocked to protect the current page. Keep or download your changes and ask a maintainer for help.</p>}
       {recoveryPanel}
       {notice && <p className="message success" role="status">{notice}</p>}
       {error && <p className="message error" role="alert">{error}</p>}
@@ -1128,6 +1168,7 @@ export default function ProjectEditor() {
           <button type="button" aria-pressed={!previewMode} aria-controls="document-edit" disabled={busy} onClick={() => setPreviewMode(false)}>Edit</button>
           <button type="button" aria-pressed={previewMode} aria-controls="document-preview" disabled={busy} onClick={() => setPreviewMode(true)}>Preview</button>
         </div>
+        {livePage && <a className="view-live-page" href={livePage} target="_blank" rel="noopener noreferrer">View live page</a>}
       </div>
       {previewMode && <DocumentPreview project={project} area={area} apiBase={API} />}
       <form id="document-edit" hidden={previewMode} inert={previewMode} onSubmit={(event) => event.preventDefault()}>

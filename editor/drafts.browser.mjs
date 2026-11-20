@@ -27,7 +27,9 @@ window.concurrentSave=async()=>{const file=await window.store.getContent('librar
 window.fetch=async(url,options={})=>{
  const parsed=new URL(String(url),location.origin),pathname=parsed.pathname;
  try{
+  if(pathname.startsWith('/api/publication-status/'))return Response.json({autoMergeEnabled:true,mainDraft:false,website:{publication:'unavailable'}});
   if(pathname.startsWith('/api/publish/')&&(!options.method||options.method==='GET'))return Response.json(await window.store.getPublicationStatus('library','report.mdx'));
+  if(pathname.startsWith('/api/publish/')&&Object.hasOwn(JSON.parse(options.body),'autoMerge'))return Response.json(await window.store.setPublicationAutoMerge({area:'library',filename:'report.mdx',...JSON.parse(options.body),enabled:JSON.parse(options.body).autoMerge}));
   if(pathname.startsWith('/api/publish/'))return Response.json(await (JSON.parse(options.body).prepare ? window.store.preparePublication({area:'library',filename:'report.mdx',head:JSON.parse(options.body).head}) : window.store.publishContent({area:'library',filename:'report.mdx',...JSON.parse(options.body)})));
   if(pathname==='/api/session')return Response.json({authenticated:true,login:localStorage.getItem('test-draft-login')||'first-editor',workspace:window.store.workspace});
   if(pathname==='/api/images'&&options.method==='POST'){const input=JSON.parse(options.body);return Response.json(await window.store.uploadImage({...input,bytes:Uint8Array.from(atob(input.content),char=>char.charCodeAt(0))}))}
@@ -141,10 +143,13 @@ test('Publish is separate from Save Draft, requires a clean saved revision, and 
     await waitFor('document.querySelector(".save-state").textContent==="All changes saved"');
     assert.equal(await evaluate('window.repo.pulls.length'), 0, 'Save Draft never opens a PR');
     await evaluate('window.repo.protection={};document.querySelector(".publish-document").click()');
-    await waitFor('document.querySelector(".message")?.textContent.includes("policy blocked")');
+    await waitFor('document.querySelector("dialog")?.open');await evaluate('document.querySelector(".confirm-publication").click()');
+    await waitFor('document.querySelector(".message.error")?.textContent.includes("could not be confirmed")');
+    assert.match(await evaluate('document.querySelector(".publication-history").textContent'),/policy blocked/);
     assert.equal(await evaluate(`${title}.value`), 'Publication test');
     assert.equal(await evaluate('window.repo.pulls.length'), 0);
     await evaluate('window.repo.protection=undefined;document.querySelector(".publish-document").click()');
+    await waitFor('document.querySelector("dialog")?.open');await evaluate('document.querySelector(".confirm-publication").click()');
     await waitFor('document.querySelector(".publication-status")?.dataset.state === "pr-open"');
     assert.equal(await evaluate('window.repo.pulls.length'), 1);
     await fill(browser, 'Unsaved newer text');
@@ -159,6 +164,7 @@ test('after manual merge, reopening and saving another edit works without branch
     await evaluate('document.querySelector(".top-save").click()');
     await waitFor('document.querySelector(".save-state").textContent==="All changes saved"');
     await evaluate('document.querySelector(".publish-document").click()');
+    await waitFor('document.querySelector("dialog")?.open');await evaluate('document.querySelector(".confirm-publication").click()');
     await waitFor('window.repo.pulls.length===1 && document.querySelector(".publish-document").disabled===false');
     // Keep a browser-only edit made after submission but before the manual merge.
     await fill(browser,'Keep unsaved second round');
@@ -174,6 +180,7 @@ test('after manual merge, reopening and saving another edit works without branch
     await evaluate('document.querySelector(".top-save").click()');
     await waitFor('document.querySelector(".save-state").textContent==="All changes saved" && document.querySelector(".publish-document").disabled===false');
     await evaluate('document.querySelector(".publish-document").click()');
+    await waitFor('document.querySelector("dialog")?.open');await evaluate('document.querySelector(".confirm-publication").click()');
     await waitFor('window.repo.pulls.length===2 && document.querySelector(".publish-document").disabled===false');
     assert.equal(await evaluate(`${title}.value`),'Keep unsaved second round');
     assert.equal(await evaluate('window.repo.pulls[0].state'),'closed');

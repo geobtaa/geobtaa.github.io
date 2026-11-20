@@ -67,3 +67,24 @@ test('unpublish defaults disabled and requires capability installed on main inde
  for (const value of [null, {}, { version: 1, actions: ['unpublish'] }, { version: 2, actions: ['publish'] }]) await assert.rejects(requireUnpublishCapability({ enabled: 'true', readMainCapability: async () => value }), { status: 403 });
  await requireUnpublishCapability({ enabled: 'true', readMainCapability: async () => capability });
 });
+test('live URLs use only the verified deployed Starlight route, including overrides, index routes and encoding',async()=>{
+ for(const [filename,slug,route,url] of [
+  ['library/report.mdx',null,'library/report','https://gin.btaa.org/library/report/'],
+  ['library/nested/index.md',null,'library/nested','https://gin.btaa.org/library/nested/'],
+  ['index.mdx',null,'','https://gin.btaa.org/'],
+  ['library/report.mdx','custom/place/','custom/place','https://gin.btaa.org/custom/place/'],
+  ['library/report.mdx','custom/place/index','custom/place','https://gin.btaa.org/custom/place/'],
+  ['library/report.mdx','/','', 'https://gin.btaa.org/'],
+  ['library/report.mdx','caf%C3%A9/map','café/map','https://gin.btaa.org/caf%C3%A9/map/'],
+  ['library/report.mdx','custom/question?name#part','custom/question?name#part','https://gin.btaa.org/custom/question%3Fname%23part/'],
+ ]){
+  const f=fixture(),selectedPath='src/content/docs/'+filename;
+  const item={...f.marker.documents[path],route};delete f.marker.documents[path];f.marker.documents[selectedPath]=item;
+  f.document.content=Buffer.from(`---\ntitle: Page\ndraft: false\n${slug===null?'':`slug: ${JSON.stringify(slug)}\n`}---\n\nPublished.`).toString('base64');
+  const result=await websiteStatus({request:f.request,fetchPublic:async()=>Response.json(f.marker),path:selectedPath});
+  assert.equal(result.publication,'published');assert.equal(result.liveUrl,url);
+ }
+ assert.equal((await fixture(true).check()).liveUrl,undefined,'unpublished documents never have a live link');
+ const invalid=fixture();invalid.run.conclusion='failure';assert.equal((await invalid.check()).liveUrl,undefined);
+ const unsafe=fixture();unsafe.marker.documents[path].route='old/../other';unsafe.document.content=Buffer.from('---\ntitle: Page\nslug: old/../other\n---\n\nText.').toString('base64');assert.equal((await unsafe.check()).liveUrl,undefined);
+});

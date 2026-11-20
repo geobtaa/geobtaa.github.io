@@ -38,7 +38,10 @@ export async function websiteStatus({ request, path, fetchPublic = fetch, public
     if (document.sha !== item.blob || document.encoding !== 'base64' || typeof document.content !== 'string' || document.content.length > 1_500_000) return unavailable();
     const content = new TextDecoder().decode(Uint8Array.from(atob(document.content.replace(/\s/g, '')), ch => ch.charCodeAt(0)));
     if (contentVisibility(content).draft !== (item.draft === true) || documentRoute(path.slice('src/content/docs/'.length), documentSlug(content)) !== item.route) return unavailable();
-    const result = { publication: item.draft === true ? 'unpublished' : 'published', sourceHead: marker.sha, deployedBlob: item.blob };
+    const segments = item.route ? item.route.split('/').map(segment => decodeURIComponent(segment)) : [];
+    const safeRoute = segments.every(segment => segment !== '.' && segment !== '..' && !/[\\\x00-\x1f\x7f]/.test(segment));
+    const liveUrl = safeRoute ? `${ORIGIN}/${segments.map(segment => encodeURIComponent(segment)).join('/')}${segments.length ? '/' : ''}` : undefined;
+    const result = { ...(item.draft !== true && liveUrl ? { liveUrl } : {}), publication: item.draft === true ? 'unpublished' : 'published', sourceHead: marker.sha, deployedBlob: item.blob };
     if (publicationRequest?.state === 'merged' && SHA.test(publicationRequest.mergeHead || '') && SHA.test(publicationRequest.snapshotHead || '')) {
       const relation = await request(`/compare/${publicationRequest.mergeHead}...${marker.sha}?per_page=1&page=2`);
       const selected = await request(`/contents/${path}?ref=${publicationRequest.snapshotHead}`);
