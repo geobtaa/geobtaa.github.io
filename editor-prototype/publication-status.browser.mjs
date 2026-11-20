@@ -38,7 +38,7 @@ test('document title leads the editor and empty publication status stays hidden 
     assert.equal(await evaluate('!!document.querySelector(".dashboard-link")'),false);
     assert.equal(await evaluate('!!document.querySelector(".publication-status")'),false,'initial checking does not show an empty panel');
     assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),'Saved draft');
-    assert.match(await evaluate('document.getElementById(document.querySelector(".publish-document").getAttribute("aria-describedby")).textContent'),/Review and merge it in GitHub/);
+    assert.equal(await evaluate('document.body.textContent.includes("This creates a GitHub publication request.")'),false);
     await evaluate('window.finishStatus()');
     await evaluate(`${title}.focus();${title}.select()`);await send('Input.insertText',{text:'Actual revised title'});
     await waitFor('document.querySelector("h1").textContent==="Actual revised title"');
