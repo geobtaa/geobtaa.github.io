@@ -1,3 +1,6 @@
+import { sidebarBlockers } from './publicationRoutes.mjs';
+import { documentRoute, documentSlug } from './contentRoutes.mjs';
+import { publicationAction, actionMetadata, publicationContent } from './publicationAction.mjs';
 import { publicationBaseKey } from './draftIdentity.mjs';
 import { activeDraft } from './draftCycles.mjs';
 import { compareAncestry } from './gitComparison.mjs';
@@ -107,25 +110,37 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
   const response = (pr, head) => ({ state: pr.merged_at ? 'merged' : pr.state === 'closed' ? 'closed' : 'pr-open', number: pr.number, url: pr.html_url, selectedHead: head,
     message: pr.merged_at ? 'PR merged. GitHub Pages handles deployment; deployment is not verified here.' : pr.state === 'closed' ? 'Publication PR closed without merging.' : 'Publication PR created. Wait for validate and cms-publication-scope to pass, then merge it in GitHub.' });
   return {
-    async preparePublication({ area, filename, head }) {
+    async preparePublication({ area, filename, head, action = 'publish' }) {
+      publicationAction(action);
       const op = operation(), draft = await op.selected(area, filename, head);
-      const [file] = await op.files([{ head, path: draft.path }], true);
+      const sourceHead = action === 'unpublish' ? await op.ref('heads/main') : head;
+      const [file] = await op.files([{ head: sourceHead, path: draft.path }], true);
+      if (action === 'unpublish' && file?.oid !== draft.meta.baseBlob) throw fail(409, 'The page on main changed. Review the current page before requesting unpublish.');
       if (!file || file.text.length > 1_000_000) throw fail(413, 'Document unavailable or too large for hosted PR preparation. The draft is intact.');
-      return { head, content: file.text, assets: draft.meta.assets };
+      return { head, content: file.text, assets: action === 'unpublish' ? {} : draft.meta.assets, ...actionMetadata(action) };
     },
-    async publishContent({ area, filename, head, candidate }) {
+    async publishContent({ area, filename, head, candidate, action = 'publish' }) {
+      publicationAction(action);
       const op = operation(), repository = await op.ask('');
       if (!repository.permissions?.push || !repository.node_id) throw fail(403, 'Repository write permission could not be verified. Sign in again.');
       const draft = await op.selected(area, filename, head), held = await op.coordinator(draft);
-      if (held.state && held.state.selectedHead !== head) throw fail(409, 'Another saved revision owns this publication. Its draft and PR are preserved.');
+      if (held.state && (held.state.selectedHead !== head || publicationAction(held.state.action) !== action)) throw fail(409, 'Another saved revision owns this publication. Its draft and PR are preserved.');
       const previous = held.state ? await op.pullRequests(held.state.attempts) : [];
       const merged = previous.find(pr => pr?.merged_at);
-      if (merged) return response(merged, head);
+      if (merged) return { ...response(merged, head), ...actionMetadata(action) };
       const mainHead = await op.ref('heads/main');
       if (!mainHead) throw retry();
       const main = await op.commit(mainHead);
-      const [published] = await op.files([{ head: mainHead, path: draft.path }]);
+      const [published] = await op.files([{ head: mainHead, path: draft.path }], action === 'unpublish');
       if ((published?.oid || null) !== draft.meta.baseBlob) throw fail(409, 'The public document changed since this draft began. Keep your edits and ask a maintainer to reconcile.');
+      if (action === 'unpublish' && !published) throw fail(409, 'This page has not been published.');
+      if (action === 'unpublish') {
+        const [navigation] = await op.files([{ head: mainHead, path: 'navigation.groups.json' }], true);
+        if (!navigation) throw fail(409, 'Navigation configuration is unavailable. Ask a maintainer.');
+        const blockers = sidebarBlockers(JSON.parse(navigation.text), documentRoute(`${area}/${filename}`, documentSlug(published.text)));
+        if (blockers.length) throw fail(409, `Cannot unpublish: explicit navigation entry ${blockers.join(', ')}. Ask a maintainer to update navigation.`);
+      }
+      if (action === 'unpublish' && (!published || !candidate || candidate.content !== publicationContent({ action, original: published.text }) || candidate.assets?.length !== 0)) throw fail(400, 'Unpublish must change only the current main document draft setting.');
       await verifyPublicationPolicy(op.ask, { manual: true });
       // Bound inventory before all writes; never treat an incomplete page as free.
       for (let page = 1; ; page++) {
@@ -139,7 +154,7 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
       if (attempt && await op.ref(`heads/${attempt.branch}`) !== attempt.head) throw fail(409, 'Immutable publication snapshot was changed or removed. Ask a maintainer.');
       if (attempt) {
         const value = await op.commit(attempt.head);
-        const marker = `CMS-Publication-v1: ${JSON.stringify({ area, filename, selectedHead: head, attempt: attempt.attempt })}`;
+        const marker = `CMS-Publication-v1: ${JSON.stringify({ area, filename, selectedHead: head, attempt: attempt.attempt, ...actionMetadata(action) })}`;
         if (value.parents?.length !== 1 || value.parents[0].sha !== attempt.base || value.message?.split('\n').filter(line => line.startsWith('CMS-Publication-v1: ')).join('') !== marker) throw fail(409, 'Publication snapshot identity mismatch. Ask a maintainer.');
       }
       const replace = !attempt || attempt.base !== mainHead || pr?.state === 'closed';
@@ -162,7 +177,7 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
           try { await op.ask(`/pulls/${pr.number}`, { ...write({ state: 'closed' }), method: 'PATCH' }); } catch { /* uncertain closure requires readback */ }
           pr = await op.ask(`/pulls/${pr.number}`);
           op.verifyPR(pr, attempt);
-          if (pr.merged_at) return response(pr, head);
+          if (pr.merged_at) return { ...response(pr, head), ...actionMetadata(action) };
           if (pr.state !== 'closed') throw fail(409, 'Could not confirm retirement of the earlier PR. No replacement was created.');
         }
         const ordinal = (attempt?.attempt || 0) + 1;
@@ -171,10 +186,10 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
         op.reserve();
         const tree = await op.ask('/git/trees', write({ base_tree: main.tree.sha, tree: entries }));
         if (!SHA.test(tree.sha || '')) throw retry();
-        const next = await op.ask('/git/commits', write({ tree: tree.sha, parents: [mainHead], message: `[CF-Pages-Skip] Publish: ${filename}\n\nCMS-Publication-v1: ${JSON.stringify({ area, filename, selectedHead: head, attempt: ordinal })}` }));
+        const next = await op.ask('/git/commits', write({ tree: tree.sha, parents: [mainHead], message: `[CF-Pages-Skip] Publish: ${filename}\n\nCMS-Publication-v1: ${JSON.stringify({ area, filename, selectedHead: head, attempt: ordinal, ...actionMetadata(action) })}` }));
         if (!SHA.test(next.sha || '')) throw retry();
         attempt = { branch, head: next.sha, base: mainHead, attempt: ordinal };
-        const state = { path: draft.path, selectedHead: head, attempts: [...(held.state?.attempts || []), attempt] };
+        const state = { path: draft.path, selectedHead: head, ...actionMetadata(action), attempts: [...(held.state?.attempts || []), attempt] };
         const nextState = await op.ask('/git/commits', write({ tree: main.tree.sha, parents: [stateHead || mainHead], message: `[CF-Pages-Skip] Publication coordinator\n\nCMS-Publication-State-v1: ${JSON.stringify(state)}` }));
         if (!SHA.test(nextState.sha || '')) throw retry();
         if (await op.ref('heads/main') !== mainHead) throw fail(409, 'Main changed during preparation. Retry this same saved revision.');
@@ -185,7 +200,7 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
         } catch {
           const actual = await op.coordinator(draft);
           if (!actual.state) throw retry();
-          if (actual.state.selectedHead !== head) throw fail(409, 'Another saved revision won the publication reservation.');
+          if (actual.state.selectedHead !== head || publicationAction(actual.state.action) !== action) throw fail(409, 'Another saved revision won the publication reservation.');
           attempt = actual.state.attempts.at(-1); stateHead = actual.head;
         }
         stateHead ||= nextState.sha;
@@ -195,11 +210,11 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
       if (await op.ref('heads/main') !== attempt.base || await op.ref(`heads/${held.branch}`) !== stateHead || await op.ref(`heads/${attempt.branch}`) !== attempt.head) throw fail(409, 'Publication changed concurrently. Retry the same saved revision.');
       if (!pr) {
         op.reserve();
-        try { pr = await op.ask('/pulls', write({ title: `Publish ${filename}`, head: attempt.branch, base: 'main', body: `Selected CMS saved revision ${head}; attempt ${attempt.attempt}. This is a proposal, not a validation result. Wait for validate and cms-publication-scope, review the diff, then merge in GitHub. Do not use Update branch; recreate through the CMS if main advances.` })); }
+        try { pr = await op.ask('/pulls', write({ title: `${action === 'unpublish' ? 'Unpublish' : 'Publish'} ${filename}`, head: attempt.branch, base: 'main', body: `Selected CMS saved revision ${head}; attempt ${attempt.attempt}. This is a proposal, not a validation result. Wait for validate and cms-publication-scope, review the diff, then merge in GitHub. Do not use Update branch; recreate through the CMS if main advances.` })); }
         catch (error) { [pr] = await op.pullRequests([attempt]); if (!pr) throw error; }
       }
       op.verifyPR(pr, attempt);
-      return response(pr, head);
+      return { ...response(pr, head), ...actionMetadata(action) };
     },
     async getPublicationStatus(area, filename, knownDraft = null) {
       const op = operation();
@@ -221,11 +236,11 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
         const prs = await op.pullRequests(held.state.attempts), pr = prs.find(pr => pr?.merged_at) || prs.at(-1);
         const index = prs.findIndex(pr => pr?.merged_at);
         const attempt = held.state.attempts[index < 0 ? held.state.attempts.length - 1 : index];
-        const extra = { selectedHead: held.state.selectedHead, newerDraft: head !== held.state.selectedHead, snapshotHead: attempt.head, baseHead: attempt.base, mergeHead: pr?.merge_commit_sha };
+        const extra = { ...actionMetadata(held.state.action), selectedHead: held.state.selectedHead, newerDraft: head !== held.state.selectedHead, snapshotHead: attempt.head, baseHead: attempt.base, mergeHead: pr?.merge_commit_sha };
         if (await op.ref(`heads/${held.branch}`) !== held.head) throw retry();
         if (!pr) return { state: 'reserved', message: 'Snapshot reserved; retry PR creation for this saved revision.', ...extra };
         const result = response(pr, held.state.selectedHead);
-        if (result.state === 'pr-open' && pr.mergeable === false) return { ...result, ...extra, state: 'conflict', message: 'PR has conflicts. If main advanced, recreate this saved revision through the CMS.' };
+        if (result.state === 'pr-open' && (pr.mergeable === false || await op.ref('heads/main') !== attempt.base)) return { ...result, ...extra, state: 'conflict', message: 'PR has conflicts. If main advanced, recreate this saved revision through the CMS.' };
         return { ...result, ...extra };
       } catch (error) {
         if ([401, 403].includes(error.status)) throw error;

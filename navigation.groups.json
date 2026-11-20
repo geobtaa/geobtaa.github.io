@@ -1,0 +1,109 @@
+[
+  {
+    "id": "about",
+    "label": "About",
+    "landing": "/about/about-us/",
+    "sidebar": [
+      {
+        "kind": "autogenerate",
+        "label": "About",
+        "directory": "about",
+        "collapsed": false
+      },
+      {
+        "kind": "autogenerate",
+        "label": "Team",
+        "directory": "team",
+        "collapsed": false
+      },
+      {
+        "kind": "autogenerate",
+        "label": "Projects",
+        "directory": "projects",
+        "collapsed": false
+      },
+      {
+        "kind": "autogenerate",
+        "label": "Scholarship",
+        "directory": "scholarship",
+        "collapsed": false
+      },
+      {
+        "kind": "link",
+        "label": "Document Library",
+        "link": "/library/"
+      }
+    ]
+  },
+  {
+    "id": "resources",
+    "label": "Find & Use Data",
+    "landing": "/guides/",
+    "sidebar": [
+      {
+        "kind": "autogenerate",
+        "label": "Find data",
+        "directory": "guides",
+        "collapsed": false
+      },
+      {
+        "kind": "autogenerate",
+        "label": "Tutorials",
+        "directory": "tutorials",
+        "collapsed": false
+      }
+    ]
+  },
+  {
+    "id": "metadata",
+    "label": "Metadata",
+    "landing": "/metadata/",
+    "sidebar": [
+      {
+        "kind": "autogenerate",
+        "label": "Metadata",
+        "directory": "metadata",
+        "collapsed": false
+      }
+    ]
+  },
+  {
+    "id": "conference",
+    "label": "Conference",
+    "landing": "/conference/",
+    "sidebar": [
+      {
+        "kind": "autogenerate",
+        "label": "Conference",
+        "directory": "conference",
+        "collapsed": false
+      }
+    ]
+  },
+  {
+    "id": "blog",
+    "label": "News & Stories",
+    "landing": "/blog/",
+    "sidebar": [
+      {
+        "kind": "link",
+        "label": "News & Stories",
+        "link": "/blog/"
+      },
+      {
+        "kind": "autogenerate",
+        "label": "Program Updates",
+        "directory": "updates",
+        "collapsed": true,
+        "sort": "reverse-date"
+      },
+      {
+        "kind": "autogenerate",
+        "label": "Blog Posts",
+        "directory": "posts",
+        "collapsed": true,
+        "sort": "reverse-date"
+      }
+    ]
+  }
+]

@@ -1,3 +1,4 @@
+import { draftLinkWarnings } from './scripts/draft-link-warnings.mjs';
 import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
 import starlight from '@astrojs/starlight';
@@ -108,7 +109,7 @@ export default defineConfig({
       plugins: [
         starlightImageZoom(),
         starlightFullViewMode({leftSidebarEnabled: false} ),
-        starlightLinksValidator(),
+        starlightLinksValidator({ exclude: await draftLinkWarnings({ groups: NAV_GROUPS }) }),
         reverseDateSidebar(),
         removeTocOverview(),
         // starlightTocOverviewCustomizer({overviewTitle: "Back to top",})

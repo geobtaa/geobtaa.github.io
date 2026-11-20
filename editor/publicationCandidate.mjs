@@ -1,3 +1,4 @@
+import { publicationContent, publicationAction } from './publicationAction.mjs';
 // Browser prepares an untrusted proposal. CI derives and verifies the same result independently.
 import { parse } from 'yaml';
 import { parseContent } from './content.mjs';
@@ -19,7 +20,9 @@ export function imageReferences(content, filename, unknown = null) {
   return refs;
 }
 
-export function preparePublicationCandidate({ content, assets }, filename) {
+export function preparePublicationCandidate({ content, assets, action = 'publish' }, filename) {
+  publicationAction(action);
+  if (action === 'unpublish') return { content: publicationContent({ action, original: content }), assets: [] };
   const references = imageReferences(content, filename);
   return { content: patchFrontmatter(content, { draft: false }), assets: Object.keys(assets).filter(path => references.has(path)) };
 }

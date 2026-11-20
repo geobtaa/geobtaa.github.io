@@ -117,7 +117,7 @@ export async function validateSourcePullRequest({ request, pr }) {
     if ([before, after].filter(Boolean).some(file => file.type !== 'blob' || file.mode !== '100644')) throw invalid(`Source changes must use regular non-executable files: ${path}.`);
     if (sensitiveSourcePath(path)) sensitiveFiles.push(path);
     if (!after) {
-      if (['.github/workflows/cms-publication-scope.yml', '.github/workflows/validate.yml', 'scripts/check-cms-publication.mjs', 'editor/publicationPolicy.mjs', 'editor/sourcePullRequest.mjs', 'editor/pullRequestEligibility.mjs'].includes(path)) throw invalid(`Required validation machinery cannot be deleted: ${path}.`);
+      if (['.github/workflows/cms-publication-scope.yml', '.github/workflows/validate.yml', 'scripts/check-cms-publication.mjs', 'editor/publicationPolicy.mjs', 'editor/sourcePullRequest.mjs', 'editor/pullRequestEligibility.mjs', 'editor/publicationAction.mjs', 'editor/publicationCoordinator.mjs', 'editor/publication-capabilities.json'].includes(path)) throw invalid(`Required validation machinery cannot be deleted: ${path}.`);
       continue;
     }
     const value = await bytes(after);

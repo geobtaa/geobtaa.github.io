@@ -204,6 +204,7 @@ async function contentApi(request, env, pathname) {
     const route = contentRoute(pathname.replace('/api/publish/', '/api/content/'));
     if (!route?.filename) throw new HttpError(400, 'A saved document is required.');
     const input = await request.json();
+      if (input.action !== undefined && input.action !== 'publish') throw Object.assign(new Error('Unpublish submissions are not enabled. Install trusted validation before enabling this feature.'), { status: 403 });
     return json(await (input.prepare === true ? github.preparePublication({ ...route, head: input.head }) : github.publishContent({ ...route, head: input.head, candidate: input.candidate })));
   }
   if (request.method === 'GET' && pathname === '/api/content') return json({ areas: CONTENT_AREAS });

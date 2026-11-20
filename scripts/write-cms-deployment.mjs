@@ -12,13 +12,19 @@ export async function buildDeploymentMarker({ sha, runId, runAttempt, repository
   for (const file of files) {
     if (!isRoutedDocument(file.path) || file.mode !== '100644' || file.type !== 'blob') continue;
     const source = await readSource(file.path);
-    if (contentVisibility(source).draft) continue;
+    const draft = contentVisibility(source).draft;
     const route = documentRoute(file.path.slice('src/content/docs/'.length), documentSlug(source));
     if (route.split('/').some(part => ['.', '..'].includes(part))) throw new Error('Invalid production route.');
-    let html; try { html = await readOutput(route); } catch { continue; } // A non-rendered document is never confirmed live.
+    let html;
+    try { html = await readOutput(route); } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      if (draft) { documents[file.path] = { blob: file.sha, route, draft: true }; continue; }
+      continue; // A non-rendered document is never confirmed live.
+    }
+    if (draft) throw new Error(`Draft document unexpectedly rendered at /${route}/.`);
     documents[file.path] = { blob: file.sha, route, htmlHash: createHash('sha256').update(html).digest('hex') };
   }
-  return { version: 1, repository, sha, runId, runAttempt, environment: 'github-pages', workflow: '.github/workflows/astro.yml', documents };
+  return { version: 2, repository, sha, runId, runAttempt, environment: 'github-pages', workflow: '.github/workflows/astro.yml', documents };
 }
 async function main() {
   const git = args => execFileSync('git', args, { encoding: 'utf8' });
