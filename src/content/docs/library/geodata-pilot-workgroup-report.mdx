@@ -7,7 +7,10 @@ authors:
    - name: Geodata Pilot Collection Workgroup
 tags:
 - reports
+draft: false
 ---
+
+import { Card as CmsCard } from '@astrojs/starlight/components';
 
 The BTAA-GIN Geodata Pilot Workgroup met from Q1 2024-Q1 2025 to develop preliminary recommendations for building a geodata collection. The workgroup laid the groundwork for a geodata collection program, focusing on technical infrastructure, metadata standards, and workflows.
 
@@ -21,17 +24,12 @@ This proactive approach will allow us to document as much as possible at the out
 
 ### Activities
 
-* Expanded and refined the metadata profile to support more detailed documentation.
-
-* Oversaw the implementation of asset storage and data ingest functionality into the technology stack.
-
-* Vetted Python scripts for automating metadata extraction, data processing, and technical validation.
-
-* Established a plan to use web-friendly data derivatives, such as Cloud Optimized GeoTIFFs (COGs), PM Tiles, and visual thumbnails to enhance accessibility.
-
-* Assembled a pilot collection of 35 curated items, showcasing diverse formats and the implementation of new metadata features. This collection will be used as a proof of concept when communicating with potential partners.
-
-* Developed a prototype model for documenting dataset fields and values in simple tables based on the “Entity and Attributes” section of the FGDC standard.
+- Expanded and refined the metadata profile to support more detailed documentation.
+- Oversaw the implementation of asset storage and data ingest functionality into the technology stack.
+- Vetted Python scripts for automating metadata extraction, data processing, and technical validation.
+- Established a plan to use web-friendly data derivatives, such as Cloud Optimized GeoTIFFs (COGs), PM Tiles, and visual thumbnails to enhance accessibility.
+- Assembled a pilot collection of 35 curated items, showcasing diverse formats and the implementation of new metadata features. This collection will be used as a proof of concept when communicating with potential partners.
+- Developed a prototype model for documenting dataset fields and values in simple tables based on the “Entity and Attributes” section of the FGDC standard.
 
 ### Challenges
 
@@ -49,15 +47,13 @@ This proactive approach will allow us to document as much as possible at the out
 
 Whenever possible, we built on existing models and tools to avoid reinventing the wheel, leveraging prior art to inform and streamline our work.
 
-* The BTAA Geoportal uses a local profile of OGM Aardvark metadata, which already provides a strong foundation for geospatial metadata. Following Aardvark’s established guidelines, we extended the profile with additional fields from DCAT and Dublin Core. In particular, we integrated elements from:  
-  * [DCAT-3 US Profile](https://doi-do.github.io/dcat-us/): A schema tailored for the United States, designed for interoperability.  
-  * [GeoDCAT](https://semiceu.github.io/GeoDCAT-AP/drafts/latest/): A geospatial adaptation of DCAT, incorporating several geospatial-specific fields.
-
-* Insights from Jaime Martindale’s work at UW-Madison’s Robinson Map Library provided valuable insights, including establishing minimum metadata requirements and best practices for engaging with data providers.
-
-* For metadata processing, we adapted scripts based on existing tools:  
-* [GeoDCT](https://github.com/mkernik/geodct) by Melinda Kernik: For creating file inventories and documenting fields.  
-* [Geospatial Metadata Toolkit](https://github.com/kimdurante/Geospatial-Metadata-Toolkit) by Kim Durante: For extracting technical metadata values.
+- The BTAA Geoportal uses a local profile of OGM Aardvark metadata, which already provides a strong foundation for geospatial metadata. Following Aardvark’s established guidelines, we extended the profile with additional fields from DCAT and Dublin Core. In particular, we integrated elements from:  
+  - [DCAT-3 US Profile](https://doi-do.github.io/dcat-us/): A schema tailored for the United States, designed for interoperability.  
+  - [GeoDCAT](https://semiceu.github.io/GeoDCAT-AP/drafts/latest/): A geospatial adaptation of DCAT, incorporating several geospatial-specific fields.
+- Insights from Jaime Martindale’s work at UW-Madison’s Robinson Map Library provided valuable insights, including establishing minimum metadata requirements and best practices for engaging with data providers.
+- For metadata processing, we adapted scripts based on existing tools:  
+- [GeoDCT](https://github.com/mkernik/geodct) by Melinda Kernik: For creating file inventories and documenting fields.  
+- [Geospatial Metadata Toolkit](https://github.com/kimdurante/Geospatial-Metadata-Toolkit) by Kim Durante: For extracting technical metadata values.
 
 ### Areas of Discussion and Decisions
 
@@ -65,17 +61,17 @@ Whenever possible, we built on existing models and tools to avoid reinventing th
 
 The workgroup considered what kind of data would be included in the pilot collection to be test and represent our goals. They scanned multiple data clearinghouses and portals and chose resources with a range across the following characteristics:
 
-* Geographic coverage: Maryland, New Jersey, Indiana, Illinois, and Minnesota  
-* Administrative levels: State, county, and municipal  
-* Temporal coverage: Current (2024) and historical (1970s, 2000s)  
-* Formats: Vector, raster, and databases  
-* Theme: Foundational layers (such as roads, parcels, and zoning) and high value layers (land cover/land use).
+- Geographic coverage: Maryland, New Jersey, Indiana, Illinois, and Minnesota  
+- Administrative levels: State, county, and municipal  
+- Temporal coverage: Current (2024) and historical (1970s, 2000s)  
+- Formats: Vector, raster, and databases  
+- Theme: Foundational layers (such as roads, parcels, and zoning) and high value layers (land cover/land use).
 
 #### What to use for a staging area
 
 A Box account was established as the primary staging area for data processing and temporary storage. While this solution provided an immediate workspace, discussions highlighted the need for a scalable and sustainable staging infrastructure to support long-term data management.
 
-#### How to approach geodata processing 
+#### How to approach geodata processing
 
 To maintain data integrity, the workgroup decided to retain datasets in their original formats, avoiding reprojections or format conversions whenever possible. Additionally, new Python scripts were reviewed to facilitate the extraction of technical metadata, including file attributes, coordinate systems, and bounding box information, ensuring that essential metadata could be captured efficiently.
 
@@ -83,11 +79,11 @@ To maintain data integrity, the workgroup decided to retain datasets in their or
 
 Metadata discussions emphasized the importance of incorporating technical and administrative details, such as projections and data sources. Several new fields were proposed to enhance metadata completeness:
 
-* Provenance (`dct_provenanceStatement_sm`)  
-* Coordinate reference system (`dct_conformsTo_sm`)  
-* Spatial resolution (`dcat_spatialResolutionInMeters_s`)   
-* Scale (`geocat_spatialResolutionInText_sm`)  
-* Geographic extent (`b1g_dct_extent_sm`)
+- Provenance (`dct_provenanceStatement_sm`)  
+- Coordinate reference system (`dct_conformsTo_sm`)  
+- Spatial resolution (`dcat_spatialResolutionInMeters_s`)   
+- Scale (`geocat_spatialResolutionInText_sm`)  
+- Geographic extent (`b1g_dct_extent_sm`)
 
 The group noted that numeric spatial resolution might only be useful for raster formats, as vector data often lacks standardized measurement criteria. For vector data, they approved a plain text field to hold scale descriptions. The group also explored strategies for organizing records into dataset series based on geographic coverage or temporal range, but did not recommend a formal solution.
 
@@ -103,7 +99,11 @@ The group conducted a final review of the pilot collection within the developmen
 
 With the pilot phase concluding, the workgroup recommended sunsetting its activities and transitioning to a new phase. The "Foundations" phase, set to begin in early 2025, will focus on collaborating with data providers to establish exchange workflows and build an initial collection. The new workgroup will explore potential partnerships with other institutions to expand and strengthen the collection.
 
-* **Partnerships:** We will partner with data providers to develop a process for exchanging resources.  
-* **Technology:** We will continue to enhance the BTAA Geoportal and backend management tools.  
-* **Collections:** We will curate real-world data submissions to build our first official collections.  
-* **Curation Plan:** We will release a formal plan that documents our goals, workflows, and guidelines.
+- **Partnerships:** We will partner with data providers to develop a process for exchanging resources.  
+- **Technology:** We will continue to enhance the BTAA Geoportal and backend management tools.  
+- **Collections:** We will curate real-world data submissions to build our first official collections.  
+- **Curation Plan:** We will release a formal plan that documents our goals, workflows, and guidelines.
+
+
+
+
