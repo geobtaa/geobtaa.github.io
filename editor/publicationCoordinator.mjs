@@ -1,3 +1,4 @@
+import { publicationAction } from './publicationAction.mjs';
 // Shared append-only coordinator verification; used unchanged by submission and CI.
 const failure = (status, message) => Object.assign(new Error(message), { status });
 export function publicationState(value, path) {
@@ -5,6 +6,7 @@ export function publicationState(value, path) {
   let state;
   try { if (lines?.length !== 1) throw new Error(); state = JSON.parse(lines[0].slice('CMS-Publication-State-v1: '.length)); } catch { throw failure(409, 'Publication coordinator is corrupt. Ask a maintainer; do not delete its lock.'); }
   if (state.path !== path || !/^[a-f0-9]{40}$/.test(state.selectedHead || '') || !Array.isArray(state.attempts) || !state.attempts.length || state.attempts.some((item, index) => !/^[a-f0-9]{40}$/.test(item.head || '') || !/^[a-f0-9]{40}$/.test(item.base || '') || typeof item.branch !== 'string' || item.attempt !== index + 1)) throw failure(409, 'Invalid publication coordinator history.');
+  publicationAction(state.action);
   return state;
 }
 export async function readPublicationState(head, path, commit) {
@@ -18,7 +20,7 @@ export async function readPublicationState(head, path, commit) {
       break;
     }
     const previous = publicationState(parent, path);
-    if (previous.selectedHead !== latest.selectedHead || previous.attempts.length !== current.attempts.length - 1 || JSON.stringify(previous.attempts) !== JSON.stringify(current.attempts.slice(0, -1))) throw failure(409, 'Publication attempt history was rewritten.');
+    if (publicationAction(previous.action) !== publicationAction(latest.action) || previous.selectedHead !== latest.selectedHead || previous.attempts.length !== current.attempts.length - 1 || JSON.stringify(previous.attempts) !== JSON.stringify(current.attempts.slice(0, -1))) throw failure(409, 'Publication attempt history was rewritten.');
     current = previous; value = parent;
   }
   return latest;

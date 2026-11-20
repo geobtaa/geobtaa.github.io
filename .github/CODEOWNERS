@@ -31,3 +31,5 @@
 /public/_redirects @karenmajewicz
 /wrangler.jsonc @karenmajewicz
 /wrangler.toml @karenmajewicz
+
+/navigation.groups.json @karenmajewicz

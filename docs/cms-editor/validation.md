@@ -101,3 +101,11 @@ The implementation and tests live in `editor/`; React editor components live in 
 The trusted checker on main before this rename rejects deletion of three validation modules at their old paths and requires the old browser-test command. Four temporary forwarding files remain in `editor-prototype/`: three module re-exports and a browser-suite entry point that discovers and imports every `editor/*.browser.mjs` file. No application implementation remains there. Local npm commands already use the new paths.
 
 After this migration reaches main, a follow-up PR can switch the workflow browser command to `node --test --test-concurrency=1 editor/*.browser.mjs`, remove the four forwarding files, and remove the legacy command allowance and ownership entry. The relocated validator protects the new validation module paths. Do not remove the bridge before the trusted base supports the new contract.
+
+## Unpublish release stages
+
+Stage 1 adds action-bound immutable publication validation, the draft-aware production marker, and exact-route link warnings. Unpublish HTTP submissions remain blocked. Navigation data lives in `navigation.groups.json`, shared by the normal navigation configuration and publication preflight so hosted code never evaluates repository TypeScript.
+
+Stage 2 adds the editor action and read-only deployment verification. `CMS_UNPUBLISH_ENABLED` defaults to disabled and is independent of `CMS_PUBLISH_ENABLED`. Enable it only after Stage 1 has merged into main, its required checks have passed, and the updated production marker has been deployed through the normal reviewed release process. Main must contain the matching publication capability before an unpublish request is accepted. Do not merge or deploy automatically.
+
+Run `npm run test:editor:publication` sequentially with other builds. It temporarily creates draft fixtures in each editor area, checks production route/sitemap exclusion and visible inbound-link warnings, then proves unrelated broken links and bad anchors on republished pages remain fatal. Fixtures and build output are removed afterward. Source and publication tests cover action identity, frontmatter preservation, stale requests, sidebar blockers, working-draft preservation, and unpublish/edit/republish cycles.

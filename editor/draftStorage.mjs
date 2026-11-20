@@ -1,3 +1,5 @@
+import { sidebarBlockers } from './publicationRoutes.mjs';
+import { publicationAction, publicationContent } from './publicationAction.mjs';
 import { digest, documentPath, draftBranch, draftMetadata, publicationBaseKey } from './draftIdentity.mjs';
 import { activeDraft, draftHeads, selectDraft } from './draftCycles.mjs';
 export { documentPath, draftBranch } from './draftIdentity.mjs';
@@ -192,7 +194,8 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     if (status.state !== 'merged' || !/^[a-f0-9]{40}$/.test(status.mergeHead || '') || !status.snapshotHead) return null;
     const published = baseline.files.get(draft.meta.path), frozen = await snapshot(status.baseHead);
     const submitted = await inspect(draft.branch, status.selectedHead, { head: status.baseHead, files: frozen });
-    const expected = patchFrontmatter(submitted.content, { draft: false });
+    const original = frozen.get(draft.meta.path);
+    const expected = publicationContent({ action: status.action, saved: submitted.content, original: status.action === 'unpublish' && original ? await text(original) : '' });
     const snapshotFiles = await snapshot(status.snapshotHead);
     if (!published || published.sha !== await gitBlobSha(expected) || snapshotFiles.get(draft.meta.path)?.sha !== published.sha) return null;
     const comparison = await compare(status.mergeHead, baseline.head);
@@ -339,7 +342,8 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     return saved;
   }
   // Publication reads immutable saved objects. It never advances the working ref.
-  async function publicationPlan(area, filename, selectedHead, baseline = null, { historical = false } = {}) {
+  async function publicationPlan(area, filename, selectedHead, baseline = null, { historical = false, action = 'publish' } = {}) {
+    publicationAction(action);
     const path = documentPath(area, filename);
     if (!/^[a-f0-9]{40}$/.test(selectedHead || '')) throw failure(400, 'Select a saved document revision before publishing.');
     baseline ||= await main();
@@ -351,7 +355,13 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     const draft = await inspect(branch, selectedHead, baseline);
     if (draft.mainChanged) throw failure(409, 'The public document changed since this draft began. A maintainer must reconcile the versions before publishing.');
     const original = baseline.files.has(path) ? await text(baseline.files.get(path)) : '';
-    const content = patchFrontmatter(draft.content, { draft: false });
+    const content = publicationContent({ action, saved: draft.content, original });
+    if (action === 'unpublish') {
+      const navigation = baseline.files.get('navigation.groups.json');
+      if (!navigation) throw failure(409, 'Navigation configuration is unavailable. Ask a maintainer.');
+      const blockers = sidebarBlockers(JSON.parse(await text(navigation)), documentRoute(`${area}/${filename}`, documentSlug(original)));
+      if (blockers.length) throw failure(409, `Cannot unpublish: explicit navigation entry ${blockers.join(', ')}.`);
+    }
     if (typeof parseContent(content).title !== 'string' || !parseContent(content).title.trim()) throw failure(400, 'A publication requires a title.');
     if (documentSlug(content) !== documentSlug(original || draft.content)) throw failure(409, 'Publication cannot change the document URL.');
     // Unknown/frontmatter execution hooks are preserved from main, never authorized
@@ -399,7 +409,7 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     try { meta = JSON.parse(lines[0].slice('CMS-Publication-v1: '.length)); } catch { throw failure(409, 'Invalid publication metadata.'); }
     const baseline = await main();
     if (value.parents[0].sha !== baseline.head) throw failure(409, 'Publication must be rebuilt and reviewed against current main.');
-    const plan = await publicationPlan(meta.area, meta.filename, meta.selectedHead, baseline);
+    const plan = await publicationPlan(meta.area, meta.filename, meta.selectedHead, baseline, { action: publicationAction(meta.action) });
     if (branch !== `${plan.branch}-${baseline.head}-${meta.attempt}` || !Number.isSafeInteger(meta.attempt) || meta.attempt < 1) throw failure(409, 'Publication branch identity mismatch.');
     const files = await snapshot(head), expected = new Map(baseline.files);
     for (const entry of plan.entries) expected.set(entry.path, { ...entry, sha: entry.sha || await gitBlobSha(entry.content) });
@@ -409,7 +419,7 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     const state = await readPublicationState(stateHead, plan.path, commit);
     if (await ref(`tags/cms-publication-locks/${plan.identity}-${publicationBaseKey((await inspect(await draftBranch(meta.area, meta.filename, draftMetadata(await commit(meta.selectedHead))), meta.selectedHead, baseline)).meta)}`) !== state.attempts[0].head) throw failure(409, 'Publication lock identity mismatch.');
     const active = state.attempts.at(-1);
-    if (state.selectedHead !== meta.selectedHead || active?.head !== head || active?.branch !== branch) throw failure(409, 'This publication attempt was superseded.');
+    if (publicationAction(state.action) !== publicationAction(meta.action) || state.selectedHead !== meta.selectedHead || active?.head !== head || active?.branch !== branch) throw failure(409, 'This publication attempt was superseded.');
     return plan;
   }
   return {

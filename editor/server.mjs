@@ -84,6 +84,7 @@ export const createEditorServer = (github) => http.createServer(async (request, 
       const route = contentRoute(url.pathname.replace('/api/publish/', '/api/content/'));
       if (!route?.filename) throw Object.assign(new Error('A saved document is required.'), { status: 400 });
       const input = await readJson(request);
+      if (input.action !== undefined && input.action !== 'publish') throw Object.assign(new Error('Unpublish submissions are not enabled. Install trusted validation before enabling this feature.'), { status: 403 });
       return respond(response, 200, await (input.prepare === true ? github.preparePublication({ ...route, head: input.head }) : github.publishContent({ ...route, head: input.head, candidate: input.candidate })), origin);
     }
     if (url.pathname === '/api/content') return respond(response, 200, { areas: CONTENT_AREAS }, origin);
