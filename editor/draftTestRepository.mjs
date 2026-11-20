@@ -24,7 +24,7 @@ export async function draftTestRepository(initial = {}) {
   }
   refs.set('refs/heads/main', await makeCommit(initialFiles));
   const filesAt = ref => trees.get(commits.get(refs.get(ref) || ref).tree.sha);
-  const repository = { pulls: [], autoMergeFailure: false, objects, trees, commits, refs, requests, fault: '', unavailable: false, pageSize: 100, beforeMutation: null, push: true,
+  const repository = { pulls: [], autoMergeFailure: false, objects, trees, commits, refs, requests, fault: '', unavailable: false, pageSize: 100, beforeMutation: null, beforeAuthorization: null, loseAuthorizationResponse: false, allowAutoMerge: true, deleteBranchesOnMerge: false, push: true,
     filesAt,
     compatFiles(prefix) {
       const branchFor = path => [...refs].find(([name, head]) => name.startsWith('refs/heads/cms/drafts/') && commits.get(head).message.includes(`"path":${JSON.stringify(path)}`))?.[0] || 'refs/heads/main';
@@ -54,7 +54,7 @@ export async function draftTestRepository(initial = {}) {
       const fail = status => { throw Object.assign(new Error('GitHub conflict or missing object'), { status }); };
       if (path === '/branches/main/protection') return repository.protection || { required_status_checks: { strict: true, checks: ['validate', 'cms-publication-scope'].map(context => ({ context, app_id: 15368 })) }, enforce_admins: { enabled: true }, required_pull_request_reviews: { required_approving_review_count: 0, require_code_owner_reviews: false, dismiss_stale_reviews: true }, allow_force_pushes: { enabled: false }, allow_deletions: { enabled: false }, restrictions: null };
       if (path === '/rules/branches/main') return repository.rules || [];
-      if (path === '') return { allow_auto_merge: true, allow_squash_merge: true, node_id: 'repo-id', permissions: { push: repository.push } };
+      if (path === '') return { allow_auto_merge: repository.allowAutoMerge !== false, allow_squash_merge: true, delete_branch_on_merge: repository.deleteBranchesOnMerge, node_id: 'repo-id', permissions: { push: repository.push } };
       if (url.pathname.endsWith('/check-runs')) return { total_count: 0, check_runs: [] };
       if (/^\/pulls\/\d+$/.test(url.pathname)) {
         const pr = repository.pulls.find(pr => pr.number === Number(url.pathname.split('/').at(-1)));
@@ -104,7 +104,7 @@ export async function draftTestRepository(initial = {}) {
           const found = {};
           for (const [, alias, name] of input.query.matchAll(/(p\d+):pullRequests\(headRefName:("[^"\n]+")/g)) {
             const branch = JSON.parse(name);
-            found[alias] = { nodes: repository.pulls.filter(pr => pr.head.ref === branch).map(pr => ({ number: pr.number, id: pr.node_id, url: pr.html_url, state: pr.merged_at ? 'MERGED' : pr.state.toUpperCase(), mergedAt: pr.merged_at || null, mergeCommit: pr.merge_commit_sha ? { oid: pr.merge_commit_sha } : null, headRefName: pr.head.ref, headRefOid: pr.head.sha, baseRefName: pr.base.ref, headRepository: { nameWithOwner: pr.head.repo.full_name }, commits: { nodes: [{ commit: { statusCheckRollup: { state: pr.checksFailed ? 'FAILURE' : 'SUCCESS' } } }] }, mergeable: pr.mergeable === false ? 'CONFLICTING' : 'UNKNOWN' })) };
+            found[alias] = { nodes: repository.pulls.filter(pr => pr.head.ref === branch).map(pr => ({ number: pr.number, id: pr.node_id, url: pr.html_url, state: pr.merged_at ? 'MERGED' : pr.state.toUpperCase(), mergedAt: pr.merged_at || null, mergeCommit: pr.merge_commit_sha ? { oid: pr.merge_commit_sha } : null, headRefName: pr.head.ref, headRefOid: pr.head.sha, baseRefName: pr.base.ref, headRepository: { nameWithOwner: pr.head.repo.full_name }, commits: { nodes: [{ commit: { statusCheckRollup: { state: pr.checksFailed ? 'FAILURE' : 'SUCCESS' } } }] }, autoMergeRequest: pr.auto_merge ? {enabledAt:'2026-11-20T00:00:00Z',mergeMethod:'SQUASH',enabledBy:{login:'editor'}} : null, mergeStateStatus: pr.mergeState || 'BLOCKED', reviewDecision: pr.reviewDecision || null, mergeable: pr.mergeable === false ? 'CONFLICTING' : 'UNKNOWN' })) };
           }
           return { data: { repository: found } };
         }
@@ -117,12 +117,19 @@ export async function draftTestRepository(initial = {}) {
           }
           return { data: { repository: found } };
         }
-        if (input.query.includes('mutation CMSPublish')) {
-          if (repository.autoMergeFailure) return { errors: [{ message: 'Required policy prevents auto-merge' }] };
-          const pr = repository.pulls.find(pr => pr.node_id === input.variables.input.pullRequestId);
-          if (input.variables.input.expectedHeadOid !== pr.head.sha) fail(409);
-          pr.auto_merge = true;
-          return { data: { enablePullRequestAutoMerge: { pullRequest: { id: pr.node_id } } } };
+        if (input.query.includes('mutation CMSPublicationAuthorization')) {
+          if (repository.beforeAuthorization) { const hook=repository.beforeAuthorization; repository.beforeAuthorization=null; await hook(); }
+          const value=input.variables.input, pr=repository.pulls.find(pr=>pr.node_id===value.pullRequestId);
+          if (repository.autoMergeFailure) return {errors:[{message:'Required policy prevents auto-merge',type:'FORBIDDEN'}]};
+          if (!pr || value.expectedHeadOid && value.expectedHeadOid !== pr.head.sha) fail(409);
+          const method=input.query.includes('disablePullRequestAutoMerge')?'disablePullRequestAutoMerge':input.query.includes('mergePullRequest(')?'mergePullRequest':'enablePullRequestAutoMerge';
+          if (method==='mergePullRequest') {
+            if (pr.mergeState!=='CLEAN' || pr.checksFailed || pr.reviewDecision==='CHANGES_REQUESTED' || commits.get(pr.head.sha).parents[0].sha !== refs.get('refs/heads/main')) fail(409);
+            const sha=await makeCommit(filesAt(pr.head.sha),refs.get('refs/heads/main'),'Squash merge'); refs.set('refs/heads/main',sha);
+            Object.assign(pr,{state:'closed',merged_at:'2026-11-20T00:00:00Z',merge_commit_sha:sha,auto_merge:false});
+          } else pr.auto_merge=method==='enablePullRequestAutoMerge';
+          if (repository.loseAuthorizationResponse) { repository.loseAuthorizationResponse=false; fail(503); }
+          return {data:{[method]:{pullRequest:{id:pr.node_id}}}};
         }
 
         if (input.query.includes('query CMSDrafts')) {

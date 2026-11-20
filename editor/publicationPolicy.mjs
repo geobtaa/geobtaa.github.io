@@ -8,6 +8,7 @@ export async function verifyPublicationPolicy(request, { manual = false } = {}) 
   const reject = detail => { throw blocked(`Publication policy blocked: ${detail}. Ask a maintainer to correct repository policy; no protection bypass is supported.`); };
   if (!Array.isArray(rules) || rules.length) reject('ruleset protection is unsupported; review effective rules before enabling publishing');
   if ((!manual && repo.allow_auto_merge !== true) || repo.allow_squash_merge !== true) reject(manual ? 'squash merges must be enabled' : 'native auto-merge and squash merges must be enabled');
+  if (!manual && repo.delete_branch_on_merge !== false) reject('automatic head-branch deletion must be disabled to retain CMS snapshots');
   if (policy.enforce_admins?.enabled !== true) reject('administrator enforcement is required');
   if (policy.allow_force_pushes?.enabled !== false || policy.allow_deletions?.enabled !== false) reject('force pushes and deletion must be disabled');
   if (policy.restrictions != null) reject('restricted push actors require an explicit compatibility review');

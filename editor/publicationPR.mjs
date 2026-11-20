@@ -79,14 +79,14 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
     async function pullRequests(attempts) {
       const output = [];
       for (let offset = 0; offset < attempts.length; offset += 16) {
-        const fields = attempts.slice(offset, offset + 16).map((item, i) => `p${i}:pullRequests(headRefName:${JSON.stringify(item.branch)},baseRefName:"main",first:2,states:[OPEN,CLOSED,MERGED]){nodes{number id url state mergedAt headRefName headRefOid baseRefName headRepository{nameWithOwner} mergeCommit{oid} mergeable commits(last:1){nodes{commit{statusCheckRollup{state}}}}}}`).join('\n');
+        const fields = attempts.slice(offset, offset + 16).map((item, i) => `p${i}:pullRequests(headRefName:${JSON.stringify(item.branch)},baseRefName:"main",first:2,states:[OPEN,CLOSED,MERGED]){nodes{number id url state mergedAt headRefName headRefOid baseRefName headRepository{nameWithOwner} mergeCommit{oid} mergeable mergeStateStatus reviewDecision autoMergeRequest{mergeMethod enabledAt enabledBy{login}} commits(last:1){nodes{commit{statusCheckRollup{state}}}}}}`).join('\n');
         const data = await query(`query CMSPublicationPRs($owner:String!,$repo:String!){repository(owner:$owner,name:$repo){${fields}}}`);
         for (const [i, attempt] of attempts.slice(offset, offset + 16).entries()) {
           const nodes = data[`p${i}`]?.nodes;
           if (!Array.isArray(nodes) || nodes.length > 1) throw fail(503, 'Publication PR identity is uncertain. Ask a maintainer; no replacement was created.');
           const value = nodes[0];
           if (!value) { output.push(null); continue; }
-          const pr = { number: value.number, node_id: value.id, html_url: value.url, state: value.state === 'OPEN' ? 'open' : 'closed', merged_at: value.mergedAt, merge_commit_sha: value.mergeCommit?.oid, mergeable: value.mergeable === 'CONFLICTING' ? false : null, checksFailed: ['ERROR', 'FAILURE'].includes(value.commits?.nodes?.[0]?.commit?.statusCheckRollup?.state), head: { ref: value.headRefName, sha: value.headRefOid, repo: { full_name: value.headRepository?.nameWithOwner } }, base: { ref: value.baseRefName } };
+          const pr = { number: value.number, node_id: value.id, html_url: value.url, state: value.state === 'OPEN' ? 'open' : 'closed', merged_at: value.mergedAt, merge_commit_sha: value.mergeCommit?.oid, mergeable: value.mergeable === 'CONFLICTING' ? false : null, autoMerge: value.autoMergeRequest === null ? false : value.autoMergeRequest?.enabledAt ? true : null, autoMergeMethod: value.autoMergeRequest?.mergeMethod, mergeState: value.mergeStateStatus, reviewDecision: value.reviewDecision, checksState: value.commits?.nodes?.[0]?.commit?.statusCheckRollup?.state, checksFailed: ['ERROR', 'FAILURE'].includes(value.commits?.nodes?.[0]?.commit?.statusCheckRollup?.state), head: { ref: value.headRefName, sha: value.headRefOid, repo: { full_name: value.headRepository?.nameWithOwner } }, base: { ref: value.baseRefName } };
           verifyPR(pr, attempt); output.push(pr);
         }
       }
@@ -107,7 +107,7 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
     }
     return { ask, reserve, commit, ref, files, selected, coordinator, pullRequests, verifyPR };
   }
-  const response = (pr, head) => ({ state: pr.merged_at ? 'merged' : pr.state === 'closed' ? 'closed' : 'pr-open', number: pr.number, url: pr.html_url, selectedHead: head,
+  const response = (pr, head) => ({ state: pr.merged_at ? 'merged' : pr.state === 'closed' ? 'closed' : 'pr-open', number: pr.number, url: pr.html_url, selectedHead: head, ...(typeof pr.autoMerge === 'boolean' ? { autoMerge: pr.autoMerge } : {}), ...(pr.mergeState ? { mergeState: pr.mergeState, reviewDecision: pr.reviewDecision, checksState: pr.checksState } : {}),
     message: pr.merged_at ? 'PR merged. GitHub Pages handles deployment; deployment is not verified here.' : pr.state === 'closed' ? 'Publication PR closed without merging.' : 'Publication PR created. Wait for validate and cms-publication-scope to pass, then merge it in GitHub.' });
   return {
     async preparePublication({ area, filename, head, action = 'publish' }) {
@@ -214,7 +214,48 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
         catch (error) { [pr] = await op.pullRequests([attempt]); if (!pr) throw error; }
       }
       op.verifyPR(pr, attempt);
-      return { ...response(pr, head), ...actionMetadata(action) };
+      return { ...response(pr, head), snapshotHead: attempt.head, ...actionMetadata(action) };
+    },
+    // Explicit editor authorization only. GETs and ordinary submissions never call this.
+    async setPublicationAutoMerge({ area, filename, head, snapshotHead, action = 'publish', enabled }) {
+      publicationAction(action);
+      if (typeof enabled !== 'boolean' || !SHA.test(snapshotHead || '')) throw fail(400, 'Check the request status before authorizing or cancelling publication.');
+      const op = operation(), repository = await op.ask('');
+      if (!repository.permissions?.push || !repository.node_id) throw fail(403, 'Repository write permission could not be verified. Sign in again.');
+      const draft = await op.selected(area, filename, head), held = await op.coordinator(draft);
+      if (!held.state || held.state.selectedHead !== head || publicationAction(held.state.action) !== action) throw fail(409, 'The selected publication request changed. Check its status before continuing.');
+      const attempt = held.state.attempts.at(-1);
+      if (attempt.head !== snapshotHead) throw fail(409, 'This request was replaced. Check status and authorize the updated request explicitly.');
+      const snapshot = await op.commit(attempt.head);
+      const marker = `CMS-Publication-v1: ${JSON.stringify({ area, filename, selectedHead: head, attempt: attempt.attempt, ...actionMetadata(action) })}`;
+      if (snapshot.parents?.length !== 1 || snapshot.parents[0].sha !== attempt.base || snapshot.message?.split('\n').filter(line => line.startsWith('CMS-Publication-v1: ')).join('') !== marker) throw fail(409, 'Publication snapshot identity mismatch. Your saved work is safe; ask a maintainer.');
+      if (await op.ref(`heads/${held.branch}`) !== held.head || await op.ref(`heads/${attempt.branch}`) !== attempt.head) throw fail(409, 'The immutable publication request changed. Nothing was authorized.');
+      let [pr] = await op.pullRequests([attempt]);
+      if (!pr) throw fail(409, 'Create the publication request before authorizing it.');
+      const result = value => ({ ...response(value, head), snapshotHead, ...(value.merge_commit_sha ? { mergeHead: value.merge_commit_sha } : {}), ...actionMetadata(action) });
+      if (pr.merged_at) return result(pr); // Cancellation cannot undo a merge.
+      if (pr.state !== 'open') throw fail(409, 'This request was closed. Use Update publication request before authorizing it.');
+      if (enabled) {
+        await verifyPublicationPolicy(op.ask);
+        if (await op.ref('heads/main') !== attempt.base) throw fail(409, `The website changed while this request was waiting. Use Update publication request, then choose ${action === 'unpublish' ? 'Unpublish' : 'Publish'} when ready again.`);
+        const [original] = await op.files([{ head: attempt.base, path: draft.path }]);
+        if ((original?.oid || null) !== draft.meta.baseBlob) throw fail(409, 'The page changed on the website. Keep your saved work and ask a maintainer to reconcile it.');
+        if (pr.autoMerge === true && pr.autoMergeMethod !== 'SQUASH') throw fail(409, 'This request uses a different merge method. Cancel automatic publication before authorizing it again.');
+      }
+      if (pr.autoMerge === enabled) return result(pr);
+      const immediate = enabled && pr.mergeState === 'CLEAN' && pr.checksState === 'SUCCESS' && !['CHANGES_REQUESTED', 'REVIEW_REQUIRED'].includes(pr.reviewDecision);
+      const mutation = !enabled ? 'disablePullRequestAutoMerge' : immediate ? 'mergePullRequest' : 'enablePullRequestAutoMerge';
+      const inputType = !enabled ? 'DisablePullRequestAutoMergeInput' : immediate ? 'MergePullRequestInput' : 'EnablePullRequestAutoMergeInput';
+      const input = { pullRequestId: pr.node_id, ...(enabled ? { expectedHeadOid: snapshotHead, mergeMethod: 'SQUASH' } : {}) };
+      let problem;
+      try {
+        const response = await op.ask('/graphql', write({ query: `mutation CMSPublicationAuthorization($input:${inputType}!){${mutation}(input:$input){pullRequest{id}}}`, variables: { input } }));
+        if (response.errors?.length || !response.data?.[mutation]?.pullRequest?.id) problem = response.errors?.some(error => ['FORBIDDEN', 'UNAUTHORIZED'].includes(error.type)) ? 403 : 409;
+      } catch (error) { problem = error.status === 403 ? 403 : 503; }
+      // Read back even after an uncertain mutation; never infer success from transport.
+      [pr] = await op.pullRequests([attempt]);
+      if (pr?.merged_at || pr?.state === 'open' && pr.autoMerge === enabled) return result(pr);
+      throw fail(problem || 503, enabled ? 'Automatic publication could not be confirmed. Your request and draft are safe. Check status, then retry Publish when ready.' : 'Cancellation could not be confirmed. The request may still publish automatically. Check status and retry cancellation.');
     },
     async getPublicationStatus(area, filename, knownDraft = null) {
       const op = operation();
