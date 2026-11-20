@@ -46,38 +46,87 @@ test('Unpublish confirms only main visibility, preserves working content, and ne
   assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'),'Published');
   assert.match(await evaluate('document.querySelector(".tiptap").textContent'),/Saved independent editorial work/);
   assert.equal(await evaluate(`${button('Unpublish page')}.disabled`),true);
-  await evaluate(`window.failRequestStatus=true;${button('Check status')}.click()`);
+  await evaluate(`window.failRequestStatus=true;${button('Check again')}.click()`);
   await waitFor('document.querySelector(".publication-status").dataset.state==="checking"');
   assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'),'Published');
   assert.equal(await evaluate('document.querySelector(".publish-document").disabled'),true);
   assert.equal(await evaluate('document.querySelector(".publication-status a").href'),'https://github.com/geobtaa/geobtaa.github.io/pull/12');
   await evaluate('window.failRequestStatus=false');
-  await evaluate(`window.unpublishState={...window.unpublishState,state:'merged',deployment:{state:'failed'}};${button('Check status')}.click()`);
+  await evaluate(`window.unpublishState={...window.unpublishState,state:'merged',deployment:{state:'failed'}};${button('Check again')}.click()`);
   await waitFor('document.querySelector(".publication-status").textContent.includes("Website update failed")');
   assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'),'Published');
-  await evaluate(`window.unpublishState={...window.unpublishState,website:{publication:'unpublished',requestApplied:true},mainDraft:true};${button('Check status')}.click()`);
+  await evaluate(`window.unpublishState={...window.unpublishState,website:{publication:'unpublished',requestApplied:true},mainDraft:true};${button('Check again')}.click()`);
   await waitFor('document.querySelector(".publication-heading").textContent==="Unpublished"');
   assert.match(await evaluate('document.querySelector(".tiptap").textContent'),/Saved independent editorial work/);
   assert.equal(await evaluate('window.writes.length'),2);
  },{initialSearch:'?area=library&file=page.mdx'});
 });
 test('disabled unpublish and unsaved editorial work cannot submit an unpublish request; refresh retains the action',options,async()=>{
- await withEditorBrowser(fixture.replace('unpublishEnabled:true','unpublishEnabled:false'),async({evaluate,waitFor,send})=>{
+ await withEditorBrowser(fixture.replace('unpublishEnabled:true','unpublishEnabled:false').replace("state:'none',mainDraft","state:'checking',mainDraft"),async({evaluate,waitFor,send})=>{
   await waitFor(`!!${button('Unpublish page')}`);assert.equal(await evaluate(`${button('Unpublish page')}.disabled`),true);
-  await evaluate(`window.unpublishState.unpublishEnabled=true;${button('Check status')}.click()`);await waitFor(`${button('Unpublish page')}.disabled===false`);
+  await evaluate(`window.unpublishState.unpublishEnabled=true;window.unpublishState.state='none';${button('Check again')}.click()`);await waitFor(`${button('Unpublish page')}.disabled===false`);
   await evaluate('document.querySelector("#document-edit input[required]").focus()');await send('Input.insertText',{text:'Unsaved'});
   await waitFor(`${button('Unpublish page')}.disabled===true`);assert.equal(await evaluate('window.writes.length'),0);
  },{initialSearch:'?area=library&file=page.mdx'});
 });
 
-test('Refresh request retains the unpublish action and original saved revision', options, async () => {
+test('Update publication request retains the unpublish action and original saved revision', options, async () => {
  const setup = fixture.replace("createRoot(document.getElementById('root'))", `window.unpublishState={...window.unpublishState,state:'conflict',action:'unpublish',selectedHead:'${head}',number:12,url:'https://github.com/geobtaa/geobtaa.github.io/pull/12'};createRoot(document.getElementById('root'))`);
  await withEditorBrowser(setup, async ({evaluate,waitFor}) => {
-  await waitFor(`!!${button('Refresh request')}`);
+  await waitFor(`!!${button('Update publication request')}`);
   assert.equal(await evaluate('document.querySelector(".publish-document").disabled'), true, 'an active unpublish cannot be silently replaced with publish');
-  await evaluate(`${button('Refresh request')}.click()`);
+  await evaluate(`${button('Update publication request')}.click()`);
   await waitFor('window.writes.length===2');
   const writes = await evaluate('window.writes');
   assert.equal(writes[0].head,head);assert.equal(writes[0].action,'unpublish');assert.equal(writes[1].action,'unpublish');
+ },{initialSearch:'?area=library&file=page.mdx'});
+});
+
+const directFixture = fixture.replace("createRoot(document.getElementById('root'))", `
+window.record={...window.record,hasDraft:false,content:window.original,title:'Main page',body:'Public body.'};
+window.copyHead='${'e'.repeat(40)}';window.copyPreparations=0;window.copyExists=false;
+const gateway=window.fetch;
+window.fetch=async(url,options={})=>{
+ const path=new URL(String(url),location.origin).pathname;
+ if(path.startsWith('/api/publish/')&&options.method==='POST'){
+  const input=JSON.parse(options.body);
+  if(input.initialize){
+   window.writes.push(input);window.copyPreparations++;window.copyExists=true;
+   if(window.loseCopyResponse){window.loseCopyResponse=false;throw new Error('Response lost after saving copy');}
+   return Response.json({head:window.copyHead,document:{...window.record,head:window.copyHead,hasDraft:true}});
+  }
+  if(window.failSubmit&&!input.prepare){window.failSubmit=false;window.writes.push(input);throw new Error('Request submission failed');}
+ }
+ return gateway(url,options);
+};
+createRoot(document.getElementById('root'))`);
+test('unchanged pages unpublish directly only after confirmation and use the returned copy revision',options,async()=>{
+ await withEditorBrowser(directFixture,async({evaluate,waitFor})=>{
+  await waitFor(`${button('Unpublish page')}?.disabled===false`);
+  assert.equal(await evaluate('window.writes.length'),0);
+  await evaluate(`${button('Unpublish page')}.click()`);await waitFor('document.querySelector("dialog")?.open');
+  await evaluate(`${button('Cancel')}.click()`);assert.equal(await evaluate('window.copyExists'),false);
+  await evaluate(`${button('Unpublish page')}.click()`);await waitFor('document.querySelector("dialog")?.open');await evaluate(`${button('Submit unpublish request')}.click()`);
+  await waitFor('window.writes.length===3 && document.querySelector(".publication-status").dataset.state==="pr-open"');
+  const writes=await evaluate('window.writes');assert.equal(writes[0].initialize,true);assert.equal(writes[0].expectedSha,blob);
+  assert.equal(writes[1].head,'e'.repeat(40));assert.equal(writes[2].head,'e'.repeat(40));
+  assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'),'Published');
+  assert.equal(await evaluate('document.querySelector("#document-edit input[required]").value'),'Main page');
+  assert.equal(await evaluate('window.copyPreparations'),1);
+ },{initialSearch:'?area=library&file=page.mdx'});
+});
+test('a lost internal-copy response retries initialization; a later submission failure keeps the copy and open form',options,async()=>{
+ await withEditorBrowser(directFixture,async({evaluate,waitFor})=>{
+  await waitFor(`${button('Unpublish page')}?.disabled===false`);
+  const confirm=async()=>{await evaluate(`${button('Unpublish page')}.click()`);await waitFor('document.querySelector("dialog")?.open');await evaluate(`${button('Submit unpublish request')}.click()`);};
+  await evaluate('window.loseCopyResponse=true');await confirm();
+  await waitFor('document.querySelector(".message.error")?.textContent.includes("Preparation could not be confirmed")');
+  assert.equal(await evaluate('window.copyExists'),true);
+  await evaluate('window.failSubmit=true');await confirm();
+  await waitFor('document.querySelector(".message.error")?.textContent.includes("working copy is ready")');
+  assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),'All changes saved');
+  assert.equal(await evaluate('document.querySelector("#document-edit input[required]").value'),'Main page');
+  await confirm();await waitFor('document.querySelector(".publication-status").dataset.state==="pr-open"');
+  assert.equal(await evaluate('window.copyPreparations'),2,'final retry uses the already adopted copy directly');
  },{initialSearch:'?area=library&file=page.mdx'});
 });

@@ -80,7 +80,7 @@ export async function draftTestRepository(initial = {}) {
           const found={};
           for(const [,alias,encoded]of input.query.matchAll(/(o\d+):object\(expression:("(?:[^"\\]|\\.)*")/g)) {
             const expression=JSON.parse(encoded),colon=expression.indexOf(':'),head=expression.slice(0,colon),path=expression.slice(colon+1),files=filesAt(head),file=files.get(path);
-            if(file){found[alias]=file.type==='blob'?{oid:file.sha}:null;continue;}
+            if(file){found[alias]=file.type==='blob'?{oid:file.sha,...(input.query.includes('isTruncated')?{text:new TextDecoder().decode(objects.get(file.sha)),isTruncated:false}:{})}:null;continue;}
             const prefix=path+'/',entries=new Map();
             for(const [name,value]of files)if(name.startsWith(prefix)){
               const relative=name.slice(prefix.length),first=relative.split('/')[0];

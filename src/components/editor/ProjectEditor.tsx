@@ -34,7 +34,7 @@ const CONFLICT = 'This page has changed in GitHub since you opened it. Reload th
 
 const DraftImages = createContext<{ area: string; filename: string; add: (image: PendingImage) => void } | null>(null);
 
-type ProjectListItem = { hasDraft?: boolean; baselineExists?: boolean; name: string; path: string; sha?: string; route?: string; draft?: boolean; sidebarHidden?: boolean; visibilityKnown?: boolean; discovery?: 'provisional'; onMain?: boolean; mainBlob?: string; draftHint?: 'saved'|'review'|'unknown'|'none-observed'; needsReview?: boolean; candidateHeads?: string[] };
+type ProjectListItem = { unpublishedChanges?: boolean; hasDraft?: boolean; baselineExists?: boolean; name: string; path: string; sha?: string; route?: string; draft?: boolean; sidebarHidden?: boolean; visibilityKnown?: boolean; discovery?: 'provisional'; onMain?: boolean; mainBlob?: string; draftHint?: 'saved'|'review'|'unknown'|'none-observed'; needsReview?: boolean; candidateHeads?: string[] };
 type ContentList = {entries:ProjectListItem[];branch:string;mainHead?:string;discovery?:'provisional';warnings?:string[]};
 type ImageListItem = { name: string; path: string; sha: string; size?: number };
 type AreaName = keyof typeof CONTENT_AREAS;
@@ -687,6 +687,7 @@ export default function ProjectEditor() {
   const [showUpdateStarter, setShowUpdateStarter] = useState(false);
   const [showConversionPreview, setShowConversionPreview] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [publicationActionTarget, setPublicationActionTarget] = useState<HTMLSpanElement | null>(null);
   const [publicationVersion, setPublicationVersion] = useState(0);
   const [unpublishPending, setUnpublishPending] = useState(false);
   const [submittedPR, setSubmittedPR] = useState<{ path: string; status: PublicationState }>();
@@ -886,7 +887,7 @@ export default function ProjectEditor() {
       navigation.replace(savedRoute); setRoute(savedRoute);
       setProject(next); setBaseline(confirmed); setSavedSnapshot(JSON.stringify(confirmed)); setSuggestedFilename('');
       setShowConversionPreview(false); setShowUpdateStarter(false);
-      setNotice(saved.replayed ? `Original creation confirmed (commit ${saved.commitSha.slice(0, 7)}). Any later edits remain here for review and saving.` : `Draft saved (commit ${saved.commitSha.slice(0, 7)}).`);
+      setNotice(saved.replayed ? `Original creation confirmed (commit ${saved.commitSha.slice(0, 7)}). Any later edits remain here for review and saving.` : '');
       await loadList(area);
     } catch (err) {
       const failure = err as ApiError;
@@ -898,10 +899,21 @@ export default function ProjectEditor() {
   };
 
   const publish = async (selectedHead = project?.head, action: 'publish' | 'unpublish' = 'publish') => {
-    if (!area || !project?.hasDraft || !project.head || dirty || busy) return;
+    if (!area || !project || !project.head || (action === 'publish' && !project.hasDraft) || dirty || busy) return;
     setBusy(true); setError(''); setNotice('');
+    let copyReady = false, initializingCopy = false;
     try {
       const path = `/api/publish/${area}/${encodeContentPath(project.filename)}`;
+      if (action === 'unpublish' && !project.hasDraft) {
+        initializingCopy = true;
+        const initialized = await api<{ head: string; document: Project }>(path, { method: 'POST', body: JSON.stringify({ action, initialize: true, expectedSha: project.sha, expectedHead: project.head, resumeHead: project.resumeHead }) });
+        const document = initialized.document;
+        if (!/^[a-f0-9]{40}$/.test(initialized.head || '') || document?.hasDraft !== true || !/^[a-f0-9]{40}$/.test(document.sha || '') || !/^[a-f0-9]{40}$/.test(document.head || '') || document.filename !== project.filename || document.content !== project.content) throw new Error('The saved page changed during preparation. Reopen it before unpublishing. Your work is safe.');
+        const next = { ...project, ...document };
+        setProject(next); setBaseline(next); setSavedSnapshot(JSON.stringify(next));
+        selectedHead = initialized.head;
+        copyReady = true;
+      }
       const prepared = await api<{ head: string; content: string; assets: Record<string, string>; action?: 'publish' | 'unpublish' }>(path, { method: 'POST', body: JSON.stringify({ head: selectedHead, action, prepare: true }) });
       if (prepared.head !== selectedHead || (prepared.action || 'publish') !== action) throw new Error('The selected saved revision changed. Your edits remain here.');
       const candidate = preparePublicationCandidate(prepared, project.filename);
@@ -909,7 +921,7 @@ export default function ProjectEditor() {
       if (!Number.isInteger(result.number) || !['pr-open', 'closed', 'merged'].includes(result.state)) throw new Error('PR creation could not be confirmed. Use Check status before retrying; your saved draft is intact.');
       setSubmittedPR({ path, status: result });
       setNotice(result.state === 'pr-open' ? '' : result.message || `Publication PR #${result.number}.`);
-    } catch (err) { setError((err as Error).message); }
+    } catch (err) { setError(copyReady ? `The page has not been confirmed unpublished. Its working copy is ready, but the request could not be confirmed. Check status before retrying. ${(err as Error).message}` : initializingCopy ? `Preparation could not be confirmed. Retry Unpublish page; any prepared copy will be reused. ${(err as Error).message}` : (err as Error).message); }
     finally { setBusy(false); setPublicationVersion(value => value + 1); }
   };
 
@@ -984,7 +996,7 @@ export default function ProjectEditor() {
   if (viewer === undefined) return <main className="editor-shell"><p>Checking GitHub sign-in…</p></main>;
   if (viewer === null) return (
     <main className="editor-shell">
-      <p className="eyebrow">Staging</p><h1>Content editor</h1>
+      <h1>Content editor</h1>
       <p>Sign in with a GitHub account that can write to <code>geobtaa/geobtaa.github.io</code>.</p>
       {error && <p className="message error" role="alert">{error}</p>}
       <a className="button primary" href={`${API}/api/auth/login?returnTo=${encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)}`}>Sign in with GitHub</a>
@@ -992,7 +1004,7 @@ export default function ProjectEditor() {
   );
 
   const accountHeader = <header className="editor-header">
-    <div><p className="eyebrow">Staging</p><h1>{area ? 'Content editor' : 'Editor dashboard'}</h1>{!area && <p>Signed in as <strong>{viewer}</strong>.</p>}</div>
+    <div><h1>{area ? 'Content editor' : 'Editor dashboard'}</h1>{!area && <p>Signed in as <strong>{viewer}</strong>.</p>}</div>
     <button className="link-button" type="button" disabled={busy} onClick={logout}>Sign out</button>
   </header>;
 
@@ -1036,12 +1048,16 @@ export default function ProjectEditor() {
         {recovery.copies.some(copy => copy.route.area === area && copy.route.filename === item.name) && <span className="unsaved-indicator">Unsaved edits</span>}
         {(item.hasDraft || (item.draft && item.visibilityKnown === true)) && <span className="visibility-badge status-draft">Draft</span>}
         {item.discovery === 'provisional' && <>
-          <span className="visibility-badge">{item.onMain ? 'Saved page' : 'New draft'}</span>
-          {(item.needsReview || item.draftHint === 'review') ? <span className="visibility-badge">Needs review</span> : item.draftHint === 'saved' && item.onMain ? <span className="visibility-badge">Editing history</span> : null}
+          {!item.onMain && <span className="visibility-badge">New draft</span>}
+          {(item.needsReview || item.draftHint === 'review') ? <span className="visibility-badge">Needs review</span> : item.unpublishedChanges && item.onMain ? <span className="visibility-badge">Unpublished changes</span> : null}
         </>}
       </button></li>)}</ul>}
     </main>
   );
+
+  const savedDate = project.lastSavedAt ? new Date(project.lastSavedAt) : null;
+  const savedTime = savedDate && Number.isFinite(savedDate.getTime()) ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(savedDate) : null;
+  const saveStatus = <span className="working-copy-status" role="status"><span className="save-state draft-status">{busy ? restoringChanges ? 'Restoring changes…' : 'Working…' : !project.sha ? 'Not saved yet' : dirty ? 'Unsaved changes' : 'All changes saved'}</span>{!dirty && project.sha && <>{savedTime && <> · <time dateTime={project.lastSavedAt}>{savedTime}</time></>}{project.lastSavedBy && <> · {project.lastSavedBy}</>}</>}</span>;
 
   return (
     <DraftImages.Provider value={{ area, filename: project.sha ? project.filename : '', add: image => {
@@ -1053,30 +1069,13 @@ export default function ProjectEditor() {
       {leavePrompt && <UnsavedChangesDialog message={leavePrompt.message} onKeepEditing={() => showLeavePrompt(null)} onLeave={leaveEditor} />}
       <nav className="editor-navigation" aria-label="Editor navigation">
         <button className="back" type="button" disabled={busy} onClick={backToList}>← Back to {config.label}</button>
-        <div className="navigation-actions"><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue || unpublishPending} onClick={() => publish()}>Submit for publishing</button><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button></div>
+        <div className="navigation-actions"><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue || unpublishPending} onClick={() => publish()}>Submit for publishing</button><span className="publication-action-slot" ref={setPublicationActionTarget}>{!project.sha && <button type="button" disabled>Unpublish page</button>}</span></div>
       </nav>
       <h1>{project.title.trim() || 'Untitled page'}</h1>
-      {!project.sha && <p className="publication-heading">Not yet published</p>}
-      {project.sha && <PublicationStatus key={`${area}/${project.filename}`} path={`/api/publish/${area}/${encodeContentPath(project.filename)}`} head={project.head} dirty={dirty} hasDraft={!!project.hasDraft} onUnpublishPending={setUnpublishPending} newPage={project.baselineExists === false} onUnpublish={() => { void publish(project.head, 'unpublish'); }} refreshVersion={publicationVersion} disabled={busy || !!authIssue} load={loadPublicationStatus} submitted={submittedPR?.path === `/api/publish/${area}/${encodeContentPath(project.filename)}` ? submittedPR.status : undefined} onRetry={(head, action) => { void publish(head, action); }} />}
-      <section className={`visibility-panel document-controls ${project.draft ? 'is-draft' : 'is-ready'}`} aria-label="Document controls">
-        <div className="document-control-group">
-          <span className="draft-status">{project.hasDraft || project.preservedEdits ? 'Saved draft' : project.sha ? 'Saved page' : 'New draft · not saved yet'}</span>
-          {project.lastSavedBy && <small>Last saved by {project.lastSavedBy}{project.lastSavedAt ? ` on ${project.lastSavedAt}` : ''}</small>}
-          {project.resumeHead && project.preservedEdits && <p className="message">An earlier request was merged. Your newer saved changes are preserved below. Use Save Draft before creating another publication PR.</p>}
-          {project.mainChanged && <p className="message error">This draft is based on an earlier published version. Save Draft is blocked to protect published content. Keep or download your edits. For repeat editing, <a href={`https://github.com/geobtaa/geobtaa.github.io/edit/main/src/content/docs/${area}/${encodeContentPath(project.filename)}`} target="_blank" rel="noopener noreferrer">edit the current published source on GitHub</a> and propose a PR, or ask a maintainer for help. Do not delete drafts or locks.</p>}
-        </div>
-        <div className="document-control-group document-view-group">
-          <span className="document-control-label" id="document-view-label">Editor view</span>
-          <div className="editor-mode-toggle segmented-control" role="group" aria-labelledby="document-view-label">
-            <button type="button" aria-pressed={!previewMode} aria-controls="document-edit" disabled={busy} onClick={() => setPreviewMode(false)}>Edit</button>
-            <button type="button" aria-pressed={previewMode} aria-controls="document-preview" disabled={busy} onClick={() => setPreviewMode(true)}>Preview</button>
-          </div>
-        </div>
-        <div className="document-control-status">
-          <span className="save-state" role="status">{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : !project.sha ? 'Not saved yet' : dirty ? 'Unsaved changes' : 'No unsaved changes'}</span>
-          {project.sidebarHidden && <span className="visibility-badge status-navigation">Hidden from navigation</span>}
-        </div>
-      </section>
+      {!project.sha && <div className="document-status-row"><strong className="publication-heading visibility-badge status-unknown">Not yet published</strong>{saveStatus}</div>}
+      {project.sha && <PublicationStatus actionTarget={publicationActionTarget} saveStatus={saveStatus} key={`${area}/${project.filename}`} path={`/api/publish/${area}/${encodeContentPath(project.filename)}`} head={project.head} dirty={dirty} hasDraft={!!project.hasDraft} onUnpublishPending={setUnpublishPending} newPage={project.baselineExists === false} onUnpublish={() => { void publish(project.head, 'unpublish'); }} refreshVersion={publicationVersion} disabled={busy || !!authIssue} load={loadPublicationStatus} submitted={submittedPR?.path === `/api/publish/${area}/${encodeContentPath(project.filename)}` ? submittedPR.status : undefined} onRetry={(head, action) => { void publish(head, action); }} />}
+      {project.resumeHead && project.preservedEdits && <p className="message">An earlier request was merged. Your newer saved changes are preserved below. Use Save Draft before creating another publication PR.</p>}
+      {project.mainChanged && <p className="message error">This draft is based on an earlier published version. Save Draft is blocked to protect published content. Keep or download your edits. For repeat editing, <a href={`https://github.com/geobtaa/geobtaa.github.io/edit/main/src/content/docs/${area}/${encodeContentPath(project.filename)}`} target="_blank" rel="noopener noreferrer">edit the current published source on GitHub</a> and propose a PR, or ask a maintainer for help. Do not delete drafts or locks.</p>}
       {recoveryPanel}
       {notice && <p className="message success" role="status">{notice}</p>}
       {error && <p className="message error" role="alert">{error}</p>}
@@ -1084,6 +1083,12 @@ export default function ProjectEditor() {
       {isArticle && project.sha && <p>Saved URL: /{area}/{project.filename.replace(/\.mdx?$/, '').replace(/\/index$/, '')}/</p>}
       {!project.sha && project.creationAttempt && <p>Retry checks the original URL: /{area}/{project.creationAttempt.filename.replace(/\.mdx$/, '')}/. Changing the title keeps this URL.</p>}
       {suggestedFilename && !project.sha && <button type="button" disabled={busy} onClick={() => save(suggestedFilename)}>Create as {suggestedFilename.replace(/\.mdx$/, '')}</button>}
+      <div className="document-toolbar" aria-label="Editor view">
+        <div className="editor-mode-toggle segmented-control" role="group" aria-label="Editor view">
+          <button type="button" aria-pressed={!previewMode} aria-controls="document-edit" disabled={busy} onClick={() => setPreviewMode(false)}>Edit</button>
+          <button type="button" aria-pressed={previewMode} aria-controls="document-preview" disabled={busy} onClick={() => setPreviewMode(true)}>Preview</button>
+        </div>
+      </div>
       {previewMode && <DocumentPreview project={project} area={area} apiBase={API} />}
       <form id="document-edit" hidden={previewMode} inert={previewMode} onSubmit={(event) => event.preventDefault()}>
         <fieldset className="editor-fields" disabled={busy}>

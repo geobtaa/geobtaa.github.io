@@ -94,7 +94,7 @@ test('expiration preserves live editors, undo and Preview; resuming requires the
     await evaluate('window.originalEditor.editor.commands.redo()');
     await waitFor('window.originalEditor.textContent.includes("Unsaved body")');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('document.querySelector(".save-state").textContent === "All changes saved"');
     assert.equal(await evaluate('window.writes[0].input.title'), 'Unsaved title');
     assert.match(await evaluate('window.writes[0].input.body'), /Unsaved body/);
   }, { initialSearch: '?area=posts&file=existing.mdx' });
@@ -135,7 +135,7 @@ test('lost article responses survive recovery and retry one creation while retai
     assert.equal(await evaluate('Object.values(window.repo.state.commits).filter(commit => commit.message.includes("CMS-Creation:")).length'), 1);
     assert.equal(await evaluate('Object.keys(window.files()).some(path => path.endsWith("later-title.mdx"))'), false);
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('document.querySelector(".save-state").textContent === "All changes saved"');
     assert.match(await evaluate('window.files()["src/content/docs/posts/original-article.mdx"].content'), /Later title/);
   }, { initialSearch: '?area=posts&new=uncertain-creation' });
 });
@@ -151,7 +151,7 @@ test('malformed update responses cannot mark a draft saved or create a suffixed 
     assert.equal(await evaluate('!!document.querySelector(".message.success")'), false);
     await evaluate('document.querySelector(".top-save").click()');
     await waitFor('new URL(location.href).searchParams.get("file") === "monthly-update.mdx"');
-    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'No unsaved changes');
+    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'All changes saved');
     assert.equal(await evaluate('Object.values(window.repo.state.commits).filter(commit => commit.message.includes("CMS-Creation:")).length'), 1);
   }, { initialSearch: '?area=updates&new=malformed-creation' });
 });
@@ -189,7 +189,7 @@ test('returning to the original editor URL preserves an uncertain creation and r
     assert.match(await evaluate('document.querySelector(".message.success").textContent'), /not been confirmed saved to GitHub/);
     await evaluate('document.querySelector(".top-save").click()');
     await waitFor('new URL(location.href).searchParams.get("file") === "interrupted-dashboard-draft.mdx"');
-    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'No unsaved changes');
+    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'All changes saved');
     const attempts = await evaluate('window.writes.map(write => write.input)');
     assert.equal(attempts[0].creationId, attempts[1].creationId);
     assert.equal(attempts[0].creationFilename, attempts[1].creationFilename);

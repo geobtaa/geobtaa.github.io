@@ -1,7 +1,19 @@
 import { CONTENT_ROOT, contentDirectory, contentArea, validateContentPath } from './contentAreas.mjs';
 import { draftBranch, draftMetadata } from './draftIdentity.mjs';
+import { isMap, parseDocument } from 'yaml';
 const oid = value => typeof value === 'string' && /^[a-f0-9]{40}$/.test(value);
 const unavailable = message => Object.assign(new Error(message), { status: 503 });
+
+function editorialContent(content) {
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n(?:\r?\n)?([\s\S]*)$/);
+  if (!match) throw new Error('Invalid frontmatter.');
+  const doc = parseDocument(match[1]);
+  if (doc.errors.length || !isMap(doc.contents)) throw new Error('Invalid frontmatter.');
+  const data = doc.toJS(); delete data.draft;
+  const ordered = value => Array.isArray(value) ? value.map(ordered) : value && typeof value === 'object'
+    ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([key, item]) => [key, ordered(item)])) : value;
+  return JSON.stringify([ordered(data), match[2]]);
+}
 
 // A catalog of repository objects, never authority for editing, routes or PRs.
 export async function discoverContent({ request, owner, repo }, area) {
@@ -51,7 +63,7 @@ export async function discoverContent({ request, owner, repo }, area) {
     const data = await query(`query CMSContentObjects($owner:String!,$repo:String!){repository(owner:$owner,name:$repo){${fields}}}`);
     for (const [i,task] of batch.entries()) {
       const value = data['o'+i];
-      if (task.kind === 'blob') { task.exists = oid(value?.oid); if (!task.exists) uncertain = true; continue; }
+      if (task.kind === 'blob') { task.exists = oid(value?.oid); task.blob = value?.oid; if (!task.exists) uncertain = true; continue; }
       if (value === null && task.path === directory) continue; // An enabled area can contain only new drafts.
       if (!oid(value?.oid) || !Array.isArray(value.entries)) throw unavailable('The content-area tree is incomplete.');
       const names = new Set();
@@ -70,7 +82,7 @@ export async function discoverContent({ request, owner, repo }, area) {
     // Keep only file-existence evidence; it never chooses the current generation.
     for (const task of batch.filter(task=>task.kind==='blob')) {
       const candidate = candidates.find(c=>c.head===task.head&&c.path===task.path);
-      if (candidate) candidate.exists = task.exists;
+      if (candidate) { candidate.exists = task.exists; candidate.blob = task.blob; }
     }
   }
   for (const [path,versions] of groups) {
@@ -78,6 +90,24 @@ export async function discoverContent({ request, owner, repo }, area) {
     if (!entries.has(path) && found) entries.set(path,{name:versions[0].name,path,onMain:false,baselineExists:false,visibilityKnown:false,discovery:'provisional'});
     const row = entries.get(path);
     if (row) { row.draftHint = active.length===1&&active[0].exists?'saved':'review'; row.candidateHeads=versions.map(v=>v.head).sort(); }
+  }
+  // Read-only list hints compare immutable document contents, not branch existence.
+  // Publication metadata alone is not an editorial change (including unpublishing).
+  const comparisons = [...groups].flatMap(([path, versions]) => {
+    const active = versions.filter(value => !value.retired), row = entries.get(path);
+    return row?.onMain && row.draftHint === 'saved' && active[0].blob !== row.mainBlob ? [{ row, saved: active[0] }] : [];
+  });
+  for (let start = 0; start < comparisons.length; start += 12) {
+    const batch = comparisons.slice(start, start + 12);
+    const fields = batch.flatMap(({row, saved}, i) => [mainHead, saved.head].map((head, j) => `o${i * 2 + j}:object(expression:${JSON.stringify(head + ':' + row.path)}){...on Blob{oid text isTruncated}}`)).join(' ');
+    const data = await query(`query CMSContentObjects($owner:String!,$repo:String!){repository(owner:$owner,name:$repo){${fields}}}`);
+    for (const [i, {row, saved}] of batch.entries()) {
+      const main = data['o' + i * 2], draft = data['o' + (i * 2 + 1)];
+      try {
+        if (main?.oid !== row.mainBlob || draft?.oid !== saved.blob || [main, draft].some(value => value.isTruncated !== false || typeof value.text !== 'string')) throw new Error();
+        row.unpublishedChanges = editorialContent(main.text) !== editorialContent(draft.text);
+      } catch { row.needsReview = true; uncertain = true; }
+    }
   }
   if (uncertain) for (const row of entries.values()) if (row.draftHint==='none-observed') row.draftHint='unknown';
   return {branch:'main',mainHead,discovery:'provisional',complete:!uncertain,warnings:uncertain?['Some saved-work indicators could not be identified. Open a document to check its editing state.']:[],entries:[...entries.values()]};

@@ -49,7 +49,7 @@ async function insert(browser, label, row) {
 }
 async function save(browser, count) {
   await browser.evaluate('document.querySelector(".top-save").click()');
-  await browser.waitFor(`window.writes.length === ${count} && document.querySelector('.save-state').textContent === 'No unsaved changes'`);
+  await browser.waitFor(`window.writes.length === ${count} && document.querySelector('.save-state').textContent === 'All changes saved'`);
 }
 
 async function cardState(browser, card) {
@@ -194,7 +194,7 @@ test('conversion previews show chips and formatted cards without editable contro
     assert.equal(await browser.evaluate('document.querySelectorAll(".conversion-preview-content .collection-block input, .conversion-preview-content .collection-block button").length'), 0);
     await click(browser, button('Cancel preview'));
     assert.equal(await browser.evaluate('window.writes.length'), 0);
-    assert.equal(await browser.evaluate('document.querySelector(".save-state").textContent'), 'No unsaved changes');
+    assert.equal(await browser.evaluate('document.querySelector(".save-state").textContent'), 'All changes saved');
   });
 });
 

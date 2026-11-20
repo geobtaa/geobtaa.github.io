@@ -65,7 +65,7 @@ test('new updates offer an optional outline, editable defaults, and a blank arti
     await evaluate(`(() => { const heading = document.querySelector('.body-editor .tiptap h2'); const range = document.createRange(); range.selectNodeContents(heading); const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range); heading.focus(); })()`);
     await send('Input.insertText', { text: 'Our main announcement' });
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
     assert.ok((await evaluate('window.writes[0].input.body')).includes('## Our main announcement'));
     await evaluate('document.querySelector(".editor-navigation .back").click()');
     await waitFor('!!document.querySelector(".list-heading .primary")');
@@ -77,7 +77,7 @@ test('new updates offer an optional outline, editable defaults, and a blank arti
     await evaluate('document.querySelector(".body-editor .tiptap").focus()');
     await send('Input.insertText', { text: 'A brief update.' });
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "All changes saved"');
     assert.equal((await evaluate('window.writes[1].input.body')).trim(), 'A brief update.');
     assert.deepEqual(await evaluate('window.writes[1].input.authors'), [{ name: 'BTAA-GIN Staff' }]);
     assert.equal(await evaluate('window.writes[1].input.excerpt'), '');
@@ -93,7 +93,7 @@ for (const name of ['recent', 'legacy']) test(`${name} conversion can be preview
     // A metadata save keeps the original layout and all structured data intact.
     await fill(browser, 'Title', 'An updated title');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
     await evaluate(click('Preview editable version'));
     await waitFor('!!document.querySelector(".update-conversion-preview .tiptap")');
     assert.equal(await evaluate('document.querySelector(".conversion-preview-content [contenteditable]").getAttribute("contenteditable")'), 'false');
@@ -101,7 +101,7 @@ for (const name of ['recent', 'legacy']) test(`${name} conversion can be preview
     await evaluate(click('Cancel preview'));
     await waitFor('!document.querySelector(".update-conversion-preview")');
     assert.equal(await evaluate('window.writes.length'), 1);
-    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'No unsaved changes');
+    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'All changes saved');
     await evaluate(click('Preview editable version'));
     await waitFor('!!document.querySelector(".update-conversion-preview .tiptap")');
     await evaluate(click('Use editable version'));
@@ -115,7 +115,7 @@ for (const name of ['recent', 'legacy']) test(`${name} conversion can be preview
     assert.equal(await evaluate('window.writes.length'), 1);
     assert.ok((await evaluate('document.querySelector(".body-editor .tiptap").textContent')).includes('Revised highlight'));
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "No unsaved changes"');
+    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "All changes saved"');
     const source = await evaluate(`window.records[${JSON.stringify(name + '.mdx')}]`);
     const data = parse(source.match(/^---\n([\s\S]*?)\n---/)[1]);
     assert.equal(data.programUpdate, undefined);

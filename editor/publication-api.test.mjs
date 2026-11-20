@@ -81,3 +81,30 @@ test('hosted Unpublish is independently gated by enabled flag and trusted main c
     assert.equal((await call(enabled, { candidate })).status, 200); assert.equal(repo.pulls.length, 1);
   } finally { globalThis.fetch = previous; }
 });
+
+test('confirmed initializer is gated, ignores browser content, and leaves ordinary preparation read-only', async () => {
+ const path = 'src/content/docs/library/legacy.mdx', original = '---\ntitle: Legacy\n---\n\nExact body.';
+ const repo = await draftTestRepository({ [path]: original, 'navigation.groups.json': '[]', 'editor/publication-capabilities.json': JSON.stringify({ version: 2, actions: ['publish', 'unpublish'] }) });
+ const env = { EDITOR_ORIGIN: origin, GITHUB_CLIENT_ID: 'client', GITHUB_CLIENT_SECRET: 'secret', SESSION_SECRET: 'this-test-secret-has-at-least-thirty-two-characters', ALLOWED_GITHUB_USERS: 'editor', CMS_PUBLISH_ENABLED: 'true', CMS_UNPUBLISH_ENABLED: 'true' };
+ const previous = globalThis.fetch;
+ globalThis.fetch = async (url, options) => String(url).includes('login/oauth/access_token') ? Response.json({ access_token: 'test-token' }) : String(url).endsWith('/user') ? Response.json({ login: 'editor' }) : repo.fetchImpl(url, options);
+ try {
+  const login = await onRequest({ request: new Request(origin + '/api/auth/login'), env });
+  const state = new URL(login.headers.get('location')).searchParams.get('state');
+  const callback = await onRequest({ request: new Request(origin + `/api/auth/callback?code=test&state=${state}`, { headers: { Cookie: login.headers.getSetCookie().map(value => value.split(';')[0]).join('; ') } }), env });
+  const cookie = callback.headers.getSetCookie().find(value => value.startsWith('editor_session=')).split(';')[0];
+  const file = await createDraftStore({ request: repo.request }).getContent('library', 'legacy.mdx');
+  const input = { action: 'unpublish', initialize: true, expectedSha: file.sha, expectedHead: file.head, content: 'Do not trust this body' };
+  const call = (body, config = env, headers = { Cookie: cookie, Origin: origin }) => onRequest({ request: new Request(origin + '/api/publish/library/legacy.mdx', { method: 'POST', headers, body: JSON.stringify(body) }), env: config });
+  const refs = [...repo.refs];
+  assert.equal((await call(input, { ...env, CMS_UNPUBLISH_ENABLED: 'false' })).status, 403);
+  assert.equal((await call(input, env, { Origin: origin })).status, 401);
+  assert.equal((await call({ ...input, action: 'publish' })).status, 400); assert.deepEqual([...repo.refs], refs);
+  const response = await call(input); assert.equal(response.status, 200); const initialized = await response.json();
+  assert.equal(initialized.document.content, original); assert.equal(repo.pulls.length, 0);
+  const readyRefs = [...repo.refs]; const prepared = await call({ action: 'unpublish', prepare: true, head: initialized.head });
+  assert.equal(prepared.status, 200); assert.deepEqual([...repo.refs], readyRefs);
+  assert.equal((await prepared.json()).content, original);
+  const retry = await call(input); assert.equal((await retry.json()).head, initialized.head); assert.deepEqual([...repo.refs], readyRefs);
+ } finally { globalThis.fetch = previous; }
+});

@@ -91,6 +91,11 @@ export const createEditorServer = (github) => http.createServer(async (request, 
       if (!route?.filename) throw Object.assign(new Error('A saved document is required.'), { status: 400 });
       const input = await readJson(request);
       if (input.action === 'unpublish') await github.assertUnpublishEnabled(process.env.CMS_UNPUBLISH_ENABLED);
+      if (input.initialize === true) {
+        if (input.action !== 'unpublish') throw Object.assign(new Error('Internal working-copy preparation is only available for unpublishing.'), { status: 400 });
+        const result = await github.initializeUnpublish({ ...route, expectedSha: input.expectedSha, expectedHead: input.expectedHead, resumeHead: input.resumeHead });
+        return respond(response, 200, result, origin);
+      }
       return respond(response, 200, await (input.prepare === true ? github.preparePublication({ ...route, head: input.head, action: input.action }) : github.publishContent({ ...route, head: input.head, action: input.action, candidate: input.candidate })), origin);
     }
     if (url.pathname === '/api/content') return respond(response, 200, { areas: CONTENT_AREAS }, origin);
