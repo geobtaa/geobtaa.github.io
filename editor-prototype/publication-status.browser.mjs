@@ -38,7 +38,7 @@ test('document title leads the editor and empty publication status stays hidden 
     assert.equal(await evaluate('!!document.querySelector(".dashboard-link")'),false);
     assert.equal(await evaluate('!!document.querySelector(".publication-status")'),false,'initial checking does not show an empty panel');
     assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),'Saved draft');
-    assert.match(await evaluate('document.getElementById(document.querySelector(".publish-document").getAttribute("aria-describedby")).textContent'),/Review and merge it in GitHub/);
+    assert.equal(await evaluate('document.body.textContent.includes("This creates a GitHub publication request.")'),false);
     await evaluate('window.finishStatus()');
     await evaluate(`${title}.focus();${title}.select()`);await send('Input.insertText',{text:'Actual revised title'});
     await waitFor('document.querySelector("h1").textContent==="Actual revised title"');
@@ -55,6 +55,10 @@ test('manual PR status refresh preserves unsaved text, never writes, and recover
   await withEditorBrowser(fixture, async browser => {
     const {evaluate,waitFor,send}=browser;
     await waitFor(`!!${title} && document.querySelector('.publication-status')?.dataset.state==='pr-open'`);
+    assert.equal(await evaluate('document.querySelector(".publication-status strong").textContent'),'Submitted for publishing');
+    assert.equal(await evaluate('document.querySelector(".publication-status [role=status] p").textContent'),'Your changes have been submitted. Open the publication request in GitHub to review the changes. Once the automated checks pass, merge the request to publish the page.');
+    assert.equal(await evaluate('document.querySelector(".publication-status a").textContent'),'Review publication request #42');
+    assert.equal(await evaluate('document.querySelector(".publication-status button").textContent'),'Check status');
     await evaluate(`window.originalEditor=document.querySelector('.tiptap');${title}.focus();${title}.select()`);
     await send('Input.insertText',{text:'Keep my unsaved title'});
     await evaluate(`window.setStatus({...window.statusResult,state:'closed',message:'Publication PR closed without merging.'});document.querySelector('.publication-status button').click()`);
@@ -78,10 +82,10 @@ test('manual PR status refresh preserves unsaved text, never writes, and recover
     assert.equal(await evaluate('[...document.querySelectorAll(".publication-status a")].some(link=>link.textContent==="View live")'),false);
   },{initialSearch:'?area=library&file=report.mdx'});
 });
-test('Prepare to publish prepares the saved revision in the browser and retains a PR link if status refresh fails', options, async () => {
+test('Submit for publishing prepares the saved revision in the browser and retains a PR link if status refresh fails', options, async () => {
   await withEditorBrowser(fixture, async ({evaluate,waitFor}) => {
     await waitFor(`!!${title} && document.querySelector('.publish-document')?.disabled===false`);
-    assert.equal(await evaluate('document.querySelector(".publish-document").textContent'),'Prepare to publish');
+    assert.equal(await evaluate('document.querySelector(".publish-document").textContent'),'Submit for publishing');
     await evaluate('window.failStatus=true;document.querySelector(".publish-document").click()');
     await waitFor('window.writes.length===2 && !!document.querySelector(".publication-status a") && document.querySelector(".publish-document").disabled===false');
     const writes=await evaluate('window.writes');
