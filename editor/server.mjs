@@ -75,6 +75,12 @@ export const createEditorServer = (github) => http.createServer(async (request, 
       const filename = validateImageUpload({ filename: input.filename, mimeType: input.mimeType, bytes });
       return respond(response, 201, await github.uploadImage({ area: input.area, documentFilename: input.documentFilename, filename, mimeType: input.mimeType, bytes }), origin);
     }
+    if (url.pathname.startsWith('/api/publication-status/')) {
+      const route = contentRoute(url.pathname.replace('/api/publication-status/', '/api/content/'));
+      if (!route?.filename || request.method !== 'GET') throw Object.assign(new Error('A saved document and GET request are required.'), { status: 400 });
+      const publicationRequest = { state: 'merged', mergeHead: url.searchParams.get('mergeHead'), snapshotHead: url.searchParams.get('snapshotHead') };
+      return respond(response, 200, await github.getWebsiteInfo(route.area, route.filename, { unpublishEnabled: process.env.CMS_PUBLISH_ENABLED === 'true' ? process.env.CMS_UNPUBLISH_ENABLED : undefined, publicationRequest }), origin);
+    }
     if (url.pathname.startsWith('/api/publish/')) {
       const statusRoute = contentRoute(url.pathname.replace('/api/publish/', '/api/content/'));
       if (!statusRoute?.filename) throw Object.assign(new Error('A saved document is required.'), { status: 400 });
@@ -84,8 +90,8 @@ export const createEditorServer = (github) => http.createServer(async (request, 
       const route = contentRoute(url.pathname.replace('/api/publish/', '/api/content/'));
       if (!route?.filename) throw Object.assign(new Error('A saved document is required.'), { status: 400 });
       const input = await readJson(request);
-      if (input.action !== undefined && input.action !== 'publish') throw Object.assign(new Error('Unpublish submissions are not enabled. Install trusted validation before enabling this feature.'), { status: 403 });
-      return respond(response, 200, await (input.prepare === true ? github.preparePublication({ ...route, head: input.head }) : github.publishContent({ ...route, head: input.head, candidate: input.candidate })), origin);
+      if (input.action === 'unpublish') await github.assertUnpublishEnabled(process.env.CMS_UNPUBLISH_ENABLED);
+      return respond(response, 200, await (input.prepare === true ? github.preparePublication({ ...route, head: input.head, action: input.action }) : github.publishContent({ ...route, head: input.head, action: input.action, candidate: input.candidate })), origin);
     }
     if (url.pathname === '/api/content') return respond(response, 200, { areas: CONTENT_AREAS }, origin);
     const route = contentRoute(url.pathname);

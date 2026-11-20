@@ -1,3 +1,5 @@
+import { websiteStatus, pendingDeployment } from './websiteStatus.mjs';
+import { requireUnpublishCapability, CAPABILITY_PATH } from './unpublishGate.mjs';
 import { sidebarBlockers } from './publicationRoutes.mjs';
 import { publicationAction, publicationContent } from './publicationAction.mjs';
 import { digest, documentPath, draftBranch, draftMetadata, publicationBaseKey } from './draftIdentity.mjs';
@@ -40,7 +42,7 @@ export async function prepareDraftImage({ area, documentFilename, filename, mime
   return { path: `cms-${(await digest(path)).slice(0, 32)}/${name}-${await digest(bytes)}.${safe.split('.').at(-1)}`, mimeType, content: encodeBytes(bytes), filename: safe };
 }
 // Shared by the local gateway and Cloudflare. No application-host branch is used.
-export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.github.io' }) {
+export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.github.io', fetchPublic = fetch }) {
   const commits = new Map(), trees = new Map(), blobs = new Map(), comparisons = new Map(), resumeEvidence = new Map();
   // Invocation-local only: share in-flight immutable reads as well as results.
   const once = async (cache, key, read) => { if (!cache.has(key)) cache.set(key, Promise.resolve().then(read)); return cache.get(key); };
@@ -422,7 +424,36 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     if (publicationAction(state.action) !== publicationAction(meta.action) || state.selectedHead !== meta.selectedHead || active?.head !== head || active?.branch !== branch) throw failure(409, 'This publication attempt was superseded.');
     return plan;
   }
+  // Status/capability reads need two small files, not a recursive main inventory.
+  async function readMainFile(path) {
+    const head = await ref('heads/main');
+    try {
+      const file = await request(`/contents/${path}?ref=${head}`);
+      if (!/^[a-f0-9]{40}$/.test(file.sha || '') || file.encoding !== 'base64' || typeof file.content !== 'string' || file.content.length > 1_500_000) throw failure(503, 'Main document could not be verified.');
+      return new TextDecoder().decode(decodeBytes(file.content));
+    } catch (error) { if (error.status === 404) return null; throw error; }
+  }
+  async function assertUnpublishEnabled(enabled) {
+    return requireUnpublishCapability({ enabled, readMainCapability: async () => {
+      const content = await readMainFile(CAPABILITY_PATH);
+      return content ? JSON.parse(content) : null;
+    } });
+  }
+  async function getWebsiteInfo(area, filename, { unpublishEnabled, publicationRequest = null } = {}) {
+    const path = documentPath(area, filename);
+    const status = publicationRequest;
+    const website = owner === 'geobtaa' && repo === 'geobtaa.github.io' ? await websiteStatus({ request, path, fetchPublic, publicationRequest: status }) : { publication: 'unavailable' };
+    let mainDraft = null, enabled = false;
+    try {
+      const content = await readMainFile(path);
+      if (content) mainDraft = contentVisibility(content).draft;
+      if (unpublishEnabled === 'true') { await assertUnpublishEnabled(unpublishEnabled); enabled = true; }
+    } catch { /* Unknown main or capabilities cannot enable writes. */ }
+    const deployment = status?.state === 'merged' && !website.requestApplied ? await pendingDeployment({ request, mergeHead: status.mergeHead }) : null;
+    return { website, mainDraft, unpublishEnabled: enabled, ...(deployment ? { deployment } : {}) };
+  }
   return {
+    assertUnpublishEnabled, getWebsiteInfo,
     publicationPlan, verifyPublication,
     ...publication,
     drafts: true, workspace: `${owner}/${repo}#cms-drafts-v1`, getContent, saveContent,

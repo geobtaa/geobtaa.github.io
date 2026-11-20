@@ -42,3 +42,42 @@ test('hosted Publish requires canonical origin, same-origin POST, an authorized 
     assert.equal((await statusRequest(origin, '')).status, 401);
   } finally { globalThis.fetch = previous; }
 });
+
+test('hosted Unpublish is independently gated by enabled flag and trusted main capability and preserves working content', async () => {
+  const path = 'src/content/docs/library/report.mdx', content = '---\ntitle: Report\npagefind: false\n---\n\nPublic content.';
+  const repo = await draftTestRepository({ [path]: content, 'navigation.groups.json': '[]' });
+  const env = { EDITOR_ORIGIN: origin, GITHUB_CLIENT_ID: 'client', GITHUB_CLIENT_SECRET: 'secret', SESSION_SECRET: 'this-test-secret-has-at-least-thirty-two-characters', ALLOWED_GITHUB_USERS: 'editor', CMS_PUBLISH_ENABLED: 'true' };
+  const previous = globalThis.fetch;
+  globalThis.fetch = async (url, options) => String(url).includes('login/oauth/access_token') ? Response.json({ access_token: 'test-token' }) : String(url).endsWith('/user') ? Response.json({ login: 'editor' }) : repo.fetchImpl(url, options);
+  try {
+    const login = await onRequest({ request: new Request(origin + '/api/auth/login'), env });
+    const state = new URL(login.headers.get('location')).searchParams.get('state');
+    const callback = await onRequest({ request: new Request(origin + `/api/auth/callback?code=test&state=${state}`, { headers: { Cookie: login.headers.getSetCookie().map(value => value.split(';')[0]).join('; ') } }), env });
+    const cookie = callback.headers.getSetCookie().find(value => value.startsWith('editor_session=')).split(';')[0];
+    const store = createDraftStore({ request: repo.request }), file = await store.getContent('library', 'report.mdx');
+    const saved = await savePage(store, 'library', 'report.mdx', { ...file, ...parsePage(file.content), body: 'Keep this independent draft.' });
+    const call = (config, input, headers = { Cookie: cookie, Origin: origin }) => onRequest({ request: new Request(origin + '/api/publish/library/report.mdx', { method: 'POST', headers, body: JSON.stringify({ head: saved.head, action: 'unpublish', ...input }) }), env: config });
+    const enabled = { ...env, CMS_UNPUBLISH_ENABLED: 'true' };
+    assert.equal((await call(env, { prepare: true })).status, 403);
+    assert.equal((await call(enabled, { prepare: true })).status, 403, 'capability is not yet on main');
+    assert.equal(repo.pulls.length, 0);
+    await repo.put('editor/publication-capabilities.json', JSON.stringify({ version: 2, actions: ['publish', 'unpublish'] }));
+    assert.equal((await call(enabled, { prepare: true }, { Origin: origin })).status, 401);
+    assert.equal((await call(enabled, { prepare: true }, { Cookie: cookie, Origin: 'https://evil.test' })).status, 403);
+    const refs = [...repo.refs];
+    const status = await onRequest({ request: new Request(origin + '/api/publication-status/library/report.mdx', { headers: { Cookie: cookie } }), env: enabled });
+    assert.equal(status.status, 200); const info = await status.json();
+    assert.equal(info.mainDraft, false); assert.equal(info.unpublishEnabled, true); assert.equal(info.website.publication, 'unavailable');
+    const denied = await onRequest({ request: new Request(origin + '/api/publication-status/library/report.mdx', { method: 'POST', headers: { Cookie: cookie, Origin: origin } }), env: enabled });
+    assert.equal(denied.status, 405); assert.deepEqual([...repo.refs], refs);
+    const preparation = await call(enabled, { prepare: true }); assert.equal(preparation.status, 200);
+    const prepared = await preparation.json(); assert.equal(prepared.action, 'unpublish'); assert.equal(prepared.content, content);
+    const candidate = preparePublicationCandidate(prepared, 'report.mdx');
+    repo.push = false; assert.equal((await call(enabled, { candidate })).status, 403); repo.push = true;
+    const submitted = await call(enabled, { candidate }); assert.equal(submitted.status, 200); assert.equal((await submitted.json()).action, 'unpublish');
+    const pr = repo.pulls[0]; await store.verifyPublication(pr.head.ref, pr.head.sha);
+    assert.equal(repo.refs.get(`refs/heads/${saved.branch}`), saved.head);
+    assert.match((await store.getContent('library', 'report.mdx')).content, /Keep this independent draft/);
+    assert.equal((await call(enabled, { candidate })).status, 200); assert.equal(repo.pulls.length, 1);
+  } finally { globalThis.fetch = previous; }
+});

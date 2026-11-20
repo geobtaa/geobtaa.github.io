@@ -37,6 +37,9 @@ test('unpublish changes only main draft metadata, preserves editorial drafts, an
  assert.equal(reopened.preservedEdits, true); assert.match(reopened.content, /Even newer saved work/);
  assert.equal(parsePage(reopened.content).draft, true); assert.equal(reopened.resumeHead, newer.head);
  const resumed = await savePage(f.store(), area, filename, { ...reopened, ...parsePage(reopened.content) });
+ const carriedStatus = await f.store().getPublicationStatus(area, filename);
+ assert.equal(carriedStatus.state, 'merged'); assert.equal(carriedStatus.action, 'unpublish');
+ assert.equal(carriedStatus.selectedHead, f.saved.head); assert.equal(carriedStatus.newerDraft, true);
  await f.submit('publish', resumed.head);
  const next = f.repo.pulls.at(-1); await f.store().verifyPublication(next.head.ref, next.head.sha);
  assert.equal(f.repo.filesAt(next.head.sha).get(`src/assets/images/${image.path}`).sha, f.repo.filesAt(newer.head).get(`src/assets/images/${image.path}`).sha);

@@ -43,7 +43,7 @@ test('content areas use staff-facing labels and keep account and shared-draft ex
   assert.doesNotMatch(await evaluate('document.body.textContent'),/Signed in as|On main|New saved draft|Saved work available|Published content comes from/);
   assert.equal(await evaluate('[...document.querySelectorAll("button")].some(button=>button.textContent==="Sign out")'),true);
   const badges=await evaluate('[...document.querySelectorAll(".project-list button")].map(button=>({name:button.querySelector(".content-name").textContent,badges:[...button.querySelectorAll(".visibility-badge")].map(badge=>badge.textContent)}))');
-  assert.deepEqual(Object.fromEntries(badges.map(row=>[row.name,row.badges])),{new:['New draft'],published:['Published'],review:['Published','Needs review'],revised:['Published','Editing history']});
+  assert.deepEqual(Object.fromEntries(badges.map(row=>[row.name,row.badges])),{new:['New draft'],published:['Saved page'],review:['Saved page','Needs review'],revised:['Saved page','Editing history']});
   assert.deepEqual(await evaluate('window.requests'),['/api/session','/api/content/library']);
   await evaluate('document.querySelector(".project-list button").click()');
   await waitFor('!!document.querySelector(".editor-workspace")');
@@ -54,7 +54,7 @@ test('content areas use staff-facing labels and keep account and shared-draft ex
 test('returning to a list shows memory rows during refresh, while opening still waits for authoritative verification',options,async()=>{
  await withEditorBrowser(fixture,async({evaluate,waitFor})=>{
   await waitFor('!!document.querySelector(".project-list button")');
-  assert.equal(await evaluate('document.querySelector(".project-list").textContent.includes("Published")'),true);
+  assert.equal(await evaluate('document.querySelector(".project-list").textContent.includes("Saved page")'),true);
   await evaluate('document.querySelector(".project-list button").click()');
   await waitFor('!!document.querySelector(".editor-workspace")');
   await evaluate('window.holdList=true;document.querySelector(".editor-navigation .back").click()');

@@ -126,7 +126,7 @@ test('draft metadata is read-only, navigation visibility stays separate, and bot
     await waitFor('!!document.querySelector(".project-list")');
     await evaluate('[...document.querySelectorAll(".project-list button")].find(button => button.querySelector(".content-name").textContent === "navigation-only").click()');
     await waitFor('!!document.querySelector(".status-navigation")');
-    assert.equal(await evaluate('document.querySelector(".visibility-panel").textContent.includes("Published version")'), true);
+    assert.equal(await evaluate('document.querySelector(".visibility-panel").textContent.includes("Saved page")'), true);
     assert.equal(await evaluate('document.querySelectorAll("[data-publication-state]").length'), 0);
     await evaluate('document.querySelector(".top-save").click()');
     await waitFor('window.writes.length === 3');

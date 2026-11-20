@@ -34,11 +34,11 @@ Body and cover images use the same image library and upload safeguards. Pending 
 
 The chosen workflow is **Edit → Save Draft → Submit for publishing → review and manually merge in GitHub → GitHub Pages deployment**.
 
-Automatic merging, privileged Actions orchestration, a GitHub App migration, background publishing workers, CMS deployment polling, and automatic branch cleanup were abandoned. The CMS reports PR status; merged does not mean verified live publication. The Pages workflow still produces a deployment marker, but the CMS does not use it to certify a live page.
+Automatic merging, privileged Actions orchestration, a GitHub App migration, background publishing workers, CMS deployment polling, and automatic branch cleanup were abandoned. The CMS keeps request status separate from deployment status. Merged does not mean deployed. On-demand website verification uses the existing production marker and matching GitHub Pages run/deployment; missing or contradictory evidence remains unverified.
 
 Submission operates on one exact saved head, never unsaved form contents:
 
-1. Preparation reads the immutable saved document and asset manifest. The browser prepares the `draft: false` transformation and proposed image references.
+1. Preparation reads the immutable saved document and asset manifest. The browser prepares the publication transformation and proposed image references. Publishing sets `draft: false` on the selected saved content. Unpublishing sets `draft: true` on the current main document only; it cannot include independent editorial edits or uploads.
 2. The server treats the proposal as untrusted, verifies document/revision/asset identities, compares the current main document, and constructs a separate snapshot from current main plus one document and permitted new image blobs.
 3. Required trusted-base CI independently reconstructs and validates the full result. Creating a PR does not certify it as safe to merge.
 
@@ -81,3 +81,13 @@ Immutable reads use batches and at most two overlapping requests. Invocation-loc
 ## Reject redirects without forwarding credentials
 
 Cloudflare workerd rejects `redirect: 'error'` before making the request. Both GitHub adapters and OAuth token exchange therefore use `redirect: 'manual'` and explicitly reject 3xx responses. They never forward credentials to a redirect target. An uncertain write still requires readback because a redirect response does not prove that no write occurred. Real-runtime regression coverage lives in `cloudflare-runtime.test.mjs`.
+
+## Unpublish and deployment status
+
+`CMS_UNPUBLISH_ENABLED` is disabled unless explicitly set to `true`. It also requires the version-2 capability on main and normal publishing authorization. Install trusted Stage 1 before enabling Stage 2; no rollout or merge is automatic.
+
+The primary editor status describes the verified deployment. Working drafts and pending requests are secondary details. Draft files stay discoverable/editable, with existing route reservations and metadata preserved. After either action merges, continuation uses that action's immutable snapshot rather than assuming published visibility.
+
+The existing marker records draft documents explicitly and rejects draft routes that produced output. Read-only verification checks its repository, workflow, source SHA/run/attempt, successful active Pages deployment, and the selected document at that source revision. It does not probe each page, hash served HTML, poll in the background, or store status in a database. Separate website-status and PR-status invocations preserve the publication client's request budget. Website reads send no GitHub credentials, reject redirects, and have a bounded marker size and timeout.
+
+Links to exact draft destinations produce visible warnings in every build, including after merge; unrelated broken links remain fatal. The warning exemption follows frontmatter, not a persistent exception list. Explicit sidebar entries and custom-page route collisions block unpublishing rather than silently changing navigation. The shared JSON navigation data is used by both Astro configuration and API/CI preflight.

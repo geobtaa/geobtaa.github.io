@@ -79,14 +79,14 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
     async function pullRequests(attempts) {
       const output = [];
       for (let offset = 0; offset < attempts.length; offset += 16) {
-        const fields = attempts.slice(offset, offset + 16).map((item, i) => `p${i}:pullRequests(headRefName:${JSON.stringify(item.branch)},baseRefName:"main",first:2,states:[OPEN,CLOSED,MERGED]){nodes{number id url state mergedAt headRefName headRefOid baseRefName headRepository{nameWithOwner} mergeCommit{oid} mergeable}}`).join('\n');
+        const fields = attempts.slice(offset, offset + 16).map((item, i) => `p${i}:pullRequests(headRefName:${JSON.stringify(item.branch)},baseRefName:"main",first:2,states:[OPEN,CLOSED,MERGED]){nodes{number id url state mergedAt headRefName headRefOid baseRefName headRepository{nameWithOwner} mergeCommit{oid} mergeable commits(last:1){nodes{commit{statusCheckRollup{state}}}}}}`).join('\n');
         const data = await query(`query CMSPublicationPRs($owner:String!,$repo:String!){repository(owner:$owner,name:$repo){${fields}}}`);
         for (const [i, attempt] of attempts.slice(offset, offset + 16).entries()) {
           const nodes = data[`p${i}`]?.nodes;
           if (!Array.isArray(nodes) || nodes.length > 1) throw fail(503, 'Publication PR identity is uncertain. Ask a maintainer; no replacement was created.');
           const value = nodes[0];
           if (!value) { output.push(null); continue; }
-          const pr = { number: value.number, node_id: value.id, html_url: value.url, state: value.state === 'OPEN' ? 'open' : 'closed', merged_at: value.mergedAt, merge_commit_sha: value.mergeCommit?.oid, mergeable: value.mergeable === 'CONFLICTING' ? false : null, head: { ref: value.headRefName, sha: value.headRefOid, repo: { full_name: value.headRepository?.nameWithOwner } }, base: { ref: value.baseRefName } };
+          const pr = { number: value.number, node_id: value.id, html_url: value.url, state: value.state === 'OPEN' ? 'open' : 'closed', merged_at: value.mergedAt, merge_commit_sha: value.mergeCommit?.oid, mergeable: value.mergeable === 'CONFLICTING' ? false : null, checksFailed: ['ERROR', 'FAILURE'].includes(value.commits?.nodes?.[0]?.commit?.statusCheckRollup?.state), head: { ref: value.headRefName, sha: value.headRefOid, repo: { full_name: value.headRepository?.nameWithOwner } }, base: { ref: value.baseRefName } };
           verifyPR(pr, attempt); output.push(pr);
         }
       }
@@ -231,7 +231,15 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
           if (!current) return { state: 'none' };
           draft = await op.selected(area, filename, current.head);
         }
-        const head = draft.head, held = await op.coordinator(draft);
+        const head = draft.head;
+        let held = await op.coordinator(draft);
+        // A newly saved successor must not hide the just-merged request while
+        // Pages is still deploying it. Follow only the immediate predecessor,
+        // using this invocation's existing bounded request budget.
+        if (!held.state && draft.meta.version === 2 && draft.meta.previousHead) {
+          const predecessor = await op.selected(area, filename, draft.meta.previousHead);
+          held = await op.coordinator(predecessor);
+        }
         if (!held.state) return { state: 'none' };
         const prs = await op.pullRequests(held.state.attempts), pr = prs.find(pr => pr?.merged_at) || prs.at(-1);
         const index = prs.findIndex(pr => pr?.merged_at);
@@ -239,7 +247,7 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
         const extra = { ...actionMetadata(held.state.action), selectedHead: held.state.selectedHead, newerDraft: head !== held.state.selectedHead, snapshotHead: attempt.head, baseHead: attempt.base, mergeHead: pr?.merge_commit_sha };
         if (await op.ref(`heads/${held.branch}`) !== held.head) throw retry();
         if (!pr) return { state: 'reserved', message: 'Snapshot reserved; retry PR creation for this saved revision.', ...extra };
-        const result = response(pr, held.state.selectedHead);
+        const result = { ...response(pr, held.state.selectedHead), ...(pr.checksFailed ? { checks: 'failed' } : {}) };
         if (result.state === 'pr-open' && (pr.mergeable === false || await op.ref('heads/main') !== attempt.base)) return { ...result, ...extra, state: 'conflict', message: 'PR has conflicts. If main advanced, recreate this saved revision through the CMS.' };
         return { ...result, ...extra };
       } catch (error) {
