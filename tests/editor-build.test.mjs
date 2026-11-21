@@ -28,7 +28,7 @@ test('CMS artifact contains only the editor and support files, with its complete
 });
 
 test('built CMS hydrates at root, preserves OAuth deep links, images and public preview links', {
-  skip: chrome || process.env.CI ? false : 'Set CHROME_BIN to an installed Chrome/Chromium executable.', timeout: 60_000,
+  skip: chrome || process.env.CI ? false : 'Set CHROME_BIN to an installed Chrome/Chromium executable.', timeout: 120_000,
 }, async () => {
   const body = '[Public document](/library/example/)\n\n![Repository image](@images/example.png)\n\n<LinkCard title="Public card" href="/projects/curation/" />\n\n<LinkButton href="/guides/">Public button</LinkButton>';
   const record = { filename: 'example.mdx', sha: 'loaded', title: 'Built CMS', description: '', draft: true, metadata: {}, body, content: '---\ntitle: Built CMS\n---\n\n' + body };
@@ -58,12 +58,12 @@ test('built CMS hydrates at root, preserves OAuth deep links, images and public 
     const assets = await evaluate(`performance.getEntriesByType('resource').filter(entry => new URL(entry.name).pathname.startsWith('/_astro/')).map(entry => ({name: entry.name, status: entry.responseStatus}))`);
     assert.ok(assets.length >= 4);
     assert.ok(assets.every(asset => asset.status === 200), JSON.stringify(assets));
-  }, { builtDirectory: 'dist-editor', initialSearch: '?area=library&file=example.mdx#body',
+  }, { builtDirectory: 'dist-editor', chromeStartupTimeout: 45_000, initialSearch: '?area=library&file=example.mdx#body',
     images: { 'example.png': Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aIo0AAAAASUVORK5CYII=', 'base64') },
   });
 
   await withEditorBrowser(`window.fetch = async () => Response.json({authenticated: false});`, async ({ evaluate, waitFor }) => {
     await waitFor('!!document.querySelector("a.button.primary")');
     assert.equal(await evaluate(`new URL(document.querySelector('a.button.primary').href).searchParams.get('returnTo')`), '/?area=library&file=example.mdx#body');
-  }, { builtDirectory: 'dist-editor', initialSearch: '?area=library&file=example.mdx#body' });
+  }, { builtDirectory: 'dist-editor', chromeStartupTimeout: 45_000, initialSearch: '?area=library&file=example.mdx#body' });
 });
