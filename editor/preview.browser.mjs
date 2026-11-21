@@ -67,12 +67,19 @@ async function checkPreviewLinks(browser) {
       assert.equal(link.target, '_blank');
       assert.equal(link.rel, 'noopener noreferrer');
       const targetsBefore = new Set((await send('Target.getTargets')).targetInfos.map(target => target.targetId));
-      const point = await evaluate(`(() => {
+      const point = await evaluate(`(async () => {
         const anchor = document.querySelectorAll('.cms-preview a[href]')[${index}];
-        anchor.scrollIntoView({ block: 'center' });
+        anchor.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         window.clickedPreviewLink = anchor;
-        const rect = (anchor.querySelector('strong, span') || anchor).getBoundingClientRect();
-        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        // Inline links can span lines: the union box's center can be empty space.
+        // Hit-test after scrolling settles so sticky controls cannot intercept it.
+        for (const rect of anchor.getClientRects()) {
+          if (!rect.width || !rect.height) continue;
+          const point = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+          if (document.elementFromPoint(point.x, point.y)?.closest('a') === anchor) return point;
+        }
+        throw new Error('Preview link ${index} has no visible, unobstructed click target');
       })()`);
       if (index === 3) {
         await evaluate(`document.querySelectorAll('.cms-preview a[href]')[${index - 1}].focus()`);

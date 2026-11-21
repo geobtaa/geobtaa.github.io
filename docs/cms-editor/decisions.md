@@ -32,7 +32,7 @@ Body and cover images use the same image library and upload safeguards. Pending 
 
 ## Submit immutable publication requests and explicitly authorize merging
 
-The preferred workflow, when enabled, is **Edit → Save Draft → Publish when ready → required GitHub checks/reviews → native squash merge → GitHub Pages deployment → verified update**. Manual submission and merging remain available. Unpublish when ready uses the same explicit authorization after the unpublish confirmation; it changes only current main visibility and preserves independent saved work.
+The preferred workflow, when enabled, is **Edit → Save Draft → Publish → required GitHub checks/reviews → native squash merge → GitHub Pages deployment → verified update**. Manual submission and merging remain available internally for administrative exceptions, without normal editor controls. Unpublish uses the same explicit authorization after the unpublish confirmation; it changes only current main visibility and preserves independent saved work.
 
 GitHub native auto-merge performs the waiting. There is no privileged Actions merger, GitHub App migration, background publishing worker, status database, automatic branch cleanup, or unattended request refresh. The CMS keeps request status separate from deployment status. Merged does not mean deployed. On-demand website verification uses the existing production marker and matching GitHub Pages run/deployment; missing or contradictory evidence remains unverified.
 
@@ -98,6 +98,13 @@ Links to exact draft destinations produce visible warnings in every build, inclu
 
 ## Direct unpublishing of unchanged pages
 
-Unpublish page does not require an editor to manually save an unchanged document. After confirmation, an explicit authorized `initialize: true` POST for the unpublish action prepares or recovers the working revision. Ordinary `prepare: true` remains read-only. The initializer uses authoritative content byte-for-byte rather than form serialization, preserves continuation tokens and saved uploads, and checks loaded source identity, authorization, policy, and explicit navigation blockers. Different concurrent editorial work causes a conflict rather than an overwrite.
+Unpublish does not require an editor to manually save an unchanged document. After confirmation, an explicit authorized `initialize: true` POST for the unpublish action prepares or recovers the working revision. Ordinary `prepare: true` remains read-only. The initializer uses authoritative content byte-for-byte rather than form serialization, preserves continuation tokens and saved uploads, and checks loaded source identity, authorization, policy, and explicit navigation blockers. Different concurrent editorial work causes a conflict rather than an overwrite.
 
 The returned revision is passed directly to the existing preparation/submission protocol. A lost response can reuse an identical working copy or an existing unpublish reservation. Initialization does not itself create a publication request or change main. Partial failures keep the copy and open form. Actual unsaved edits must still be saved explicitly. Snapshot metadata, required validation, deployment verification, and feature gates remain unchanged.
+
+
+## Publication confirmation and normal-editor language
+
+Publish and Unpublish are the normal actions and always authorize automatic completion after explicit confirmation. Both dialogs use the same accessible native-dialog layout, Cancel as the initial focus, Escape dismissal, and focus restoration. Publish identifies the selected immutable saved revision with a version code, available local save time and editor, and a warning when an earlier selection excludes newer work. The loaded working copy is captured when opening; a local change dismisses the dialog, and confirmation rechecks that identity, dirty state, availability and authentication before using the captured head. Concurrent saved work is never silently substituted for that head.
+
+Unpublish keeps the existing current-main-only semantics and prepares any internal copy only after confirmation. A missing automatic-publishing capability disables normal controls instead of falling back to a manual submission. The backend manual prepare/submit protocol remains unchanged for administrative exceptions. Technical request state, GitHub links and raw diagnostics live under View details; normal notices describe validation, deployment and cancellation without PR terminology. Cancellation cannot undo an update already accepted for deployment.

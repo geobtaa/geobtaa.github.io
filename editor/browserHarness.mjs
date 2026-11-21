@@ -17,7 +17,7 @@ for (const candidate of candidates) {
 }
 
 // Run browser tests against an isolated fixture without accessing GitHub.
-export async function withEditorBrowser(fixtureCode, run, { images = {}, initialSearch = '', builtDirectory } = {}) {
+export async function withEditorBrowser(fixtureCode, run, { images = {}, initialSearch = '', builtDirectory, chromeStartupTimeout = 20_000 } = {}) {
   assert.ok(chrome, 'Chrome/Chromium is required.');
   const fixtureName = `.editor-browser-fixture-${process.pid}.tsx`;
   const fixture = join(root, 'editor', fixtureName);
@@ -70,7 +70,7 @@ export async function withEditorBrowser(fixtureCode, run, { images = {}, initial
     });
     await server.listen();
     browser = spawn(chrome, ['--headless', '--disable-gpu', '--no-first-run', '--no-default-browser-check', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
-    const debugUrl = await waitForChrome(browser, profile);
+    const debugUrl = await waitForChrome(browser, profile, { timeout: chromeStartupTimeout });
     const pages = await (await fetch(`http://${new URL(debugUrl).host}/json/list`)).json();
     socket = new WebSocket(pages.find((page) => page.type === 'page').webSocketDebuggerUrl);
     await once(socket, 'open');
