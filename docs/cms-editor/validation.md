@@ -2,7 +2,7 @@
 
 ## Required publication checks
 
-The chosen policy requires PRs to main and strict, up-to-date `validate` and `cms-publication-scope` checks from GitHub Actions. Administrators are included; bypasses, force pushes, and deletion are disallowed. Required human, code-owner, and last-push approvals are not part of the chosen routine-publication policy. CODEOWNERS requests advisory technical review. Native auto-merge is opt-in per verified CMS request. An authenticated editor explicitly authorizes it, or retains manual merging. Repository protection and both required checks remain unchanged.
+The chosen policy requires PRs to main and strict, up-to-date `validate` and `cms-publication-scope` checks from GitHub Actions. Administrators are included; bypasses, force pushes, and deletion are disallowed. Required human, code-owner, and last-push approvals are not part of the chosen routine-publication policy. Native auto-merge is opt-in per verified CMS request. An authenticated editor explicitly authorizes it, or retains manual merging. Repository protection and both required checks remain unchanged.
 
 The verifier requires effective PR protection, not retained review preferences from a separate endpoint. An earlier missing-effective-protection diagnosis was subsequently resolved by the maintainer; that old failure is not a standing finding. Recheck the effective policy using each intended editor's own OAuth session. Administrator-token success does not prove non-admin policy-read access.
 
@@ -94,13 +94,9 @@ Earlier read-only investigations recorded this incomplete test publication:
 
 These are historical recovery identifiers, not freshly checked live state. Preserve the associated draft, snapshot, coordinator, and lock until inspected. A same-revision retry may recover a reservation or append an immutable replacement after unrelated main changes; same-document changes require reconciliation. Documentation cleanup does not authorize publication retries, ref deletion, or test-content cleanup.
 
-## Directory rename compatibility
+## Editor source directory
 
-The implementation and tests live in `editor/`; React editor components live in `src/components/editor/`. The old workplan was deleted and had no dedicated tests.
-
-The trusted checker on main before this rename rejects deletion of three validation modules at their old paths and requires the old browser-test command. Four temporary forwarding files remain in `editor-prototype/`: three module re-exports and a browser-suite entry point that discovers and imports every `editor/*.browser.mjs` file. No application implementation remains there. Local npm commands already use the new paths.
-
-After this migration reaches main, a follow-up PR can switch the workflow browser command to `node --test --test-concurrency=1 editor/*.browser.mjs`, remove the four forwarding files, and remove the legacy command allowance and ownership entry. The relocated validator protects the new validation module paths. Do not remove the bridge before the trusted base supports the new contract.
+The implementation and tests live in `editor/`; React editor components live in `src/components/editor/`. CI runs the complete browser suite directly from `editor/`. The temporary prototype compatibility files have been removed after the relocated trusted validator reached main. The validator protects the current validation module paths and requires the complete browser suite.
 
 ## Unpublish release stages
 

@@ -4,7 +4,7 @@ import { parseContent } from './content.mjs';
 import { validateDocument } from './validateDocument.mjs';
 import { imageContentType, validateImageUpload } from './imageAssets.mjs';
 const invalid = message => Object.assign(new Error(message), { status: 403 });
-export const sensitiveSourcePath = path => /^(?:functions\/|editor\/|editor-prototype\/|scripts\/|\.github\/|patches\/|src\/(?:components|utils|layouts)\/)/.test(path) || /(?:^|\/)(?:package(?:-lock)?\.json|[^/]*config\.[^/]+|\.node-version|\.env[^/]*)$/.test(path);
+export const sensitiveSourcePath = path => /^(?:functions\/|editor\/|scripts\/|\.github\/|patches\/|src\/(?:components|utils|layouts)\/)/.test(path) || /(?:^|\/)(?:package(?:-lock)?\.json|[^/]*config\.[^/]+|\.node-version|\.env[^/]*)$/.test(path);
 function yaml(source, path) {
   const doc = parseDocument(source);
   if (doc.errors.length) throw invalid(`Invalid YAML in ${path}.`);
@@ -49,7 +49,7 @@ else
   node scripts/check-cms-publication.mjs --github-output
 fi`, 'use verified classification; missing checker must select the full suite');
       require(browser?.needs === 'publication-plan' && browser.if === "needs.publication-plan.result == 'success' && needs.publication-plan.outputs.kind != 'cms-snapshot'", 'ordinary source must run browsers');
-      require(browser.steps?.some(step => step.run === 'test -x /usr/bin/google-chrome') && browser.steps?.some(step => ['node --test --test-concurrency=1 editor/*.browser.mjs', 'node --test --test-concurrency=1 editor-prototype/*.browser.mjs'].includes(step.run) && step.env?.CHROME_BIN === '/usr/bin/google-chrome'), 'require Chrome and the complete browser suite');
+      require(browser.steps?.some(step => step.run === 'test -x /usr/bin/google-chrome') && browser.steps?.some(step => step.run === 'node --test --test-concurrency=1 editor/*.browser.mjs' && step.env?.CHROME_BIN === '/usr/bin/google-chrome'), 'require Chrome and the complete browser suite');
       // Support the installed contract and a separately activated isolated job.
       // Either form must run render fixtures for CMS snapshots as well as source PRs.
       const unconditionalRun = (job, command) => job?.steps?.some(step => step.run === command && step.if === undefined && step['continue-on-error'] === undefined);
