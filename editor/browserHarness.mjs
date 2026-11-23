@@ -43,7 +43,7 @@ export async function withEditorBrowser(fixtureCode, run, { images = {}, initial
                 response.end(image || 'Image not found');
                 return;
               }
-              const file = resolve(directory, '.' + (pathname === '/' ? '/index.html' : pathname));
+              const file = resolve(directory, '.' + (pathname.endsWith('/') ? pathname + 'index.html' : pathname));
               try {
                 if (!file.startsWith(directory + sep)) throw new Error('Invalid asset path');
                 const contents = await readFile(file);
