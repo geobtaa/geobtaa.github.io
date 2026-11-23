@@ -44,12 +44,14 @@ test('isolated render coverage must run the PR checkout and bind its actual resu
  for(const change of changes){const workflow=await contract(true);change(workflow.jobs);assert.throws(()=>check(workflow),/CI coverage/);}
 });
 
-test('directory migration accepts complete old and new browser suite commands and rejects partial coverage', async () => {
- for (const command of ['node --test --test-concurrency=1 editor/*.browser.mjs', 'node --test --test-concurrency=1 editor-prototype/*.browser.mjs']) {
+test('browser contract requires the complete current suite and rejects obsolete or partial coverage', async () => {
+ for (const command of ['node --test --test-concurrency=1 editor/*.browser.mjs']) {
   const workflow = await contract(true);
   const step = workflow.jobs['browser-tests'].steps.find(step => step.run?.startsWith('node --test'));
   step.run = command;
   assert.doesNotThrow(() => check(workflow));
+  step.run = 'node --test --test-concurrency=1 editor-prototype/*.browser.mjs';
+  assert.throws(() => check(workflow), /complete browser suite/);
   step.run = 'node --test editor/preview.browser.mjs';
   assert.throws(() => check(workflow), /complete browser suite/);
  }

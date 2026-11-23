@@ -1,4 +1,4 @@
-// Trusted-base policy. CODEOWNERS is advisory; all required gates are automated.
+// Trusted-base policy. All required publication gates are automated.
 export const ACTIONS_APP_ID = 15368;
 const blocked = message => Object.assign(new Error(message), { status: 403 });
 export async function verifyPublicationPolicy(request, { manual = false } = {}) {
