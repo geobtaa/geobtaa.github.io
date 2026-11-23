@@ -45,8 +45,18 @@ export async function prepareDraftImage({ area, documentFilename, filename, mime
 // Shared by the local gateway and Cloudflare. No application-host branch is used.
 export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.github.io', fetchPublic = fetch }) {
   const commits = new Map(), trees = new Map(), blobs = new Map(), comparisons = new Map(), resumeEvidence = new Map();
-  // Invocation-local only: share in-flight immutable reads as well as results.
-  const once = async (cache, key, read) => { if (!cache.has(key)) cache.set(key, Promise.resolve().then(read)); return cache.get(key); };
+  // Share immutable reads for this store's lifetime, including in-flight work.
+  // Failed reads must be retryable when the local server reuses the store.
+  const once = async (cache, key, read) => {
+    if (!cache.has(key)) {
+      const pending = Promise.resolve().then(read).catch(error => {
+        if (cache.get(key) === pending) cache.delete(key);
+        throw error;
+      });
+      cache.set(key, pending);
+    }
+    return cache.get(key);
+  };
   const queue = []; let reading = 0;
   const drain = () => { while (reading < 2 && queue.length) queue.shift()(); };
   const immutableRead = (path, options) => new Promise((resolve, reject) => {
