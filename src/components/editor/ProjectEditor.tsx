@@ -95,8 +95,20 @@ function slugify(value: string) {
 
 type ImageFields = { src: string; alt: string; title?: string | null };
 
-function RepositoryImagePicker({ initialImage, showCaption = true, onSelect, onClose }: { initialImage?: ImageFields; showCaption?: boolean; onSelect: (src: string, alt: string, title: string) => void; onClose: () => void }) {
+function RepositoryImagePicker({ initialImage, showCaption = true, onSelect, onClose: closePicker }: { initialImage?: ImageFields; showCaption?: boolean; onSelect: (src: string, alt: string, title: string) => void; onClose: () => void }) {
   const draftImages = useContext(DraftImages);
+  const pickerSession = useRef({ active: true });
+  useEffect(() => {
+    const session = { active: true };
+    pickerSession.current = session;
+    return () => { session.active = false; };
+  }, []);
+  const onClose = () => {
+    // Invalidate immediately, before unmount: a pending response must never
+    // attach images to a dismissed picker or a later document/session.
+    pickerSession.current.active = false;
+    closePicker();
+  };
   const [images, setImages] = useState<ImageListItem[]>([]);
   const [imageQuery, setImageQuery] = useState('');
   const [imagePage, setImagePage] = useState(0);
@@ -120,6 +132,7 @@ function RepositoryImagePicker({ initialImage, showCaption = true, onSelect, onC
   const uploadImage = async (file?: File) => {
     if (!file) return;
     if (!draftImages?.filename) { setImageError('Save Draft once before uploading an image. Your current edits will stay here.'); return; }
+    const session = pickerSession.current;
     setImageBusy(true); setImageError('');
     try {
       const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -127,16 +140,18 @@ function RepositoryImagePicker({ initialImage, showCaption = true, onSelect, onC
         reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(reader.error);
         reader.readAsDataURL(file);
       });
+      if (!session.active) return;
       const uploaded = await api<PendingImage>('/api/images', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ area: draftImages.area, documentFilename: draftImages.filename, filename: file.name, mimeType: file.type, content: dataUrl.slice(dataUrl.indexOf(',') + 1) }),
       });
+      if (!session.active) return;
       if (![uploaded.path, uploaded.filename, uploaded.mimeType, uploaded.content].every(value => typeof value === 'string' && value.length > 0)) throw new Error('The image response could not be verified. Select the file again.');
       draftImages.add(uploaded);
       setImages((current) => [...current.filter((image) => image.name !== uploaded.path), { ...uploaded, name: uploaded.path, sha: '' }].sort((a, b) => a.name.localeCompare(b.name)));
       setImageSource(`@images/${uploaded.path}`); setImageQuery(uploaded.path);
-    } catch (err) { setImageError((err as Error).message); }
-    finally { setImageBusy(false); }
+    } catch (err) { if (session.active) setImageError((err as Error).message); }
+    finally { if (session.active) setImageBusy(false); }
   };
   const insertImage = () => {
     if (!imageSource.trim()) return setImageError('Select, upload, or enter an image source.');

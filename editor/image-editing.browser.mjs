@@ -241,3 +241,88 @@ test('tiny and custom images stay unchanged on open and remain selectable; prese
     }
   }, { initialSearch: '?area=posts&file=images.mdx', images: { 'original.png': png } });
 });
+
+for (const destination of ['different document', 'same document reopened', 'same editing session']) {
+  test(`dismissed image upload cannot affect ${destination} or discard accepted pending images`, {
+    skip: chrome ? false : 'Set CHROME_BIN to an installed Chrome/Chromium executable.', timeout: 45_000,
+  }, async () => {
+    const setup = fixture('Original body.').replace("createRoot(document.getElementById('root'))", `
+const originalFetch = window.fetch;
+window.otherRecord = { ...window.record, filename: 'other.mdx', title: 'Other document', body: 'Other body.', assets: [] };
+window.fetch = async (url, options = {}) => {
+  const path = new URL(String(url), location.origin).pathname.replace('/__mock-gateway', '');
+  if (path === '/api/images' && options.method === 'POST') {
+    const input = JSON.parse(options.body);
+    if (input.filename === 'late.png') {
+      await new Promise(resolve => { window.finishUpload = resolve; });
+      window.uploadReturned = true;
+    }
+    return Response.json({ ...input, path: input.filename });
+  }
+  if (path === '/api/content/posts') return Response.json({ entries: ['images.mdx', 'other.mdx'].map(name => ({ name, path: 'src/content/docs/posts/' + name })) });
+  if (path === '/api/content/posts/other.mdx') {
+    if (options.method === 'PUT') {
+      const fields = JSON.parse(options.body); window.writes.push(fields);
+      window.otherRecord = { ...window.otherRecord, ...fields, sha: 'saved-other', commitSha: 'commit-other' };
+    }
+    return Response.json(window.otherRecord);
+  }
+  return originalFetch(url, options);
+};
+createRoot(document.getElementById('root'))`);
+    await withEditorBrowser(setup, async ({ evaluate, waitFor, send }) => {
+      const click = async (text, scope = 'document') => {
+        await waitFor(`!![...${scope}.querySelectorAll('button')].find(button => (button.getAttribute('aria-label') || button.textContent.trim()) === ${JSON.stringify(text)} && !button.disabled)`);
+        await evaluate(`[...${scope}.querySelectorAll('button')].find(button => (button.getAttribute('aria-label') || button.textContent.trim()) === ${JSON.stringify(text)}).click()`);
+      };
+      const upload = async name => {
+        await click('Image');
+        await waitFor('!!document.querySelector(".image-picker input[type=file]") && !document.querySelector(".image-picker input[type=file]").disabled');
+        await evaluate(`(() => { const input = document.querySelector('.image-picker input[type=file]'); const data = new DataTransfer(); data.items.add(new File([Uint8Array.from(atob('${png.toString('base64')}'), c => c.charCodeAt(0))], ${JSON.stringify(name)}, { type: 'image/png' })); input.files = data.files; input.dispatchEvent(new Event('change', { bubbles: true })); })()`);
+      };
+      await waitFor('!!document.querySelector(".rich-editor .tiptap")');
+      await upload('accepted.png');
+      await waitFor(`[...document.querySelectorAll('.image-picker input')].some(input => input.value === '@images/accepted.png')`);
+      await click('Cancel', 'document.querySelector(".image-picker")');
+      // Cancel must retain an upload already accepted into this document's pending assets.
+      await evaluate('document.querySelector("#document-edit input[required]").focus()');
+      await send('Input.insertText', { text: 'Unsaved ' });
+      await upload('late.png');
+      await waitFor('typeof window.finishUpload === "function"');
+      if (destination === 'same document reopened') await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape' });
+      else if (destination === 'same editing session') await click('Close image picker', 'document.querySelector(".image-picker")');
+      else await click('Cancel', 'document.querySelector(".image-picker")');
+      await waitFor('!document.querySelector(".image-picker")');
+      if (destination !== 'same editing session') {
+        await click('← Back to Blog Posts');
+        await click('Leave editor', 'document.querySelector(".unsaved-changes-dialog")');
+        const filename = destination === 'different document' ? 'other.mdx' : 'images.mdx';
+        await waitFor('!!document.querySelector(".project-list button")');
+        await evaluate(`[...document.querySelectorAll('.project-list button')].find(button => button.textContent.includes(${JSON.stringify(filename.replace('.mdx', ''))})).click()`);
+        await waitFor('!!document.querySelector(".rich-editor .tiptap")');
+        if (destination === 'same document reopened') {
+          await click('Restore changes');
+          await waitFor('document.querySelector(".message.success")?.textContent.includes("restored")');
+        }
+      }
+      if (destination === 'different document') {
+        await upload('current.png');
+        await waitFor(`[...document.querySelectorAll('.image-picker input')].some(input => input.value === '@images/current.png')`);
+        await click('Cancel', 'document.querySelector(".image-picker")');
+      }
+      const titleBefore = await evaluate('document.querySelector("#document-edit input[required]").value');
+      await evaluate('window.finishUpload()');
+      await waitFor('window.uploadReturned === true');
+      // A subsequent browser task lets the fetch and React update continuations finish.
+      await evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+      assert.equal(await evaluate('!!document.querySelector(".image-picker")'), false);
+      assert.equal(await evaluate('document.querySelector("#document-edit input[required]").value'), titleBefore);
+      await click('Save Draft', 'document.querySelector(".editor-navigation")');
+      await waitFor('window.writes.length === 1');
+      assert.deepEqual(await evaluate('(window.writes[0].assets || []).map(asset => asset.path)'), destination === 'different document' ? ['current.png'] : ['accepted.png']);
+      assert.equal(await evaluate('window.writes[0].title'), titleBefore);
+      assert.equal(await evaluate('window.writes[0].body'), destination === 'different document' ? 'Other body.' : 'Original body.');
+      if (destination !== 'different document') assert.ok(titleBefore.includes('Unsaved '));
+    }, { initialSearch: '?area=posts&file=images.mdx', images: { 'accepted.png': png, 'late.png': png, 'current.png': png } });
+  });
+}
