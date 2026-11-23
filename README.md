@@ -93,7 +93,7 @@ All primary navigation (desktop tabs, mobile drawer, and sidebar groupings) is d
 
 - `navigation.config.ts` — each entry in `NAV_GROUPS` describes a top-level section (`id`, `label`, `landing` page, and the sidebar items that belong to the group). Update this file when you add or remove a section.
 - `astro.config.ts` consumes `NAV_GROUPS` to build Starlight’s sidebar automatically; no manual edits needed here unless you change config structure.
-- UI components (`src/components/HeaderWithCompactSearch.astro` and `src/components/SidebarWithFilters.astro`) import the same data, so they reflect changes instantly.
+- UI components (src/components/SidebarWithFilters.astro`)
 
 Typical update flow:
 

@@ -19,6 +19,9 @@ content and is processed by Astro and Starlight into published pages.
 
 ## Site maintenance
 
+- [Repository inventory](REPOSITORY_INVENTORY.md): application structure,
+  compatibility support, tooling, documentation, cleanup review targets, and
+  validation baseline
 - [Conference map gallery maintenance](how-to-update-conf-map-gallery.md): add,
   preview, optimize, and publish gallery submissions
 
