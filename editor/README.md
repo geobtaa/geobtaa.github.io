@@ -4,6 +4,44 @@ The dedicated gin-editor build serves the editor at `/`, with legacy `/editor/` 
 
 The enabled directories are `about`, `conference`, `guides`, `library`, `metadata`, `posts`, `projects`, `scholarship`, `team`, `updates`, and `workgroups`. Files can be created in each enabled directory. Every enabled area has frontmatter controls and page settings. Draft metadata is managed automatically; there is no Draft / Published toggle. The available fields follow each area's existing content conventions. Program Updates supports the simpler article workflow described below.
 
+## Development and testing
+
+Use Node **24.13.1**, pinned in `.node-version` and Volta, plus npm and Git.
+Run `npm ci` from the repository root for reproducible dependencies; installation
+also applies the required dependency patch. Browser tests and the editor artifact
+check require Chrome/Chromium. The harness checks common macOS/Linux locations;
+set `CHROME_BIN` to the executable path when necessary. Tests need temporary-file,
+child-process, and local loopback access, including the workerd runtime.
+
+For routine manual development, run `npm run dev`; run `npm run editor` in a
+second terminal when using the local API. See [local setup](#local-setup) for its
+configuration. The gateway uses the configured GitHub repository, so manual saves
+are real operations. Automated tests start their own fixtures and use mocked
+GitHub operations; they need neither these development servers nor a GitHub token.
+
+Use `npm run test:editor` for unit/API regressions and
+`npm run test:editor:browser` for sequential browser tests. For a targeted change,
+run the relevant files directly, for example:
+
+```sh
+node --test editor/api-parity.test.mjs editor/cloudflare-runtime.test.mjs
+node --test --test-concurrency=1 editor/image-editing.browser.mjs
+```
+
+The [validation reference](../docs/cms-editor/validation.md#local-checks) lists
+each command's scope, prerequisites, and the full pre-release sequence. Within one
+checkout, run browser, render, build, and Astro sync/check commands sequentially.
+Render tests temporarily add source content; separate output directories alone do
+not isolate fixtures or Astro's generated files.
+
+Read the test summary: skipped tests did not execute, and TODO tests can execute
+and fail without failing the command. Five FilterPanel TODO cases currently
+record unresolved defects. A successful exit alone is not complete coverage.
+
+Local testing does not deploy. CI validates PRs under the existing trusted-base
+policy; the deployment workflow publishes the public site from main. Dedicated
+Cloudflare editor deployment is separate. See [CI and deployment boundaries](../docs/cms-editor/validation.md#ci-and-deployment-boundaries).
+
 ## Metadata across content areas
 
 Title is required; descriptions and other page metadata are optional. Existing values load into the form. Saving an existing file keeps its filename and URL, preserves unknown frontmatter and protected MDX, and checks the current GitHub file SHA before committing. Both local and hosted APIs use the authoritative GitHub source, rather than trusting a copy sent by the browser.
@@ -52,7 +90,10 @@ New articles persist a creation identifier and fixed target filename in the acco
 
 If a session expires during editing, the editor stays mounted and flushes its recovery copy. Use **Sign in again with GitHub** in the separate tab, then return and choose **Check sign-in**. Resuming requires the original account and workspace. Unsaved text, undo history, selection, and Edit/Preview state remain in the original tab; reloading uses local recovery instead and cannot restore undo history or selection. If storage fails, keep the tab open and download the unsaved edits. API operations remain blocked until sign-in is checked.
 
-Run `npm run test:editor` for editor regression tests. Run `npm run test:editor:browser` to check component insertion and property forms, image editing, link-address handling, Link Card cursor behavior, dashboard/back navigation, unsaved-change prompts, mobile layout, frontmatter controls across all enabled areas, visibility indicators, and both Save buttons using isolated headless Chrome profiles and temporary local test pages. These browser tests use no GitHub credentials or content saves. They find Chrome in common macOS/Linux locations; set `CHROME_BIN` to your Chrome/Chromium executable if needed. They skip when no browser is installed.
+Editor regression commands and prerequisites are summarized under
+[Development and testing](#development-and-testing). Browser tests cover block
+controls, images, navigation, recovery, metadata, publication, and related site
+filtering using isolated Chrome profiles and temporary fixtures.
 
 ## In-editor preview
 
@@ -152,7 +193,7 @@ Task lists, footnote references and definitions, reference-style links/images, c
 
 Visual text serialization escapes literal MDX braces and import/export-like prose, escapes link destinations and titles, emits self-closing table line breaks, and chooses code fences that cannot be closed by the example they contain. Both APIs compile generated MDX without evaluating it before writing to GitHub, and check that existing protected source remains unchanged and ordered. Invalid syntax, altered protected content, and new unsupported/executable source produce an error while retaining the open edits. Markdown files are validated as Markdown. This is a syntax/preservation check; repository imports, assets, and site rendering still require the production build.
 
-Preservation regressions include actual TipTap edits, saves, reopening, validation failures, and Edit/Preview with the Roadmap, SDI proposal, and Philadelphia CityGeo article. Run `npm run test:editor` and `npm run test:editor:browser`; `npm run test:editor:render` retains the previous batch's Astro-generated Link Card security checks.
+Preservation regressions include actual TipTap edits, saves, reopening, validation failures, and Edit/Preview with the Roadmap, SDI proposal, and Philadelphia CityGeo article. Run `npm run test:editor` and `npm run test:editor:browser`; `npm run test:editor:render` runs Astro-generated Link Card/Link Button safety checks and production unpublish-build regressions.
 
 ## Hosted deployment
 
