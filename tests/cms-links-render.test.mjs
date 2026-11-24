@@ -10,6 +10,7 @@ import test from 'node:test';
 import { parseHTML } from 'linkedom';
 import { createLinkCardMdx, parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor/linkCardMdx.ts';
 import { createLinkButtonMdx } from '../src/components/editor/linkButtonMdx.ts';
+import { parseLegacyChipList, updateLegacyChipList } from '../src/components/editor/legacyChipList.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const execute = promisify(execFile);
@@ -75,4 +76,35 @@ test('Astro refuses unsafe static URLs on supported cards and buttons, including
       await assert.rejects(build, error => /Unsafe (LinkCard|LinkButton) URL/.test(error.stderr + error.stdout));
     });
   }
+});
+
+test('Astro retains legacy ChipList classes and list structure while edited labels stay literal', { timeout: 60_000 }, async () => {
+  const cases = [
+    '<ChipList class="not-content custom-chips">\n\n- First\n- Second\n\n</ChipList>',
+    '<ChipList class="not-content">\n\t- First\n\n\t- Second\n</ChipList>',
+    '<div class="grid cards" markdown>\n\n#### Search terms\n<ChipList class="not-content">\n- First\n- Second\n</ChipList>\n</div>',
+  ];
+  const labels = ['Maps & <script>alert(1)</script> {value}', '**literal** :note[label]', '&amp; stays literal'];
+  const body = ["import ChipList from 'src/components/ChipList.astro';", ...cases.flatMap((raw, index) => {
+    const edited = updateLegacyChipList(raw, labels);
+    const restored = updateLegacyChipList(edited, parseLegacyChipList(raw).items);
+    return [raw, edited, restored].map((source, variant) => `<section data-chip-fixture="${index}-${variant}">\n\n${source}\n\n</section>`);
+  })].join('\n\n');
+  await buildLinks(body, async (build, document) => {
+    await build();
+    const dom = await document();
+    for (const index of cases.keys()) {
+      const before = dom.querySelector(`[data-chip-fixture="${index}-0"] .chip-list`);
+      const edited = dom.querySelector(`[data-chip-fixture="${index}-1"] .chip-list`);
+      const restored = dom.querySelector(`[data-chip-fixture="${index}-2"] .chip-list`);
+      assert.equal(edited.className, before.className);
+      assert.equal(restored.className, before.className);
+      assert.ok(!edited.classList.contains('cms-chip-list'));
+      assert.deepEqual([...edited.querySelectorAll('li')].map(li => li.textContent.trim()), labels);
+      assert.equal(edited.querySelectorAll('script, strong, a').length, 0, 'labels cannot introduce markup');
+      const shape = list => [...list.children].map(li => ({ text: li.textContent.trim(), elements: [...li.children].map(child => child.tagName) }));
+      assert.deepEqual(shape(restored), shape(before), 'editing and restoring labels retains tight/loose list structure');
+      if (index === 2) assert.equal(edited.closest('.grid.cards').querySelector('h4').textContent, 'Search terms');
+    }
+  });
 });

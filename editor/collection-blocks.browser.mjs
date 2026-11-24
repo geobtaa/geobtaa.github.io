@@ -3,7 +3,7 @@ import test from 'node:test';
 import { chrome, withEditorBrowser, openNewBlockMenu } from './browserHarness.mjs';
 import { createCollectionMdx, parseCollectionMdx } from '../src/components/editor/collectionMdx.ts';
 
-const legacy = '<ChipList>\n- Legacy chip\n</ChipList>\n\n<CardGrid>\n<Card title="Legacy">Keep **rich** content.</Card>\n</CardGrid>\n';
+const legacy = '<ChipList>\n- **Rich legacy chip**\n</ChipList>\n\n<CardGrid>\n<Card title="Legacy">Keep **rich** content.</Card>\n</CardGrid>\n';
 const originalBody = `import ChipList from 'src/components/ChipList.astro';\nimport { Card, CardGrid } from '@astrojs/starlight/components';\n\n${legacy}\nAn ordinary paragraph.\n`;
 const fixture = (preview = false) => `import React from 'react';
 import { createRoot } from 'react-dom/client';

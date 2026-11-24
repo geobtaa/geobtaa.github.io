@@ -423,7 +423,7 @@ function RichTextEditor({ initialValue, onChange, structured = false, onRemove }
         {active?.empty && <p className="text-block-empty">Empty Text block.</p>}
         <button type="button" className="link-button component-remove" title="Remove this Text block and all its content" onClick={onRemove}>Remove Text block</button>
       </div>}
-      {structured && <button type="button" className="link-button component-remove" onClick={onRemove}>Remove {collectionKind ? COLLECTION_BLOCKS[collectionKind].label : simpleKind ? SIMPLE_COMPONENTS[simpleKind].label : editor.state.doc.firstChild?.type.name === 'linkButtonBlock' ? 'Link Button' : 'Link Card'}</button>}
+      {structured && onRemove && <button type="button" className="link-button component-remove" onClick={onRemove}>Remove {collectionKind ? COLLECTION_BLOCKS[collectionKind].label : simpleKind ? SIMPLE_COMPONENTS[simpleKind].label : editor.state.doc.firstChild?.type.name === 'linkButtonBlock' ? 'Link Button' : 'Link Card'}</button>}
       {imagePicker && <RepositoryImagePicker initialImage={imagePicker.image} onClose={() => setImagePicker(null)} onSelect={(src, alt, title) => {
         if (imagePicker.position !== undefined) editor.chain().focus().setNodeSelection(imagePicker.position).updateAttributes('image', { src, alt, title }).run();
         else editor.chain().focus().insertContentAt(editor.state.selection.to, { type: 'image', attrs: { src, alt, title } }).run();
@@ -554,7 +554,9 @@ function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: 
     </div>}
     {visibleSegments.map((segment, index) => <div className="block-row" tabIndex={-1} ref={(row) => { if (row) blockRows.current.set(segment.id, row); else blockRows.current.delete(segment.id); }} key={`${segmentSession}:${segment.id}`}>
       {segment.kind === 'protected'
-        ? segment.containedLinkCards
+        ? segment.legacyChipList
+          ? <RichTextEditor structured initialValue={segment.content} onChange={content => update(segment.id, content)} />
+          : segment.containedLinkCards
           ? <ContainedLinkCardsEditor source={segment.content} onChange={content => update(segment.id, content)} />
           : <details className="protected-block"><summary>Existing Markdown / MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
         : <RichTextEditor onRemove={() => removeBlock(segment.id)} structured={segment.kind === 'structured'} initialValue={segment.content} onChange={(content) => update(segment.id, content)} />}

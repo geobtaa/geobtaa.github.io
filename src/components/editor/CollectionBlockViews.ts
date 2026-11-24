@@ -101,7 +101,7 @@ export const CollectionBlocks = COLLECTION_KINDS.map(kind => Node.create({
   },
   markdownTokenizer: {
     name: COLLECTION_BLOCKS[kind].node, level: 'block',
-    start(source) { return source.search(new RegExp(`^[ \\t]*<${COLLECTION_BLOCKS[kind].binding}\\b`, 'm')); },
+    start(source) { return source.search(kind === 'chipList' ? /^(?:[ \t]*<CmsChipList\b| {0,3}<(?:ChipList|div)(?=[\s>]))/m : new RegExp(`^[ \\t]*<${COLLECTION_BLOCKS[kind].binding}\\b`, 'm')); },
     tokenize(source) {
       const raw = matchCollectionBlock(source, kind);
       return raw && parseCollectionMdx(raw) ? { type: COLLECTION_BLOCKS[kind].node, raw } : undefined;

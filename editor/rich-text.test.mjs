@@ -10,6 +10,7 @@ import { IMAGE_SIZE_PRESETS } from '../src/components/editor/formattedImage.ts';
 import { parseDirectiveCallout } from '../src/components/editor/directiveCallout.ts';
 import { parseBodySyntax } from '../src/components/editor/contentSyntax.ts';
 import { validateDocument } from './validateDocument.mjs';
+import { parseLegacyChipList } from '../src/components/editor/legacyChipList.ts';
 import { SIMPLE_KINDS, SIMPLE_COMPONENTS, createSimpleComponentMdx, emptySimpleFields, ensureSimpleComponentImport, parseSimpleComponentMdx } from '../src/components/editor/simpleComponents.ts';
 import { createLinkButtonMdx, ensureLinkButtonImport, parseLinkButtonMdx, updateLinkButtonMdx } from '../src/components/editor/linkButtonMdx.ts';
 import { createLinkCardMdx, ensureLinkCardImport, LINK_CARD_IMPORT, parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor/linkCardMdx.ts';
@@ -217,6 +218,23 @@ test('collection blocks reopen as one editable atom and serialize row edits with
     assert.equal(reopened.editor.state.doc.firstChild.type.name, COLLECTION_BLOCKS[kind].node);
     assert.deepEqual(parseCollectionMdx(reopened.editor.getMarkdown()).data, [...data].reverse());
     editor.destroy(); reopened.editor.destroy();
+  }
+});
+
+test('legacy chips load as editable collection atoms and retain their source, attributes and layout through edits', () => {
+  for (const raw of ['<ChipList class="not-content">\n\n- First\n- Second\n\n</ChipList>', '<div class="grid cards" markdown>\n## Heading\n<ChipList>\n- First\n- Second\n</ChipList>\n</div>']) {
+    const opened = openEditor(raw);
+    assert.equal(opened.editor.state.doc.firstChild.type.name, 'chipListBlock');
+    assert.equal(opened.editor.getMarkdown(), raw);
+    const entries = opened.editor.state.doc.firstChild.attrs.entries;
+    opened.editor.commands.setNodeSelection(0);
+    opened.editor.commands.updateAttributes('chipListBlock', { entries: [{ ...entries[1], value: 'Reordered <literal> {label}' }, entries[0]] });
+    const saved = opened.editor.getMarkdown();
+    assert.deepEqual(parseLegacyChipList(saved).items, ['Reordered <literal> {label}', 'First']);
+    assert.deepEqual(parseLegacyChipList(saved).protectedParts, parseLegacyChipList(raw).protectedParts);
+    const reopened = openEditor(saved);
+    assert.equal(reopened.editor.getMarkdown(), saved);
+    opened.editor.destroy(); reopened.editor.destroy();
   }
 });
 

@@ -6,6 +6,7 @@ import { SIMPLE_COMPONENTS } from '../src/components/editor/simpleComponents.ts'
 import { COLLECTION_BLOCKS } from '../src/components/editor/collectionMdx.ts';
 import { parseBodySyntax, mdxOnlyMarkdownNode, MDX_COMPONENT_MESSAGE } from '../src/components/editor/contentSyntax.ts';
 import { parseContainedLinkCards } from '../src/components/editor/containedLinkCards.ts';
+import { parseLegacyChipList } from '../src/components/editor/legacyChipList.ts';
 
 const generatedImports = new Set([
   LINK_CARD_IMPORT, LINK_BUTTON_IMPORT,
@@ -40,7 +41,8 @@ export async function validateDocument(content, { filename = 'new.mdx', original
   }
   const protectedBlocks = source => splitBody(source, { mergeProtected: false, format }).filter(segment => segment.kind === 'protected').map(segment => ({
     raw: segment.content,
-    parts: segment.containedLinkCards ? parseContainedLinkCards(segment.content).protectedParts : [segment.content],
+    kind: segment.legacyChipList ? 'legacyChipList' : segment.containedLinkCards ? 'containedLinkCards' : 'protected',
+    parts: segment.legacyChipList ? parseLegacyChipList(segment.content).protectedParts : segment.containedLinkCards ? parseContainedLinkCards(segment.content).protectedParts : [segment.content],
   }));
   const originals = protectedBlocks(originalBody);
   const changed = () => invalid('Existing read-only content was changed, removed, or moved into a different syntax context. Keep its protected source unchanged. Nothing was saved to GitHub.');
@@ -51,7 +53,7 @@ export async function validateDocument(content, { filename = 'new.mdx', original
     // code fence must not satisfy the preservation check by hiding the bytes.
     // Appending a separator after a former EOF block is allowed; changing an
     // existing line ending, indentation, or trailing spaces is not.
-    if (original !== undefined && block.parts.length === original.parts.length && block.parts.every((part, partIndex) => {
+    if (original !== undefined && block.kind === original.kind && block.parts.length === original.parts.length && block.parts.every((part, partIndex) => {
       const previous = original.parts[partIndex];
       return partIndex === block.parts.length - 1 ? key(part) === key(previous) && part.startsWith(previous) : part === previous;
     })) { index++; continue; }

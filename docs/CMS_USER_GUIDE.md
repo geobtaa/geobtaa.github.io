@@ -124,6 +124,8 @@ Some older pages use the `.md` file format. On these pages, Text is available bu
 
 Existing Markdown tables can be edited directly in Text blocks, including tables with times, ratios, and map scales. Tables containing custom styling, embedded components, or other unsupported content may remain read-only.
 
+Some older Chip Lists now have the same item controls as new lists. You can edit, add, remove, and reorder their labels while their existing layout stays in place. These older blocks cannot be moved or removed as a whole. Lists with formatted labels or other unsupported content remain read-only.
+
 ### Add, move, or remove blocks
 
 - Click **Add block** beside a block to insert another block after it. This adds a whole block; it does not insert one at the typing cursor inside your text.
