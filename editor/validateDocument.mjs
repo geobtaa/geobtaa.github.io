@@ -5,6 +5,7 @@ import { LINK_BUTTON_IMPORT } from '../src/components/editor/linkButtonMdx.ts';
 import { SIMPLE_COMPONENTS } from '../src/components/editor/simpleComponents.ts';
 import { COLLECTION_BLOCKS } from '../src/components/editor/collectionMdx.ts';
 import { parseBodySyntax, mdxOnlyMarkdownNode, MDX_COMPONENT_MESSAGE } from '../src/components/editor/contentSyntax.ts';
+import { parseContainedLinkCards } from '../src/components/editor/containedLinkCards.ts';
 
 const generatedImports = new Set([
   LINK_CARD_IMPORT, LINK_BUTTON_IMPORT,
@@ -37,18 +38,24 @@ export async function validateDocument(content, { filename = 'new.mdx', original
     const place = error.line ? ` at body line ${error.line}${error.column ? `:${error.column}` : ''}` : '';
     throw invalid(`Invalid ${format === 'mdx' ? 'MDX' : 'Markdown'}${place}: ${error.reason || error.message}. Nothing was saved to GitHub.`);
   }
-  const protectedBlocks = source => splitBody(source, { mergeProtected: false, format }).filter(segment => segment.kind === 'protected').map(segment => segment.content);
+  const protectedBlocks = source => splitBody(source, { mergeProtected: false, format }).filter(segment => segment.kind === 'protected').map(segment => ({
+    raw: segment.content,
+    parts: segment.containedLinkCards ? parseContainedLinkCards(segment.content).protectedParts : [segment.content],
+  }));
   const originals = protectedBlocks(originalBody);
   const changed = () => invalid('Existing read-only content was changed, removed, or moved into a different syntax context. Keep its protected source unchanged. Nothing was saved to GitHub.');
   let index = 0;
-  for (const raw of protectedBlocks(body)) {
+  for (const block of protectedBlocks(body)) {
     const original = originals[index];
     // Compare parsed blocks, not substring occurrences: wrapping source in a
     // code fence must not satisfy the preservation check by hiding the bytes.
     // Appending a separator after a former EOF block is allowed; changing an
     // existing line ending, indentation, or trailing spaces is not.
-    if (original !== undefined && key(raw) === key(original) && raw.startsWith(original)) { index++; continue; }
-    if (generatedImports.has(raw.trim())) continue;
+    if (original !== undefined && block.parts.length === original.parts.length && block.parts.every((part, partIndex) => {
+      const previous = original.parts[partIndex];
+      return partIndex === block.parts.length - 1 ? key(part) === key(previous) && part.startsWith(previous) : part === previous;
+    })) { index++; continue; }
+    if (generatedImports.has(block.raw.trim())) continue;
     if (originals.length) throw changed();
     throw invalid('New unsupported Markdown or executable MDX cannot be added through the visual editor. Use supported blocks or a reviewed source edit. Nothing was saved to GitHub.');
   }

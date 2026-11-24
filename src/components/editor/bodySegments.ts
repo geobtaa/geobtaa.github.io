@@ -5,8 +5,9 @@ import { parseSimpleComponentMdx } from './simpleComponents.ts';
 import { parseLinkButtonMdx } from './linkButtonMdx.ts';
 import { parseLinkCardMdx } from './linkCardMdx.ts';
 import { parseCollectionMdx } from './collectionMdx.ts';
+import { parseContainedLinkCards } from './containedLinkCards.ts';
 
-export type BodySegment = { id: number; kind: 'markdown' | 'protected' | 'structured'; content: string };
+export type BodySegment = { id: number; kind: 'markdown' | 'protected' | 'structured'; content: string; containedLinkCards?: boolean };
 
 export function splitBody(body: string, { mergeProtected = true, format = 'mdx' as SourceFormat } = {}): BodySegment[] {
   if (!body.trim()) return [{ id: 0, kind: 'markdown', content: body }];
@@ -21,8 +22,9 @@ export function splitBody(body: string, { mergeProtected = true, format = 'mdx' 
   const push = (kind: BodySegment['kind'], content: string) => {
     if (!content) return;
     const previous = segments.at(-1);
-    if (kind !== 'structured' && (kind !== 'protected' || mergeProtected) && previous?.kind === kind) previous.content += content;
-    else segments.push({ id: segments.length, kind, content });
+    const containedLinkCards = kind === 'protected' && format === 'mdx' && !!parseContainedLinkCards(content);
+    if (!containedLinkCards && !previous?.containedLinkCards && kind !== 'structured' && (kind !== 'protected' || mergeProtected) && previous?.kind === kind) previous.content += content;
+    else segments.push({ id: segments.length, kind, content, ...(containedLinkCards ? { containedLinkCards: true } : {}) });
   };
   const lineEnd = (offset: number) => {
     const newline = body.indexOf('\n', offset);

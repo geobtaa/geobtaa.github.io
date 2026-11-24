@@ -22,6 +22,7 @@ import { LinkAddressField } from './LinkAddressField';
 import { normalizeLinkAddress } from './linkAddress';
 import { COMPONENT_LINK_ERROR, isSafeComponentHref } from './componentLinkSafety';
 import { splitBody, visibleBodySegments, moveBodySegment, type BodySegment } from './bodySegments';
+import { ContainedLinkCardsEditor } from './ContainedLinkCardsEditor';
 import { MDX_COMPONENT_MESSAGE } from './contentSyntax';
 import { richTextEditorOptions } from './richTextEditor';
 import { createLinkCardMdx, ensureLinkCardImport } from './linkCardMdx';
@@ -553,7 +554,9 @@ function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: 
     </div>}
     {visibleSegments.map((segment, index) => <div className="block-row" tabIndex={-1} ref={(row) => { if (row) blockRows.current.set(segment.id, row); else blockRows.current.delete(segment.id); }} key={`${segmentSession}:${segment.id}`}>
       {segment.kind === 'protected'
-        ? <details className="protected-block"><summary>Existing Markdown / MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
+        ? segment.containedLinkCards
+          ? <ContainedLinkCardsEditor source={segment.content} onChange={content => update(segment.id, content)} />
+          : <details className="protected-block"><summary>Existing Markdown / MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
         : <RichTextEditor onRemove={() => removeBlock(segment.id)} structured={segment.kind === 'structured'} initialValue={segment.content} onChange={(content) => update(segment.id, content)} />}
       <div className="block-controls">
         {segment.kind !== 'protected' && <div className="block-move-buttons" role="group" aria-label={`Move block ${index + 1}`}>

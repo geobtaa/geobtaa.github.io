@@ -68,6 +68,12 @@ Existing unsupported Markdown, MDX, Astro components, imports, and layouts stay 
 
 Save endpoints validate generated Markdown/MDX before committing, without evaluating it. Required builds still check repository imports, assets, and rendering. Plain-text component fields are escaped rather than interpreted as executable source.
 
+Recognized legacy callout directives use the existing Callout block with a restricted rich message editor. Their original source is retained until the callout changes; edits keep directive syntax and consolidate `info` to `note` and `warning`/`Caution` to `caution`. This provides compatibility without a content migration or new imports. Unsupported titles, attributes, descendants, and enclosing layouts remain protected, and server validation uses the same recognition rules.
+
+Literal LinkCards on known layout paths can expose their existing property editor while the containing source stays protected and anchored. Preservation compares the ordered source fragments outside each editable card span; all wrapper attributes, sibling content, and executable source remain immutable. The API rejects new layouts and added/removed cards. This enables field edits without unwrapping or migrating existing layouts, and keeps URL validation shared with standalone cards.
+
+Inside Markdown tables, the shared syntax parser restores bare inline directive tokens as literal text, matching Starlight's public rendering. This lets ordinary ratios, times, and scale values use the existing table schema without a source migration. The restoration excludes labels and attributes, and leaves other unsupported cell content and enclosing layouts protected. It does not broaden directive handling in ordinary prose or replace HTML/CSV tables.
+
 Ordinary Preview shows the current form, including unsaved content, without writing or deploying. It approximates the page; protected content is shown as placeholders. Program Update conversion preview is a separate explicit workflow and is saved only through Save Draft.
 
 Browser recovery is account/workspace scoped (`<owner>/<repo>#cms-drafts-v1`) and separate from GitHub saves. It includes pending images and safe creation-retry identity. Older staging backups are not silently migrated. Restoring checks the current source and continuation head; incompatible copies remain downloadable instead of overwriting newer work. Multiple copies are never combined automatically. Downloads are JSON; there is no backup import UI.

@@ -3,25 +3,19 @@ import { createElement, useEffect, useState, type ChangeEvent } from 'react';
 import { LinkAddressField } from './LinkAddressField.ts';
 import { Node } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react';
-import { createLinkCardMdx, matchLinkCardBlock, parseLinkCardMdx, updateLinkCardMdx } from './linkCardMdx.ts';
+import { createLinkCardMdx, matchLinkCardBlock, parseLinkCardMdx, updateLinkCardMdx, type LinkCardFields } from './linkCardMdx.ts';
 import { previewComponentLink } from './previewLinks.ts';
 
-function LinkCardEditor({ node, updateAttributes, extension }: NodeViewProps) {
-  const { title, href, description } = node.attrs;
+export function LinkCardProperties({ value, onChange }: { value: LinkCardFields; onChange: (fields: LinkCardFields) => void }) {
+  const { title, href, description } = value;
   const [fields, setFields] = useState({ title, href, description });
   // React restores controlled inputs at the end of each change event. Keep the
   // typed value locally so it does not revert while the node-view update arrives.
   useEffect(() => { setFields({ title, href, description }); }, [title, href, description]);
-  if (extension.options.readOnly) return createElement(NodeViewWrapper, { contentEditable: false },
-    createElement('a', { className: 'preview-link-card', ...previewComponentLink(href), title: href },
-      createElement('strong', null, title),
-      description && createElement('p', null, description),
-      createElement('span', { className: 'preview-card-arrow', 'aria-hidden': true }, '→'),
-    ),
-  );
   const change = (key: 'title' | 'href' | 'description', value: string) => {
-    setFields((current) => ({ ...current, [key]: value }));
-    updateAttributes({ [key]: value });
+    const next = { ...fields, [key]: value };
+    setFields(next);
+    onChange(next);
   };
   const input = (label: string, key: 'title' | 'href', type = 'text') => createElement('label', null,
     createElement(FieldLabel, { text: label, required: true }),
@@ -30,7 +24,7 @@ function LinkCardEditor({ node, updateAttributes, extension }: NodeViewProps) {
       onChange: (event: ChangeEvent<HTMLInputElement>) => change(key, event.target.value),
     }),
   );
-  return createElement(NodeViewWrapper, { className: 'structured-link-card', contentEditable: false },
+  return createElement('div', { className: 'structured-link-card' },
     createElement('strong', null, 'Link card'),
     input('Title', 'title'),
     createElement('label', null, 'Description', createElement('textarea', {
@@ -39,6 +33,22 @@ function LinkCardEditor({ node, updateAttributes, extension }: NodeViewProps) {
     })),
     createElement(LinkAddressField, { required: true, value: fields.href, onChange: (value: string) => change('href', value) }),
   );
+}
+
+export function LinkCardPreview({ title, href, description }: LinkCardFields) {
+  return createElement('a', { className: 'preview-link-card', ...previewComponentLink(href), title: href },
+    createElement('strong', null, title),
+    description && createElement('p', null, description),
+    createElement('span', { className: 'preview-card-arrow', 'aria-hidden': true }, '→'),
+  );
+}
+
+function LinkCardEditor({ node, updateAttributes, extension }: NodeViewProps) {
+  const { title, href, description } = node.attrs;
+  const fields = { title, href, description };
+  return createElement(NodeViewWrapper, { contentEditable: false }, extension.options.readOnly
+    ? createElement(LinkCardPreview, fields)
+    : createElement(LinkCardProperties, { value: fields, onChange: updateAttributes }));
 }
 
 export const LinkCardBlock = Node.create({

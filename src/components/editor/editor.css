@@ -144,6 +144,7 @@ input, textarea, .area-selector select { width: 100%; padding: .7rem; border: 1p
 .structured-link-card { margin: 1rem 0; padding: 1rem; border: 1px solid var(--editor-border); border-radius: .5rem; background: var(--editor-subtle); }
 .structured-link-card > strong { display: block; margin-bottom: .5rem; color: var(--editor-muted); font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; }
 .structured-link-card label { margin: .65rem 0 0; }
+.contained-link-cards > fieldset { min-width: 0; margin: .75rem 0; }
 .image-picker, .link-card-dialog { position: fixed; z-index: 20; inset: 5vh max(1rem, calc((100vw - 760px) / 2)); max-height: 90vh; padding: 1.25rem; overflow: auto; border: 1px solid var(--editor-muted); border-radius: .6rem; background: var(--editor-surface); box-shadow: 0 20px 60px rgb(15 23 42 / 30%); }
 .link-card-dialog { inset: 15vh max(1rem, calc((100vw - 560px) / 2)) auto; }
 .image-picker { display: flex; flex-direction: column; padding: 0; overflow: hidden; }

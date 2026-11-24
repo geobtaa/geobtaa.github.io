@@ -4,6 +4,7 @@ import { splitBody } from './bodySegments';
 import { richTextEditorOptions } from './richTextEditor';
 import type { Project } from './editorTypes';
 import './preview.css';
+import { ContainedLinkCardsEditor } from './ContainedLinkCardsEditor';
 
 function PreviewText({ content, apiBase, article }: { content: string; apiBase: string; article: boolean }) {
   const editor = useEditor({
@@ -47,7 +48,7 @@ export function DocumentPreview({ project, area, apiBase }: { project: Project; 
         {area === 'library' && project.description && <p className="preview-summary">Summary: {project.description}</p>}
       </header>
       {segments.map(segment => segment.kind === 'protected'
-        ? <details className="preview-protected" key={segment.id}>
+        ? segment.containedLinkCards ? <ContainedLinkCardsEditor key={segment.id} source={segment.content} readOnly /> : <details className="preview-protected" key={segment.id}>
           <summary>Protected Markdown / MDX / Astro block — not rendered</summary>
           <pre>{segment.content}</pre>
         </details>

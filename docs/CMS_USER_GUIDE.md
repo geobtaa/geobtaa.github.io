@@ -118,9 +118,11 @@ Choose **Add block** to insert one of these blocks. Each has fields or controls 
 | Card Grid | A group of cards, each with a title and editable content. Add, remove, or reorder cards. | Present several related items together. |
 | Metrics | A group of labels and values that you enter yourself. | Display figures such as “New records” and “1,250.” These values do not update automatically. |
 
-Card and Callout messages use plain text. Use a Text block when you need general formatting, links, images, or tables. Card Grid has its own content editor inside each card.
+New Card and Callout messages use plain text. Some existing callouts have a formatting toolbar for editing their paragraphs, links, and lists. Info callouts appear as Note; Warning callouts appear as Caution. These names are standardized when you edit that callout. Use a Text block when you need images or tables. Card Grid has its own content editor inside each card.
 
 Some older pages use the `.md` file format. On these pages, Text is available but the special block types are disabled. Images and tables still work inside Text blocks. Ask a maintainer if the page needs a special block.
+
+Existing Markdown tables can be edited directly in Text blocks, including tables with times, ratios, and map scales. Tables containing custom styling, embedded components, or other unsupported content may remain read-only.
 
 ### Add, move, or remove blocks
 
@@ -137,6 +139,8 @@ Text blocks next to each other may appear as one Text block when you reopen the 
 Some existing pages contain layouts, embedded items, or code that the visual editor cannot edit. These appear as protected, read-only blocks, sometimes labeled **MDX** or **Astro**. These are file and component names; you do not need to learn them to edit the surrounding text.
 
 Leave protected blocks in place. The editor keeps their original content when you save. Ask a maintainer to change anything inside them. In Preview, these blocks appear as placeholders rather than a finished layout.
+
+Some Link Cards inside older layouts show editable title, description, and URL fields. You can edit those fields while the surrounding layout stays read-only. These layouts cannot be moved or removed. Preview shows the cards without reproducing the complete surrounding layout.
 
 ## Add and edit images
 
