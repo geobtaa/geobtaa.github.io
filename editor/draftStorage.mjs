@@ -250,7 +250,7 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     const original = await inspect(draft.branch, head, baseline);
     return { ...record(original), commitSha: head, replayed: true };
   }
-  async function saveContent({ area, filename, content, sha, head: expectedHead, assets = [], creationId, resumeHead }) {
+  async function saveContent({ area, filename, content, sha, head: expectedHead, assets = [], creationId, resumeHead, protectedRemovals = [] }) {
     const path = documentPath(area, filename);
     const repositoryId = await authorize();
     const baseline = await main(), selected = await active(area, filename);
@@ -294,7 +294,13 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     // Defense in depth: the serializer's absence/presence handling must survive
     // direct store use too. Do not let draft saves change visibility or slugs.
     if (original && (contentVisibility(original).draft !== contentVisibility(content).draft || documentSlug(original) !== documentSlug(content))) throw failure(400, 'Save Draft cannot change publication metadata or the document URL.');
-    if (predecessor) await validateDocument(content, { filename, originalBody: original ? parseContent(original).body : '' });
+    if (predecessor || protectedRemovals.length || draft?.meta.protectedRemovals?.length) await validateDocument(content, { filename, originalBody: original ? parseContent(original).body : '', protectedRemovals });
+    const cumulativeRemovals = [...(draft?.meta.protectedRemovals || []), ...protectedRemovals];
+    const baseContent = baseline.files.has(path) ? await text(baseline.files.get(path)) : '';
+    if (cumulativeRemovals.length) {
+      await validateDocument(content, { filename, originalBody: baseContent ? parseContent(baseContent).body : '', protectedRemovals: cumulativeRemovals });
+      meta.protectedRemovals = cumulativeRemovals;
+    }
     if (!original && contentVisibility(content).draft !== true) throw failure(400, 'New documents must be saved as drafts.');
     const drafts = await discover(baseline, { verifyRetired: false });
     const claims = await snapshotRoutes([...baseline.files.values()], request, owner, repo);
@@ -384,7 +390,7 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     const editable = new Set(['title', 'description', 'date', 'excerpt', 'authors', 'tags', 'cover', 'draft', ...PAGE_METADATA_FIELDS.filter(key => key !== 'head')]);
     for (const key of new Set([...Object.keys(before), ...Object.keys(after)])) if (!editable.has(key) && JSON.stringify(before[key]) !== JSON.stringify(after[key])) throw failure(400, 'Publication cannot change protected frontmatter. Use a reviewed source PR.');
     validatePageMetadata(Object.fromEntries(PAGE_METADATA_FIELDS.filter(key => key in after).map(key => [key, after[key]])), before);
-    await validateDocument(content, { filename, originalBody: original ? parseContent(original).body : '' });
+    await validateDocument(content, { filename, originalBody: original ? parseContent(original).body : '', protectedRemovals: action === 'unpublish' ? [] : draft.meta.protectedRemovals || [] });
     const claims = await snapshotRoutes([...baseline.files.values()].filter(file => file.path !== path), request, owner, repo);
     for (const other of historical ? [] : await discover(baseline)) if (other.meta.path !== path) {
       const route = documentRoute(`${other.area}/${other.filename}`, documentSlug(other.content));

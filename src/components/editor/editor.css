@@ -350,3 +350,8 @@ code { font-size: .9em; }
 .application-header-links { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1rem; }
 .application-header-links a, .application-header-links .link-button, .view-live-page { display: inline-flex; align-items: center; min-height: 44px; }
 .document-toolbar { gap: .75rem 1.5rem; flex-wrap: wrap; }
+
+.remove-protected { margin-top: .5rem; }
+.pending-removals { padding: .75rem; border: 1px solid var(--editor-border-strong); border-radius: .4rem; }
+.pending-removals > summary { cursor: pointer; font-weight: 650; }
+.pending-removals .protected-block { margin-top: .5rem; }

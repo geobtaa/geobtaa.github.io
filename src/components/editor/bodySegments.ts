@@ -138,3 +138,13 @@ export function moveBodySegment(segments: BodySegment[], id: number, direction: 
   }
   return next;
 }
+
+// Whole-block removal is distinct from editing source or deleting setup.
+export function canRemoveProtected(segment: BodySegment, format: SourceFormat = 'mdx') {
+  if (format !== 'mdx' || segment.kind !== 'protected' || segment.protectedType !== 'content' || segment.legacyCardGrid || segment.legacyChipList || segment.containedLinkCards) return false;
+  // A layout may contain ESM declarations or script/style nodes. Keep the
+  // complete wrapper locked rather than deleting embedded page dependencies.
+  const hasPageCode = (node: SyntaxNode): boolean => node.type === 'mdxjsEsm' || ['mdxJsxFlowElement', 'mdxJsxTextElement'].includes(node.type) && ['script', 'style'].includes(node.name || '') || !!node.children?.some(hasPageCode);
+  try { return !parseBodySyntax(segment.content).children.some(hasPageCode); }
+  catch { return false; }
+}

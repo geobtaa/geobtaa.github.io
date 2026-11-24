@@ -32,6 +32,7 @@ export type Project = {
   draft: boolean;
   sidebarHidden?: boolean;
   body: string;
+  protectedRemovals?: string[];
   branch?: string;
   metadata?: PageMetadata;
   frontmatterFields?: string[];

@@ -115,7 +115,7 @@ export async function saveBlog(github, filename, input) {
   if (!filename) {
     let content = newBlog(github.drafts ? { ...input, draft: true } : input);
     await validateDocument(content);
-    const saved = await github.createBlog({ title: input.title, suggestedFilename: input.suggestedFilename, creationId: input.creationId, creationFilename: input.creationFilename, creationRetry: input.creationRetry === true, assets: input.assets, content });
+    const saved = await github.createBlog({ title: input.title, suggestedFilename: input.suggestedFilename, creationId: input.creationId, creationFilename: input.creationFilename, creationRetry: input.creationRetry === true, protectedRemovals: input.protectedRemovals, assets: input.assets, content });
     content = saved.content ?? content;
     return { ...saved, content, ...parseBlog(content), ...parsePageMetadata(content), ...contentVisibility(content) };
   }
@@ -124,7 +124,7 @@ export async function saveBlog(github, filename, input) {
   if (loaded.sha !== input.sha) throw Object.assign(new Error('This page has changed in GitHub since you opened it. Your edits are still here; copy them before reloading.'), { status: 409 });
   // Use authoritative frontmatter, never a client-supplied originalContent.
   const content = serializeBlog(loaded.content, { ...parseBlog(loaded.content), ...input, ...(github.drafts ? { draft: parseBlog(loaded.content).draft } : {}) });
-  await validateDocument(content, { filename, originalBody: parseBlog(loaded.content).body });
-  const saved = await github.saveContent({ area: 'posts', filename, content, sha: input.sha, head: input.head, resumeHead: input.resumeHead, assets: input.assets });
+  await validateDocument(content, { filename, originalBody: parseBlog(loaded.content).body, protectedRemovals: input.protectedRemovals });
+  const saved = await github.saveContent({ area: 'posts', filename, content, sha: input.sha, head: input.head, resumeHead: input.resumeHead, protectedRemovals: input.protectedRemovals, assets: input.assets });
   return { ...saved, filename, content, ...parseBlog(content), ...parsePageMetadata(content), ...contentVisibility(content) };
 }

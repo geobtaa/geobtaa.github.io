@@ -1,5 +1,5 @@
 import { parseContent } from './content.mjs';
-import { splitBody } from '../src/components/editor/bodySegments.ts';
+import { splitBody, canRemoveProtected } from '../src/components/editor/bodySegments.ts';
 import { LINK_CARD_IMPORT } from '../src/components/editor/linkCardMdx.ts';
 import { LINK_BUTTON_IMPORT } from '../src/components/editor/linkButtonMdx.ts';
 import { SIMPLE_COMPONENTS } from '../src/components/editor/simpleComponents.ts';
@@ -17,7 +17,7 @@ const generatedImports = new Set([
 const invalid = message => Object.assign(new Error(message), { status: 400 });
 const key = source => source.replace(/\r?\n$/, '');
 
-export async function validateDocument(content, { filename = 'new.mdx', originalBody = '' } = {}) {
+export async function validateDocument(content, { filename = 'new.mdx', originalBody = '', protectedRemovals = [] } = {}) {
   const body = parseContent(content).body;
   const format = filename.endsWith('.md') ? 'md' : 'mdx';
   if (format === 'md') {
@@ -42,10 +42,19 @@ export async function validateDocument(content, { filename = 'new.mdx', original
   }
   const protectedBlocks = source => splitBody(source, { mergeProtected: false, format }).filter(segment => segment.kind === 'protected').map(segment => ({
     raw: segment.content,
+    removable: canRemoveProtected(segment, format),
     kind: segment.legacyCardGrid ? 'legacyCardGrid' : segment.legacyChipList ? 'legacyChipList' : segment.containedLinkCards ? 'containedLinkCards' : 'protected',
     parts: segment.legacyCardGrid ? parseLegacyCardGrid(segment.content).protectedParts : segment.legacyChipList ? parseLegacyChipList(segment.content).protectedParts : segment.containedLinkCards ? parseContainedLinkCards(segment.content).protectedParts : [segment.content],
   }));
+  if (!Array.isArray(protectedRemovals) || protectedRemovals.length > 1024 || protectedRemovals.some(source => typeof source !== 'string') || protectedRemovals.reduce((size, source) => size + source.length, 0) > 1_000_000) throw invalid('Invalid protected block removal records.');
   const originals = protectedBlocks(originalBody);
+  // Records are exact source identities bound to the authoritative baseline by
+  // the caller's SHA check. Repeated identical blocks consume one record each.
+  for (const source of protectedRemovals) {
+    const index = originals.findIndex(block => block.removable && key(block.raw) === key(source));
+    if (index < 0) throw invalid('A requested removal is not an eligible original content block. Reload the page; setup and uncertain source cannot be removed.');
+    originals.splice(index, 1);
+  }
   const changed = () => invalid('Existing read-only content was changed, removed, or moved into a different syntax context. Keep its protected source unchanged. Nothing was saved to GitHub.');
   let index = 0;
   for (const block of protectedBlocks(body)) {

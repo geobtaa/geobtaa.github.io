@@ -107,3 +107,51 @@ test('a setup-only page still offers content insertion after its preserved impor
     assert.match(parseContent(saved).body, /New content/);
   });
 });
+
+test('protected content removal can be undone, saved explicitly, previewed and reopened without losing setup', options, async () => {
+  await withEditorBrowser(fixture(body), async browser => {
+    const { evaluate, waitFor, send } = browser;
+    await open(browser);
+    assert.equal(await evaluate('document.querySelectorAll(".remove-protected").length'), 2);
+    assert.equal(await evaluate('document.querySelector(".page-setup .remove-protected")'), null);
+    const row = 'document.querySelector(".remove-protected").closest(".block-row")';
+    const menu = await openNewBlockMenu(browser, 'Text', row);
+    await evaluate(`[...${menu}.querySelectorAll('button')].find(button => button.textContent === 'Text').click()`);
+    await waitFor('document.querySelectorAll(".body-editor .tiptap").length === 4');
+    const replacement = '[...document.querySelectorAll(".body-editor .tiptap")].find(e => !e.textContent.trim())';
+    await evaluate(`${replacement}.focus()`);
+    await send('Input.insertText', { text: 'Replacement content.' });
+    await evaluate('document.querySelector(".remove-protected").click()');
+    await waitFor('document.querySelectorAll(".remove-protected").length === 1');
+    assert.ok((await evaluate('document.querySelector("#document-edit").textContent')).includes('marked for removal'));
+    await evaluate('[...document.querySelectorAll(".block-removal-notice button")].find(button => button.textContent === "Undo removal").click()');
+    await waitFor('document.querySelectorAll(".remove-protected").length === 2');
+    assert.ok(!(await evaluate('document.querySelector("#document-edit").textContent')).includes('marked for removal'));
+    await evaluate('document.querySelector(".remove-protected").click()');
+    await evaluate('document.querySelector(".top-save").click()');
+    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
+    const input = await evaluate('window.writes[0]');
+    assert.equal(input.protectedRemovals.length, 1);
+    assert.match(input.protectedRemovals[0], /LegacyPanel/);
+    const saved = await evaluate('window.saved');
+    await validateDocument(saved, { originalBody: body, protectedRemovals: input.protectedRemovals });
+    assert.ok(!parseContent(saved).body.includes('<LegacyPanel>'));
+    assert.ok(parseContent(saved).body.includes('Replacement content.'));
+    assert.ok(parseContent(saved).body.startsWith(setupOnly));
+    assert.equal(await evaluate('document.querySelector(".block-removal-notice")'), null, 'saved removal cannot restore unsupported source as a new block');
+    await evaluate('[...document.querySelectorAll(".editor-mode-toggle button")].find(button => button.textContent === "Preview").click()');
+    await waitFor('document.querySelectorAll("#document-preview .preview-protected").length === 1');
+    assert.match(await evaluate('document.querySelector("#document-preview").textContent'), /Replacement content/);
+    await evaluate('document.querySelector(".editor-navigation .back").click()');
+    await waitFor('!!document.querySelector(".project-list button")');
+    await evaluate('document.querySelector(".project-list button").click()');
+    await waitFor('document.querySelectorAll(".remove-protected").length === 1');
+    assert.ok(await evaluate('!!document.querySelector(".page-setup")'));
+    // A second ordinary save does not replay the previous removal request.
+    await evaluate('document.querySelector(".editor-fields > label input").focus(); document.querySelector(".editor-fields > label input").select()');
+    await send('Input.insertText', { text: 'Next save' });
+    await evaluate('document.querySelector(".top-save").click()');
+    await waitFor('window.writes.length === 2');
+    assert.equal(await evaluate('window.writes[1].protectedRemovals'), undefined);
+  });
+});
