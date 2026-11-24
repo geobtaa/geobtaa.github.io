@@ -20,7 +20,7 @@ npm ci
 npm run dev
 ```
 
-Open [localhost:4321](http://localhost:4321) in your browser. Changes to website
+Open `http://localhost:4321` in your browser. Changes to website
 files appear automatically while the development server is running. Press
 **Ctrl+C** in the terminal to stop it.
 
