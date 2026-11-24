@@ -33,7 +33,7 @@ export async function savePage(github, area, filename, input) {
   const entry = { ...existing, ...input, description: input.description ?? existing.description ?? '', draft: input.draft ?? (config.publishing ? !input.publish : existing.draft ?? false), body: input.body ?? existing.body ?? '' };
   if (github.drafts) entry.draft = original ? existing.draft : true;
   const content = original ? serializePage(original, entry) : newPage(area, entry);
-  await validateDocument(content, { filename, originalBody: existing.body || '' });
-  const saved = await github.saveContent({ area, filename, content, sha: input.sha, head: input.head, resumeHead: input.resumeHead, assets: input.assets, publish: config.publishing && !entry.draft });
+  await validateDocument(content, { filename, originalBody: existing.body || '', protectedRemovals: input.protectedRemovals });
+  const saved = await github.saveContent({ area, filename, content, sha: input.sha, head: input.head, resumeHead: input.resumeHead, protectedRemovals: input.protectedRemovals, assets: input.assets, publish: config.publishing && !entry.draft });
   return { ...saved, filename, content, ...parsePage(content), ...contentVisibility(content) };
 }

@@ -41,7 +41,7 @@ test('metrics preserve free-form labels/values, percentages, counts, Unicode, an
 
 test('unfamiliar markup, extra fields, HTML, images and tables remain protected without losing source', () => {
   for (const source of [
-    '<ChipList>\n- Legacy\n</ChipList>', '<CardGrid>\n<Card title="Legacy">Content.</Card>\n</CardGrid>',
+    '<ChipList>\n- **Rich legacy content**\n</ChipList>', '<CardGrid>\n<Card title="Legacy">Content.</Card>\n</CardGrid>',
     '<CmsChipList items={getTerms()} />', '<CmsChipList items="[]" class="custom" />',
     createCollectionMdx('cardGrid', [{ title: 'Keep extra data', body: 'Body', extra: true }]),
     ...['<SpecialComponent />', '<b>Custom HTML</b>', '![Map](@images/map.png)', '| A | B |\n| --- | --- |\n| 1 | 2 |', '- [x] Task'].map(body => createCollectionMdx('cardGrid', [{ title: 'Unsupported body', body }])),

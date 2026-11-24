@@ -91,3 +91,13 @@ test('pre-merge browser recovery resumes against the verified identical saved so
   assert.equal(restoreRecovery(resumed, route, record).draft, false);
   assert.throws(() => restoreRecovery({ ...resumed, resumeSourceSha: 'newer-source' }, route, record), /saved version has changed/);
 });
+
+test('intentional protected removals survive recovery and remain bound to the saved baseline', () => {
+  const source = '<Legacy>\nKeep the exact removed source.\n</Legacy>\n';
+  const record = copy('removal', { fields: recoveryFields({ ...base, body: 'Replacement.', protectedRemovals: [source] }) });
+  const parsed = parseRecovery(JSON.stringify(record));
+  assert.deepEqual(parsed.fields.protectedRemovals, [source]);
+  assert.deepEqual(restoreRecovery(base, route, parsed).protectedRemovals, [source]);
+  assert.throws(() => restoreRecovery({ ...base, sha: 'new-sha' }, route, parsed));
+  assert.equal(parseRecovery(JSON.stringify({ ...record, fields: { ...record.fields, protectedRemovals: [null] } })), null);
+});

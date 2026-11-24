@@ -7,6 +7,14 @@ import { splitBody } from '../src/components/editor/bodySegments.ts';
 import { richTextEditorOptions } from '../src/components/editor/richTextEditor.ts';
 import { previewComponentLink } from '../src/components/editor/previewLinks.ts';
 import { IMAGE_SIZE_PRESETS } from '../src/components/editor/formattedImage.ts';
+import { parseDirectiveCallout } from '../src/components/editor/directiveCallout.ts';
+import { parseBodySyntax } from '../src/components/editor/contentSyntax.ts';
+import { validateDocument } from './validateDocument.mjs';
+import { parseLegacyChipList } from '../src/components/editor/legacyChipList.ts';
+import { parseLegacyCardGrid } from '../src/components/editor/legacyCardGrid.ts';
+import { LegacyCardLists } from '../src/components/editor/legacyCardLists.ts';
+import StarterKit from '@tiptap/starter-kit';
+import { MdxMarkdown } from '../src/components/editor/MdxMarkdown.ts';
 import { SIMPLE_KINDS, SIMPLE_COMPONENTS, createSimpleComponentMdx, emptySimpleFields, ensureSimpleComponentImport, parseSimpleComponentMdx } from '../src/components/editor/simpleComponents.ts';
 import { createLinkButtonMdx, ensureLinkButtonImport, parseLinkButtonMdx, updateLinkButtonMdx } from '../src/components/editor/linkButtonMdx.ts';
 import { createLinkCardMdx, ensureLinkCardImport, LINK_CARD_IMPORT, parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor/linkCardMdx.ts';
@@ -166,6 +174,37 @@ function openEditor(markdown = '') {
   return { editor, externalMarkdown: () => externalMarkdown };
 }
 
+test('legacy card-body lists retain loose paragraph structure while editing', () => {
+  for (const body of ['- First\n\n- Second', '3. First\n\n4. Second']) {
+    const editor = new Editor({ extensions: [StarterKit.configure({ bulletList: false, orderedList: false, heading: false }), ...LegacyCardLists, MdxMarkdown], content: body, contentType: 'markdown', injectCSS: false });
+    assert.equal(editor.state.doc.firstChild.attrs.legacyLoose, true);
+    let position;
+    editor.state.doc.descendants((node, pos) => { if (node.type.name === 'paragraph' && node.textContent === 'First') position = pos + node.nodeSize - 1; });
+    editor.commands.insertContentAt(position, { type: 'text', text: ' edited' });
+    const saved = editor.getMarkdown();
+    assert.equal(parseBodySyntax(saved).children[0].spread, true);
+    assert.match(saved, /First edited\n\n(?:- |4\. )Second/);
+    editor.destroy();
+  }
+});
+
+test('legacy CardGrid titles and rich bodies load as a collection without rewriting wrappers', () => {
+  const raw = '<CardGrid>\n<Card title="First">\n- First\n\n- Second\n</Card>\n<Card title="Second">\nA [link](/maps).\n</Card>\n</CardGrid>';
+  const opened = openEditor(raw);
+  assert.equal(opened.editor.state.doc.firstChild.type.name, 'cardGridBlock');
+  assert.equal(opened.editor.getMarkdown(), raw);
+  const entries = opened.editor.state.doc.firstChild.attrs.entries;
+  opened.editor.commands.setNodeSelection(0);
+  opened.editor.commands.updateAttributes('cardGridBlock', { entries: [{ ...entries[0], title: 'New <literal> title' }, entries[1]] });
+  const saved = opened.editor.getMarkdown();
+  assert.equal(parseLegacyCardGrid(saved).cards[0].title, 'New <literal> title');
+  assert.equal(parseLegacyCardGrid(saved).cards[0].body, entries[0].body);
+  assert.deepEqual(parseLegacyCardGrid(saved).protectedParts, parseLegacyCardGrid(raw).protectedParts);
+  const reopened = openEditor(saved);
+  assert.equal(reopened.editor.getMarkdown(), saved);
+  opened.editor.destroy(); reopened.editor.destroy();
+});
+
 test('preview links enforce a safe new tab even with stored same-tab targets, without rewriting content', () => {
   const editor = new Editor({ ...richTextEditorOptions('[Text](/guides/)', () => {}, '', undefined, true), injectCSS: false });
   try {
@@ -214,6 +253,23 @@ test('collection blocks reopen as one editable atom and serialize row edits with
     assert.equal(reopened.editor.state.doc.firstChild.type.name, COLLECTION_BLOCKS[kind].node);
     assert.deepEqual(parseCollectionMdx(reopened.editor.getMarkdown()).data, [...data].reverse());
     editor.destroy(); reopened.editor.destroy();
+  }
+});
+
+test('legacy chips load as editable collection atoms and retain their source, attributes and layout through edits', () => {
+  for (const raw of ['<ChipList class="not-content">\n\n- First\n- Second\n\n</ChipList>', '<div class="grid cards" markdown>\n## Heading\n<ChipList>\n- First\n- Second\n</ChipList>\n</div>']) {
+    const opened = openEditor(raw);
+    assert.equal(opened.editor.state.doc.firstChild.type.name, 'chipListBlock');
+    assert.equal(opened.editor.getMarkdown(), raw);
+    const entries = opened.editor.state.doc.firstChild.attrs.entries;
+    opened.editor.commands.setNodeSelection(0);
+    opened.editor.commands.updateAttributes('chipListBlock', { entries: [{ ...entries[1], value: 'Reordered <literal> {label}' }, entries[0]] });
+    const saved = opened.editor.getMarkdown();
+    assert.deepEqual(parseLegacyChipList(saved).items, ['Reordered <literal> {label}', 'First']);
+    assert.deepEqual(parseLegacyChipList(saved).protectedParts, parseLegacyChipList(raw).protectedParts);
+    const reopened = openEditor(saved);
+    assert.equal(reopened.editor.getMarkdown(), saved);
+    opened.editor.destroy(); reopened.editor.destroy();
   }
 });
 
@@ -352,6 +408,40 @@ test('table commands create and change a Markdown-compatible table', () => {
   assert.equal(editor.getJSON().content?.[0].content?.[0].content?.length, 3);
   assert.match(editor.getMarkdown().trim(), /^\|\s+\|\s+\|\s+\|\n\|\s*---\s*\|\s*---\s*\|\s*---\s*\|/);
   editor.destroy();
+});
+
+test('real ratio and scale tables retain cell values, alignment and safe Markdown through edits and two reopens', async () => {
+  for (const [file, marker] of [
+    ['about/brand-geoportal.md', '11.68:1'], ['about/brand-gin.md', '16.26:1'], ['metadata/b1g.md', 'Scale [1:1,140,480]'],
+  ]) {
+    const originalBody = parsePage(await readFile(`src/content/docs/${file}`, 'utf8')).body;
+    const originalTable = parseBodySyntax(originalBody, 'md').children.find(n => n.type === 'table' && originalBody.slice(n.position.start.offset, n.position.end.offset).includes(marker));
+    let markdown = originalBody.slice(originalTable.position.start.offset, originalTable.position.end.offset);
+    let expected;
+    for (let pass = 1; pass <= 2; pass++) {
+      const { editor } = openEditor(markdown);
+      const table = editor.state.doc.firstChild;
+      assert.equal(table.type.name, 'table');
+      const values = table.toJSON();
+      if (expected) assert.deepEqual(values, expected, `${file}: changed cells on reopen`);
+      let target;
+      editor.state.doc.descendants((node, pos) => {
+        if (target === undefined && node.type.name === 'paragraph' && node.textContent === marker) target = pos + node.nodeSize - 1;
+      });
+      if (pass === 1) {
+        assert.notEqual(target, undefined, file);
+        editor.commands.insertContentAt(target, { type: 'text', text: ' (edited)' });
+      }
+      expected = editor.state.doc.firstChild.toJSON();
+      markdown = editor.getMarkdown();
+      const parsed = parseBodySyntax(markdown, 'md').children[0];
+      assert.deepEqual(parsed.align, originalTable.align, `${file}: lost column alignment`);
+      assert.equal(splitBody(markdown, { format: 'md' })[0].kind, 'markdown');
+      const changedBody = originalBody.slice(0, originalTable.position.start.offset) + markdown + originalBody.slice(originalTable.position.end.offset);
+      await validateDocument(`---\ntitle: Tables\n---\n\n${changedBody}`, { filename: file, originalBody });
+      editor.destroy();
+    }
+  }
 });
 
 test('repository images parse visually and keep their Markdown reference after save and reload', () => {
@@ -784,6 +874,24 @@ test('existing badges, callouts, cards, and unsupported new-format syntax remain
     assert.equal(parseSimpleComponentMdx(source), null);
     assert.equal(splitBody(source).map(segment => segment.content).join(''), source);
     assert.ok(splitBody(source).every(segment => segment.kind === 'protected'));
+  }
+});
+
+test('legacy directive callouts reopen as rich editable blocks and preserve original Markdown until edited', () => {
+  for (const name of ['note', 'tip', 'caution', 'danger', 'info', 'warning', 'Caution']) {
+    const raw = `:::${name}[Title]\n\nA **bold** [link](/maps).\n\n- First\n- Second\n\n:::`;
+    const opened = openEditor(raw);
+    assert.equal(opened.editor.state.doc.firstChild.type.name, 'simpleCalloutBlock');
+    assert.equal(opened.editor.getMarkdown(), raw);
+    opened.editor.commands.setNodeSelection(0);
+    opened.editor.commands.updateAttributes('simpleCalloutBlock', { title: 'Revised' });
+    const changed = opened.editor.getMarkdown();
+    assert.equal(parseDirectiveCallout(changed).fields.title, 'Revised');
+    assert.ok(changed.includes('A **bold** [link](/maps).\n\n- First\n- Second'));
+    assert.ok(!changed.includes('CmsCallout'));
+    const reloaded = openEditor(changed);
+    assert.equal(reloaded.editor.getMarkdown(), changed);
+    opened.editor.destroy(); reloaded.editor.destroy();
   }
 });
 

@@ -1,5 +1,6 @@
 import { decodeAttribute, encodeAttribute } from './linkCardMdx.ts';
 import { ensureStarlightImport } from './starlightImports.ts';
+import { matchDirectiveCallout, parseDirectiveCallout, updateDirectiveCallout } from './directiveCallout.ts';
 
 export const SIMPLE_COMPONENTS = {
   badge: { label: 'Badge', component: 'Badge', binding: 'CmsBadge', node: 'simpleBadgeBlock' },
@@ -29,6 +30,8 @@ export function createSimpleComponentMdx(kind: SimpleKind, fields: SimpleFields)
   return `<${config.binding} ${attributes}>\n\n${encodeMessage(fields.text)}\n\n</${config.binding}>`;
 }
 export function parseSimpleComponentMdx(source: string): { kind: SimpleKind; fields: SimpleFields; raw: string } | null {
+  const directive = parseDirectiveCallout(source);
+  if (directive) return { kind: 'callout', fields: { ...emptySimpleFields(), ...directive.fields }, raw: source };
   const candidate = source.trim().replace(/\r\n/g, '\n');
   const fields = emptySimpleFields();
   let kind: SimpleKind;
@@ -50,12 +53,17 @@ export function parseSimpleComponentMdx(source: string): { kind: SimpleKind; fie
   return { kind, fields, raw: source };
 }
 export function updateSimpleComponentMdx(source: string, fields: SimpleFields) {
+  if (parseDirectiveCallout(source)) return updateDirectiveCallout(source, fields);
   const parsed = parseSimpleComponentMdx(source);
   if (!parsed || Object.keys(fields).every((key) => fields[key as keyof SimpleFields] === parsed.fields[key as keyof SimpleFields])) return source;
   const newline = source.includes('\r\n') ? '\r\n' : '\n';
   return `${source.match(/^\s*/)?.[0] || ''}${createSimpleComponentMdx(parsed.kind, fields).replace(/\n/g, newline)}${source.match(/\s*$/)?.[0] || ''}`;
 }
 export function matchSimpleComponentBlock(source: string, kind: SimpleKind) {
+  if (kind === 'callout') {
+    const directive = matchDirectiveCallout(source);
+    if (directive) return directive;
+  }
   const { binding } = SIMPLE_COMPONENTS[kind];
   const end = kind === 'badge' ? '\\/>' : `<\\/${binding}>`;
   return source.match(new RegExp(`^([ \\t]*<${binding}\\b[\\s\\S]*?${end}[ \\t]*(?:\\r?\\n|$))`))?.[1] || null;

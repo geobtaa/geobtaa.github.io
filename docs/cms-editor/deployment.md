@@ -51,6 +51,20 @@ The local Node gateway is separate: `npm run editor` uses `GITHUB_TOKEN` and opt
 
 ## Release and rollback checks
 
+The legacy compatibility release changes both the browser editor and shared
+validation. Merge the complete reviewed release into `main` before deploying an
+editor version that creates protected-block removal records. Subsequent CMS
+publication checks execute trusted main code and must recognize those records.
+This is an ordinary source PR: it requires the full browser suite and gains no
+CMS snapshot skip. No workflow, OAuth scope, environment flag, or branch-protection
+change is needed for the compatibility/removal feature.
+
+Qualify this release with an existing disposable MDX page: inspect Page setup,
+edit a supported legacy block, create replacement content, remove an eligible
+opaque block, undo it, then remove/save/reopen it. Confirm setup and retained
+source stay exact, then verify publication through the normal checks. Local
+mock tests do not establish that hosted qualification.
+
 1. Review the source PR from current main. Exclude staging saves, test content, and uploaded test assets. Required trusted validation must support the draft and publication protocol before deployed code uses it.
 2. Confirm dashboard settings against the intended project and exact source revision. Keep automatic previews disabled. Exclude `cms/drafts/*`, `cms/publish/*`, and `cms/publication-state/*` from automatic builds in any project that permits previews. Retain `[CF-Pages-Skip]` commit markers; do not suppress real main content builds with broad watch-path exclusions.
 3. Preserve canonical origin, callback, credentials, repository identity, recovery workspace, and legacy staging configuration during cutover. Pause edits and preserve browser backups when changing application versions. Keep publishing disabled during replacement/read-only checks until the designated test is approved.
@@ -59,6 +73,11 @@ The local Node gateway is separate: `npm run editor` uses `GITHUB_TOKEN` and opt
 6. Confirm the public site and older staging project remain operational. GitHub Pages deploys only main, serializes deployments, and rejects an obsolete build before deploying. The deployment marker supports diagnosis; the editor keeps request state separate and confirms deployment only through matching marker and Pages evidence.
 
 Rollback restores gin-editor's previous deployment and its matching build command/output settings. Do not reset content branches, rotate OAuth credentials, or delete drafts as an application rollback. Disabling PR creation does not close an existing PR or undo a merge; inspect outstanding requests separately.
+
+An older validator cannot publish drafts that intentionally removed protected
+content. Retain those drafts and their commit metadata during rollback; use a
+matching reviewed validator/editor release before resuming publication. Do not
+drop removal records or weaken preservation checks to force a publication.
 
 These are maintenance requirements, not a record of current live dashboard state. Verify actual deployed settings and platform limits at the time of release.
 

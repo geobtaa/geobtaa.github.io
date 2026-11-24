@@ -14,6 +14,27 @@ The independent scope checker runs trusted base code with read-only credentials 
 
 Changes to opaque MDX components, imports, executable source, and sensitive frontmatter can fail source policy even when editorially harmless. Do not rename branches, add approvals, or weaken the checker to bypass that boundary. Deliberate policy extensions require a reviewed technical change.
 
+### Legacy compatibility and intentional removals
+
+The legacy-review release recognizes supported callout directives, contained
+LinkCards, ordinary Markdown tables, legacy ChipLists, and compatible CardGrids
+and standalone Cards. It preserves the original renderer and untouched source.
+Unsupported descendants and ambiguous indentation remain protected. See the
+[user guide](../CMS_USER_GUIDE.md) and [implementation decisions](decisions.md).
+
+Opaque protected MDX content may be removed only with explicit source records.
+Tests cover eligibility, retained-source preservation, duplicate occurrence
+counts, stale revisions, recovery, repeated draft saves, and independently
+verified publication. Imports/page code, wrappers containing page code, uncertain
+source, and partially editable compatibility wrappers remain locked. The API
+[save contract](api-contract.md#save-request-fields-and-validation) documents the
+request limits and lifecycle.
+
+This release PR is ordinary source work, so run the complete sequence below.
+Keep render fixtures isolated from the browser/unit corpus inventory and final
+site build. Five existing FilterPanel TODO cases remain a separate known issue;
+new unexpected failures or skipped required coverage are not acceptable.
+
 ## Local checks
 
 ### Prerequisites
@@ -42,7 +63,7 @@ browser before treating a local run as full validation.
 | `npm run test:editor` | All `editor/*.test.mjs`: unit/API, draft/publication policy, workflow contracts, and workerd tests | Dependencies, Git, temporary-file and local runtime access. Primary editor regression suite; does not include browser or render suites. |
 | `npm run test:editor:browser` | All `editor/*.browser.mjs`, sequentially; editor interactions and related site filtering | Chrome/Chromium and local server access. Uses isolated profiles and fixtures; no live GitHub operations. |
 | `npm run test:config` | Fullview-mode dependency patch/configuration regression | Dependencies installed with the patch. Run for configuration/dependency changes and full validation. |
-| `npm run test:editor:render` | Real Astro Link Card/Link Button rendering and URL-safety tests, then production unpublish-build regressions | Builds temporary fixtures. Run alone in the checkout and before the final clean production build. |
+| `npm run test:editor:render` | Real Astro Link Card/Link Button, legacy ChipList/CardGrid/Card rendering and URL-safety tests, then production unpublish-build regressions | Builds temporary fixtures. Run alone in the checkout and before the final clean production build. |
 | `npm run test:editor:publication` | Only `tests/unpublish-build.test.mjs`: draft-route exclusion, link warnings and validation | Focused unpublish-build shortcut. Already included in `test:editor:render`; not the complete publication test coverage. |
 | `npm run astro -- sync` | Generate Astro content/types | Run before type checking; do not overlap with other Astro commands. |
 | `npm run astro -- check` | Source/type diagnostics | Generated Astro types and installed dependencies. Not a substitute for tests or a production build. |

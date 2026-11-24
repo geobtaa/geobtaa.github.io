@@ -95,7 +95,8 @@ test('side menus add blocks after their owner, keep text intact, and fit desktop
     assert.equal(await evaluate('document.querySelector(".rich-editor .tiptap").textContent'), 'First paragraph.Second paragraph.');
     const overlap = await evaluate(`(() => {
       const rows = [...document.querySelectorAll('.block-row')];
-      const index = rows.findIndex(row => row.querySelector('.protected-block'));
+      // Imports now live in Page setup. Test overlap from the first content row.
+      const index = 0;
       const menu = rows[index].querySelector('.block-inserter-menu');
       menu.querySelector('summary').scrollIntoView({ block: 'center' });
       menu.open = true;
@@ -108,7 +109,7 @@ test('side menus add blocks after their owner, keep text intact, and fit desktop
       menu.open = false;
       return { overlapping, onTop };
     })()`);
-    assert.equal(overlap.overlapping, true, 'short MDX block menu overlaps the next Add block control');
+    assert.equal(overlap.overlapping, true, 'block menu overlaps the next Add block control');
     assert.equal(overlap.onTop, true, 'the open menu receives pointer events above the following control');
     const cardRow = 'document.querySelector(".component-editor").closest(".block-row")';
     let menu = await openNewBlockMenu({ evaluate, waitFor }, 'Callout', cardRow);

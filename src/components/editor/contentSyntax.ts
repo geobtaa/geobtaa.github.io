@@ -25,10 +25,28 @@ export function mdxOnlyMarkdownNode(node: SyntaxNode, source: string): boolean {
 }
 
 export function parseBodySyntax(source: string, format: SourceFormat = 'mdx') {
-  return fromMarkdown(source, {
+  const tree = fromMarkdown(source, {
     extensions: [gfm(), directive(), ...(format === 'mdx' ? [mdxjs()] : [])],
     mdastExtensions: [gfmFromMarkdown(), directiveFromMarkdown(), ...(format === 'mdx' ? [mdxFromMarkdown()] : [])],
   });
+  const restoreTableText = (node: SyntaxNode, inTable = false) => {
+    inTable ||= node.type === 'table';
+    if (inTable && node.type === 'textDirective') {
+      const raw = source.slice(node.position?.start.offset, node.position?.end.offset);
+      // Starlight restores unhandled inline directives as literal text. Only
+      // admit bare forms here: labels, attributes and custom syntax stay protected.
+      if (/^:[a-z\d][\w-]*$/i.test(raw) && !Object.keys(node.attributes || {}).length && !node.children?.length) {
+        node.type = 'text';
+        node.value = raw;
+        delete node.name;
+        delete node.attributes;
+        delete node.children;
+      }
+    }
+    node.children?.forEach(child => restoreTableText(child, inTable));
+  };
+  restoreTableText(tree);
+  return tree;
 }
 
 const editable = new Set(['paragraph', 'heading', 'text', 'break', 'emphasis', 'strong', 'delete', 'inlineCode', 'code', 'thematicBreak', 'blockquote', 'list', 'listItem', 'image', 'link', 'table', 'tableRow', 'tableCell']);

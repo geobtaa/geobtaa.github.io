@@ -1,10 +1,13 @@
 import { parseContent } from './content.mjs';
-import { splitBody } from '../src/components/editor/bodySegments.ts';
+import { splitBody, canRemoveProtected } from '../src/components/editor/bodySegments.ts';
 import { LINK_CARD_IMPORT } from '../src/components/editor/linkCardMdx.ts';
 import { LINK_BUTTON_IMPORT } from '../src/components/editor/linkButtonMdx.ts';
 import { SIMPLE_COMPONENTS } from '../src/components/editor/simpleComponents.ts';
 import { COLLECTION_BLOCKS } from '../src/components/editor/collectionMdx.ts';
 import { parseBodySyntax, mdxOnlyMarkdownNode, MDX_COMPONENT_MESSAGE } from '../src/components/editor/contentSyntax.ts';
+import { parseContainedLinkCards } from '../src/components/editor/containedLinkCards.ts';
+import { parseLegacyChipList } from '../src/components/editor/legacyChipList.ts';
+import { parseLegacyCardGrid } from '../src/components/editor/legacyCardGrid.ts';
 
 const generatedImports = new Set([
   LINK_CARD_IMPORT, LINK_BUTTON_IMPORT,
@@ -14,7 +17,7 @@ const generatedImports = new Set([
 const invalid = message => Object.assign(new Error(message), { status: 400 });
 const key = source => source.replace(/\r?\n$/, '');
 
-export async function validateDocument(content, { filename = 'new.mdx', originalBody = '' } = {}) {
+export async function validateDocument(content, { filename = 'new.mdx', originalBody = '', protectedRemovals = [] } = {}) {
   const body = parseContent(content).body;
   const format = filename.endsWith('.md') ? 'md' : 'mdx';
   if (format === 'md') {
@@ -37,18 +40,34 @@ export async function validateDocument(content, { filename = 'new.mdx', original
     const place = error.line ? ` at body line ${error.line}${error.column ? `:${error.column}` : ''}` : '';
     throw invalid(`Invalid ${format === 'mdx' ? 'MDX' : 'Markdown'}${place}: ${error.reason || error.message}. Nothing was saved to GitHub.`);
   }
-  const protectedBlocks = source => splitBody(source, { mergeProtected: false, format }).filter(segment => segment.kind === 'protected').map(segment => segment.content);
+  const protectedBlocks = source => splitBody(source, { mergeProtected: false, format }).filter(segment => segment.kind === 'protected').map(segment => ({
+    raw: segment.content,
+    removable: canRemoveProtected(segment, format),
+    kind: segment.legacyCardGrid ? 'legacyCardGrid' : segment.legacyChipList ? 'legacyChipList' : segment.containedLinkCards ? 'containedLinkCards' : 'protected',
+    parts: segment.legacyCardGrid ? parseLegacyCardGrid(segment.content).protectedParts : segment.legacyChipList ? parseLegacyChipList(segment.content).protectedParts : segment.containedLinkCards ? parseContainedLinkCards(segment.content).protectedParts : [segment.content],
+  }));
+  if (!Array.isArray(protectedRemovals) || protectedRemovals.length > 1024 || protectedRemovals.some(source => typeof source !== 'string') || protectedRemovals.reduce((size, source) => size + source.length, 0) > 1_000_000) throw invalid('Invalid protected block removal records.');
   const originals = protectedBlocks(originalBody);
+  // Records are exact source identities bound to the authoritative baseline by
+  // the caller's SHA check. Repeated identical blocks consume one record each.
+  for (const source of protectedRemovals) {
+    const index = originals.findIndex(block => block.removable && key(block.raw) === key(source));
+    if (index < 0) throw invalid('A requested removal is not an eligible original content block. Reload the page; setup and uncertain source cannot be removed.');
+    originals.splice(index, 1);
+  }
   const changed = () => invalid('Existing read-only content was changed, removed, or moved into a different syntax context. Keep its protected source unchanged. Nothing was saved to GitHub.');
   let index = 0;
-  for (const raw of protectedBlocks(body)) {
+  for (const block of protectedBlocks(body)) {
     const original = originals[index];
     // Compare parsed blocks, not substring occurrences: wrapping source in a
     // code fence must not satisfy the preservation check by hiding the bytes.
     // Appending a separator after a former EOF block is allowed; changing an
     // existing line ending, indentation, or trailing spaces is not.
-    if (original !== undefined && key(raw) === key(original) && raw.startsWith(original)) { index++; continue; }
-    if (generatedImports.has(raw.trim())) continue;
+    if (original !== undefined && block.kind === original.kind && block.parts.length === original.parts.length && block.parts.every((part, partIndex) => {
+      const previous = original.parts[partIndex];
+      return partIndex === block.parts.length - 1 ? key(part) === key(previous) && part.startsWith(previous) : part === previous;
+    })) { index++; continue; }
+    if (generatedImports.has(block.raw.trim())) continue;
     if (originals.length) throw changed();
     throw invalid('New unsupported Markdown or executable MDX cannot be added through the visual editor. Use supported blocks or a reviewed source edit. Nothing was saved to GitHub.');
   }

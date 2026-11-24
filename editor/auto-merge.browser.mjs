@@ -40,7 +40,8 @@ window.fetch=async(url,options={})=>{
 createRoot(document.getElementById('root')).render(React.createElement(ProjectEditor));`;}
 test('confirmed publication, cancellation, outdated recovery and verified deployment preserve the form',options,async()=>{
  await withEditorBrowser(fixture(),async({evaluate,waitFor,send})=>{
-  await waitFor('document.querySelector(".publish-document")?.textContent==="Publish"');
+  // Status reads can render the action before publication becomes available.
+  await waitFor('document.querySelector(".publish-document")?.textContent==="Publish" && document.querySelector(".publish-document").disabled===false');
   assert.equal(await evaluate('window.writes.length'),0);
   await evaluate('document.querySelector(".publish-document").click()');await waitFor('document.querySelector("dialog")?.open');
   assert.equal(await evaluate('window.writes.length'),0,'opening confirmation is read-only');

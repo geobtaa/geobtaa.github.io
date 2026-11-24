@@ -2,17 +2,18 @@ import type { Project } from './editorTypes.ts';
 import { validEditorRoute, routeKey, type EditorRoute } from './editorNavigation.ts';
 import { validCreationId, validCreationFilename } from '../../../editor/articleCreation.mjs';
 
-export type RecoveryFields = Pick<Project, 'filename' | 'title' | 'description' | 'body' | 'draft' | 'date' | 'excerpt' | 'authors' | 'tags' | 'cover' | 'metadata' | 'convertProgramUpdate' | 'creationAttempt' | 'assets'>;
+export type RecoveryFields = Pick<Project, 'filename' | 'title' | 'description' | 'body' | 'draft' | 'date' | 'excerpt' | 'authors' | 'tags' | 'cover' | 'metadata' | 'protectedRemovals' | 'convertProgramUpdate' | 'creationAttempt' | 'assets'>;
 export type RecoveryCopy = { version: 1; id: string; revision: string; route: EditorRoute; baseSha: string | null; baseResumeHead?: string | null; savedAt: string; fields: RecoveryFields };
 const PREFIX = 'geobtaa-editor-recovery:v1:';
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 export function recoveryFields(project: Project): RecoveryFields {
-  return { filename: project.filename, title: project.title, description: project.description, body: project.body, draft: project.draft, date: project.date || '', excerpt: project.excerpt || '', authors: project.authors || [], tags: project.tags || [], cover: project.cover || null, metadata: project.metadata || {}, convertProgramUpdate: project.convertProgramUpdate === true, ...(project.assets?.length ? { assets: project.assets } : {}), ...(project.creationAttempt ? { creationAttempt: project.creationAttempt } : {}) };
+  return { ...(project.protectedRemovals?.length ? { protectedRemovals: project.protectedRemovals } : {}), filename: project.filename, title: project.title, description: project.description, body: project.body, draft: project.draft, date: project.date || '', excerpt: project.excerpt || '', authors: project.authors || [], tags: project.tags || [], cover: project.cover || null, metadata: project.metadata || {}, convertProgramUpdate: project.convertProgramUpdate === true, ...(project.assets?.length ? { assets: project.assets } : {}), ...(project.creationAttempt ? { creationAttempt: project.creationAttempt } : {}) };
 }
 function validFields(value: unknown): value is RecoveryFields {
-  const allowed = new Set(['filename', 'title', 'description', 'body', 'draft', 'date', 'excerpt', 'authors', 'tags', 'cover', 'metadata', 'convertProgramUpdate', 'creationAttempt', 'assets']);
+  const allowed = new Set(['filename', 'title', 'description', 'body', 'draft', 'date', 'excerpt', 'authors', 'tags', 'cover', 'metadata', 'protectedRemovals', 'convertProgramUpdate', 'creationAttempt', 'assets']);
   if (!object(value) || !['filename', 'title', 'description', 'body', 'date', 'excerpt'].every(key => typeof value[key] === 'string') || typeof value.draft !== 'boolean' || typeof value.convertProgramUpdate !== 'boolean') return false;
   if (Object.keys(value).some(key => !allowed.has(key))) return false;
+  if (value.protectedRemovals !== undefined && (!Array.isArray(value.protectedRemovals) || value.protectedRemovals.length > 1024 || value.protectedRemovals.some(source => typeof source !== 'string') || value.protectedRemovals.join('').length > 1_000_000)) return false;
   if (value.assets !== undefined && (!Array.isArray(value.assets) || value.assets.length > 20 || value.assets.some(asset => !object(asset) || !['filename', 'path', 'mimeType', 'content'].every(key => typeof asset[key] === 'string')))) return false;
   if (value.creationAttempt !== undefined && (!object(value.creationAttempt) || !validCreationId(value.creationAttempt.id) || !validCreationFilename(value.creationAttempt.filename))) return false;
   if (!Array.isArray(value.authors) || !value.authors.every(author => typeof author === 'string' || (object(author) && typeof author.name === 'string'))) return false;

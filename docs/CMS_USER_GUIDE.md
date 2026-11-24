@@ -118,9 +118,17 @@ Choose **Add block** to insert one of these blocks. Each has fields or controls 
 | Card Grid | A group of cards, each with a title and editable content. Add, remove, or reorder cards. | Present several related items together. |
 | Metrics | A group of labels and values that you enter yourself. | Display figures such as “New records” and “1,250.” These values do not update automatically. |
 
-Card and Callout messages use plain text. Use a Text block when you need general formatting, links, images, or tables. Card Grid has its own content editor inside each card.
+New Card and Callout messages use plain text. Some existing callouts have a formatting toolbar for editing their paragraphs, links, and lists. Info callouts appear as Note; Warning callouts appear as Caution. These names are standardized when you edit that callout. Use a Text block when you need images or tables. Card Grid has its own content editor inside each card.
 
 Some older pages use the `.md` file format. On these pages, Text is available but the special block types are disabled. Images and tables still work inside Text blocks. Ask a maintainer if the page needs a special block.
+
+**Page setup** contains preserved imports and page code in a collapsed, locked panel. Expand it to inspect the source. These blocks have no editing, movement, or removal controls and are omitted from Preview. Their original source positions stay unchanged. Other unsupported content has a separate expandable block labelled with its component or syntax type. On MDX pages, inspect a read-only content block, add its replacement using **Add block**, then choose **Remove original block**. **Undo removal** restores the most recently removed block until another block operation or Save Draft. A disclosure lists all original blocks marked for removal, with their source available until saved. Page setup, uncertain source, and legacy blocks with compatibility editors remain locked against whole-block removal.
+
+Existing Markdown tables can be edited directly in Text blocks, including tables with times, ratios, and map scales. Tables containing custom styling, embedded components, or other unsupported content may remain read-only.
+
+Some older Chip Lists now have the same item controls as new lists. You can edit, add, remove, and reorder their labels while their existing layout stays in place. These older blocks cannot be moved or removed as a whole. Lists with formatted labels or other unsupported content remain read-only.
+
+Some simpler older Card Grids now expose title and formatted-content fields. Cards that use an existing heading instead of a title expose a **First section heading** field; the same applies to supported standalone cards. Changing a heading can change its public anchor link. You can edit or reorder their cards while keeping the existing layout. Adding or removing cards and moving the whole grid are unavailable for these older grids. Additional section headings can be edited in the body; use **Section heading** to toggle a level-four heading. Other heading levels are unavailable for legacy card bodies. More complex cards and grids remain read-only.
 
 ### Add, move, or remove blocks
 
@@ -134,9 +142,11 @@ Text blocks next to each other may appear as one Text block when you reopen the 
 
 ### Protected blocks on existing pages
 
-Some existing pages contain layouts, embedded items, or code that the visual editor cannot edit. These appear as protected, read-only blocks, sometimes labeled **MDX** or **Astro**. These are file and component names; you do not need to learn them to edit the surrounding text.
+Some existing pages contain layouts, embedded items, or code that the visual editor cannot edit. These appear as separate protected, read-only blocks labelled with their component or syntax type. Imports and page code appear in the locked **Page setup** panel. The labels identify the underlying source; you can edit surrounding text without changing it.
 
-Leave protected blocks in place. The editor keeps their original content when you save. Ask a maintainer to change anything inside them. In Preview, these blocks appear as placeholders rather than a finished layout.
+Keep protected blocks you still need; the editor preserves their source when saving. To replace eligible MDX content, build its replacement with **Add block**, inspect the original, then use **Remove original block** when offered. **Undo removal** restores the most recently removed block until another block operation or Save Draft. Blocks without that control remain locked; ask a maintainer to change their source. Preview shows retained protected content as placeholders and omits Page setup.
+
+Some Link Cards inside older layouts show editable title, description, and URL fields. You can edit those fields while the surrounding layout stays read-only. These layouts cannot be moved or removed. Preview shows the cards without reproducing the complete surrounding layout.
 
 ## Add and edit images
 

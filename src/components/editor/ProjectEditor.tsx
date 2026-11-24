@@ -1,3 +1,4 @@
+import { PageSetup, ProtectedSource } from './ProtectedSource';
 import { FieldLabel } from './FieldLabel.ts';
 import { preparePublicationCandidate } from '../../../editor/publicationCandidate.mjs';
 import { PublicationStatus, type PublicationState } from './PublicationStatus';
@@ -21,7 +22,8 @@ import { SIMPLE_COMPONENTS, SIMPLE_KINDS, createSimpleComponentMdx, emptySimpleF
 import { LinkAddressField } from './LinkAddressField';
 import { normalizeLinkAddress } from './linkAddress';
 import { COMPONENT_LINK_ERROR, isSafeComponentHref } from './componentLinkSafety';
-import { splitBody, visibleBodySegments, moveBodySegment, type BodySegment } from './bodySegments';
+import { splitBody, canRemoveProtected, visibleBodySegments, moveBodySegment, type BodySegment } from './bodySegments';
+import { ContainedLinkCardsEditor } from './ContainedLinkCardsEditor';
 import { MDX_COMPONENT_MESSAGE } from './contentSyntax';
 import { richTextEditorOptions } from './richTextEditor';
 import { createLinkCardMdx, ensureLinkCardImport } from './linkCardMdx';
@@ -422,7 +424,7 @@ function RichTextEditor({ initialValue, onChange, structured = false, onRemove }
         {active?.empty && <p className="text-block-empty">Empty Text block.</p>}
         <button type="button" className="link-button component-remove" title="Remove this Text block and all its content" onClick={onRemove}>Remove Text block</button>
       </div>}
-      {structured && <button type="button" className="link-button component-remove" onClick={onRemove}>Remove {collectionKind ? COLLECTION_BLOCKS[collectionKind].label : simpleKind ? SIMPLE_COMPONENTS[simpleKind].label : editor.state.doc.firstChild?.type.name === 'linkButtonBlock' ? 'Link Button' : 'Link Card'}</button>}
+      {structured && onRemove && <button type="button" className="link-button component-remove" onClick={onRemove}>Remove {collectionKind ? COLLECTION_BLOCKS[collectionKind].label : simpleKind ? SIMPLE_COMPONENTS[simpleKind].label : editor.state.doc.firstChild?.type.name === 'linkButtonBlock' ? 'Link Button' : 'Link Card'}</button>}
       {imagePicker && <RepositoryImagePicker initialImage={imagePicker.image} onClose={() => setImagePicker(null)} onSelect={(src, alt, title) => {
         if (imagePicker.position !== undefined) editor.chain().focus().setNodeSelection(imagePicker.position).updateAttributes('image', { src, alt, title }).run();
         else editor.chain().focus().insertContentAt(editor.state.selection.to, { type: 'image', attrs: { src, alt, title } }).run();
@@ -432,7 +434,7 @@ function RichTextEditor({ initialValue, onChange, structured = false, onRemove }
   );
 }
 
-function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: string; onChange: (value: string) => void; format?: 'md' | 'mdx' }) {
+function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: string; onChange: (value: string, removal?: { source: string; undo?: boolean }) => void; format?: 'md' | 'mdx' }) {
   const [segments, setSegments] = useState(() => splitBody(initialValue, { format }));
   // Segment IDs survive local edits/moves, preserving TipTap selection and undo.
   // Reparsing can reuse IDs for different blocks, so insertion advances this key.
@@ -507,8 +509,8 @@ function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: 
     const current = segmentsRef.current;
     const index = current.findIndex(segment => segment.id === id);
     const segment = current[index];
-    if (!segment || segment.kind === 'protected') return;
-    const visible = visibleBodySegments(current, emptyEditorId);
+    if (!segment || segment.kind === 'protected' && !canRemoveProtected(segment, format)) return;
+    const visible = visibleBodySegments(current, emptyEditorId).filter(segment => segment.protectedType !== 'setup');
     const visibleIndex = visible.findIndex(segment => segment.id === id);
     const neighbor = visible[visibleIndex + 1] || visible[visibleIndex - 1];
     pendingRemovalFocus.current = { id: neighbor?.id ?? null };
@@ -520,7 +522,7 @@ function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: 
     const next = current.map(segment => segment.id === id ? { id, kind: 'markdown' as const, content: newline.repeat(2) } : segment);
     segmentsRef.current = next; setSegments(next);
     setMoveNotice(`${segment.kind === 'markdown' ? 'Text block' : 'Block'} removed. Undo removal is available.`);
-    onChange(next.map((segment) => segment.content).join(''));
+    onChange(next.map((segment) => segment.content).join(''), segment.kind === 'protected' ? { source: segment.content } : undefined);
   };
   const undoRemoval = () => {
     if (!removedBlock) return;
@@ -531,7 +533,7 @@ function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: 
     pendingRemovalFocus.current = { id: segment.id };
     segmentsRef.current = next; setSegments(next); setRemovedBlock(null);
     setMoveNotice('Block restored.');
-    onChange(next.map((segment) => segment.content).join(''));
+    onChange(next.map((segment) => segment.content).join(''), segment.kind === 'protected' ? { source: segment.content, undo: true } : undefined);
   };
   const addTextBlock = (afterId: number) => {
     const current = segmentsRef.current;
@@ -544,16 +546,23 @@ function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: 
   };
   // Keep whitespace separators in the source without displaying them as empty editors.
   const visibleSegments = visibleBodySegments(segments, emptyEditorId);
+  const contentSegments = visibleSegments.filter(segment => segment.protectedType !== 'setup');
+  const lastSegmentId = segments.at(-1)?.id ?? -1;
   return <div className="body-editor" ref={bodyRoot}>
+    <PageSetup segments={segments} />
     <p className="block-move-note">Move blocks with the arrow buttons. Adjacent text blocks may merge into one text block when you reopen the page; their content stays in order. Read-only blocks stay in place.</p>
     <p className="block-move-status" role="status">{moveNotice}</p>
     {removedBlock && <div className="block-removal-notice">
       <span>{removedBlock.segment.kind === 'markdown' ? 'Text block' : 'Block'} removed.</span>
       <button type="button" onClick={undoRemoval}>Undo removal</button>
     </div>}
-    {visibleSegments.map((segment, index) => <div className="block-row" tabIndex={-1} ref={(row) => { if (row) blockRows.current.set(segment.id, row); else blockRows.current.delete(segment.id); }} key={`${segmentSession}:${segment.id}`}>
+    {visibleSegments.map((segment, index) => segment.protectedType === 'setup' ? null : <div className="block-row" tabIndex={-1} ref={(row) => { if (row) blockRows.current.set(segment.id, row); else blockRows.current.delete(segment.id); }} key={`${segmentSession}:${segment.id}`}>
       {segment.kind === 'protected'
-        ? <details className="protected-block"><summary>Existing Markdown / MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
+        ? segment.legacyChipList || segment.legacyCardGrid
+          ? <RichTextEditor structured initialValue={segment.content} onChange={content => update(segment.id, content)} />
+          : segment.containedLinkCards
+          ? <ContainedLinkCardsEditor source={segment.content} onChange={content => update(segment.id, content)} />
+          : <div><ProtectedSource segment={segment} />{canRemoveProtected(segment, format) && <button type="button" className="remove-protected" onClick={() => removeBlock(segment.id)}>Remove original block</button>}</div>
         : <RichTextEditor onRemove={() => removeBlock(segment.id)} structured={segment.kind === 'structured'} initialValue={segment.content} onChange={(content) => update(segment.id, content)} />}
       <div className="block-controls">
         {segment.kind !== 'protected' && <div className="block-move-buttons" role="group" aria-label={`Move block ${index + 1}`}>
@@ -563,17 +572,19 @@ function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: 
         <BlockInserter mdx={format === 'mdx'} onInsert={(component, raw) => insertComponent(segment.id, component, raw)} onAddText={() => addTextBlock(segment.id)} />
       </div>
     </div>)}
-    {!visibleSegments.length && <div className="empty-body">
+    {!contentSegments.length && <div className="empty-body">
       <p>No content blocks. Add a block to continue.</p>
-      <BlockInserter mdx={format === 'mdx'} onInsert={(component, raw) => insertComponent(-1, component, raw)} onAddText={() => addTextBlock(-1)} />
+      <BlockInserter mdx={format === 'mdx'} onInsert={(component, raw) => insertComponent(lastSegmentId, component, raw)} onAddText={() => addTextBlock(lastSegmentId)} />
     </div>}
   </div>;
 }
 
-function ConversionPreviewBlock({ content, protectedBlock }: { content: string; protectedBlock: boolean }) {
+function ConversionPreviewBlock({ segment }: { segment: BodySegment }) {
+  const { content } = segment;
+  const protectedBlock = segment.kind === 'protected';
   const editor = useEditor({ ...richTextEditorOptions(protectedBlock ? '' : content, () => {}, API, undefined, true), editable: false, immediatelyRender: false });
   return protectedBlock
-    ? <details className="protected-block"><summary>Existing MDX block (will remain read-only)</summary><pre>{content}</pre></details>
+    ? <ProtectedSource segment={segment} />
     : <div className="rich-editor"><EditorContent editor={editor} /></div>;
 }
 
@@ -943,6 +954,7 @@ export default function ProjectEditor() {
           title: project.title,
           description: project.description,
           body: project.body,
+          protectedRemovals: project.protectedRemovals,
           head: project.head,
           resumeHead: project.resumeHead,
           assets: project.assets,
@@ -951,10 +963,11 @@ export default function ProjectEditor() {
         }),
       });
       if (!saved.sha || typeof saved.sha !== 'string' || !saved.commitSha || typeof saved.commitSha !== 'string' || typeof saved.content !== 'string' || typeof saved.body !== 'string' || typeof saved.title !== 'string' || (attempt && saved.filename !== attempt.filename)) throw new Error('The save response did not identify the committed document. Its outcome could not be confirmed.');
-      const confirmed = { ...project, ...saved, filename: saved.filename || filename, draft: saved.draft ?? project.draft, creationAttempt: undefined, assets: [] };
+      const confirmed = { ...project, ...saved, filename: saved.filename || filename, draft: saved.draft ?? project.draft, creationAttempt: undefined, assets: [], protectedRemovals: undefined };
       // A replay can confirm an earlier creation rather than today's form.
       // Keep later field edits dirty against the confirmed GitHub baseline;
       // clear recovery only after the response identifies a committed document.
+      if (project.protectedRemovals?.length) setBodyEditorSession(session => session + 1);
       const confirmedFields = recoveryFields(confirmed);
       const laterEdits = Object.fromEntries(Object.entries(recoveryFields(project)).filter(([key, value]) => !['filename', 'creationAttempt', 'assets'].includes(key) && JSON.stringify(value) !== JSON.stringify(confirmedFields[key as keyof typeof confirmedFields])));
       const next = saved.replayed ? { ...confirmed, ...laterEdits } : confirmed;
@@ -1251,10 +1264,21 @@ export default function ProjectEditor() {
           <div className="actions"><button className="primary" type="button" onClick={() => {
             setProject({ ...project, body: project.conversion!.body!, convertProgramUpdate: true }); setShowConversionPreview(false); setBodyEditorSession((session) => session + 1);
           }}>Use editable version</button><button type="button" onClick={() => setShowConversionPreview(false)}>Cancel preview</button></div>
-          <fieldset disabled className="conversion-preview-content cms-preview" aria-label="Read-only converted content">{splitBody(project.conversion.body).filter((segment) => segment.content.trim()).map((segment) => <ConversionPreviewBlock key={segment.id} content={segment.content} protectedBlock={segment.kind === 'protected'} />)}</fieldset>
+          <fieldset disabled className="conversion-preview-content cms-preview" aria-label="Read-only converted content">{splitBody(project.conversion.body).filter((segment) => segment.content.trim() && segment.protectedType !== 'setup').map((segment) => <ConversionPreviewBlock key={segment.id} segment={segment} />)}</fieldset>
         </section> : <>
           {project.convertProgramUpdate && <p className="message" role="status">The editable version is ready. Choose Save Draft to keep this conversion.</p>}
-          <div inert={busy}><BodyEditor key={bodyEditorSession} initialValue={project.body} format={project.filename.endsWith('.md') ? 'md' : 'mdx'} onChange={(body) => { setShowUpdateStarter(false); setProject((current) => current ? { ...current, body } : current); }} /></div>
+          {!!project.protectedRemovals?.length && <details className="pending-removals">
+            <summary>{project.protectedRemovals.length} original content block(s) marked for removal</summary>
+            <p>Save Draft to keep these changes. The removed source remains available here until saved.</p>
+            {project.protectedRemovals.map((source, index) => <ProtectedSource key={index} segment={{ ...splitBody(source)[0], content: source }} />)}
+          </details>}
+          <div inert={busy}><BodyEditor key={bodyEditorSession} initialValue={project.body} format={project.filename.endsWith('.md') ? 'md' : 'mdx'} onChange={(body, removal) => { setShowUpdateStarter(false); setProject((current) => {
+            if (!current) return current;
+            const protectedRemovals = [...(current.protectedRemovals || [])];
+            if (removal?.undo) { const index = protectedRemovals.lastIndexOf(removal.source); if (index >= 0) protectedRemovals.splice(index, 1); }
+            else if (removal) protectedRemovals.push(removal.source);
+            return { ...current, body, protectedRemovals: protectedRemovals.length ? protectedRemovals : undefined };
+          }); }} /></div>
         </>}
         <div className="actions editor-actions"><button className="back" disabled={busy} type="button" onClick={backToList}>← Back to {config.label}</button><button disabled={busy || !!authIssue} className="primary" type="button" onClick={() => save()}>{busy ? 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button></div>
         </fieldset>

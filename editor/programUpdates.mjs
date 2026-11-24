@@ -209,7 +209,7 @@ export async function saveProgramUpdate(github, filename, input) {
   if (!filename) {
     content = newProgramUpdate(github.drafts ? { ...input, draft: true } : input);
     await validateDocument(content);
-    saved = await github.createBlog({ area: 'updates', title: input.title, suggestedFilename: input.suggestedFilename, creationId: input.creationId, creationFilename: input.creationFilename, creationRetry: input.creationRetry === true, assets: input.assets, content });
+    saved = await github.createBlog({ area: 'updates', title: input.title, suggestedFilename: input.suggestedFilename, creationId: input.creationId, creationFilename: input.creationFilename, creationRetry: input.creationRetry === true, protectedRemovals: input.protectedRemovals, assets: input.assets, content });
     content = saved.content ?? content;
   } else {
     if (!input.sha) throw invalid('An existing update SHA is required. Create new updates through the Program Updates collection.');
@@ -217,8 +217,8 @@ export async function saveProgramUpdate(github, filename, input) {
     if (loaded.sha !== input.sha) throw Object.assign(new Error('This page has changed in GitHub since you opened it. Your edits are still here; copy them before reloading.'), { status: 409 });
     content = serializeProgramUpdate(loaded.content, { ...input, ...(github.drafts ? { draft: parsePage(loaded.content).draft } : {}) });
     const originalBody = input.convertProgramUpdate === true ? programUpdateConversion(loaded.content).body : parsePage(loaded.content).body;
-    await validateDocument(content, { filename, originalBody });
-    saved = await github.saveContent({ area: 'updates', filename, content, sha: input.sha, head: input.head, resumeHead: input.resumeHead, assets: input.assets });
+    await validateDocument(content, { filename, originalBody, protectedRemovals: input.protectedRemovals });
+    saved = await github.saveContent({ area: 'updates', filename, content, sha: input.sha, head: input.head, resumeHead: input.resumeHead, protectedRemovals: input.protectedRemovals, assets: input.assets });
   }
   return { ...saved, ...(filename ? { filename } : {}), content, ...parseProgramUpdate(content), ...contentVisibility(content) };
 }

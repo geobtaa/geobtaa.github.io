@@ -6,17 +6,18 @@ import { normalizeLinkAddress } from './linkAddress.ts';
 import { ToolbarButton } from './ToolbarButton.ts';
 import type { ToolbarAction } from './toolbarIcons.ts';
 import { PreviewLink } from './previewLinks.ts';
+import { LegacyCardLists } from './legacyCardLists.ts';
 
-export function CardBodyEditor({ body, label, onChange, readOnly = false }: { body: string; label: string; onChange: (body: string) => void; readOnly?: boolean }) {
+export function CardBodyEditor({ body, label, onChange, readOnly = false, legacy = false }: { body: string; label: string; onChange: (body: string) => void; readOnly?: boolean; legacy?: boolean }) {
   const lastBody = useRef(body);
   const editor = useEditor({
-    extensions: [StarterKit.configure({ codeBlock: false, link: false, undoRedo: readOnly ? false : {}, underline: false }), SafeCodeBlock, (readOnly ? PreviewLink : SafeLink).configure({ openOnClick: false }), LiteralEntities, MdxMarkdown.configure({ markedOptions: { gfm: true } })],
+    extensions: [StarterKit.configure({ codeBlock: false, link: false, undoRedo: readOnly ? false : {}, underline: false, ...(legacy ? { heading: { levels: [4] }, bulletList: false, orderedList: false } : {}) }), ...(legacy ? LegacyCardLists : []), SafeCodeBlock, (readOnly ? PreviewLink : SafeLink).configure({ openOnClick: false }), LiteralEntities, MdxMarkdown.configure({ markedOptions: { gfm: true } })],
     content: body, contentType: 'markdown', immediatelyRender: false, editable: !readOnly,
     editorProps: { attributes: { role: 'textbox', 'aria-label': label, 'aria-multiline': 'true' } },
     onUpdate: ({ editor }) => { if (readOnly) return; const value = editor.getMarkdown(); lastBody.current = value; onChange(value); },
   });
   const active = useEditorState({ editor, selector: ({ editor }) => ({
-    bold: editor?.isActive('bold'), italic: editor?.isActive('italic'), bulletList: editor?.isActive('bulletList'), orderedList: editor?.isActive('orderedList'),
+    heading: editor?.isActive('heading', { level: 4 }), bold: editor?.isActive('bold'), italic: editor?.isActive('italic'), bulletList: editor?.isActive('bulletList'), orderedList: editor?.isActive('orderedList'),
     canUndo: editor?.can().undo(), canRedo: editor?.can().redo(),
   }) });
   useEffect(() => {
@@ -34,9 +35,11 @@ export function CardBodyEditor({ body, label, onChange, readOnly = false }: { bo
   };
   const button = (text: ToolbarAction, action: () => unknown, pressed?: boolean, disabled = false) => h(ToolbarButton, { key: text, action: text, onClick: action, 'aria-pressed': pressed, disabled });
   return h('div', { className: 'rich-editor card-body' },
+    legacy && !readOnly && h('small', null, 'Changing section headings can change their public anchor links.'),
     !readOnly && h('div', { className: 'toolbar', role: 'toolbar', 'aria-label': `${label} formatting`, onMouseDown: (event) => event.preventDefault() },
       button('Undo', () => editor.chain().focus().undo().run(), undefined, !active?.canUndo),
       button('Redo', () => editor.chain().focus().redo().run(), undefined, !active?.canRedo),
+      legacy && h('button', { type: 'button', 'aria-label': 'Section heading', 'aria-pressed': !!active?.heading, onClick: () => editor.chain().focus().toggleHeading({ level: 4 }).run() }, 'Section heading'),
       button('Bold', () => editor.chain().focus().toggleBold().run(), active?.bold),
       button('Italic', () => editor.chain().focus().toggleItalic().run(), active?.italic),
       button('Link', link),
