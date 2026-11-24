@@ -46,6 +46,19 @@ independent document schemas:
 - `sha`, `head`, and optional `resumeHead` identify the loaded document/revision
   and publication continuation. Stale identities return 409. Browser-supplied
   `originalContent` does not replace authoritative repository source.
+- Existing MDX saves may include `protectedRemovals`, an array of original source
+  strings for explicitly removed opaque content blocks. Omit it when nothing is
+  being removed in this save. Each record consumes one matching eligible original
+  block; repeated identical blocks need separate records. The existing EOF newline
+  allowance still applies. At most 1,024 records and 1,000,000 total JavaScript
+  string code units are accepted. Invalid, unused, duplicate excess, technical,
+  or uncertain-source removal requests return 400; they do not authorize editing
+  or moving retained source. Markdown (`.md`) component removal is not enabled.
+  Imports, wrappers containing page code, and compatibility-editor wrappers stay
+  locked. Saved removal records accumulate in draft commit metadata, bound to
+  the base document revision, for independent publication verification. They are
+  not page frontmatter, public content, or instructions to prune unused imports.
+  Subsequent saves submit only newly requested removals, not the saved history.
 - `assets` contains pending image descriptors. Shared storage validates ownership,
   digest, references, individual size, aggregate size, and count. Only referenced
   new uploads enter Git. An upload prepared for another draft cannot simply be

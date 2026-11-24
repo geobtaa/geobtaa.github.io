@@ -142,9 +142,9 @@ Text blocks next to each other may appear as one Text block when you reopen the 
 
 ### Protected blocks on existing pages
 
-Some existing pages contain layouts, embedded items, or code that the visual editor cannot edit. These appear as protected, read-only blocks, sometimes labeled **MDX** or **Astro**. These are file and component names; you do not need to learn them to edit the surrounding text.
+Some existing pages contain layouts, embedded items, or code that the visual editor cannot edit. These appear as separate protected, read-only blocks labelled with their component or syntax type. Imports and page code appear in the locked **Page setup** panel. The labels identify the underlying source; you can edit surrounding text without changing it.
 
-Leave protected blocks in place. The editor keeps their original content when you save. Ask a maintainer to change anything inside them. In Preview, these blocks appear as placeholders rather than a finished layout.
+Keep protected blocks you still need; the editor preserves their source when saving. To replace eligible MDX content, build its replacement with **Add block**, inspect the original, then use **Remove original block** when offered. **Undo removal** restores the most recently removed block until another block operation or Save Draft. Blocks without that control remain locked; ask a maintainer to change their source. Preview shows retained protected content as placeholders and omits Page setup.
 
 Some Link Cards inside older layouts show editable title, description, and URL fields. You can edit those fields while the surrounding layout stays read-only. These layouts cannot be moved or removed. Preview shows the cards without reproducing the complete surrounding layout.
 
