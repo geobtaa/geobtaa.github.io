@@ -122,6 +122,8 @@ New Card and Callout messages use plain text. Some existing callouts have a form
 
 Some older pages use the `.md` file format. On these pages, Text is available but the special block types are disabled. Images and tables still work inside Text blocks. Ask a maintainer if the page needs a special block.
 
+**Page setup** contains preserved imports and page code in a collapsed, locked panel. Expand it to inspect the source. These blocks have no editing, movement, or removal controls and are omitted from Preview. Their original source positions stay unchanged. Other unsupported content has a separate expandable block labelled with its component or syntax type. Protected blocks still cannot be removed in this version.
+
 Existing Markdown tables can be edited directly in Text blocks, including tables with times, ratios, and map scales. Tables containing custom styling, embedded components, or other unsupported content may remain read-only.
 
 Some older Chip Lists now have the same item controls as new lists. You can edit, add, remove, and reorder their labels while their existing layout stays in place. These older blocks cannot be moved or removed as a whole. Lists with formatted labels or other unsupported content remain read-only.

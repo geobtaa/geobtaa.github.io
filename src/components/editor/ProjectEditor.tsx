@@ -1,3 +1,4 @@
+import { PageSetup, ProtectedSource } from './ProtectedSource';
 import { FieldLabel } from './FieldLabel.ts';
 import { preparePublicationCandidate } from '../../../editor/publicationCandidate.mjs';
 import { PublicationStatus, type PublicationState } from './PublicationStatus';
@@ -509,7 +510,7 @@ function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: 
     const index = current.findIndex(segment => segment.id === id);
     const segment = current[index];
     if (!segment || segment.kind === 'protected') return;
-    const visible = visibleBodySegments(current, emptyEditorId);
+    const visible = visibleBodySegments(current, emptyEditorId).filter(segment => segment.protectedType !== 'setup');
     const visibleIndex = visible.findIndex(segment => segment.id === id);
     const neighbor = visible[visibleIndex + 1] || visible[visibleIndex - 1];
     pendingRemovalFocus.current = { id: neighbor?.id ?? null };
@@ -545,20 +546,23 @@ function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: 
   };
   // Keep whitespace separators in the source without displaying them as empty editors.
   const visibleSegments = visibleBodySegments(segments, emptyEditorId);
+  const contentSegments = visibleSegments.filter(segment => segment.protectedType !== 'setup');
+  const lastSegmentId = segments.at(-1)?.id ?? -1;
   return <div className="body-editor" ref={bodyRoot}>
+    <PageSetup segments={segments} />
     <p className="block-move-note">Move blocks with the arrow buttons. Adjacent text blocks may merge into one text block when you reopen the page; their content stays in order. Read-only blocks stay in place.</p>
     <p className="block-move-status" role="status">{moveNotice}</p>
     {removedBlock && <div className="block-removal-notice">
       <span>{removedBlock.segment.kind === 'markdown' ? 'Text block' : 'Block'} removed.</span>
       <button type="button" onClick={undoRemoval}>Undo removal</button>
     </div>}
-    {visibleSegments.map((segment, index) => <div className="block-row" tabIndex={-1} ref={(row) => { if (row) blockRows.current.set(segment.id, row); else blockRows.current.delete(segment.id); }} key={`${segmentSession}:${segment.id}`}>
+    {visibleSegments.map((segment, index) => segment.protectedType === 'setup' ? null : <div className="block-row" tabIndex={-1} ref={(row) => { if (row) blockRows.current.set(segment.id, row); else blockRows.current.delete(segment.id); }} key={`${segmentSession}:${segment.id}`}>
       {segment.kind === 'protected'
         ? segment.legacyChipList || segment.legacyCardGrid
           ? <RichTextEditor structured initialValue={segment.content} onChange={content => update(segment.id, content)} />
           : segment.containedLinkCards
           ? <ContainedLinkCardsEditor source={segment.content} onChange={content => update(segment.id, content)} />
-          : <details className="protected-block"><summary>Existing Markdown / MDX block (preserved, read-only)</summary><pre>{segment.content}</pre></details>
+          : <ProtectedSource segment={segment} />
         : <RichTextEditor onRemove={() => removeBlock(segment.id)} structured={segment.kind === 'structured'} initialValue={segment.content} onChange={(content) => update(segment.id, content)} />}
       <div className="block-controls">
         {segment.kind !== 'protected' && <div className="block-move-buttons" role="group" aria-label={`Move block ${index + 1}`}>
@@ -568,17 +572,19 @@ function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: 
         <BlockInserter mdx={format === 'mdx'} onInsert={(component, raw) => insertComponent(segment.id, component, raw)} onAddText={() => addTextBlock(segment.id)} />
       </div>
     </div>)}
-    {!visibleSegments.length && <div className="empty-body">
+    {!contentSegments.length && <div className="empty-body">
       <p>No content blocks. Add a block to continue.</p>
-      <BlockInserter mdx={format === 'mdx'} onInsert={(component, raw) => insertComponent(-1, component, raw)} onAddText={() => addTextBlock(-1)} />
+      <BlockInserter mdx={format === 'mdx'} onInsert={(component, raw) => insertComponent(lastSegmentId, component, raw)} onAddText={() => addTextBlock(lastSegmentId)} />
     </div>}
   </div>;
 }
 
-function ConversionPreviewBlock({ content, protectedBlock }: { content: string; protectedBlock: boolean }) {
+function ConversionPreviewBlock({ segment }: { segment: BodySegment }) {
+  const { content } = segment;
+  const protectedBlock = segment.kind === 'protected';
   const editor = useEditor({ ...richTextEditorOptions(protectedBlock ? '' : content, () => {}, API, undefined, true), editable: false, immediatelyRender: false });
   return protectedBlock
-    ? <details className="protected-block"><summary>Existing MDX block (will remain read-only)</summary><pre>{content}</pre></details>
+    ? <ProtectedSource segment={segment} />
     : <div className="rich-editor"><EditorContent editor={editor} /></div>;
 }
 
@@ -1256,7 +1262,7 @@ export default function ProjectEditor() {
           <div className="actions"><button className="primary" type="button" onClick={() => {
             setProject({ ...project, body: project.conversion!.body!, convertProgramUpdate: true }); setShowConversionPreview(false); setBodyEditorSession((session) => session + 1);
           }}>Use editable version</button><button type="button" onClick={() => setShowConversionPreview(false)}>Cancel preview</button></div>
-          <fieldset disabled className="conversion-preview-content cms-preview" aria-label="Read-only converted content">{splitBody(project.conversion.body).filter((segment) => segment.content.trim()).map((segment) => <ConversionPreviewBlock key={segment.id} content={segment.content} protectedBlock={segment.kind === 'protected'} />)}</fieldset>
+          <fieldset disabled className="conversion-preview-content cms-preview" aria-label="Read-only converted content">{splitBody(project.conversion.body).filter((segment) => segment.content.trim() && segment.protectedType !== 'setup').map((segment) => <ConversionPreviewBlock key={segment.id} segment={segment} />)}</fieldset>
         </section> : <>
           {project.convertProgramUpdate && <p className="message" role="status">The editable version is ready. Choose Save Draft to keep this conversion.</p>}
           <div inert={busy}><BodyEditor key={bodyEditorSession} initialValue={project.body} format={project.filename.endsWith('.md') ? 'md' : 'mdx'} onChange={(body) => { setShowUpdateStarter(false); setProject((current) => current ? { ...current, body } : current); }} /></div>
