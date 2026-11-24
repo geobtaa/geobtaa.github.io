@@ -6,11 +6,12 @@ import { normalizeLinkAddress } from './linkAddress.ts';
 import { ToolbarButton } from './ToolbarButton.ts';
 import type { ToolbarAction } from './toolbarIcons.ts';
 import { PreviewLink } from './previewLinks.ts';
+import { LegacyCardLists } from './legacyCardLists.ts';
 
-export function CardBodyEditor({ body, label, onChange, readOnly = false }: { body: string; label: string; onChange: (body: string) => void; readOnly?: boolean }) {
+export function CardBodyEditor({ body, label, onChange, readOnly = false, legacy = false }: { body: string; label: string; onChange: (body: string) => void; readOnly?: boolean; legacy?: boolean }) {
   const lastBody = useRef(body);
   const editor = useEditor({
-    extensions: [StarterKit.configure({ codeBlock: false, link: false, undoRedo: readOnly ? false : {}, underline: false }), SafeCodeBlock, (readOnly ? PreviewLink : SafeLink).configure({ openOnClick: false }), LiteralEntities, MdxMarkdown.configure({ markedOptions: { gfm: true } })],
+    extensions: [StarterKit.configure({ codeBlock: false, link: false, undoRedo: readOnly ? false : {}, underline: false, ...(legacy ? { heading: false, bulletList: false, orderedList: false } : {}) }), ...(legacy ? LegacyCardLists : []), SafeCodeBlock, (readOnly ? PreviewLink : SafeLink).configure({ openOnClick: false }), LiteralEntities, MdxMarkdown.configure({ markedOptions: { gfm: true } })],
     content: body, contentType: 'markdown', immediatelyRender: false, editable: !readOnly,
     editorProps: { attributes: { role: 'textbox', 'aria-label': label, 'aria-multiline': 'true' } },
     onUpdate: ({ editor }) => { if (readOnly) return; const value = editor.getMarkdown(); lastBody.current = value; onChange(value); },

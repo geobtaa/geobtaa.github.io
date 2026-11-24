@@ -3,6 +3,7 @@ import { encodeAttribute, decodeAttribute } from './linkCardMdx.ts';
 import { ensureDefaultComponentImport } from './starlightImports.ts';
 import { parseCollectionData } from '../editor-blocks/data.mjs';
 import { matchLegacyChipList, parseLegacyChipList, updateLegacyChipList } from './legacyChipList.ts';
+import { matchLegacyCardGrid, parseLegacyCardGrid, updateLegacyCardGrid } from './legacyCardGrid.ts';
 
 export const COLLECTION_BLOCKS = {
   chipList: { label: 'Chip List', binding: 'CmsChipList', property: 'items', node: 'chipListBlock', path: 'src/components/editor-blocks/ChipList.astro' },
@@ -36,6 +37,8 @@ export function createCollectionMdx(kind: CollectionKind, data: CollectionData) 
 export function parseCollectionMdx(source: string): { kind: CollectionKind; data: CollectionData; raw: string } | null {
   const legacy = parseLegacyChipList(source);
   if (legacy) return { kind: 'chipList', data: legacy.items, raw: source };
+  const grid = parseLegacyCardGrid(source);
+  if (grid) return { kind: 'cardGrid', data: grid.cards.map(({ title, body }) => ({ title, body })), raw: source };
   for (const kind of COLLECTION_KINDS) {
     const config = COLLECTION_BLOCKS[kind];
     const match = source.trim().match(new RegExp(`^<${config.binding} ${config.property}="([^"\\r\\n]*)" \\/>$`));
@@ -50,12 +53,17 @@ export function parseCollectionMdx(source: string): { kind: CollectionKind; data
 
 export function updateCollectionMdx(source: string, data: CollectionData) {
   if (parseLegacyChipList(source)) return updateLegacyChipList(source, data as string[]);
+  if (parseLegacyCardGrid(source)) return updateLegacyCardGrid(source, data as GridCard[]);
   const parsed = parseCollectionMdx(source);
   if (!parsed || JSON.stringify(parsed.data) === JSON.stringify(data)) return source;
   return `${source.match(/^\s*/)?.[0] || ''}${createCollectionMdx(parsed.kind, data)}${source.match(/\s*$/)?.[0] || ''}`;
 }
 
 export function matchCollectionBlock(source: string, kind: CollectionKind) {
+  if (kind === 'cardGrid') {
+    const grid = matchLegacyCardGrid(source);
+    if (grid) return grid;
+  }
   if (kind === 'chipList') {
     const legacy = matchLegacyChipList(source);
     if (legacy) return legacy;

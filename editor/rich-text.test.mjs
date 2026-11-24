@@ -11,6 +11,10 @@ import { parseDirectiveCallout } from '../src/components/editor/directiveCallout
 import { parseBodySyntax } from '../src/components/editor/contentSyntax.ts';
 import { validateDocument } from './validateDocument.mjs';
 import { parseLegacyChipList } from '../src/components/editor/legacyChipList.ts';
+import { parseLegacyCardGrid } from '../src/components/editor/legacyCardGrid.ts';
+import { LegacyCardLists } from '../src/components/editor/legacyCardLists.ts';
+import StarterKit from '@tiptap/starter-kit';
+import { MdxMarkdown } from '../src/components/editor/MdxMarkdown.ts';
 import { SIMPLE_KINDS, SIMPLE_COMPONENTS, createSimpleComponentMdx, emptySimpleFields, ensureSimpleComponentImport, parseSimpleComponentMdx } from '../src/components/editor/simpleComponents.ts';
 import { createLinkButtonMdx, ensureLinkButtonImport, parseLinkButtonMdx, updateLinkButtonMdx } from '../src/components/editor/linkButtonMdx.ts';
 import { createLinkCardMdx, ensureLinkCardImport, LINK_CARD_IMPORT, parseLinkCardMdx, updateLinkCardMdx } from '../src/components/editor/linkCardMdx.ts';
@@ -169,6 +173,37 @@ function openEditor(markdown = '') {
   if (editor.state.doc.lastChild?.isTextblock) editor.commands.setTextSelection(editor.state.doc.content.size - 1);
   return { editor, externalMarkdown: () => externalMarkdown };
 }
+
+test('legacy card-body lists retain loose paragraph structure while editing', () => {
+  for (const body of ['- First\n\n- Second', '3. First\n\n4. Second']) {
+    const editor = new Editor({ extensions: [StarterKit.configure({ bulletList: false, orderedList: false, heading: false }), ...LegacyCardLists, MdxMarkdown], content: body, contentType: 'markdown', injectCSS: false });
+    assert.equal(editor.state.doc.firstChild.attrs.legacyLoose, true);
+    let position;
+    editor.state.doc.descendants((node, pos) => { if (node.type.name === 'paragraph' && node.textContent === 'First') position = pos + node.nodeSize - 1; });
+    editor.commands.insertContentAt(position, { type: 'text', text: ' edited' });
+    const saved = editor.getMarkdown();
+    assert.equal(parseBodySyntax(saved).children[0].spread, true);
+    assert.match(saved, /First edited\n\n(?:- |4\. )Second/);
+    editor.destroy();
+  }
+});
+
+test('legacy CardGrid titles and rich bodies load as a collection without rewriting wrappers', () => {
+  const raw = '<CardGrid>\n<Card title="First">\n- First\n\n- Second\n</Card>\n<Card title="Second">\nA [link](/maps).\n</Card>\n</CardGrid>';
+  const opened = openEditor(raw);
+  assert.equal(opened.editor.state.doc.firstChild.type.name, 'cardGridBlock');
+  assert.equal(opened.editor.getMarkdown(), raw);
+  const entries = opened.editor.state.doc.firstChild.attrs.entries;
+  opened.editor.commands.setNodeSelection(0);
+  opened.editor.commands.updateAttributes('cardGridBlock', { entries: [{ ...entries[0], title: 'New <literal> title' }, entries[1]] });
+  const saved = opened.editor.getMarkdown();
+  assert.equal(parseLegacyCardGrid(saved).cards[0].title, 'New <literal> title');
+  assert.equal(parseLegacyCardGrid(saved).cards[0].body, entries[0].body);
+  assert.deepEqual(parseLegacyCardGrid(saved).protectedParts, parseLegacyCardGrid(raw).protectedParts);
+  const reopened = openEditor(saved);
+  assert.equal(reopened.editor.getMarkdown(), saved);
+  opened.editor.destroy(); reopened.editor.destroy();
+});
 
 test('preview links enforce a safe new tab even with stored same-tab targets, without rewriting content', () => {
   const editor = new Editor({ ...richTextEditorOptions('[Text](/guides/)', () => {}, '', undefined, true), injectCSS: false });

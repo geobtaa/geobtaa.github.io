@@ -7,8 +7,9 @@ import { parseLinkCardMdx } from './linkCardMdx.ts';
 import { parseCollectionMdx } from './collectionMdx.ts';
 import { parseContainedLinkCards } from './containedLinkCards.ts';
 import { parseLegacyChipList } from './legacyChipList.ts';
+import { parseLegacyCardGrid } from './legacyCardGrid.ts';
 
-export type BodySegment = { id: number; kind: 'markdown' | 'protected' | 'structured'; content: string; containedLinkCards?: boolean; legacyChipList?: boolean };
+export type BodySegment = { id: number; kind: 'markdown' | 'protected' | 'structured'; content: string; containedLinkCards?: boolean; legacyChipList?: boolean; legacyCardGrid?: boolean };
 
 export function splitBody(body: string, { mergeProtected = true, format = 'mdx' as SourceFormat } = {}): BodySegment[] {
   if (!body.trim()) return [{ id: 0, kind: 'markdown', content: body }];
@@ -24,9 +25,10 @@ export function splitBody(body: string, { mergeProtected = true, format = 'mdx' 
     if (!content) return;
     const previous = segments.at(-1);
     const legacyChipList = kind === 'protected' && format === 'mdx' && !!parseLegacyChipList(content);
+    const legacyCardGrid = kind === 'protected' && format === 'mdx' && !!parseLegacyCardGrid(content);
     const containedLinkCards = !legacyChipList && kind === 'protected' && format === 'mdx' && !!parseContainedLinkCards(content);
-    if (!legacyChipList && !previous?.legacyChipList && !containedLinkCards && !previous?.containedLinkCards && kind !== 'structured' && (kind !== 'protected' || mergeProtected) && previous?.kind === kind) previous.content += content;
-    else segments.push({ id: segments.length, kind, content, ...(legacyChipList ? { legacyChipList: true } : {}), ...(containedLinkCards ? { containedLinkCards: true } : {}) });
+    if (!legacyCardGrid && !previous?.legacyCardGrid && !legacyChipList && !previous?.legacyChipList && !containedLinkCards && !previous?.containedLinkCards && kind !== 'structured' && (kind !== 'protected' || mergeProtected) && previous?.kind === kind) previous.content += content;
+    else segments.push({ id: segments.length, kind, content, ...(legacyCardGrid ? { legacyCardGrid: true } : {}), ...(legacyChipList ? { legacyChipList: true } : {}), ...(containedLinkCards ? { containedLinkCards: true } : {}) });
   };
   const lineEnd = (offset: number) => {
     const newline = body.indexOf('\n', offset);
@@ -54,7 +56,7 @@ export function splitBody(body: string, { mergeProtected = true, format = 'mdx' 
         if (next && next <= end) { push('protected', body.slice(offset, next)); offset = next; }
       }
       push('protected', body.slice(offset, end));
-    } else if (format === 'mdx' && parseLegacyChipList(raw)) {
+    } else if (format === 'mdx' && (parseLegacyChipList(raw) || parseLegacyCardGrid(raw))) {
       // The collection fields are editable; its legacy component/layout stays anchored.
       push('protected', raw);
     } else if (parseLinkCardMdx(raw) || parseLinkButtonMdx(raw) || parseSimpleComponentMdx(raw) || parseCollectionMdx(raw)) {

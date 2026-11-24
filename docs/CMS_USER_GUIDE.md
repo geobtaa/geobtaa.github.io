@@ -126,6 +126,8 @@ Existing Markdown tables can be edited directly in Text blocks, including tables
 
 Some older Chip Lists now have the same item controls as new lists. You can edit, add, remove, and reorder their labels while their existing layout stays in place. These older blocks cannot be moved or removed as a whole. Lists with formatted labels or other unsupported content remain read-only.
 
+Some simpler older Card Grids now expose title and formatted-content fields. You can edit or reorder their cards while keeping the existing layout. Adding or removing cards, moving the whole grid, and creating headings are unavailable for these older grids. More complex cards and grids remain read-only.
+
 ### Add, move, or remove blocks
 
 - Click **Add block** beside a block to insert another block after it. This adds a whole block; it does not insert one at the typing cursor inside your text.

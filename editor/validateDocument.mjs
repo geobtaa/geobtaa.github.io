@@ -7,6 +7,7 @@ import { COLLECTION_BLOCKS } from '../src/components/editor/collectionMdx.ts';
 import { parseBodySyntax, mdxOnlyMarkdownNode, MDX_COMPONENT_MESSAGE } from '../src/components/editor/contentSyntax.ts';
 import { parseContainedLinkCards } from '../src/components/editor/containedLinkCards.ts';
 import { parseLegacyChipList } from '../src/components/editor/legacyChipList.ts';
+import { parseLegacyCardGrid } from '../src/components/editor/legacyCardGrid.ts';
 
 const generatedImports = new Set([
   LINK_CARD_IMPORT, LINK_BUTTON_IMPORT,
@@ -41,8 +42,8 @@ export async function validateDocument(content, { filename = 'new.mdx', original
   }
   const protectedBlocks = source => splitBody(source, { mergeProtected: false, format }).filter(segment => segment.kind === 'protected').map(segment => ({
     raw: segment.content,
-    kind: segment.legacyChipList ? 'legacyChipList' : segment.containedLinkCards ? 'containedLinkCards' : 'protected',
-    parts: segment.legacyChipList ? parseLegacyChipList(segment.content).protectedParts : segment.containedLinkCards ? parseContainedLinkCards(segment.content).protectedParts : [segment.content],
+    kind: segment.legacyCardGrid ? 'legacyCardGrid' : segment.legacyChipList ? 'legacyChipList' : segment.containedLinkCards ? 'containedLinkCards' : 'protected',
+    parts: segment.legacyCardGrid ? parseLegacyCardGrid(segment.content).protectedParts : segment.legacyChipList ? parseLegacyChipList(segment.content).protectedParts : segment.containedLinkCards ? parseContainedLinkCards(segment.content).protectedParts : [segment.content],
   }));
   const originals = protectedBlocks(originalBody);
   const changed = () => invalid('Existing read-only content was changed, removed, or moved into a different syntax context. Keep its protected source unchanged. Nothing was saved to GitHub.');

@@ -554,7 +554,7 @@ function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: 
     </div>}
     {visibleSegments.map((segment, index) => <div className="block-row" tabIndex={-1} ref={(row) => { if (row) blockRows.current.set(segment.id, row); else blockRows.current.delete(segment.id); }} key={`${segmentSession}:${segment.id}`}>
       {segment.kind === 'protected'
-        ? segment.legacyChipList
+        ? segment.legacyChipList || segment.legacyCardGrid
           ? <RichTextEditor structured initialValue={segment.content} onChange={content => update(segment.id, content)} />
           : segment.containedLinkCards
           ? <ContainedLinkCardsEditor source={segment.content} onChange={content => update(segment.id, content)} />

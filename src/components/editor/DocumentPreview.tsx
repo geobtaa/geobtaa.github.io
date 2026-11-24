@@ -48,7 +48,7 @@ export function DocumentPreview({ project, area, apiBase }: { project: Project; 
         {area === 'library' && project.description && <p className="preview-summary">Summary: {project.description}</p>}
       </header>
       {segments.map(segment => segment.kind === 'protected'
-        ? segment.legacyChipList ? <PreviewText key={segment.id} content={segment.content} apiBase={apiBase} article={article} /> : segment.containedLinkCards ? <ContainedLinkCardsEditor key={segment.id} source={segment.content} readOnly /> : <details className="preview-protected" key={segment.id}>
+        ? segment.legacyChipList || segment.legacyCardGrid ? <PreviewText key={segment.id} content={segment.content} apiBase={apiBase} article={article} /> : segment.containedLinkCards ? <ContainedLinkCardsEditor key={segment.id} source={segment.content} readOnly /> : <details className="preview-protected" key={segment.id}>
           <summary>Protected Markdown / MDX / Astro block — not rendered</summary>
           <pre>{segment.content}</pre>
         </details>
