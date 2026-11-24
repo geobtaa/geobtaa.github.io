@@ -49,7 +49,7 @@ test('lower-risk legacy grids edit rich text and titles, reorder, preview and re
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
     await waitFor(`${root}?.querySelectorAll('.card-body .tiptap').length === 4`);
-    assert.equal(await evaluate('document.querySelectorAll(".collection-cardGrid").length'), 1);
+    assert.equal(await evaluate('document.querySelectorAll(".collection-cardGrid").length'), 3);
     assert.equal(await evaluate(`${root}.querySelector('[data-add-entry]')`), null);
     assert.equal(await evaluate(`${root}.querySelector('button[aria-label="Remove card 1"]')`), null);
     assert.equal(await evaluate(`${root}.closest('.block-row').querySelector('.component-remove, .block-move-buttons')`), null);
@@ -81,7 +81,7 @@ test('lower-risk legacy grids edit rich text and titles, reorder, preview and re
     for (const segment of splitBody(originalBody).filter(s => s.kind === 'protected' && !s.legacyCardGrid)) assert.ok(saved.includes(segment.content));
 
     await evaluate('[...document.querySelectorAll(".editor-mode-toggle button")].find(button => button.textContent === "Preview").click()');
-    await waitFor('document.querySelectorAll("#document-preview .collection-cardGrid .collection-entry").length === 4');
+    await waitFor('document.querySelector("#document-preview .collection-cardGrid")?.querySelectorAll(".collection-entry").length === 4');
     assert.equal(await evaluate('document.querySelectorAll("#document-preview .collection-cardGrid input").length'), 0);
     assert.ok((await evaluate('document.querySelector("#document-preview").textContent')).includes('Tech & <literal> {title}'));
     await evaluate('document.querySelector(".editor-navigation .back").click()');
@@ -150,7 +150,7 @@ test('September 2025 indented lists and paragraphs preview and edit normally whi
     await evaluate('[...document.querySelectorAll(".editor-mode-toggle button")].find(button => button.textContent === "Preview").click()');
     await waitFor('document.querySelector("#document-preview .collection-cardGrid")?.textContent.includes("verified paragraph")');
     assert.equal(await evaluate('document.querySelectorAll("#document-preview .collection-cardGrid .card-body pre").length'), 0);
-    assert.equal(await evaluate('document.querySelectorAll("#document-preview .collection-cardGrid .card-body ul").length'), 2);
+    assert.equal(await evaluate('document.querySelector("#document-preview .collection-cardGrid").querySelectorAll(".card-body ul").length'), 2);
     await evaluate('document.querySelector(".editor-navigation .back").click()');
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
@@ -158,5 +158,120 @@ test('September 2025 indented lists and paragraphs preview and edit normally whi
     assert.match(await evaluate(`${card(0)}.querySelector('.tiptap').textContent`), /verified list/);
     assert.match(await evaluate(`${card(2)}.querySelector('.tiptap').textContent`), /verified paragraph/);
     assert.equal(await evaluate(`${root}.querySelectorAll('.card-body pre').length`), 0);
+  });
+});
+
+
+test('untitled grid and standalone cards edit their Markdown heading and body, preview and reopen', { skip: chrome ? false : 'Chrome/Chromium is required.', timeout: 60_000 }, async () => {
+  for (const [file, count, standalone] of [['2024-04.mdx', 5, false], ['2025-12-04-november-2025-program-highlights.mdx', 1, true]]) {
+    const source = await readFile('src/content/docs/updates/' + file, 'utf8');
+    const original = parseContent(source).body;
+    const segment = splitBody(original).find(s => s.legacyCardGrid && parseLegacyCardGrid(s.content).cards[0].heading);
+    const initial = parseLegacyCardGrid(segment.content);
+    await withEditorBrowser(fixture(source), async ({ evaluate, waitFor, send }) => {
+      const heading = 'document.querySelector(\'input[aria-label="Card 1 heading"]\')';
+      const block = `${heading}.closest('.collection-cardGrid')`;
+      const save = async count => {
+        await evaluate('document.querySelector(".top-save").click()');
+        await waitFor(`window.writes.length === ${count} && document.querySelector('.save-state').textContent === 'All changes saved'`);
+        const body = await evaluate('window.record.body');
+        await validateDocument(`---\ntitle: Cards\n---\n\n${body}`, { originalBody: original });
+        return body;
+      };
+      await waitFor('!!document.querySelector(".dashboard-card")');
+      await evaluate('[...document.querySelectorAll(".dashboard-card")].find(button => button.textContent.includes("Program Updates")).click()');
+      await waitFor('!!document.querySelector(".project-list button")');
+      await evaluate('document.querySelector(".project-list button").click()');
+      await waitFor(`!!${heading}`);
+      assert.equal(await evaluate(`${block}.querySelectorAll('.collection-entry').length`), count);
+      assert.equal(await evaluate(`${block}.querySelector('.collection-heading').textContent`), standalone ? 'Card' : 'Card Grid');
+      assert.equal(await evaluate(`${heading}.value`), initial.cards[0].title);
+      await evaluate('document.querySelector(".editor-fields > label input").focus(); document.querySelector(".editor-fields > label input").select()');
+      await send('Input.insertText', { text: 'Metadata edit' });
+      assert.equal(await save(1), original);
+      await evaluate(`${heading}.focus(); ${heading}.select()`);
+      await send('Input.insertText', { text: 'Changed & <literal> {heading}' });
+      const renamed = await save(2);
+      const renamedSegment = splitBody(renamed).find(s => s.legacyCardGrid && parseLegacyCardGrid(s.content).cards[0].title === 'Changed & <literal> {heading}');
+      const parsed = parseLegacyCardGrid(renamedSegment.content);
+      assert.deepEqual(parsed.protectedParts, initial.protectedParts);
+      assert.equal(renamedSegment.content.slice(parsed.cards[0].bodyStart), segment.content.slice(initial.cards[0].bodyStart));
+      assert.ok(!renamedSegment.content.includes('title='));
+      await evaluate(`${block}.querySelector('.tiptap').editor.commands.focus('end')`);
+      await waitFor(`document.activeElement === ${block}.querySelector('.tiptap')`);
+      await send('Input.insertText', { text: ' Added body text.' });
+      const edited = await save(3);
+      const editedGrid = splitBody(edited).find(s => s.legacyCardGrid && parseLegacyCardGrid(s.content).cards[0].title === 'Changed & <literal> {heading}');
+      assert.match(parseLegacyCardGrid(editedGrid.content).cards[0].body, /Added body text/);
+      for (const s of splitBody(original).filter(s => s.kind === 'protected' && s.content !== segment.content)) assert.ok(edited.includes(s.content));
+      await evaluate('[...document.querySelectorAll(".editor-mode-toggle button")].find(button => button.textContent === "Preview").click()');
+      await waitFor('!!document.querySelector("#document-preview .collection-cardGrid h4")');
+      assert.equal(await evaluate('document.querySelector("#document-preview .collection-cardGrid h4").textContent'), 'Changed & <literal> {heading}');
+      assert.equal(await evaluate('document.querySelector("#document-preview .collection-cardGrid h4").children.length'), 0);
+      await evaluate('document.querySelector(".editor-navigation .back").click()');
+      await waitFor('!!document.querySelector(".project-list button")');
+      await evaluate('document.querySelector(".project-list button").click()');
+      await waitFor(`!!${heading}`);
+      assert.equal(await evaluate(`${heading}.value`), 'Changed & <literal> {heading}');
+      assert.match(await evaluate(`${block}.querySelector('.tiptap').textContent`), /Added body text/);
+    });
+  }
+});
+
+
+test('September workgroup sections preserve headings and lists through body edits, heading edits and reopen', { skip: chrome ? false : 'Chrome/Chromium is required.', timeout: 60_000 }, async () => {
+  const source = await readFile('src/content/docs/updates/2025-09.mdx', 'utf8');
+  const original = parseContent(source).body;
+  const segment = splitBody(original).find(s => s.legacyCardGrid && parseLegacyCardGrid(s.content).standalone);
+  const initial = parseLegacyCardGrid(segment.content);
+  await withEditorBrowser(fixture(source), async ({ evaluate, waitFor, send }) => {
+    const block = 'document.querySelector(\'input[aria-label="Card 1 heading"]\').closest(".collection-cardGrid")';
+    const editor = `${block}.querySelector('.tiptap').editor`;
+    const save = async count => {
+      await evaluate('document.querySelector(".top-save").click()');
+      await waitFor(`window.writes.length === ${count} && document.querySelector('.save-state').textContent === 'All changes saved'`);
+      const body = await evaluate('window.record.body');
+      await validateDocument(`---\ntitle: Cards\n---\n\n${body}`, { originalBody: original });
+      return body;
+    };
+    const headings = raw => parseBodySyntax(parseLegacyCardGrid(raw).cards[0].body).children.filter(n => n.type === 'heading').map(n => ({ depth: n.depth, text: n.children.map(c => c.value || '').join('') }));
+    const standalone = body => splitBody(body).find(s => s.legacyCardGrid && parseLegacyCardGrid(s.content).standalone).content;
+    await waitFor('!!document.querySelector(".dashboard-card")');
+    await evaluate('[...document.querySelectorAll(".dashboard-card")].find(button => button.textContent.includes("Program Updates")).click()');
+    await waitFor('!!document.querySelector(".project-list button")');
+    await evaluate('document.querySelector(".project-list button").click()');
+    await waitFor(`!!document.querySelector('input[aria-label="Card 1 heading"]')`);
+    assert.equal(await evaluate(`${block}.querySelectorAll('.tiptap h4').length`), 2);
+    assert.equal(await evaluate(`${block}.querySelectorAll('.tiptap ul').length`), 3);
+    assert.equal(await evaluate(`${editor}.can().toggleHeading({ level: 2 })`), false);
+    await evaluate('document.querySelector(".editor-fields > label input").focus(); document.querySelector(".editor-fields > label input").select()');
+    await send('Input.insertText', { text: 'Updated metadata' });
+    assert.equal(await save(1), original);
+    await evaluate(`${editor}.commands.focus('end')`);
+    await waitFor(`document.activeElement === ${block}.querySelector('.tiptap')`);
+    await send('Input.insertText', { text: ' Body edit with {literal} & <tag>.' });
+    const bodyEdited = standalone(await save(2));
+    assert.deepEqual(headings(bodyEdited), headings(segment.content));
+    assert.deepEqual(parseLegacyCardGrid(bodyEdited).protectedParts, initial.protectedParts);
+    await evaluate(`{ const e = ${editor}; let position; e.state.doc.descendants((node, pos) => { if (node.type.name === 'heading' && node.textContent.includes('Service Model')) position = pos + 1; }); e.commands.setTextSelection(position); e.commands.focus(); }`);
+    await waitFor(`document.activeElement === ${block}.querySelector('.tiptap')`);
+    await send('Input.insertText', { text: 'Revised {literal} ' });
+    assert.equal(await evaluate(`${block}.querySelector('button[aria-label="Section heading"]').getAttribute('aria-pressed')`), 'true');
+    const saved = await save(3), edited = standalone(saved);
+    assert.deepEqual(headings(edited).map(h => h.depth), [4, 4]);
+    assert.match(headings(edited)[0].text, /^Revised \{literal\} Service Model/);
+    assert.equal(headings(edited)[1].text, headings(segment.content)[1].text);
+    assert.ok(!edited.includes('title='));
+    for (const s of splitBody(original).filter(s => s.kind === 'protected' && s.content !== segment.content)) assert.ok(saved.includes(s.content));
+    await evaluate('[...document.querySelectorAll(".editor-mode-toggle button")].find(button => button.textContent === "Preview").click()');
+    await waitFor('document.querySelectorAll("#document-preview .collection-cardGrid h4").length === 3');
+    assert.ok((await evaluate('document.querySelector("#document-preview").textContent')).includes('Revised {literal} Service Model'));
+    await evaluate('document.querySelector(".editor-navigation .back").click()');
+    await waitFor('!!document.querySelector(".project-list button")');
+    await evaluate('document.querySelector(".project-list button").click()');
+    await waitFor(`!!document.querySelector('input[aria-label="Card 1 heading"]')`);
+    assert.equal(await evaluate(`${block}.querySelectorAll('.tiptap h4').length`), 2);
+    assert.match(await evaluate(`${block}.querySelector('.tiptap h4').textContent`), /^Revised \{literal\}/);
+    assert.match(await evaluate(`${block}.querySelector('.tiptap').textContent`), /Body edit with \{literal\} & <tag>/);
   });
 });

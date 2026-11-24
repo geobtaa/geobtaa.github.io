@@ -20,7 +20,8 @@ function CollectionEditor({ node, updateAttributes, extension }: NodeViewProps) 
   const chipList = kind === 'chipList';
   const metrics = kind === 'metrics';
   const cardGrid = kind === 'cardGrid';
-  const legacy = cardGrid && !!parseLegacyCardGrid(node.attrs.raw || '');
+  const legacyGrid = cardGrid ? parseLegacyCardGrid(node.attrs.raw || '') : null;
+  const legacy = !!legacyGrid;
   const readOnly = extension.options.readOnly;
   const item = chipList ? 'chip' : metrics ? 'metric' : 'card';
   const itemLabel = chipList ? 'Chip' : metrics ? 'Metric' : 'Card';
@@ -65,15 +66,15 @@ function CollectionEditor({ node, updateAttributes, extension }: NodeViewProps) 
   };
   return h(NodeViewWrapper, { className: `collection-block collection-${kind}`, contentEditable: false },
     h('div', { ref: root },
-      !readOnly && h('strong', { className: 'collection-heading' }, COLLECTION_BLOCKS[kind].label),
+      !readOnly && h('strong', { className: 'collection-heading' }, legacyGrid?.standalone ? 'Card' : COLLECTION_BLOCKS[kind].label),
       chipList && h('ul', { className: 'editor-chip-preview', 'aria-label': 'Chip list preview' }, ...entries.filter(entry => entry.value.trim()).map(entry => h('li', { key: entry.id }, entry.value))),
       metrics && h('div', { className: 'cms-metrics-block', 'aria-label': 'Metrics preview' }, h('dl', { className: 'cms-metrics' }, ...entries.filter(entry => entry.title.trim() || entry.value.trim()).map(entry => h('div', { key: entry.id, className: 'cms-metric' }, h('dt', { className: 'cms-metric-label' }, entry.title), h('dd', { className: 'cms-metric-value' }, entry.value))))),
       !readOnly && h('p', { className: 'collection-status', role: 'status' }, status),
       (cardGrid || !readOnly) && h('div', { className: `collection-${chipList ? 'chip' : metrics ? 'metric' : 'card'}-entries` }, ...entries.filter(entry => !readOnly || legacy || entry.title.trim() || entry.body.trim()).map((entry, index) => h(readOnly ? 'article' : 'fieldset', { key: entry.id, className: 'collection-entry', 'data-collection-entry': entry.id },
         !readOnly && h('legend', null, `${itemLabel} ${index + 1}`),
-        !readOnly && h('label', null, chipList ? 'Text' : metrics ? 'Label' : 'Title', h('input', { value: chipList ? entry.value : entry.title, 'aria-label': `${itemLabel} ${index + 1} ${chipList ? 'text' : metrics ? 'label' : 'title'}`, onChange: (event: ChangeEvent<HTMLInputElement>) => change(entry.id, chipList ? 'value' : 'title', event.target.value) })),
+        !readOnly && h('label', null, chipList ? 'Text' : metrics ? 'Label' : legacyGrid?.cards[index]?.heading ? 'First section heading' : 'Title', h('input', { value: chipList ? entry.value : entry.title, 'aria-label': `${itemLabel} ${index + 1} ${chipList ? 'text' : metrics ? 'label' : legacyGrid?.cards[index]?.heading ? 'heading' : 'title'}`, onChange: (event: ChangeEvent<HTMLInputElement>) => change(entry.id, chipList ? 'value' : 'title', event.target.value) })),
         metrics && !readOnly && h('label', null, 'Value', h('input', { value: entry.value, 'aria-label': `Metric ${index + 1} value`, onChange: (event: ChangeEvent<HTMLInputElement>) => change(entry.id, 'value', event.target.value) })),
-        cardGrid && readOnly && h('strong', null, entry.title),
+        cardGrid && readOnly && h(legacyGrid?.cards[index]?.heading ? 'h4' : 'strong', null, entry.title),
         cardGrid && h(CardBodyEditor, { body: entry.body, label: `Card ${index + 1} content`, readOnly, legacy, onChange: body => change(entry.id, 'body', body) }),
         !readOnly && h('div', { className: 'collection-entry-actions' },
           h('button', { type: 'button', 'data-entry-move': '-1', 'aria-label': `Move ${item} ${index + 1} up`, disabled: index === 0, onClick: () => move(entry.id, -1) }, '↑ Move up'),
@@ -103,7 +104,7 @@ export const CollectionBlocks = COLLECTION_KINDS.map(kind => Node.create({
   },
   markdownTokenizer: {
     name: COLLECTION_BLOCKS[kind].node, level: 'block',
-    start(source) { return source.search(kind === 'chipList' ? /^(?:[ \t]*<CmsChipList\b| {0,3}<(?:ChipList|div)(?=[\s>]))/m : kind === 'cardGrid' ? /^(?:[ \t]*<CmsCardGrid\b| {0,3}<CardGrid(?=[\s>]))/m : new RegExp(`^[ \\t]*<${COLLECTION_BLOCKS[kind].binding}\\b`, 'm')); },
+    start(source) { return source.search(kind === 'chipList' ? /^(?:[ \t]*<CmsChipList\b| {0,3}<(?:ChipList|div)(?=[\s>]))/m : kind === 'cardGrid' ? /^(?:[ \t]*<CmsCardGrid\b| {0,3}<(?:CardGrid|Card)(?=[\s>]))/m : new RegExp(`^[ \\t]*<${COLLECTION_BLOCKS[kind].binding}\\b`, 'm')); },
     tokenize(source) {
       const raw = matchCollectionBlock(source, kind);
       return raw && parseCollectionMdx(raw) ? { type: COLLECTION_BLOCKS[kind].node, raw } : undefined;
