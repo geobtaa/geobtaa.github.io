@@ -9,7 +9,12 @@ const TYPES = Object.freeze({
 });
 
 export function validateImagePath(value) {
-  const decoded = decodeURIComponent(value);
+  let decoded;
+  try { decoded = decodeURIComponent(value); }
+  catch (error) {
+    if (!(error instanceof URIError)) throw error;
+    throw Object.assign(new Error('Invalid image path.'), { status: 400 });
+  }
   if (!/^[A-Za-z0-9][A-Za-z0-9._/-]*\.(?:png|jpe?g|gif|webp)$/i.test(decoded) || decoded.includes('..') || decoded.includes('//')) {
     throw Object.assign(new Error('Invalid image path.'), { status: 400 });
   }

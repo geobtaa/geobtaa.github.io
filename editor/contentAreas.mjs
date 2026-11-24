@@ -24,7 +24,12 @@ export function contentDirectory(name) {
 }
 
 export function validateContentPath(value) {
-  const decoded = decodeURIComponent(value);
+  let decoded;
+  try { decoded = decodeURIComponent(value); }
+  catch (error) {
+    if (!(error instanceof URIError)) throw error;
+    throw Object.assign(new Error('Invalid content filename.'), { status: 400 });
+  }
   if (!/^[A-Za-z0-9][A-Za-z0-9._/-]*\.mdx?$/.test(decoded) || decoded.includes('..') || decoded.includes('//')) {
     throw Object.assign(new Error('Invalid content filename.'), { status: 400 });
   }
