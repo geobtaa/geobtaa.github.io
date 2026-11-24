@@ -9,7 +9,7 @@
     "decap": "BIND_HOST=127.0.0.1 decap-server",
     "editor": "node --env-file-if-exists=.env.local editor/server.mjs",
     "test:editor": "node --test editor/*.test.mjs",
-    "test:editor:browser": "node --test editor/*.browser.mjs",
+    "test:editor:browser": "node --test --test-concurrency=1 editor/*.browser.mjs",
     "test:editor:render": "node --test tests/cms-links-render.test.mjs && node --test tests/unpublish-build.test.mjs",
     "test:editor:publication": "node --test tests/unpublish-build.test.mjs",
     "test:navigation": "node --test tests/site-navigation.test.mjs",

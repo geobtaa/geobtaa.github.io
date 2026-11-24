@@ -101,7 +101,6 @@ export default defineConfig({
       ],
       customCss: ['./src/styles/global.css', './src/styles/tables.css'],
       components: {
-        // Footer: './src/components/FooterWithBar.astro',
         Header: './src/components/Header.astro',
         Sidebar: './src/components/SidebarWithFilters.astro',
         PageTitle: './src/components/PageTitleWithMeta.astro',

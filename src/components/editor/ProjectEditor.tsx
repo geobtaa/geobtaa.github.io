@@ -95,8 +95,22 @@ function slugify(value: string) {
 
 type ImageFields = { src: string; alt: string; title?: string | null };
 
-function RepositoryImagePicker({ initialImage, showCaption = true, onSelect, onClose }: { initialImage?: ImageFields; showCaption?: boolean; onSelect: (src: string, alt: string, title: string) => void; onClose: () => void }) {
+function RepositoryImagePicker({ initialImage, showCaption = true, onSelect, onClose: closePicker }: { initialImage?: ImageFields; showCaption?: boolean; onSelect: (src: string, alt: string, title: string) => void; onClose: () => void }) {
   const draftImages = useContext(DraftImages);
+  // Filename alone cannot identify an upload's owner: reopening the same file
+  // creates a new editing session. Only this picker lifetime may accept its result.
+  const pickerSession = useRef({ active: true });
+  useEffect(() => {
+    const session = { active: true };
+    pickerSession.current = session;
+    return () => { session.active = false; };
+  }, []);
+  const onClose = () => {
+    // Invalidate immediately, before unmount: a pending response must never
+    // attach images to a dismissed picker or a later document/session.
+    pickerSession.current.active = false;
+    closePicker();
+  };
   const [images, setImages] = useState<ImageListItem[]>([]);
   const [imageQuery, setImageQuery] = useState('');
   const [imagePage, setImagePage] = useState(0);
@@ -120,6 +134,7 @@ function RepositoryImagePicker({ initialImage, showCaption = true, onSelect, onC
   const uploadImage = async (file?: File) => {
     if (!file) return;
     if (!draftImages?.filename) { setImageError('Save Draft once before uploading an image. Your current edits will stay here.'); return; }
+    const session = pickerSession.current;
     setImageBusy(true); setImageError('');
     try {
       const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -127,16 +142,18 @@ function RepositoryImagePicker({ initialImage, showCaption = true, onSelect, onC
         reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(reader.error);
         reader.readAsDataURL(file);
       });
+      if (!session.active) return;
       const uploaded = await api<PendingImage>('/api/images', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ area: draftImages.area, documentFilename: draftImages.filename, filename: file.name, mimeType: file.type, content: dataUrl.slice(dataUrl.indexOf(',') + 1) }),
       });
+      if (!session.active) return;
       if (![uploaded.path, uploaded.filename, uploaded.mimeType, uploaded.content].every(value => typeof value === 'string' && value.length > 0)) throw new Error('The image response could not be verified. Select the file again.');
       draftImages.add(uploaded);
       setImages((current) => [...current.filter((image) => image.name !== uploaded.path), { ...uploaded, name: uploaded.path, sha: '' }].sort((a, b) => a.name.localeCompare(b.name)));
       setImageSource(`@images/${uploaded.path}`); setImageQuery(uploaded.path);
-    } catch (err) { setImageError((err as Error).message); }
-    finally { setImageBusy(false); }
+    } catch (err) { if (session.active) setImageError((err as Error).message); }
+    finally { if (session.active) setImageBusy(false); }
   };
   const insertImage = () => {
     if (!imageSource.trim()) return setImageError('Select, upload, or enter an image source.');
@@ -417,6 +434,8 @@ function RichTextEditor({ initialValue, onChange, structured = false, onRemove }
 
 function BodyEditor({ initialValue, onChange, format = 'mdx' }: { initialValue: string; onChange: (value: string) => void; format?: 'md' | 'mdx' }) {
   const [segments, setSegments] = useState(() => splitBody(initialValue, { format }));
+  // Segment IDs survive local edits/moves, preserving TipTap selection and undo.
+  // Reparsing can reuse IDs for different blocks, so insertion advances this key.
   const [segmentSession, setSegmentSession] = useState(0);
   const [emptyEditorId, setEmptyEditorId] = useState<number | null>(initialValue.trim() ? null : 0);
   const segmentsRef = useRef(segments);
@@ -681,6 +700,8 @@ export default function ProjectEditor() {
   const [project, setProject] = useState<Project | null>(null);
   const [area, setArea] = useState<AreaName | null>(null);
   const [busy, setBusyState] = useState(false);
+  // Navigation callbacks must see an operation start before React rerenders;
+  // leaving during a save would detach its result from the document being saved.
   const busyRef = useRef(false);
   const setBusy = (value: boolean) => { busyRef.current = value; setBusyState(value); };
   const [notice, setNotice] = useState('');
@@ -695,6 +716,9 @@ export default function ProjectEditor() {
   const [restoringChanges, setRestoringChanges] = useState(false);
   const recoveryRef = useRef<EditorRecovery | null>(null);
   const requestSequence = useRef(0);
+  // BodyEditor consumes initialValue on mount. Advance only when replacing the
+  // body wholesale (open/restore/conversion), not on typing or ordinary saves,
+  // which must preserve the mounted editors and their undo/selection state.
   const [bodyEditorSession, setBodyEditorSession] = useState(0);
   const [savedSnapshot, setSavedSnapshot] = useState('');
   const [suggestedFilename, setSuggestedFilename] = useState('');
@@ -718,6 +742,8 @@ export default function ProjectEditor() {
   // Catalogs only: no editable document, verification, token, or persistent storage.
   const listScope = typeof viewer === 'string' ? JSON.stringify([typeof location === 'undefined' ? '' : location.origin, API, workspace, viewer.toLowerCase()]) : null;
   const listMemory = useRef<{scope:string|null;epoch:number;areas:Map<AreaName,ContentList>}>({scope:null,epoch:0,areas:new Map()});
+  // Clearing rows alone is insufficient: the epoch also invalidates in-flight
+  // reads, so a response from before sign-out/auth loss cannot refill the cache.
   if (listMemory.current.scope !== listScope) listMemory.current = {scope:listScope,epoch:listMemory.current.epoch+1,areas:new Map()};
   const showList = (data: ContentList) => { setProjects(data.entries); setListWarnings(data.warnings || []); };
   const clearListMemory = () => { listMemory.current.areas.clear(); listMemory.current.epoch++; setProjects([]); setListWarnings([]); setListRefreshing(false); setListStale(false); };
@@ -756,6 +782,9 @@ export default function ProjectEditor() {
     showLeavePrompt(null); prompt.leave();
   };
   const activateRoute = async (next: EditorRoute) => {
+    // Sequence identifies this activation, even when navigating away and back
+    // to the same filename; epoch independently identifies the cache/auth scope.
+    // Both must still match before a response becomes editable state.
     const sequence = ++requestSequence.current;
     const epoch = listMemory.current.epoch;
     const remembered = next.area ? listMemory.current.areas.get(next.area) : undefined;
@@ -815,6 +844,8 @@ export default function ProjectEditor() {
     if (refreshedDeployments.current.has(key)) return;
     refreshedDeployments.current.add(key); recentPublications.current.add(path);
     const sequence = requestSequence.current, epoch = listMemory.current.epoch, read = ++deploymentListRead.current;
+    // Several rows may report deployment together. Only the newest refresh may
+    // replace the list; route/scope checks also keep it out of another screen.
     try {
       const data = await api<ContentList>(`/api/content/${nextArea}`);
       if (sequence !== requestSequence.current || epoch !== listMemory.current.epoch || read !== deploymentListRead.current) return;
@@ -848,6 +879,8 @@ export default function ProjectEditor() {
     try {
       const session = await api<{ authenticated: boolean; login?: string; workspace?: string }>('/api/session');
       if (!session.authenticated) throw new Error('Sign-in is still required. Complete sign-in in the other tab, then check again.');
+      // Keep the form mounted on expiry, but never resume its saves/recovery
+      // under a different account or repository workspace.
       if (session.login?.toLowerCase() !== viewer?.toLowerCase() || (session.workspace || 'geobtaa/geobtaa.github.io#cms-drafts-v1') !== workspace) throw new Error(`Sign in as ${viewer} in the same workspace to resume these edits. A different account or workspace is currently signed in. You can download your unsaved edits below.`);
       sessionBlocked = false; setAuthIssue(''); setError('');
     } catch (err) { sessionBlocked = true; setAuthIssue((err as Error).message); }
@@ -887,6 +920,8 @@ export default function ProjectEditor() {
     const attempt = creatingArticle ? priorAttempt || { id: crypto.randomUUID(), filename: alternative || `${postSlug(project.title)}.mdx` } : undefined;
     if (attempt) {
       const pending = { ...project, creationAttempt: attempt };
+      // Persist identity before sending: a lost response/reload must retry the
+      // original creation, even if the title has since changed, not create a duplicate.
       if (!recovery.flush(pending)) return setError('Article creation has not started because its retry information could not be saved on this device. Enable browser storage and try again, or download your unsaved edits.');
       setProject(pending);
     }
@@ -917,6 +952,9 @@ export default function ProjectEditor() {
       });
       if (!saved.sha || typeof saved.sha !== 'string' || !saved.commitSha || typeof saved.commitSha !== 'string' || typeof saved.content !== 'string' || typeof saved.body !== 'string' || typeof saved.title !== 'string' || (attempt && saved.filename !== attempt.filename)) throw new Error('The save response did not identify the committed document. Its outcome could not be confirmed.');
       const confirmed = { ...project, ...saved, filename: saved.filename || filename, draft: saved.draft ?? project.draft, creationAttempt: undefined, assets: [] };
+      // A replay can confirm an earlier creation rather than today's form.
+      // Keep later field edits dirty against the confirmed GitHub baseline;
+      // clear recovery only after the response identifies a committed document.
       const confirmedFields = recoveryFields(confirmed);
       const laterEdits = Object.fromEntries(Object.entries(recoveryFields(project)).filter(([key, value]) => !['filename', 'creationAttempt', 'assets'].includes(key) && JSON.stringify(value) !== JSON.stringify(confirmedFields[key as keyof typeof confirmedFields])));
       const next = saved.replayed ? { ...confirmed, ...laterEdits } : confirmed;
@@ -938,6 +976,8 @@ export default function ProjectEditor() {
 
   const requestPublicationConfirmation = (action: 'publish' | 'unpublish', head = project?.head, existing?: PublicationState) => {
     if (!project || !head || !/^[a-f0-9]{40}$/.test(head) || dirty || busy || authIssue || !autoMergeAvailable || (action === 'publish' && !project.hasDraft)) return;
+    // Capture the immutable revision and loaded form together. Status refreshes
+    // or concurrent saves must never substitute another revision after consent.
     setPublicationConfirmation({ action, head, loaded: JSON.stringify(project), existing });
   };
 
@@ -978,6 +1018,8 @@ export default function ProjectEditor() {
       recentPublications.current.add(path);
       setSubmittedPR({ path, status: { ...result, autoMerge: result.autoMerge ?? null } });
       if (automatically && result.state === 'pr-open') {
+        // Submission and merge authorization are distinct: authorize only the
+        // snapshot returned for this selected revision/action, never a later head.
         const authorized = await api<PublicationState>(path, { method: 'POST', body: JSON.stringify({ autoMerge: true, head: selectedHead, snapshotHead: result.snapshotHead, action }) });
         setSubmittedPR({ path, status: authorized });
       }
@@ -990,6 +1032,8 @@ export default function ProjectEditor() {
     const selected = publicationConfirmation;
     if (!project || !selected) return;
     setPublicationConfirmation(undefined);
+    // Recheck at the click boundary as well as in the effect/disabled UI;
+    // a render or asynchronous status update must not leave stale consent usable.
     if (busy || dirty || authIssue || !autoMergeAvailable || selected.loaded !== JSON.stringify(project)) return;
     if (selected.existing) void setAutomaticPublication(selected.existing, true);
     else void publish(selected.head, selected.action, true);
@@ -1003,6 +1047,9 @@ export default function ProjectEditor() {
     setRestoringChanges(true);
     setBusy(true); setError('');
     try {
+      // Recovery is a separate local revision, not an authoritative document.
+      // Recheck both browser storage and GitHub before applying it; conflicts
+      // retain the local copy for comparison instead of overwriting newer work.
       const stored = parseRecovery(window.localStorage.getItem(recoveryKey(recoveryScope, copy.id)) || '');
       if (!stored || stored.revision !== copy.revision) { recovery.refresh(); throw new Error('These unsaved changes were updated or removed in another tab. Review the latest version before restoring.'); }
       const fresh = route.filename ? await api<Project>(`/api/content/${area}/${encodeURIComponent(route.filename)}`) : project;
@@ -1130,6 +1177,9 @@ export default function ProjectEditor() {
 
   return (
     <DraftImages.Provider value={{ area, filename: project.sha ? project.filename : '', add: image => {
+      // Accepted uploads belong to this open document, not the picker UI.
+      // Closing a picker must not clear these assets; recovery retains them,
+      // and Save Draft sends them with the document for reference validation.
       const assets = [...(project.assets || []).filter(asset => asset.path !== image.path), image];
       setPendingImagePreviews(assets);
       setProject(current => current ? { ...current, assets } : current);

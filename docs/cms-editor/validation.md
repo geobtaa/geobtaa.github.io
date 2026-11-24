@@ -10,17 +10,76 @@ Repository writers remain trusted to change application code through ordinary PR
 
 The independent scope checker runs trusted base code with read-only credentials and treats PR content as data. It reconstructs exact main-based snapshots and checks ancestry, metadata, routes, protected source, document bytes, asset closure/signatures/digests, coordinator, and lock identity. Names, labels, PR descriptions, and client manifests cannot authorize a browser-test skip.
 
-`validate` must fail on missing/failed classification, missing required jobs, unknown outputs, or an unauthorized browser skip. Full browsers run on ordinary source PRs; only a completely verified CMS snapshot can skip them. The current workflow has an isolated render-test job in addition to classification, site validation, and browsers. Future CI contract changes must reach trusted main before relying on them. The old two-stage bootstrap and pending render-job activation plans are obsolete; inspect the checked-in workflows for the active job graph.
+`validate` must fail on missing/failed classification, missing required jobs, unknown outputs, or an unauthorized browser skip. Full browsers run on ordinary source PRs; only a completely verified CMS snapshot can skip them. The current workflow has an isolated render-test job in addition to classification, site validation, and browsers. Future CI contract changes must reach trusted main before relying on them. Inspect the checked-in workflows for the active job graph.
 
 Changes to opaque MDX components, imports, executable source, and sensitive frontmatter can fail source policy even when editorially harmless. Do not rename branches, add approvals, or weaken the checker to bypass that boundary. Deliberate policy extensions require a reviewed technical change.
 
 ## Local checks
 
-Run from the repository root using the pinned Node version:
+### Prerequisites
+
+Run all commands from the repository root with Node **24.13.1**, as pinned in
+`.node-version` and Volta. Use npm and the committed `package-lock.json`.
+`npm ci` installs reproducible dependencies and runs the required
+`patch-package` postinstall hook. Use `npm install` when intentionally changing
+dependencies, then review the lockfile changes.
+
+Git is required by temporary-repository tests. Tests need permission to create
+and remove temporary files, start child processes, and bind local loopback
+listeners; the unit/API suite includes Miniflare/workerd runtime tests.
+Automated tests use mocked GitHub operations and require no GitHub credentials
+or running development servers.
+
+Chrome/Chromium is required for both browser tests and the editor artifact's
+hydration check. The harness checks common macOS/Linux executable locations;
+set `CHROME_BIN` to an installed executable if necessary. Install and verify the
+browser before treating a local run as full validation.
+
+### Command reference
+
+| Command | Purpose and scope | Prerequisites and intended use |
+| --- | --- | --- |
+| `npm run test:editor` | All `editor/*.test.mjs`: unit/API, draft/publication policy, workflow contracts, and workerd tests | Dependencies, Git, temporary-file and local runtime access. Primary editor regression suite; does not include browser or render suites. |
+| `npm run test:editor:browser` | All `editor/*.browser.mjs`, sequentially; editor interactions and related site filtering | Chrome/Chromium and local server access. Uses isolated profiles and fixtures; no live GitHub operations. |
+| `npm run test:config` | Fullview-mode dependency patch/configuration regression | Dependencies installed with the patch. Run for configuration/dependency changes and full validation. |
+| `npm run test:editor:render` | Real Astro Link Card/Link Button rendering and URL-safety tests, then production unpublish-build regressions | Builds temporary fixtures. Run alone in the checkout and before the final clean production build. |
+| `npm run test:editor:publication` | Only `tests/unpublish-build.test.mjs`: draft-route exclusion, link warnings and validation | Focused unpublish-build shortcut. Already included in `test:editor:render`; not the complete publication test coverage. |
+| `npm run astro -- sync` | Generate Astro content/types | Run before type checking; do not overlap with other Astro commands. |
+| `npm run astro -- check` | Source/type diagnostics | Generated Astro types and installed dependencies. Not a substitute for tests or a production build. |
+| `npm run build` | Public-site build to `dist`, including internal-link validation | Run after fixture tests finish; provides fresh output for navigation checks. Does not deploy. |
+| `npm run test:navigation` | Built sidebar organization, date ordering and previous/next navigation | A successful, current public-site build. This command does not build first. |
+| `npm run build:editor` | Dedicated editor artifact to `dist-editor` | Packaging only; no hydration assertions or deployment. Included in `test:editor:build`. |
+| `npm run test:editor:build` | Dedicated editor build, artifact contents/dependency checks, and browser hydration | Chrome/Chromium and local server access. Run for packaging changes and full validation. |
+
+### Routine development and targeted checks
+
+Run `npm run dev` for the public-site development server. When manually exercising
+the editor's local API, also run `npm run editor` in another terminal using the
+[editor setup](../../editor/README.md#local-setup). That gateway uses the configured
+repository; manual saves are real operations, unlike the automated mocks.
+
+Run `npm run test:editor` when changing editor behavior. During a focused fix,
+select relevant files directly; these examples cover API boundaries and image UI
+behavior respectively:
 
 ```sh
+node --test editor/api-parity.test.mjs editor/cloudflare-runtime.test.mjs
+node --test --test-concurrency=1 editor/image-editing.browser.mjs
+```
+
+Use `npm run test:editor:render` for public rendering/publication changes,
+`npm run test:config` for the patched configuration, and
+`npm run test:editor:build` for editor packaging. Targeted checks shorten the
+feedback loop but do not replace pre-release validation or required CI checks.
+
+### Full pre-release validation
+
+Run the following sequentially in one checkout, stopping on unexpected failures:
+
+```sh
+npm ci
 npm run test:editor
-node --test --test-concurrency=1 editor/*.browser.mjs
+npm run test:editor:browser
 npm run test:config
 npm run test:editor:render
 npm run astro -- sync
@@ -30,9 +89,81 @@ npm run test:navigation
 npm run test:editor:build
 ```
 
-Run render fixtures and final production builds sequentially: fixtures create temporary content, and concurrent build/navigation checks can observe it. Browser tests need Chrome/Chromium; configure `CHROME_BIN` when necessary and check that coverage actually ran. The editor-build check verifies the packaged artifact and hydration with mock API responses. Real workerd tests exercise redirect rejection, image operations, and uncertain-write recovery without live credentials.
+Do not additionally run `test:editor:publication` or `build:editor` in this
+sequence: their work is already included in `test:editor:render` and
+`test:editor:build` respectively. Tests at different layers intentionally overlap;
+fixture builds do not replace the clean final build or its artifact checks.
 
-Tests cover stale/concurrent saves, atomic creation/route reservation, multiple accounts, protected-source preservation, images, browser recovery, lost responses, publication scope, and repeated editing cycles. Test totals from old milestones are intentionally omitted; use the output for the revision being reviewed. Local/mock success does not establish live OAuth, Cloudflare capacity, GitHub permissions, or production deployment success.
+### Fixture isolation and execution order
+
+Within a single checkout, run browser, render, build, and Astro type-generation
+commands sequentially, including sync/check. Do not overlap them with a development
+server watching the same source tree. Browser test-file execution is also
+sequential to limit Chrome/Vite resource contention; it does not authorize running
+other build commands alongside the suite.
+
+Render tests temporarily write documents under `src/content/docs/`, including
+examples that intentionally make a build fail. Another build can observe these
+files and either fail or include test content. They are removed in `finally`
+cleanup, but an interrupted process may leave fixtures behind; inspect the
+working tree before using a build for release. Browser profiles and fixture names
+are isolated, but Astro commands can still share generated `.astro/` files.
+Different output/cache directories alone are insufficient isolation.
+
+CI runs render fixtures in a separate checkout/runner. Preserve that separation.
+Use separate checkouts for genuinely parallel validation, rather than running
+commands concurrently in the same checkout.
+
+### Interpreting results
+
+Check the executed/pass/fail/skip/TODO summary as well as the exit status.
+Skipped tests did not execute. Several browser tests and local artifact hydration
+can skip when Chrome is absent; other tests may fail instead. An all-green exit
+with missing browser coverage is not full validation.
+
+TODO tests may execute and fail while the command still exits successfully.
+Five FilterPanel TODO cases currently record unresolved search-state, sort-state,
+and author-normalization defects. Review those known limitations separately from
+unexpected failures. `FILTER_REVIEW_STRICT=1 node --test editor/filter-panel.browser.mjs`
+runs those assertions as ordinary failures when reproducing them deliberately;
+it is not an additional required passing step in the sequence above.
+
+Local/mock success does not establish live OAuth, intended-account permissions,
+Cloudflare capacity, or successful production deployment. Use the hosted
+qualification procedure below for those separate claims.
+
+## CI and deployment boundaries
+
+PR validation uses the existing `.github/workflows/validate.yml` job graph:
+`site-validation` runs sync/check, config and unit/API tests, a clean site build,
+navigation checks, and editor artifact tests. `render-tests` runs the render suite
+in a separate checkout. `browser-tests` requires Chrome and runs the full browser
+suite for ordinary source PRs; only trusted, verified CMS snapshots can skip it.
+
+CI deliberately retains the literal
+`node --test --test-concurrency=1 editor/*.browser.mjs` command with
+`CHROME_BIN=/usr/bin/google-chrome`. The local npm command now matches its execution
+policy. The trusted source validator checks that literal command as well as job
+IDs, dependencies, and skip conditions; replacing it with an npm alias would
+require a separate trusted-policy change. Do not make that substitution as a
+command cleanup.
+
+`publication-plan` and the independent `cms-publication-scope` check execute
+trusted base code with read-only credentials. The final `validate` job aggregates
+all required results and fails closed. Preserve the required `validate` and
+`cms-publication-scope` names, GitHub Actions binding, strict branch protection,
+and authorized-skip rules. The classifier script expects GitHub event context;
+it is not a general-purpose local test command.
+
+Public-site deployment is separate from PR validation. `.github/workflows/astro.yml`
+rebuilds protected main, writes the production deployment marker, and deploys to
+GitHub Pages with its existing source-identity and deployment guards. A build
+command or passing test suite does not trigger deployment by itself.
+
+The dedicated editor is deployed separately by the Cloudflare Pages Git integration
+using `npm run build:editor` and `dist-editor`, with project settings maintained in
+its dashboard. `test:editor:build` verifies the artifact locally; it does not deploy
+it. See [hosting and deployment](deployment.md) before release operations.
 
 ## Application bounds
 
@@ -96,13 +227,14 @@ These are historical recovery identifiers, not freshly checked live state. Prese
 
 ## Editor source directory
 
-The implementation and tests live in `editor/`; React editor components live in `src/components/editor/`. CI runs the complete browser suite directly from `editor/`. The temporary prototype compatibility files have been removed after the relocated trusted validator reached main. The validator protects the current validation module paths and requires the complete browser suite.
+The implementation and tests live in `editor/`; React editor components live in `src/components/editor/`. CI runs the complete browser suite directly from `editor/`. The validator protects the current validation module paths and requires the complete browser suite.
 
-## Unpublish release stages
+## Unpublish rollout prerequisites
 
-Stage 1 adds action-bound immutable publication validation, the draft-aware production marker, and exact-route link warnings. Unpublish HTTP submissions remain blocked. Navigation data lives in `navigation.groups.json`, shared by the normal navigation configuration and publication preflight so hosted code never evaluates repository TypeScript.
+The historical rollout separated two stages; this is not a statement of current
+live deployment status. Stage 1 added action-bound immutable publication validation, the draft-aware production marker, and exact-route link warnings. During that first stage, unpublish HTTP submissions remained blocked. Navigation data lives in `navigation.groups.json`, shared by the normal navigation configuration and publication preflight so hosted code never evaluates repository TypeScript.
 
-Stage 2 adds the editor action and read-only deployment verification. `CMS_UNPUBLISH_ENABLED` defaults to disabled and is independent of `CMS_PUBLISH_ENABLED`. Enable it only after Stage 1 has merged into main, its required checks have passed, and the updated production marker has been deployed through the normal reviewed release process. Main must contain the matching publication capability before an unpublish request is accepted. Do not merge or deploy automatically.
+Stage 2 added the editor action and read-only deployment verification. `CMS_UNPUBLISH_ENABLED` defaults to disabled and is independent of `CMS_PUBLISH_ENABLED`. Enable it only after Stage 1 has merged into main, its required checks have passed, and the updated production marker has been deployed through the normal reviewed release process. Main must contain the matching publication capability before an unpublish request is accepted. Do not merge or deploy automatically.
 
 Run `npm run test:editor:publication` sequentially with other builds. It temporarily creates draft fixtures in each editor area, checks production route/sitemap exclusion and visible inbound-link warnings, then proves unrelated broken links and bad anchors on republished pages remain fatal. Fixtures and build output are removed afterward. Source and publication tests cover action identity, frontmatter preservation, stale requests, sidebar blockers, working-draft preservation, and unpublish/edit/republish cycles.
 

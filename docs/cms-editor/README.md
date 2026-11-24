@@ -5,6 +5,7 @@ These documents explain the custom CMS design and the constraints to preserve wh
 - [Design decisions](decisions.md): drafts, publication, recovery, content safety, and performance.
 - [Hosting and deployment](deployment.md): project separation, build configuration, OAuth, and rollout checks.
 - [Validation and operational limits](validation.md): required checks, measurement methods, limits, and retained recovery state.
+- [API contract and parity review](api-contract.md): endpoint inventory, local/hosted security boundaries, transport findings, and shared tests.
 
 For editorial instructions, use the [CMS user guide](../CMS_USER_GUIDE.md). For local development, see the [application README](../../editor/README.md) and [local setup](../LOCAL_SETUP.md).
 

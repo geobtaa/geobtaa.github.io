@@ -47,7 +47,7 @@ async function fixture(run) {
     },
   });
   const call = (path, method='GET', input, headers={}) => runtime.dispatchFetch(origin+path, {method,redirect:'manual',headers:{Cookie:cookie,Origin:origin,'Content-Type':'application/json',...headers},...(input?{body:JSON.stringify(input)}:{})});
-  try { await run({repo,calls,scenario,call}); }
+  try { await run({repo,calls,scenario,call,runtime}); }
   finally { await runtime.dispose(); }
 }
 
@@ -139,4 +139,38 @@ test('workerd rejects same-host and cross-host GitHub redirects without forwardi
     assert.equal(calls[0].method,'GET');
     assert.deepEqual([...repo.refs],refs);
   }
+}));
+
+
+test('workerd preserves split UTF-8 request bodies and rejects malformed base64', () => fixture(async ({call,repo,runtime}) => {
+  const path = '/api/content/library/runtime.mdx';
+  const loaded = await (await call(path)).json();
+  const title = 'Café — 東京', bytes = Buffer.from(JSON.stringify({...loaded,title}));
+  const split = bytes.indexOf(Buffer.from('é')) + 1;
+  const response = await runtime.dispatchFetch(origin+path, {method:'PUT',headers:{Cookie:cookie,Origin:origin,'Content-Type':'application/json'},duplex:'half',
+    body:new ReadableStream({start(controller){controller.enqueue(bytes.subarray(0,split));controller.enqueue(bytes.subarray(split));controller.close();}})});
+  assert.equal(response.status,200,await response.clone().text());
+  const saved = await response.json();
+  assert.equal(saved.title,title);
+  assert.ok(new TextDecoder().decode(repo.objects.get(repo.filesAt(saved.head).get('src/content/docs/library/runtime.mdx').sha)).includes(title));
+  const refs = [...repo.refs];
+  const invalid = await call('/api/images','POST',{area:'library',documentFilename:'runtime.mdx',filename:'map.gif',mimeType:'image/gif',content:Buffer.from('GIF89a').toString('base64')+'!!'});
+  assert.equal(invalid.status,400);
+  assert.deepEqual([...repo.refs],refs);
+}));
+
+test('workerd returns client errors for invalid bodies/paths and advertises allowed methods', () => fixture(async ({repo,runtime}) => {
+  const headers = {Cookie:cookie,Origin:origin,'Content-Type':'application/json'}, refs = [...repo.refs];
+  for (const path of ['/api/content/library/runtime.mdx', '/api/content/posts', '/api/images', '/api/publish/library/runtime.mdx']) {
+    for (const body of ['{invalid', '', 'null', '[]', '"text"']) {
+      const response = await runtime.dispatchFetch(origin+path, {method:path.includes('/content/library/')?'PUT':'POST',headers,body});
+      assert.equal(response.status,400,`${path} ${body}: ${await response.text()}`);
+    }
+  }
+  for (const path of ['/api/content/library/bad%ZZ.mdx','/api/images/file/bad%ZZ.gif']) {
+    assert.equal((await runtime.dispatchFetch(origin+path,{headers})).status,400);
+  }
+  const method = await runtime.dispatchFetch(origin+'/api/content', {method:'POST',headers,body:'{}'});
+  assert.equal(method.status,405);assert.equal(method.headers.get('allow'),'GET');
+  assert.deepEqual([...repo.refs],refs);
 }));

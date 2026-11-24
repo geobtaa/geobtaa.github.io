@@ -1,4 +1,4 @@
-import { createDraftStore } from '../../editor/draftStorage.mjs';
+import { createDraftStore, decodeBytes } from '../../editor/draftStorage.mjs';
 import { parsePage, savePage } from '../../editor/page.mjs';
 import { contentVisibility } from '../../editor/content.mjs';
 import { saveBlog } from '../../editor/blog.mjs';
@@ -192,13 +192,26 @@ function contentRoute(pathname) {
   return { area: match[1], filename: match[2] ? validateContentPath(match[2]) : null };
 }
 
+async function readJson(request) {
+  let input;
+  try { input = await request.json(); }
+  catch (error) {
+    // Classify only failures at the request JSON boundary, not errors from
+    // domain operations or GitHub response parsing later in the invocation.
+    if (!(error instanceof SyntaxError)) throw error;
+    throw new HttpError(400, 'Request body must be valid JSON.');
+  }
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new HttpError(400, 'Request body must be a JSON object.');
+  return input;
+}
+
 async function contentApi(request, env, pathname) {
   const session = await authenticatedSession(request, env);
   const github = createGitHubClient(env, session.token);
   if (pathname.startsWith('/api/publication-status/')) {
     const route = contentRoute(pathname.replace('/api/publication-status/', '/api/content/'));
     if (!route?.filename) throw new HttpError(400, 'A saved document is required.');
-    if (request.method !== 'GET') throw new HttpError(405, 'Method not allowed.');
+    if (request.method !== 'GET') throw Object.assign(new HttpError(405, 'Method not allowed.'), { allow: 'GET' });
     const params = new URL(request.url).searchParams;
     const publicationRequest = { state: 'merged', mergeHead: params.get('mergeHead'), snapshotHead: params.get('snapshotHead') };
     return json({ autoMergeEnabled: env.CMS_PUBLISH_ENABLED === 'true' && env.CMS_AUTO_MERGE_ENABLED === 'true', ...await github.getWebsiteInfo(route.area, route.filename, { unpublishEnabled: env.CMS_PUBLISH_ENABLED === 'true' ? env.CMS_UNPUBLISH_ENABLED : undefined, publicationRequest }) });
@@ -207,10 +220,10 @@ async function contentApi(request, env, pathname) {
     const statusRoute = contentRoute(pathname.replace('/api/publish/', '/api/content/'));
     if (!statusRoute?.filename) throw new HttpError(400, 'A saved document is required.');
     if (request.method === 'GET') return json(await github.getPublicationStatus(statusRoute.area, statusRoute.filename));
-    if (request.method !== 'POST') throw new HttpError(405, 'Method not allowed.');
+    if (request.method !== 'POST') throw Object.assign(new HttpError(405, 'Method not allowed.'), { allow: 'GET, POST' });
     const route = contentRoute(pathname.replace('/api/publish/', '/api/content/'));
     if (!route?.filename) throw new HttpError(400, 'A saved document is required.');
-    const input = await request.json();
+    const input = await readJson(request);
     if (Object.hasOwn(input, 'autoMerge')) {
       if (typeof input.autoMerge !== 'boolean') throw Object.assign(new Error('Choose whether to authorize or cancel automatic publication.'), { status: 400 });
       if (input.autoMerge && (env.CMS_PUBLISH_ENABLED !== 'true' || env.CMS_AUTO_MERGE_ENABLED !== 'true')) throw Object.assign(new Error('Automatic publication is not enabled yet. You can still submit a manual request.'), { status: 403 });
@@ -227,25 +240,28 @@ async function contentApi(request, env, pathname) {
     }
     return json(await (input.prepare === true ? github.preparePublication({ ...route, head: input.head, action: input.action }) : github.publishContent({ ...route, head: input.head, action: input.action, candidate: input.candidate })));
   }
-  if (request.method === 'GET' && pathname === '/api/content') return json({ areas: CONTENT_AREAS });
+  if (pathname === '/api/content') {
+    if (request.method !== 'GET') throw Object.assign(new HttpError(405, 'Method not allowed.'), { allow: 'GET' });
+    return json({ areas: CONTENT_AREAS });
+  }
   const route = contentRoute(pathname);
   if (!route) throw new HttpError(404, 'Not found.');
   const { area, filename } = route;
-  if (area === 'posts' && request.method === 'POST' && !filename) return json(await saveBlog(github, null, await request.json()), 201);
-  if (area === 'updates' && request.method === 'POST' && !filename) return json(await saveProgramUpdate(github, null, await request.json()), 201);
+  if (area === 'posts' && request.method === 'POST' && !filename) return json(await saveBlog(github, null, await readJson(request)), 201);
+  if (area === 'updates' && request.method === 'POST' && !filename) return json(await saveProgramUpdate(github, null, await readJson(request)), 201);
   if (request.method === 'GET' && !filename) return json(await github.discoverContent(area));
-  if (!filename) throw new HttpError(400, 'Content filename is required.');
+  if (!filename) throw Object.assign(new HttpError(405, 'Method not allowed.'), { allow: ['posts', 'updates'].includes(area) ? 'GET, POST' : 'GET' });
   if (request.method === 'GET') {
     const file = await github.getContent(area, filename);
     return json({ ...file, ...(area === 'updates' ? parseProgramUpdate(file.content) : parsePage(file.content)), ...contentVisibility(file.content) });
   }
   if (request.method === 'PUT') {
-    const input = await request.json();
+    const input = await readJson(request);
     if (area === 'posts') return json(await saveBlog(github, filename, input));
     if (area === 'updates') return json(await saveProgramUpdate(github, filename, input));
     return json(await savePage(github, area, filename, input));
   }
-  throw new HttpError(405, 'Method not allowed.');
+  throw Object.assign(new HttpError(405, 'Method not allowed.'), { allow: 'GET, PUT' });
 }
 
 async function imageApi(request, env, pathname) {
@@ -258,12 +274,13 @@ async function imageApi(request, env, pathname) {
     return new Response(image.bytes, { headers: { 'Content-Type': imageContentType(path), 'Cache-Control': 'private, max-age=300', 'X-Content-Type-Options': 'nosniff' } });
   }
   if (request.method === 'POST' && pathname === '/api/images') {
-    const input = await request.json();
-    const bytes = base64ToBytes(String(input.content || ''));
+    const input = await readJson(request);
+    if (typeof input.content !== 'string') throw new HttpError(400, 'Image content must be base64 text.');
+    const bytes = decodeBytes(input.content);
     const filename = validateImageUpload({ filename: input.filename, mimeType: input.mimeType, bytes });
     return json(await github.uploadImage({ area: input.area, documentFilename: input.documentFilename, filename, mimeType: input.mimeType, bytes }), 201);
   }
-  throw new HttpError(404, 'Not found.');
+  throw Object.assign(new HttpError(405, 'Method not allowed.'), { allow: pathname === '/api/images' ? 'GET, POST' : 'GET' });
 }
 
 export async function onRequest({ request, env }) {
@@ -301,7 +318,7 @@ export async function onRequest({ request, env }) {
     const data = { error: message, ...(error.code ? { code: error.code } : {}), ...((oauth || status === 401 || error.code === 'access_denied') ? { signInUrl } : {}), ...(error.suggestedFilename ? { suggestedFilename: error.suggestedFilename } : {}), ...(error.creationState ? { creationState: error.creationState } : {}) };
     const response = oauth && request.headers.get('Accept')?.includes('text/html')
       ? new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>GitHub sign-in unsuccessful</title><h1>GitHub sign-in unsuccessful</h1><p>${escapeHtml(message)}</p><p><a href="${escapeHtml(signInUrl)}">Start sign-in again</a></p><p><a href="${escapeHtml(returnTo)}">Return to the editor</a>. Keep your original editing tab open.</p></html>`, { status, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; base-uri 'none'; frame-ancestors 'none'" } })
-      : json(data, status);
+      : json(data, status, error.allow ? { Allow: error.allow } : {});
     if (oauth) clearOAuthCookies(response);
     if (status === 401 || error.code === 'access_denied') response.headers.append('Set-Cookie', cookie(SESSION_COOKIE, '', 'SameSite=Strict; Max-Age=0'));
     return response;

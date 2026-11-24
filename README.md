@@ -1,110 +1,38 @@
-# Starlight Starter Kit: Basics
+# BTAA-GIN Program Website
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+This repository contains the program website for the **Big Ten Academic Alliance
+Geospatial Information Network (BTAA-GIN)**, published at [gin.btaa.org](https://gin.btaa.org).
 
+The site shares program news and updates, information about our team and
+workgroups, geospatial guides, program documents, and conference resources. It
+supports the geospatial research community and connects geospatial library
+professionals.
 
-## 🚀 Project Structure
+## Run the site locally
 
-Inside of your Astro + Starlight project, you'll see the following folders and files:
+You will need Git and **Node.js 24.13.1**, which includes npm. For help installing
+the tools and cloning this repository, follow the [local setup guide](docs/LOCAL_SETUP.md).
 
-```
-.
-├── docs/                     # Internal project and maintenance guides
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/             # Content published on the website
-│   └── content.config.ts
-├── astro.config.ts
-├── navigation.config.ts
-├── package.json
-└── tsconfig.json
+Open a terminal in the repository folder and run:
+
+```sh
+npm ci
+npm run dev
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+Open `http://localhost:4321` in your browser. Changes to website
+files appear automatically while the development server is running. Press
+**Ctrl+C** in the terminal to stop it.
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+Starting the local site does not publish changes to the live website.
 
-Static assets, like favicons, can be placed in the `public/` directory.
+## Content and documentation
 
-## Astro 7.4 upgrade
+Website content is stored in `src/content/docs/`. Internal setup and maintenance
+guides are stored separately in `docs/`.
 
-The site uses Astro 7.4.x and Starlight 0.42 with Node.js 24.13.1, pinned in
-`.node-version` and Volta. The upgrade preserves Unified Markdown rendering,
-the existing content schemas, sidebar organization and collapse behavior,
-reverse-chronological sorting, and previous/next navigation.
+- [CMS user guide](docs/CMS_USER_GUIDE.md): edit website content using the custom editor.
+- [Editor development guide](editor/README.md): run and test the editor locally.
+- [Project documentation](docs/README.md): setup, maintenance, feature guides, and technical references.
 
-Unused dependencies were removed after checking code and configuration references.
-Navigation regression tests were added, and pull requests now run a
-validation-only CI workflow.
-
-Validation passed: 168 generated pages, all internal links valid,
-two navigation tests, and Astro type checking with no errors. Routes, sidebar
-output, and parsed content were compared against the Astro 5 baseline. Local
-browser testing was also completed by the maintainer.
-
-## Project documentation
-
-Documentation for developing and maintaining this repository is stored in
-[`docs/`](docs/README.md). It is separate from `src/content/docs/`, which holds
-content published on the website.
-
-- [Local setup](docs/LOCAL_SETUP.md)
-- [Local Decap CMS testing](docs/DECAP_LOCAL.md)
-- [Custom CMS user guide](docs/CMS_USER_GUIDE.md)
-- [CMS editor development decisions](docs/cms-editor/README.md)
-- [Conference map gallery maintenance](docs/how-to-update-conf-map-gallery.md)
-- [Data Citation Generator overview](docs/data-citation-generator.md)
-- [Data Citation Generator autofill crosswalk](docs/data-citation-autofill-crosswalk.md)
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run decap`           | Starts the Decap local backend proxy             |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run test:editor`     | Run editor unit and API tests                     |
-| `npm run test:editor:browser` | Run isolated editor browser tests             |
-| `npm run test:navigation` | Check navigation in the built site; run after build |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## Decap Local Testing
-
-For local Decap CMS evaluation, use two terminals:
-
-1. Run `npm run dev`
-2. Run `npm run decap`
-3. Open `http://localhost:4321/admin/index.html`
-
-The exact admin URL matters here: use `/admin/index.html` during local development.
-
-See [Local Decap CMS testing](docs/DECAP_LOCAL.md) for the full workflow.
-
-## 🔄 Updating Navigation
-
-All primary navigation (desktop tabs, mobile drawer, and sidebar groupings) is defined in one place:
-
-- `navigation.config.ts` — each entry in `NAV_GROUPS` describes a top-level section (`id`, `label`, `landing` page, and the sidebar items that belong to the group). Update this file when you add or remove a section.
-- `astro.config.ts` consumes `NAV_GROUPS` to build Starlight’s sidebar automatically; no manual edits needed here unless you change config structure.
-- UI components (`src/components/HeaderWithCompactSearch.astro` and `src/components/SidebarWithFilters.astro`) import the same data, so they reflect changes instantly.
-
-Typical update flow:
-
-1. Add your new docs pages under `src/content/docs/…`.
-2. Edit `navigation.config.ts`:
-   - Add or update a `NAV_GROUPS` entry.
-   - Use `kind: 'autogenerate'` to point at a docs directory, or `kind: 'group'` / `kind: 'link'` for manual lists.
-3. Run `npm run astro -- check` and `npm run dev` to verify the header tabs, mobile drawer, and sidebar all show the new structure.
-
-Need a quick reference? Leave a comment near your new `NAV_GROUPS` entry noting the related content directory.
-
-## 👀 Want to learn more?
-
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+The website is built with [Astro](https://astro.build) and [Starlight](https://starlight.astro.build).

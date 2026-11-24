@@ -40,9 +40,13 @@ for (const mode of ['local','hosted']) test(`${mode} API prepares images without
     const loaded=await call('GET','/api/content/library/report.mdx');assert.equal(loaded.status,200);
     const image=await call('POST','/api/images',{area:'library',documentFilename:'report.mdx',filename:'Map.gif',mimeType:'image/gif',content:Buffer.from('GIF89a').toString('base64')});
     assert.equal(image.status,201);assert.equal(repo.refs.size,1,'image preparation must not commit or create branches');
-    const saved=await call('PUT','/api/content/library/report.mdx',{...loaded.body,body:`![Map](@images/${image.body.path})`,assets:[image.body]});
+    // A dismissed upload is preparation only, even if its response arrives late.
+    const unused=await call('POST','/api/images',{area:'library',documentFilename:'report.mdx',filename:'Unused.gif',mimeType:'image/gif',content:Buffer.from('GIF89a').toString('base64')});
+    assert.equal(unused.status,201);assert.equal(repo.refs.size,1);
+    const saved=await call('PUT','/api/content/library/report.mdx',{...loaded.body,body:`![Map](@images/${image.body.path})`,assets:[image.body,unused.body]});
     assert.equal(saved.status,200,JSON.stringify(saved.body));
     assert.equal(repo.filesAt(saved.body.head).has(`src/assets/images/${image.body.path}`),true);
+    assert.equal(repo.filesAt(saved.body.head).has(`src/assets/images/${unused.body.path}`),false,'unused pending uploads must not enter draft storage');
     assert.equal(repo.refs.get('refs/heads/main'),main);
     if(mode==='hosted')await secondLogin();
     const list=await call('GET','/api/content/library');assert.equal(list.body.entries[0].draftHint,'saved');assert.equal(list.body.entries[0].discovery,'provisional');

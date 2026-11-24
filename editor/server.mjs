@@ -1,5 +1,7 @@
 import { parsePage, savePage } from './page.mjs';
 import http from 'node:http';
+import { StringDecoder } from 'node:string_decoder';
+import { decodeBytes } from './draftStorage.mjs';
 import { createGitHubClient, GitHubConflictError } from './github.mjs';
 import { contentVisibility } from './content.mjs';
 import { CONTENT_AREAS, contentArea, validateContentPath } from './contentAreas.mjs';
@@ -21,38 +23,51 @@ function contentRoute(pathname) {
   return { area: match[1], filename: match[2] ? validateContentPath(match[2]) : null };
 }
 
-function respond(response, status, data, origin) {
+function respond(response, status, data, origin, headers = {}) {
   response.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'no-store',
+    ...headers,
     ...(origin ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {}),
   });
   response.end(JSON.stringify(data));
 }
 
 async function readJson(request) {
+  const decoder = new StringDecoder('utf8');
   let raw = '';
   for await (const chunk of request) {
-    raw += chunk;
+    // IncomingMessage buffers can split a multibyte character. Preserve the
+    // existing character-count limit while decoding across chunk boundaries.
+    raw += typeof chunk === 'string' ? chunk : decoder.write(chunk);
     if (raw.length > 28_000_000) throw Object.assign(new Error('Request is too large.'), { status: 413 });
   }
-  return JSON.parse(raw || '{}');
+  raw += decoder.end();
+  if (raw.length > 28_000_000) throw Object.assign(new Error('Request is too large.'), { status: 413 });
+  let input;
+  try { input = JSON.parse(raw); }
+  catch (error) {
+    if (!(error instanceof SyntaxError)) throw error;
+    throw Object.assign(new Error('Request body must be valid JSON.'), { status: 400 });
+  }
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw Object.assign(new Error('Request body must be a JSON object.'), { status: 400 });
+  return input;
 }
 
 export const createEditorServer = (github) => http.createServer(async (request, response) => {
   const origin = request.headers.origin;
   if (origin && !allowedOrigins.has(origin)) return respond(response, 403, { error: 'Origin is not allowed.' });
-  if (request.method === 'OPTIONS') {
-    response.writeHead(204, {
-      'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      Vary: 'Origin',
-    });
-    return response.end();
-  }
-
   try {
+    if (request.method === 'OPTIONS') {
+      response.writeHead(204, {
+        ...(origin ? { 'Access-Control-Allow-Origin': origin } : {}),
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        Vary: 'Origin',
+      });
+      return response.end();
+    }
+
     const url = new URL(request.url, `http://${request.headers.host}`);
     if (request.method === 'GET' && url.pathname === '/api/session') {
       return respond(response, 200, { authenticated: true, login: 'local development', workspace: github.workspace || 'geobtaa/geobtaa.github.io#cms-drafts-v1' }, origin);
@@ -71,13 +86,16 @@ export const createEditorServer = (github) => http.createServer(async (request, 
     }
     if (request.method === 'POST' && url.pathname === '/api/images') {
       const input = await readJson(request);
-      const bytes = Buffer.from(String(input.content || ''), 'base64');
+      if (typeof input.content !== 'string') throw Object.assign(new Error('Image content must be base64 text.'), { status: 400 });
+      const bytes = decodeBytes(input.content);
       const filename = validateImageUpload({ filename: input.filename, mimeType: input.mimeType, bytes });
       return respond(response, 201, await github.uploadImage({ area: input.area, documentFilename: input.documentFilename, filename, mimeType: input.mimeType, bytes }), origin);
     }
+    if (url.pathname === '/api/images' || url.pathname.startsWith('/api/images/file/')) throw Object.assign(new Error('Method not allowed.'), { status: 405, allow: url.pathname === '/api/images' ? 'GET, POST' : 'GET' });
     if (url.pathname.startsWith('/api/publication-status/')) {
       const route = contentRoute(url.pathname.replace('/api/publication-status/', '/api/content/'));
-      if (!route?.filename || request.method !== 'GET') throw Object.assign(new Error('A saved document and GET request are required.'), { status: 400 });
+      if (!route?.filename) throw Object.assign(new Error('A saved document is required.'), { status: 400 });
+      if (request.method !== 'GET') throw Object.assign(new Error('Method not allowed.'), { status: 405, allow: 'GET' });
       const publicationRequest = { state: 'merged', mergeHead: url.searchParams.get('mergeHead'), snapshotHead: url.searchParams.get('snapshotHead') };
       return respond(response, 200, { autoMergeEnabled: process.env.CMS_PUBLISH_ENABLED === 'true' && process.env.CMS_AUTO_MERGE_ENABLED === 'true', ...await github.getWebsiteInfo(route.area, route.filename, { unpublishEnabled: process.env.CMS_PUBLISH_ENABLED === 'true' ? process.env.CMS_UNPUBLISH_ENABLED : undefined, publicationRequest }) }, origin);
     }
@@ -85,7 +103,7 @@ export const createEditorServer = (github) => http.createServer(async (request, 
       const statusRoute = contentRoute(url.pathname.replace('/api/publish/', '/api/content/'));
       if (!statusRoute?.filename) throw Object.assign(new Error('A saved document is required.'), { status: 400 });
       if (request.method === 'GET') return respond(response, 200, await github.getPublicationStatus(statusRoute.area, statusRoute.filename), origin);
-      if (request.method !== 'POST') throw Object.assign(new Error('Method not allowed.'), { status: 405 });
+      if (request.method !== 'POST') throw Object.assign(new Error('Method not allowed.'), { status: 405, allow: 'GET, POST' });
       const route = contentRoute(url.pathname.replace('/api/publish/', '/api/content/'));
       if (!route?.filename) throw Object.assign(new Error('A saved document is required.'), { status: 400 });
       const input = await readJson(request);
@@ -105,14 +123,17 @@ export const createEditorServer = (github) => http.createServer(async (request, 
       }
       return respond(response, 200, await (input.prepare === true ? github.preparePublication({ ...route, head: input.head, action: input.action }) : github.publishContent({ ...route, head: input.head, action: input.action, candidate: input.candidate })), origin);
     }
-    if (url.pathname === '/api/content') return respond(response, 200, { areas: CONTENT_AREAS }, origin);
+    if (url.pathname === '/api/content') {
+      if (request.method !== 'GET') throw Object.assign(new Error('Method not allowed.'), { status: 405, allow: 'GET' });
+      return respond(response, 200, { areas: CONTENT_AREAS }, origin);
+    }
     const route = contentRoute(url.pathname);
     if (route) {
       const { area, filename } = route;
       if (area === 'posts' && request.method === 'POST' && !filename) return respond(response, 201, await saveBlog(github, null, await readJson(request)), origin);
       if (area === 'updates' && request.method === 'POST' && !filename) return respond(response, 201, await saveProgramUpdate(github, null, await readJson(request)), origin);
       if (request.method === 'GET' && !filename) return respond(response, 200, await (github.discoverContent ? github.discoverContent(area) : github.listContent(area)), origin);
-      if (!filename) throw Object.assign(new Error('Content filename is required.'), { status: 400 });
+      if (!filename) throw Object.assign(new Error('Method not allowed.'), { status: 405, allow: ['posts', 'updates'].includes(area) ? 'GET, POST' : 'GET' });
       if (request.method === 'GET') {
         const file = await github.getContent(area, filename);
         return respond(response, 200, { ...file, ...(area === 'updates' ? parseProgramUpdate(file.content) : parsePage(file.content)), ...contentVisibility(file.content) }, origin);
@@ -123,11 +144,12 @@ export const createEditorServer = (github) => http.createServer(async (request, 
         if (area === 'updates') return respond(response, 200, await saveProgramUpdate(github, filename, input), origin);
         return respond(response, 200, await savePage(github, area, filename, input), origin);
       }
+      throw Object.assign(new Error('Method not allowed.'), { status: 405, allow: 'GET, PUT' });
     }
     respond(response, 404, { error: 'Not found.' }, origin);
   } catch (error) {
     const status = error instanceof GitHubConflictError ? 409 : (error.status || 500);
-    respond(response, status, { error: error.message || 'Unexpected server error.', ...(error.code ? { code: error.code } : {}), ...(error.suggestedFilename ? { suggestedFilename: error.suggestedFilename } : {}), ...(error.creationState ? { creationState: error.creationState } : {}) }, origin);
+    respond(response, status, { error: error.message || 'Unexpected server error.', ...(error.code ? { code: error.code } : {}), ...(error.suggestedFilename ? { suggestedFilename: error.suggestedFilename } : {}), ...(error.creationState ? { creationState: error.creationState } : {}) }, origin, error.allow ? { Allow: error.allow } : {});
   }
 });
 
