@@ -11,6 +11,7 @@ import type { Project, PageMetadata } from './editorTypes';
 import { DocumentPreview } from './DocumentPreview';
 import { UnsavedChangesDialog } from './UnsavedChangesDialog';
 import { RecoveryManager } from './RecoveryManager';
+import { RecoveryFileOptions } from './RecoveryFileOptions';
 import { useEditorNavigation, routeKey, type EditorRoute } from './editorNavigation';
 import { useEditorRecovery, type EditorRecovery } from './useEditorRecovery';
 import { downloadRecovery, groupRecoveryCopies, parseRecovery, recoveryFields, recoveryMatches, recoveryKey, restoreRecovery, type RecoveryCopy } from './editorRecovery';
@@ -1064,29 +1065,35 @@ export default function ProjectEditor() {
   const entryCopies = recovery.copies.filter(copy => routeKey(copy.route) === routeKey(route));
   const candidate = entryCopies.find(copy => copy.id === selectedRecovery) || entryCopies[0];
   const staleRecovery = !!candidate && (!project || !recoveryMatches(project, candidate));
-  const restore = async (copy: RecoveryCopy) => {
-    if (!project || !area || busyRef.current || recovery.hasChanges || !recoveryScope) return;
+  const restore = async (copy: RecoveryCopy, fromFile = false) => {
+    if (!project || !area || busyRef.current || recovery.hasChanges || !recoveryScope || authIssue) {
+      if (fromFile) throw new Error('Save your current edits and check your sign-in before restoring a backup.');
+      return;
+    }
     setRestoringChanges(true);
     setBusy(true); setError('');
     try {
       // Recovery is a separate local revision, not an authoritative document.
-      // Recheck both browser storage and GitHub before applying it; conflicts
-      // retain the local copy for comparison instead of overwriting newer work.
-      const stored = parseRecovery(window.localStorage.getItem(recoveryKey(recoveryScope, copy.id)) || '');
-      if (!stored || stored.revision !== copy.revision) { recovery.refresh(); throw new Error('These unsaved changes were updated or removed in another tab. Review the latest version before restoring.'); }
+      // Recheck GitHub and, for browser copies, the stored record before applying
+      // it. Conflicting file imports leave the current editor untouched.
+      if (!fromFile) {
+        const stored = parseRecovery(window.localStorage.getItem(recoveryKey(recoveryScope, copy.id)) || '');
+        if (!stored || stored.revision !== copy.revision) { recovery.refresh(); throw new Error('These unsaved changes were updated or removed in another tab. Review the latest version before restoring.'); }
+      }
       const fresh = route.filename ? await api<Project>(`/api/content/${area}/${encodeURIComponent(route.filename)}`) : project;
       if (!route.filename) await api(`/api/content/${area}`);
       if (!recoveryMatches(fresh, copy)) {
+        if (fromFile) throw new Error('The saved page has changed since this backup was made. Your current page has not been replaced. Keep the file and ask a maintainer to help compare the versions.');
         setProject(fresh); setBaseline(fresh); setSavedSnapshot(JSON.stringify(fresh)); setBodyEditorSession(session => session + 1);
         throw new Error('This page changed in GitHub. The latest saved version is open below. Your unsaved changes have been kept separately. Download a backup to compare and copy your edits into the latest version.');
       }
       const recovered = restoreRecovery(fresh, route, copy);
       setPendingImagePreviews(recovered.assets);
-      recovery.restored(copy);
+      if (!fromFile) recovery.restored(copy);
       setBaseline(fresh); setSavedSnapshot(fresh.sha ? JSON.stringify(fresh) : ''); setProject(recovered);
       setShowUpdateStarter(false); setShowConversionPreview(false); setBodyEditorSession(session => session + 1);
       setNotice('Your restored changes are now displayed below. They have not been confirmed saved to GitHub. Review them, then choose Save Draft.');
-    } catch (error) { setError((error as Error).message); }
+    } catch (error) { if (fromFile) throw error; setError((error as Error).message); }
     finally { setRestoringChanges(false); setBusy(false); }
   };
   useEffect(() => {
@@ -1217,6 +1224,17 @@ export default function ProjectEditor() {
     } }}>
     <main className="editor-shell editor-workspace">
       <ApplicationHeader compact />
+      <div className="recovery-options-row"><RecoveryFileOptions
+        key={`${recoveryScope}:${routeKey(route)}`}
+        context={JSON.stringify([recoveryScope, routeKey(route), project])}
+        route={route} disabled={busy}
+        restoreBlocked={authIssue ? 'Check your sign-in before restoring a backup.' : recovery.hasChanges ? 'Save your current edits before restoring a backup. If saving is unavailable, download a backup of your current work and keep it before reopening the page.' : ''}
+        onDownload={() => { const copy = recovery.currentCopy(); if (copy) downloadRecovery(copy); }}
+        onRestore={async (copy, context) => {
+          if (context !== JSON.stringify([recoveryScope, routeKey(route), project])) throw new Error('The open page changed. Choose the backup file again.');
+          await restore(copy, true);
+        }}
+      /></div>
       {leavePrompt && <UnsavedChangesDialog message={leavePrompt.message} onKeepEditing={() => showLeavePrompt(null)} onLeave={leaveEditor} />}
       {publicationConfirmation && (publicationConfirmation.action === 'unpublish' ? <UnpublishDialog
         revision={{ filename: project.filename }}

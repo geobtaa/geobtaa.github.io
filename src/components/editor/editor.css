@@ -403,3 +403,14 @@ code { font-size: .9em; }
 .view-live-page { gap: .5rem; padding: .45rem .8rem; border: 1px solid var(--editor-border-strong); border-radius: .4rem; background: var(--editor-surface); color: var(--editor-text); text-decoration: none; font-size: .875rem; }
 .view-live-page:hover { background: var(--editor-hover); color: var(--editor-text); }
 .view-live-page:focus-visible { outline: 2px solid var(--editor-accent); outline-offset: 3px; }
+
+.recovery-options-row { display: flex; justify-content: flex-end; min-height: 2.75rem; margin: -.5rem 0 .5rem; }
+.recovery-file-options { position: relative; font-size: .875rem; color: var(--editor-muted); }
+.recovery-file-options > summary { cursor: pointer; padding: .6rem .25rem; min-height: 44px; }
+.recovery-file-panel { position: absolute; right: 0; top: 100%; z-index: 25; width: min(28rem, calc(100vw - 4rem)); padding: 1rem; border: 1px solid var(--editor-border); border-radius: .4rem; background: var(--editor-surface); box-shadow: 0 4px 12px #0002; color: var(--editor-text); }
+.recovery-file-panel p { margin: 0 0 .75rem; }
+.recovery-file-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .75rem; }
+.recovery-file-actions button { min-height: 44px; }
+.recovery-file-hint { color: var(--editor-muted); }
+.recovery-file-error { color: var(--editor-error-text); overflow-wrap: anywhere; }
+.backup-restore-dialog p { overflow-wrap: anywhere; }

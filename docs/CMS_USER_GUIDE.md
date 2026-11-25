@@ -182,29 +182,39 @@ The editor tries to keep a recovery copy of unsaved edits in your browser. This 
 
 #### Recover earlier work
 
-If a page shows **Unsaved changes available**, choose **Restore changes**. The editor either restores the matching copy or opens **Find unsaved work** when you need to choose a version or resolve a conflict.
+Look for an **Unsaved edits** label beside a page in the content list. Open that page in the same browser and account where you were working. If an earlier browser copy is available, an **Unsaved changes available** notice appears above the editing controls.
 
-In that dialog, the available controls depend on the stored work:
+That notice has two buttons:
 
-| Control | What it does |
-| --- | --- |
-| Resume editing | Opens the stored work for review when it can be restored safely. You still need Save Draft to save it. |
-| View earlier versions | Shows other stored versions, when there is more than one. Compare their dates and text before choosing. |
-| Resume this version | Restores the particular version you selected, when available. |
-| Save backup file | Downloads the indicated stored version as a `.json` file without changing the open editor, saved draft, or website. Check its date; it may be an earlier version rather than your current edits. |
-| Discard unsaved changes | Asks for confirmation, then permanently deletes that selected browser copy. Other copies, saved drafts, and the published page stay unchanged. |
+- **Restore changes** loads the earlier copy into the editor when it can be restored safely. Review the restored content, then choose **Save Draft**. Restoring alone does not save or publish it.
+- **Discard** asks you to confirm deletion of that browser copy. It does not change a saved draft or the website. Discarded browser copies cannot be recovered unless you kept a separate backup.
 
-The short recovery notice also has **Discard**. If several copies exist, it opens the version-selection dialog first. Do not discard a copy until you are sure you no longer need it. Versions are not combined automatically, and the latest timestamp does not mean that copy includes all earlier edits.
+You may instead see a **Find unsaved work** dialog if versions differ, the saved page changed, or you already have unsaved edits open. That dialog offers **Resume editing**, **Save backup file**, and **Discard unsaved changes** for stored copies. **View earlier versions** and **Resume this version** appear when several versions are available. These stored-version controls appear only in that dialog. The separate **Recovery options** panel described below works with backup files.
 
-#### Download a backup when offered
+If restoring is unavailable, save a backup of the stored version and ask a maintainer to help compare it with the latest page. Copies are not combined automatically. The latest timestamp does not mean that version includes every earlier edit.
 
-**Download unsaved edits** appears when sign-in has expired or the editor reports a browser-storage problem. It downloads the current edits without saving or publishing them. **Save backup file**, in the recovery dialog, downloads the particular stored version shown there.
+#### Recovery options
 
-There is no general backup-download button during ordinary editing. If neither control is available and Save Draft fails, keep the tab open, copy important text into a separate document, and ask a maintainer for help retrieving the browser recovery copy. Do not reload or clear browser data before protecting your work.
+On an open page, expand **Recovery options** at the upper right, just below the application header. This small panel is for problems with saving or publishing; you do not need to download backups during ordinary editing. It also links to this guide's [troubleshooting section](#troubleshooting-and-common-errors).
 
-Keep downloaded `.json` files for recovery or share them with a maintainer when troubleshooting. The editor has no backup-file upload button.
+- **Save backup file** downloads the content currently in the editor, including unsaved edits, as a `.json` file. It does not save a draft, publish, or change the page. It works even if the browser cannot store its automatic recovery copy.
+- **Restore backup file** lets you choose a previously downloaded editor backup. The file is read locally, then checked against the open page before anything is restored.
 
-If you try to leave with unsaved changes, choose **Keep editing** to return and save. **Leave editor** leaves without saving a draft; later recovery depends on the browser copy being available.
+A download from **Find unsaved work** contains the particular stored version shown in that dialog, which may differ from your current edits. **Download unsaved edits**, offered during a sign-in or storage problem, downloads your current work. Keep the original `.json` file; do not paste its contents into a Text block.
+
+#### Recover from a downloaded file
+
+1. Sign in and open the page the backup came from. For a backup of a page that was never saved, start a blank new page in the same content area.
+2. Expand **Recovery options** below the header.
+3. Choose **Restore backup file** and select the editor's `.json` backup.
+4. Check the title, page, and backup date in the confirmation. Choose **Cancel** to leave the editor unchanged, or **Restore backup** to load that version.
+5. Review the restored work in **Edit** or **Preview**, then choose **Save Draft**. Restoring does not save or publish anything automatically.
+
+Restoration is unavailable while you have current unsaved edits or need to check your sign-in. Save your current edits first. If saving is not working, download a separate backup of those edits before reopening the page to restore another version.
+
+If the saved page changed since the backup was made, the editor leaves the open page unchanged and refuses automatic restoration. Keep the file and ask a maintainer to help compare the versions. A file from a different page, a malformed file, or an unsupported backup version is also rejected without replacing your work. The editor does not combine different versions automatically.
+
+If you try to leave with unsaved changes, choose **Keep editing** to return and save. **Leave editor** leaves without saving a draft; later recovery depends on a browser copy or downloaded backup being available.
 
 ## Publish a page
 

@@ -173,7 +173,7 @@ test('after manual merge, reopening and saving another edit works without branch
     await send('Page.reload');
     await waitFor(`!!${title} && !!${button('Restore changes')}`);
     assert.match(await evaluate('document.body.textContent'),/Publishing…/);
-    const restore=await evaluate(`[...document.querySelectorAll('button')].find(button=>button.textContent.startsWith('Restore')&&!button.disabled)?.textContent`);
+    const restore=await evaluate(`[...document.querySelectorAll('.recovery-notice button')].find(button=>button.textContent==='Restore changes'&&!button.disabled)?.textContent`);
     assert.ok(restore,'same saved source can restore pre-merge unsaved edits');
     await evaluate(`[...document.querySelectorAll('button')].find(button=>button.textContent===${JSON.stringify(restore)}).click()`);
     await waitFor(`${title}.value==='Keep unsaved second round'`);

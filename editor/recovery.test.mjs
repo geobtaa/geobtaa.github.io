@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { editorUrl, parseEditorRoute, routeKey } from '../src/components/editor/editorNavigation.ts';
-import { groupRecoveryCopies, parseRecovery, recoveryFields, recoveryKey, readRecoveryCopies, removeRecovery, restoreRecovery } from '../src/components/editor/editorRecovery.ts';
+import { groupRecoveryCopies, parseRecovery, parseRecoveryFile, recoveryFields, recoveryKey, readRecoveryCopies, removeRecovery, restoreRecovery } from '../src/components/editor/editorRecovery.ts';
 
 class Storage {
   data = new Map(); get length() { return this.data.size; } key(index) { return [...this.data.keys()][index] || null; }
@@ -100,4 +100,33 @@ test('intentional protected removals survive recovery and remain bound to the sa
   assert.deepEqual(restoreRecovery(base, route, parsed).protectedRemovals, [source]);
   assert.throws(() => restoreRecovery({ ...base, sha: 'new-sha' }, route, parsed));
   assert.equal(parseRecovery(JSON.stringify({ ...record, fields: { ...record.fields, protectedRemovals: [null] } })), null);
+});
+
+
+test('backup files validate editable data and stay bound to the open document', () => {
+  const record = copy();
+  record.fields.protectedRemovals = ['<OldLayout />\n'];
+  record.fields.assets = [{filename:'map.png',path:'map.png',mimeType:'image/png',content:'base64-image'}];
+  const serialized = JSON.stringify(record);
+  const imported = parseRecoveryFile(serialized, route);
+  assert.deepEqual(imported, record);
+  assert.equal(restoreRecovery(base, route, imported).content, base.content);
+  assert.deepEqual(restoreRecovery(base, route, imported).protectedRemovals, record.fields.protectedRemovals);
+  assert.deepEqual(restoreRecovery(base, route, imported).assets, record.fields.assets);
+  for (const other of [{area:'posts',filename:route.filename},{area:route.area,filename:'other.mdx'},{area:route.area,draftId:'new-1'}]) assert.throws(()=>parseRecoveryFile(serialized,other),/backup is for/);
+  for (const value of ['{', 'null', JSON.stringify({...record,version:2}), JSON.stringify({...record,fields:{...record.fields,sha:'pretend-revision'}}), JSON.stringify({...record,fields:{...record.fields,metadata:{year:{invalid:true}}}}), JSON.stringify({...record,route:{area:'updates',filename:'../other.mdx'}})]) assert.throws(()=>parseRecoveryFile(value,route),/valid editor backup/);
+  assert.throws(()=>restoreRecovery({...base,sha:'newer-revision'},route,imported),/version has changed/);
+});
+
+test('never-saved file backups use the new page route while preserving safe creation retry identity', () => {
+  const from = {area:'posts',draftId:'original-local-route'}, to = {area:'posts',draftId:'new-local-route'};
+  const fields = recoveryFields({...base,filename:'',sha:undefined});
+  fields.creationAttempt = {id:'original-creation-attempt-1234',filename:'original-article.mdx'};
+  const record = copy('file-copy',{route:from,baseSha:null,fields});
+  const imported = parseRecoveryFile(JSON.stringify(record),to);
+  assert.deepEqual(imported.route,to);
+  assert.deepEqual(imported.fields.creationAttempt,fields.creationAttempt);
+  assert.deepEqual(record.route,from,'reading the file never rewrites its original identity');
+  assert.equal(restoreRecovery({...base,sha:undefined,filename:''},to,imported).sha,undefined);
+  assert.throws(()=>parseRecoveryFile(JSON.stringify(record),{area:'library',draftId:'new-local-route'}),/backup is for/);
 });
