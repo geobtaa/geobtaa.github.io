@@ -63,7 +63,7 @@ export function PublicationStatus({ path, head, dirty, hasDraft = true, newPage 
       {current.message && !['pr-open', 'merged', 'closed'].includes(current.state) && <p>{current.message}</p>}
       {current.website?.message && <p>{current.website.message}</p>}
       {technicalError && <p>{technicalError}</p>}{technicalDetails}
-      <div className="publication-notice-actions">{requestLink}{current.state === 'merged' && <a href="https://github.com/geobtaa/geobtaa.github.io/actions/workflows/astro.yml" target="_blank" rel="noopener noreferrer">GitHub Pages deployment</a>}{historical && updateRequest}</div>
+      <div className="publication-notice-actions">{requestLink}{historical && updateRequest}</div>
     </details>}
     {actionTarget && onUnpublish && createPortal(<button className="unpublish-document" type="button" title={unpublishReason} disabled={disabled || dirty || active || !current.unpublishEnabled || !current.autoMergeEnabled || current.mainDraft !== false} onClick={() => onUnpublish?.(true)}>Unpublish</button>, actionTarget)}
 
