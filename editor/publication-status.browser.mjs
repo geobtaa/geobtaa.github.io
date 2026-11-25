@@ -150,9 +150,21 @@ test('closed requests keep their actions in keyboard-accessible history without 
   }, {initialSearch:'?area=library&file=report.mdx'});
 });
 test('request and website problems share a compact notice and resolved warnings move out of view', options, async () => {
-  const scenario = fixture.replace("createRoot(document.getElementById('root'))", `window.setStatus({...window.statusResult,checks:'failed',website:{publication:'unavailable',message:'The website status could not be verified. Your saved work is safe.'}});createRoot(document.getElementById('root'))`);
+  const scenario = fixture.replace("createRoot(document.getElementById('root'))", `window.setStatus({...window.statusResult,checks:'failed',website:{publication:'unavailable',message:'The website status could not be verified. Your saved work is safe.'}});
+    const gateway=window.fetch;let deferred=false;
+    window.fetch=async(url,options={})=>{
+      if(!deferred&&String(url).includes('/api/publish/')&&!options.method){
+        deferred=true;return new Promise(resolve=>{window.finishInitialStatus=()=>resolve(Response.json(window.statusResult));});
+      }
+      return gateway(url,options);
+    };
+    createRoot(document.getElementById('root'))`);
   await withEditorBrowser(scenario, async ({evaluate,waitFor,send}) => {
-    await waitFor('!!document.querySelector(".publication-notice")');
+    // The notice also exists during loading, before check results arrive.
+    await waitFor('!!document.querySelector(".publication-notice") && !!window.finishInitialStatus');
+    assert.equal(await evaluate('document.querySelector(".publication-status").dataset.state'), 'checking');
+    await evaluate('window.finishInitialStatus()');
+    await waitFor('document.querySelector(".publication-status")?.dataset.state === "pr-open"');
     assert.equal(await evaluate('document.querySelectorAll(".publication-notice").length'), 1);
     assert.match(await evaluate('document.querySelector(".publication-notice").textContent'), /Checks failed/);
     assert.equal(await evaluate('document.querySelector(".publication-notice").textContent.split("website status could not be verified").length'), 2);
