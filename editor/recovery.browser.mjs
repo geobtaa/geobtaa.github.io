@@ -144,7 +144,7 @@ test('browser Back/Forward follows editor screens, cancel restores URL and edits
     await browser.waitFor(`${title}.value==='Unsaved title' && !document.querySelector('.top-save').disabled`);
     assert.ok((await browser.evaluate('document.querySelector(".rich-editor .tiptap").textContent')).includes('Unsaved body.'));
     await browser.evaluate('document.querySelector(".top-save").click()');
-    await browser.waitFor('document.querySelector(".save-state").textContent==="All changes saved"');
+    await browser.waitFor('document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     assert.equal(await browser.evaluate(`${recoveryKeys}.length`),0);
     assert.ok((await browser.evaluate('window.readRepo()["existing.mdx"].content')).includes('<Unknown>Protected source.</Unknown>'));
   });
@@ -163,7 +163,7 @@ test('direct links reload to the same document; lifecycle backup recovers withou
     await browser.evaluate(`${button('Restore changes')}.click()`);
     await browser.waitFor(`${title}.value==='Recovered after reload' && !document.querySelector('.top-save').disabled`);
     await browser.evaluate('document.querySelector(".top-save").click()');
-    await browser.waitFor('document.querySelector(".save-state").textContent==="All changes saved"');
+    await browser.waitFor('document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     const dialogCount = dialogs.length;
     await reload(browser);
     assert.equal(await browser.evaluate(`${title}.value`),'Recovered after reload');
@@ -204,7 +204,7 @@ test('recovery checks the latest SHA at restore time and preserves stale copies 
     await reload(browser); await browser.waitFor(`!!(${button('Restore changes')})`);
     await browser.evaluate('window.changeServer()');
     await browser.evaluate(`${button('Restore changes')}.click()`);
-    await browser.waitFor(`${title}.value==='Newer repository title' && !document.querySelector('.top-save').disabled`);
+    await browser.waitFor(`${title}.value==='Newer repository title' && document.querySelector('.top-save').disabled`);
     assert.equal(await browser.evaluate(`!!(${button('Restore changes')})`),true);
     await browser.evaluate(`${button('Restore changes')}.click()`);
     assert.ok(await browser.evaluate(`${recoveryKeys}.length > 0`));
@@ -263,7 +263,7 @@ test('local copies are private to the signed-in account and workspace; navigatio
     await browser.evaluate('history.back()');
     await browser.waitFor('new URL(location.href).searchParams.get("file")==="existing.mdx"');
     assert.equal(await browser.evaluate(`${title}.value`),'Account one copy');
-    await browser.evaluate('window.finishSave()'); await browser.waitFor('document.querySelector(".save-state").textContent==="All changes saved"');
+    await browser.evaluate('window.finishSave()'); await browser.waitFor('document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     assert.equal(await browser.evaluate(`${recoveryKeys}.length`),0);
   });
 });

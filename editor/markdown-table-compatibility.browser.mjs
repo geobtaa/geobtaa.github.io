@@ -42,7 +42,7 @@ test('legacy ratio tables edit, preview, save and reopen with alignment and prot
     await evaluate('document.querySelector(".editor-fields > label input").focus(); document.querySelector(".editor-fields > label input").select()');
     await send('Input.insertText', { text: 'Revised brand page' });
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     assert.equal(await evaluate('window.writes[0].body'), originalBody);
 
     await evaluate(`(() => { const element = (${ratioTable}).closest('.tiptap'); window.tableEditor = element.editor; let position; window.tableEditor.state.doc.descendants((node, pos) => { if (node.type.name === 'paragraph' && node.textContent === '11.68:1') position = pos + node.nodeSize - 1; }); window.tableEditor.commands.setTextSelection(position); window.tableEditor.commands.focus(); })()`);
@@ -54,7 +54,7 @@ test('legacy ratio tables edit, preview, save and reopen with alignment and prot
     await waitFor('document.querySelector("#document-preview").textContent.includes("11.68:1 verified twice")');
     await evaluate('[...document.querySelectorAll(".editor-mode-toggle button")].find(button => button.textContent === "Edit").click()');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "All changes saved"');
+    await waitFor('window.writes.length === 2 && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     const saved = await evaluate('window.writes[1].body');
     const originalTable = parseBodySyntax(originalBody, 'md').children.find(n => n.type === 'table' && originalBody.slice(n.position.start.offset, n.position.end.offset).includes('11.68:1'));
     const savedTable = parseBodySyntax(saved, 'md').children.find(n => n.type === 'table' && saved.slice(n.position.start.offset, n.position.end.offset).includes('11.68:1'));

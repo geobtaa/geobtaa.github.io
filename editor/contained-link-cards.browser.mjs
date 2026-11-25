@@ -40,7 +40,7 @@ test('existing wrapped LinkCards edit, validate URLs, preview and reopen while t
     await evaluate('document.querySelector(".editor-fields > label input").focus(); document.querySelector(".editor-fields > label input").select()');
     await send('Input.insertText', { text: 'Updated census guide' });
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     assert.equal(await evaluate('window.writes[0].body'), originalBody);
 
     const root = 'document.querySelector(".contained-link-cards .structured-link-card")';
@@ -56,7 +56,7 @@ test('existing wrapped LinkCards edit, validate URLs, preview and reopen while t
     await evaluate(`${root}.querySelector('input').focus()`);
     await waitFor(`${root}.querySelector('.link-address-field input').value === 'https://example.com/maps'`);
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "All changes saved"');
+    await waitFor('window.writes.length === 2 && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     const saved = await evaluate('window.writes[1].body');
     const before = splitBody(originalBody, { mergeProtected: false }).filter(s => s.kind === 'protected');
     const after = splitBody(saved, { mergeProtected: false }).filter(s => s.kind === 'protected');

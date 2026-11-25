@@ -24,6 +24,6 @@ export function LibraryPublicationProgress({ path, load, recent = false, onDeplo
   useEffect(() => {
     if (status && publicationApplied(status) && (sawPending.current || recent)) onDeployed?.(status);
   }, [status, recent, onDeployed]);
-  const label = status && status.state !== 'closed' && (!complete || sawPending.current) ? publicationProgress(status) : '';
+  const label = status && status.state !== 'closed' && (!complete || sawPending.current) ? complete && status.newerDraft && status.action !== 'unpublish' ? 'Draft saved' : publicationProgress(status) : '';
   return <span ref={setElement} className="library-publication-progress" role="status" aria-label="Publication progress">{label}</span>;
 }

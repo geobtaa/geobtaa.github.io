@@ -77,7 +77,7 @@ test('real documents survive native typing, Edit/Preview, failed validation, sav
           await evaluate('window.injectInvalid=false');
         }
         await evaluate('document.querySelector(".top-save").click()');
-        await waitFor(`window.writes.length===${pass} && document.querySelector('.save-state').textContent==='All changes saved'`);
+        await waitFor(`window.writes.length===${pass} && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"`);
         const saved = await evaluate('window.writes.at(-1).content');
         for (const raw of [...protectedSource, ...mustKeep]) assert.ok(parsePage(saved).body.includes(raw), `${example.filename}: lost ${raw.slice(0, 80)}`);
         await evaluate('document.querySelector(".editor-navigation .back").click()');

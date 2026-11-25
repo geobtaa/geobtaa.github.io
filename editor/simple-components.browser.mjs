@@ -15,7 +15,7 @@ window.fetch = async (url, options = {}) => {
   if (path === '/api/session') return Response.json({ authenticated: true, login: 'tester' });
   if (path === '/api/content/posts') return Response.json({ branch: 'custom-cms', entries: [{ name: window.record.filename, path: 'src/content/docs/posts/simple-components.mdx', sha: window.record.sha, draft: true, visibilityKnown: true }] });
   if (path === '/api/content/posts/simple-components.mdx') {
-    if (options.method === 'PUT') { const fields = JSON.parse(options.body); window.writes.push(fields); window.record = { ...window.record, ...fields, sha: 'saved-' + window.writes.length }; }
+    if (options.method === 'PUT') { const fields = JSON.parse(options.body); window.writes.push(fields); window.record = { ...window.record, ...fields, sha: 'saved-' + window.writes.length, commitSha: 'saved-commit' }; }
     return Response.json(window.record);
   }
   throw new Error('Unexpected API call: ' + path);
@@ -86,7 +86,7 @@ test('new badges, callouts, and cards insert, edit, save/reopen and remove witho
     await evaluate('document.querySelector(".rich-editor .tiptap").focus()');
     await send('Input.insertText', { text: 'A normal paragraph.' });
     await click('Save Draft', 'document.querySelector(".editor-navigation")');
-    await waitFor('window.writes.length === 1 && !document.querySelector(".top-save").disabled');
+    await waitFor('window.writes.length === 1 && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     const saved = await evaluate('window.record.body');
     assert.ok(saved.includes(legacy));
     assert.match(saved, /<CmsBadge text="New &amp; useful" variant="caution" size="large" \/>/);
@@ -95,15 +95,17 @@ test('new badges, callouts, and cards insert, edit, save/reopen and remove witho
     assert.match(saved, /A normal paragraph\./);
     for (const binding of ['CmsBadge', 'CmsCallout', 'CmsCard']) assert.equal([...saved.matchAll(new RegExp(`as ${binding} \\}`, 'g'))].length, 1);
     await evaluate('document.querySelector(".editor-navigation .back").click()');
-    await answerLeaveDialog({ evaluate, waitFor });
+    if (await evaluate('!!document.querySelector(".unsaved-changes-dialog[open]")')) await answerLeaveDialog({ evaluate, waitFor });
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
     await waitFor('document.querySelectorAll(".structured-simple-component").length === 3');
     assert.equal(await evaluate(`${field('document.querySelector(".simple-card")', 'Title')}.value`), 'Maps & <b>literal</b>');
     assert.equal(await evaluate(`${field(callout, 'Message')}.value`), 'Fixyzrst line\nSecond {line} with **literal text**.');
     assert.equal(await evaluate('document.querySelectorAll(".body-editor .toolbar").length'), 1, 'only ordinary Markdown has a toolbar');
+    await evaluate('document.querySelector(".editor-fields input[required]").focus()');
+    await send('Input.insertText', {text: 'Updated '});
     await click('Save Draft', 'document.querySelector(".editor-navigation")');
-    await waitFor('window.writes.length === 2 && !document.querySelector(".top-save").disabled');
+    await waitFor('window.writes.length === 2 && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     assert.equal(await evaluate('window.record.body'), saved, 'unchanged reopened content saves exactly');
     await click('Remove Badge');
     await waitFor('document.querySelectorAll(".structured-simple-component").length === 2');

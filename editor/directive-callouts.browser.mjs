@@ -42,7 +42,7 @@ test('directive callouts edit rich messages, consolidate aliases, save/reopen an
     await evaluate('document.querySelector(".editor-fields > label input").focus(); document.querySelector(".editor-fields > label input").select()');
     await send('Input.insertText', { text: 'Revised page title' });
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     assert.equal(await evaluate('window.writes[0].body'), originalBody);
 
     await evaluate('document.querySelector(".simple-callout input").focus(); document.querySelector(".simple-callout input").select()');
@@ -58,7 +58,7 @@ test('directive callouts edit rich messages, consolidate aliases, save/reopen an
     await send('Input.insertText', { text: ' stays continuous' });
     await evaluate(`(() => { const select = document.querySelector('.simple-callout select'); select.value = 'caution'; select.dispatchEvent(new Event('change', { bubbles: true })); })()`);
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 2 && document.querySelector(".save-state").textContent === "All changes saved"');
+    await waitFor('window.writes.length === 2 && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     const saved = await evaluate('window.writes[1].body');
     assert.ok(saved.includes(protectedSource));
     assert.match(saved, /:::caution\[Revised callout title\]/);

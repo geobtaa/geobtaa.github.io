@@ -39,7 +39,7 @@ test('lower-risk legacy grids edit rich text and titles, reorder, preview and re
     const card = index => `${root}.querySelectorAll('.collection-entry')[${index}]`;
     const save = async count => {
       await evaluate('document.querySelector(".top-save").click()');
-      await waitFor(`window.writes.length === ${count} && document.querySelector('.save-state').textContent === 'All changes saved'`);
+      await waitFor(`window.writes.length === ${count} && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"`);
       const saved = await evaluate('window.record.body');
       await validateDocument(`---\ntitle: Cards\n---\n\n${saved}`, { originalBody });
       return saved;
@@ -104,7 +104,7 @@ test('September 2025 indented lists and paragraphs preview and edit normally whi
     const card = index => `${root}.querySelectorAll('.collection-entry')[${index}]`;
     const save = async count => {
       await evaluate('document.querySelector(".top-save").click()');
-      await waitFor(`window.writes.length === ${count} && document.querySelector('.save-state').textContent === 'All changes saved'`);
+      await waitFor(`window.writes.length === ${count} && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"`);
       const saved = await evaluate('window.record.body');
       await validateDocument(`---\ntitle: Cards\n---\n\n${saved}`, { originalBody: original });
       return saved;
@@ -173,7 +173,7 @@ test('untitled grid and standalone cards edit their Markdown heading and body, p
       const block = `${heading}.closest('.collection-cardGrid')`;
       const save = async count => {
         await evaluate('document.querySelector(".top-save").click()');
-        await waitFor(`window.writes.length === ${count} && document.querySelector('.save-state').textContent === 'All changes saved'`);
+        await waitFor(`window.writes.length === ${count} && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"`);
         const body = await evaluate('window.record.body');
         await validateDocument(`---\ntitle: Cards\n---\n\n${body}`, { originalBody: original });
         return body;
@@ -229,7 +229,7 @@ test('September workgroup sections preserve headings and lists through body edit
     const editor = `${block}.querySelector('.tiptap').editor`;
     const save = async count => {
       await evaluate('document.querySelector(".top-save").click()');
-      await waitFor(`window.writes.length === ${count} && document.querySelector('.save-state').textContent === 'All changes saved'`);
+      await waitFor(`window.writes.length === ${count} && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"`);
       const body = await evaluate('window.record.body');
       await validateDocument(`---\ntitle: Cards\n---\n\n${body}`, { originalBody: original });
       return body;
