@@ -29,13 +29,17 @@ export function parseBodySyntax(source: string, format: SourceFormat = 'mdx') {
     extensions: [gfm(), directive(), ...(format === 'mdx' ? [mdxjs()] : [])],
     mdastExtensions: [gfmFromMarkdown(), directiveFromMarkdown(), ...(format === 'mdx' ? [mdxFromMarkdown()] : [])],
   });
-  const restoreTableText = (node: SyntaxNode, inTable = false) => {
+  const restoreLiteralText = (node: SyntaxNode, inTable = false, inComponent = false) => {
     inTable ||= node.type === 'table';
-    if (inTable && node.type === 'textDirective') {
+    inComponent ||= ['mdxJsxFlowElement', 'mdxJsxTextElement', 'containerDirective', 'leafDirective'].includes(node.type);
+    if (node.type === 'textDirective') {
       const raw = source.slice(node.position?.start.offset, node.position?.end.offset);
-      // Starlight restores unhandled inline directives as literal text. Only
-      // admit bare forms here: labels, attributes and custom syntax stay protected.
-      if (/^:[a-z\d][\w-]*$/i.test(raw) && !Object.keys(node.attributes || {}).length && !node.children?.length) {
+      // Numeric ratios and times in prose (4:3, 16:9, 10:30) are text,
+      // not directives. Keep labels/attributes protected, and preserve the
+      // existing broader handling of bare colon values inside tables. Do not
+      // expand the editable grammar inside existing components or directives.
+      const numericValue = !inComponent && /^:\d+$/.test(raw) && /\d/.test(source[node.position!.start.offset! - 1] || '');
+      if ((numericValue || inTable && /^:[a-z\d][\w-]*$/i.test(raw)) && !Object.keys(node.attributes || {}).length && !node.children?.length) {
         node.type = 'text';
         node.value = raw;
         delete node.name;
@@ -43,9 +47,9 @@ export function parseBodySyntax(source: string, format: SourceFormat = 'mdx') {
         delete node.children;
       }
     }
-    node.children?.forEach(child => restoreTableText(child, inTable));
+    node.children?.forEach(child => restoreLiteralText(child, inTable, inComponent));
   };
-  restoreTableText(tree);
+  restoreLiteralText(tree);
   return tree;
 }
 

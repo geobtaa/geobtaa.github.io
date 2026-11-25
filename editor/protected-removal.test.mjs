@@ -50,3 +50,18 @@ test('removal records survive multiple drafts, reopen and independently verified
   assert.ok(content.includes('Replacement.'));
   assert.ok(!content.includes('<Widget>') && !content.includes('<Other'));
 });
+
+test('replacing an HTML formatting list with ordinary numeric aspect ratios is a supported explicit removal', async () => {
+  const setup = '{/* Previous submission deadline: March 24, 2025. */}\n';
+  const list = '1. <strong>Aspect Ratio</strong>: Recommended between 4:3 and 16:9.\n1. <strong>File Name</strong>: `lastname_firstname_YYYY-MM-DD.jpg`.\n';
+  const originalBody = `${setup}\n${list}`;
+  const replacement = '1. **Aspect Ratio**: Recommended between 4:3 and 16:9.\n2. **File Name**: lastname\\_firstname\\_YYYY-MM-DD.jpg.\n';
+  const edited = `${setup}\n${replacement}`;
+  assert.equal(splitBody(replacement)[0].kind, 'markdown');
+  await validateDocument(wrap(edited), {originalBody, protectedRemovals:[list]});
+  await assert.rejects(validateDocument(wrap(edited), {originalBody}), /read-only content/);
+  await assert.rejects(validateDocument(wrap(replacement), {originalBody, protectedRemovals:[list]}), /read-only content/);
+  for (const directive of ['4:3[label]', '4:3{key="value"}', ':note[label]']) {
+    await assert.rejects(validateDocument(wrap(`${setup}\n${directive}\n`), {originalBody, protectedRemovals:[list]}));
+  }
+});

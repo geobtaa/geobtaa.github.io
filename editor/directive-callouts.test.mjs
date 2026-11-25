@@ -72,7 +72,7 @@ test('unknown directives, custom attributes, rich titles, unsupported children a
   assert.equal(splitBody(nested)[0].kind, 'protected');
   const ordinary = 'At 10:30, the ratio is 11.68:1.';
   assert.equal(parseDirectiveCallout(ordinary), null);
-  assert.equal(splitBody(ordinary)[0].kind, 'protected', 'bare colon text is outside this change');
+  assert.equal(splitBody(ordinary)[0].kind, 'markdown', 'numeric ratios and times are ordinary text, not callouts');
 });
 
 test('matching keeps adjacent callouts and following text separate and never consumes an implicit EOF close', () => {
