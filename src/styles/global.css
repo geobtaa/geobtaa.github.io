@@ -184,6 +184,10 @@ color: #FFFFFF;
   opacity: 1;
 }
 
+:root[data-theme="light"] .header starlight-theme-select :is(label, option) {
+  color: var(--btaa-white);
+}
+
 /* ========== DARK THEME ========== */
 :root[data-theme="dark"] {
 /* --sl-color-bg-nav:      var(--btaa-dark-blue); */
