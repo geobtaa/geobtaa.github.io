@@ -34,7 +34,7 @@ export function DocumentPreview({ project, area, apiBase }: { project: Project; 
   const authors = (project.authors || []).map(author => typeof author === 'string' ? author : author.name).filter(name => name.trim());
   const date = calendarDate(project.date);
   return <section id="document-preview" aria-label="Document preview">
-    <p className="preview-notice">Preview of current content, including unsaved changes. Protected Markdown and components appear as placeholders. Page setup is preserved and omitted from this preview. Links open in a new tab.</p>
+    <p className="preview-notice">Preview of current content, including unsaved changes.</p>
     <article className="cms-preview">
       <header className="preview-header">
         {project.metadata?.hidePageTitle
