@@ -16,6 +16,8 @@ import TwoThirdsLayout from 'src/components/TwoThirdsLayout.astro';
 import CenterLayout from 'src/components/CenterLayout.astro';
 import ChipList from 'src/components/ChipList.astro';
 import { Card, CardGrid } from '@astrojs/starlight/components';
+import CmsMetrics from 'src/components/editor-blocks/Metrics.astro';
+import { LinkCard } from '@astrojs/starlight/components';
 
 <div class="monthly-highlight">
 
@@ -131,7 +133,10 @@ In the weeks ahead, we will continue refining these themes and begin shaping the
 
 ### Collections
 
-<p class="records-total">Total records as of December 1, 2025: **117,922**</p>
+
+
+
+<CmsMetrics items="[{&quot;label&quot;:&quot;Total records as of December 1, 2025&quot;,&quot;value&quot;:&quot;117,922&quot;}]" />
 
 ### Harvesting Activities
 
@@ -153,4 +158,11 @@ In the weeks ahead, we will continue refining these themes and begin shaping the
 
 ## Priority Projects Update
 
-<a href="https://github.com/orgs/geobtaa/projects/22/views/6">Refer to our Priority Projects board.</a>
+
+
+
+<LinkCard
+  title="Priority Projects board"
+  href="https://github.com/orgs/geobtaa/projects/22/views/6"
+/>
+
