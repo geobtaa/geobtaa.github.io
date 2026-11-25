@@ -97,10 +97,15 @@ test('temporary request failures preserve background progress without certifying
   assert.match(await evaluate('document.querySelector(".publication-notice").textContent'),/Your draft is safe/);
  },{initialSearch:'?area=library&file=report.mdx'});
 });
-test('View live page uses only verified public URLs and stays beside Edit / Preview',options,async()=>{
+test('View published page uses only verified public URLs and stays beside Edit / Preview',options,async()=>{
  await withEditorBrowser(setup("{state:'none',website:{publication:'published',liveUrl:'https://gin.btaa.org/custom/published/'}}"),async({evaluate,waitFor})=>{
   await waitFor('!!document.querySelector(".view-live-page")');
   assert.equal(await evaluate('document.querySelector(".view-live-page").href'),'https://gin.btaa.org/custom/published/');
+  assert.equal(await evaluate('document.querySelector(".view-live-page").textContent.trim()'),'View published page');
+  assert.equal(await evaluate('document.querySelector(".application-header-links > a").textContent.trim()'),'gin.btaa.org');
+  assert.equal(await evaluate('document.querySelectorAll(".application-header-links > a svg[aria-hidden=true], .view-live-page svg[aria-hidden=true]").length'),2);
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".view-live-page")).borderTopStyle'),'solid');
+  assert.equal(await evaluate('document.querySelector(".view-live-page").target'),'_blank');
   assert.equal(await evaluate('!!document.querySelector(".document-toolbar .view-live-page")'),true);
   for(const url of ['https://evil.test/page/','javascript:alert(1)','https://gin.btaa.org@evil.test/','https://gin.btaa.org/page/?draft=1']){
    await evaluate(`window.setStatus({state:'none',website:{publication:'published',liveUrl:${JSON.stringify(url)}}});${refresh}`);

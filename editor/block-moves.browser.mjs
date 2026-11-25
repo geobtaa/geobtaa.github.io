@@ -139,6 +139,7 @@ test('empty and final Text blocks can be removed immediately, restored, and repl
     await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()');
     await waitFor('!!document.querySelector(".text-block-footer button")');
+    assert.equal(await evaluate('document.querySelector(".text-block-empty")'), null, 'populated blocks have no misleading empty label before focus');
     // A DOM Range can race ProseMirror's selection observer. Use the same
     // native select-all synchronization as the card formatting regression.
     await evaluate("document.querySelector('.rich-editor .tiptap').focus()");
@@ -152,13 +153,14 @@ test('empty and final Text blocks can be removed immediately, restored, and repl
     })()`);
     await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
     await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
-    try { await waitFor('document.querySelector(".text-block-empty")?.textContent === "Empty Text block."'); }
+    try { await waitFor('document.querySelector(".rich-editor .tiptap")?.editor.isEmpty'); }
     catch (error) { throw new Error(`${error.message}; editor state: ${JSON.stringify(await evaluate(`(() => { const element=document.querySelector('.rich-editor .tiptap');return {text:element?.textContent,markdown:element?.editor?.getMarkdown(),selection:element?.editor?.state.selection.toJSON()}; })()`))}`); }
+    assert.equal(await evaluate('document.querySelector(".text-block-empty")'), null, 'the label is also omitted for genuinely empty blocks');
     await evaluate('document.querySelector(".text-block-footer button").click()');
     await waitFor('!!document.querySelector(".empty-body") && !document.querySelector(".rich-editor")');
     assert.equal(await evaluate('document.activeElement.tagName'), 'SUMMARY');
     await evaluate('document.querySelector(".block-removal-notice button").click()');
-    await waitFor('!!document.querySelector(".rich-editor") && !!document.querySelector(".text-block-empty")');
+    await waitFor('document.querySelector(".rich-editor .tiptap")?.editor.isEmpty');
     await evaluate('document.querySelector(".text-block-footer button").click()');
     await waitFor('!!document.querySelector(".empty-body")');
     await evaluate('document.querySelector(".top-save").click()');
