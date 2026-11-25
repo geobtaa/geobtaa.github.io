@@ -35,6 +35,9 @@ export function usePublicationProgress(path: string, load: (path: string, signal
   const [status, setStatus] = useState<PublicationState | null>(null);
   const lastSubmitted = useRef<PublicationState | undefined>(undefined);
   const [retry, setRetry] = useState(0);
+  const manualRefresh = useRef(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState('');
   useEffect(() => {
     if (!enabled) return;
     let active = true, running = false, continuing = true, reads = 0, failures = 0;
@@ -44,6 +47,7 @@ export function usePublicationProgress(path: string, load: (path: string, signal
     const check = async () => {
       if (!active || running || document.visibilityState === 'hidden') return;
       running = true; reads++;
+      const manual = manualRefresh.current;
       let pending = false;
       try {
         const result = await load(path, controller.signal);
@@ -51,12 +55,15 @@ export function usePublicationProgress(path: string, load: (path: string, signal
         if (active) setStatus(previous => result.state === 'checking' ? { ...previous, ...result, state: previous?.state || 'checking', verificationPending: true } : { ...result, verificationPending: result.website?.publication === 'unavailable' });
         failures = result.state === 'checking' || result.website?.publication === 'unavailable' ? failures + 1 : 0;
         pending = publicationPending(result) || result.website?.publication === 'unavailable';
+        if (active && manual) setRefreshMessage(result.state === 'checking' || result.website?.publication === 'unavailable' ? 'Status could not be verified. We’ll check automatically.' : 'Status check complete. The latest result is shown above.');
       } catch (error) {
         failures++;
         if (active) setStatus(previous => ({ ...previous, state: previous?.state || 'checking', verificationPending: true, message: `Status unavailable. ${(error as Error).message} Your saved work is safe.` }));
         pending = true;
+        if (active && manual) setRefreshMessage('Status could not be verified. We’ll check automatically.');
       } finally {
         running = false; continuing = pending;
+        if (active && manual) { manualRefresh.current = false; setRefreshing(false); }
         if (active && pending) timer = setTimeout(() => { void check(); }, Math.min(120_000, 20_000 * 2 ** Math.min(3, failures + Math.floor(reads / 15))));
       }
     };
@@ -69,7 +76,11 @@ export function usePublicationProgress(path: string, load: (path: string, signal
     void check();
     return () => { active = false; clearTimeout(timer); controller.abort(); document.removeEventListener('visibilitychange', resume); };
   }, [path, load, enabled, head, refreshVersion, retry, submitted]);
-  return { status, checkAgain: () => setRetry(value => value + 1) };
+  return { status, refreshing, refreshMessage, checkAgain: () => {
+    if (manualRefresh.current) return;
+    manualRefresh.current = true; setRefreshing(true); setRefreshMessage('');
+    setRetry(value => value + 1);
+  } };
 }
 
 // Only deployment-verified API data may provide this URL, never form metadata.

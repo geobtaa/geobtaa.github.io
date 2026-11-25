@@ -9,7 +9,7 @@ export function PublicationStatus({ path, head, sha, dirty, hasDraft = true, pre
   onAutoMerge?: (status: PublicationState, enabled: boolean) => void; onAutoMergeAvailable?: (available: boolean) => void; onStatus?: (status: PublicationState) => void; technicalError?: string; technicalDetails?: ReactNode;
   onUnpublish?: (automatically?: boolean) => void; submitted?: PublicationState;
 }) {
-  const { status, checkAgain } = usePublicationProgress(path, load, { head, refreshVersion, submitted });
+  const { status, checkAgain, refreshing, refreshMessage } = usePublicationProgress(path, load, { head, refreshVersion, submitted });
   useEffect(() => { if (status) onStatus?.(status); }, [status, onStatus]);
   const current = status || { state: 'checking' }, pr = prLink(current);
   useEffect(() => { onAutoMergeAvailable?.(current.autoMergeEnabled === true); }, [current.autoMergeEnabled, onAutoMergeAvailable]);
@@ -65,10 +65,11 @@ export function PublicationStatus({ path, head, sha, dirty, hasDraft = true, pre
       {technicalError && <p>{technicalError}</p>}{technicalDetails}
       <div className="publication-notice-actions">
         {pr && <a href={pr} target="_blank" rel="noopener noreferrer">Publication request #{current.number} on GitHub</a>}
-        <button className="publication-text-action" type="button" disabled={disabled} onClick={checkAgain}>Refresh status</button>
+        <button className="publication-text-action publication-refresh" type="button" disabled={disabled || refreshing} onClick={checkAgain}>{refreshing ? 'Refreshing…' : 'Refresh status'}</button>
         {canRetry && unpublishing && <button className="publication-text-action" type="button" disabled={disabled || dirty} onClick={() => current.state === 'pr-open' ? onAutoMerge?.(current, true) : onRetry(current.selectedHead!, current.action)}>Resume unpublishing</button>}
         {current.autoMerge === true && ['pr-open', 'conflict', 'checking'].includes(current.state) && onAutoMerge && <button className="publication-text-action" type="button" disabled={disabled} onClick={() => onAutoMerge(current, false)}>{unpublishing ? 'Cancel unpublishing' : 'Cancel publishing'}</button>}
       </div>
+      <p className="publication-refresh-feedback" role="status">{refreshMessage || '\u00a0'}</p>
       {current.autoMerge === true && !applied && <p className="publication-cancellation-limit">Cancellation stops a pending action. It cannot undo changes already accepted for deployment.</p>}
     </details>
     {actionTarget && onUnpublish && createPortal(<button className="unpublish-document" type="button" title={unpublishReason} disabled={disabled || !!unpublishReason} onClick={() => onUnpublish(true)}>Unpublish</button>, actionTarget)}
