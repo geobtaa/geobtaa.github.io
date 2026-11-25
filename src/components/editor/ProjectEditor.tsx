@@ -1142,7 +1142,7 @@ export default function ProjectEditor() {
     </main>
   );
 
-  const accountHeader = <><ApplicationHeader><button className="link-button" type="button" disabled={busy} onClick={logout}>Sign out</button></ApplicationHeader>{!area && <p>Signed in as <strong>{viewer}</strong>.</p>}</>;
+  const accountHeader = <><ApplicationHeader />{!area && <p>Signed in as <strong>{viewer}</strong> · <button className="link-button" type="button" disabled={busy} onClick={logout}>Sign out</button></p>}</>;
 
   if (!area || !config) return (
     <main className="editor-shell">

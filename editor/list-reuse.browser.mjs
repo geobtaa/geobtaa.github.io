@@ -34,6 +34,8 @@ test('content areas use staff-facing labels and keep account and shared-draft ex
   const shared='Saved drafts can be viewed and edited by other authorized editors.';
   await waitFor('!!document.querySelector(".dashboard-card")');
   assert.match(await evaluate('document.body.textContent'),/Signed in as test-editor/);
+  assert.equal(await evaluate('[...document.querySelectorAll("p")].some(p=>p.textContent.startsWith("Signed in as test-editor") && p.querySelector("button")?.textContent==="Sign out")'),true);
+  assert.equal(await evaluate('document.querySelector(".application-header button")'),null);
   assert.equal(await evaluate(`document.body.textContent.split(${JSON.stringify(shared)}).length-1`),1);
   await evaluate('[...document.querySelectorAll(".dashboard-card")].find(button=>button.textContent.includes("Library")).click()');
   await waitFor('document.querySelectorAll(".project-list button").length===4');
@@ -41,13 +43,14 @@ test('content areas use staff-facing labels and keep account and shared-draft ex
   assert.equal(await evaluate('document.querySelector(".list-heading").nextElementSibling.textContent'),intro);
   assert.equal(await evaluate(`document.body.textContent.includes(${JSON.stringify(shared)})`),false);
   assert.doesNotMatch(await evaluate('document.body.textContent'),/Signed in as|On main|New saved draft|Saved work available|Published content comes from/);
-  assert.equal(await evaluate('[...document.querySelectorAll("button")].some(button=>button.textContent==="Sign out")'),true);
+  assert.equal(await evaluate('[...document.querySelectorAll("button")].some(button=>button.textContent==="Sign out")'),false);
   const badges=await evaluate('[...document.querySelectorAll(".project-list button")].map(button=>({name:button.querySelector(".content-name").textContent,badges:[...button.querySelectorAll(".visibility-badge")].map(badge=>badge.textContent)}))');
   assert.deepEqual(Object.fromEntries(badges.map(row=>[row.name,row.badges])),{new:['New draft'],published:[],review:['Needs review'],revised:['Unpublished changes']});
   assert.deepEqual(await evaluate('window.requests'),['/api/session','/api/content/library']);
   await evaluate('document.querySelector(".project-list button").click()');
   await waitFor('!!document.querySelector(".editor-workspace")');
   assert.doesNotMatch(await evaluate('document.body.textContent'),/Signed in as|Saved drafts can be viewed and edited/);
+  assert.equal(await evaluate('[...document.querySelectorAll("button")].some(button=>button.textContent==="Sign out")'),false);
  });
 });
 
