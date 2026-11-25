@@ -75,9 +75,10 @@ export default defineConfig({
     '/updates/': '/blog/',
     '/policies/harmful-language': '/library/harmful-language',
     '/policies/collection-development': '/library/collection-development',
-    '/citation': '/guides/data-cite/',
+    '/citation': '/guides/citation/',
+    '/guides/data-cite/': '/guides/citation/',
     '/mapgallery': '/conference/map-gallery/',
-    "/tools/data-citation": "/guides/data-cite/"
+    "/tools/data-citation": "/guides/citation/"
   },
   integrations: [
     starlight({
