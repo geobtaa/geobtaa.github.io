@@ -4,6 +4,7 @@ import { publicationAction, actionMetadata, publicationContent } from './publica
 import { publicationBaseKey } from './draftIdentity.mjs';
 import { activeDraft } from './draftCycles.mjs';
 import { compareAncestry } from './gitComparison.mjs';
+import { parseContent } from './content.mjs';
 // Lightweight proposal submission only. The required trusted-base CI checker
 // remains the authority for complete draft, MDX, route, image and tree validation.
 import { readPublicationState } from './publicationCoordinator.mjs';
@@ -14,6 +15,11 @@ export const PUBLICATION_REQUEST_LIMIT = 40;
 const fail = (status, message) => Object.assign(new Error(message), { status });
 const write = data => ({ method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } });
 const retry = () => fail(503, 'Publication could not be confirmed within this request. The saved draft is intact. Refresh PR status, then retry the same saved revision.');
+function publicationTitle(content, filename, action) {
+  let title;
+  try { title = parseContent(content).title.replace(/\s+/g, ' ').trim(); } catch { /* CI validates document content. */ }
+  return `${action === 'unpublish' ? 'Unpublish' : 'Publish'}: ${title || filename}`;
+}
 export function createPublicationPRClient({ request, owner, repo, documentPath, draftBranch, digest }) {
   // Each public operation gets its own budget and immutable-object cache.
   function operation() {
@@ -186,7 +192,7 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
         op.reserve();
         const tree = await op.ask('/git/trees', write({ base_tree: main.tree.sha, tree: entries }));
         if (!SHA.test(tree.sha || '')) throw retry();
-        const next = await op.ask('/git/commits', write({ tree: tree.sha, parents: [mainHead], message: `[CF-Pages-Skip] Publish: ${filename}\n\nCMS-Publication-v1: ${JSON.stringify({ area, filename, selectedHead: head, attempt: ordinal, ...actionMetadata(action) })}` }));
+        const next = await op.ask('/git/commits', write({ tree: tree.sha, parents: [mainHead], message: `[CF-Pages-Skip] ${publicationTitle(candidate.content, filename, action)}\n\nCMS-Publication-v1: ${JSON.stringify({ area, filename, selectedHead: head, attempt: ordinal, ...actionMetadata(action) })}` }));
         if (!SHA.test(next.sha || '')) throw retry();
         attempt = { branch, head: next.sha, base: mainHead, attempt: ordinal };
         const state = { path: draft.path, selectedHead: head, ...actionMetadata(action), attempts: [...(held.state?.attempts || []), attempt] };
@@ -210,7 +216,13 @@ export function createPublicationPRClient({ request, owner, repo, documentPath, 
       if (await op.ref('heads/main') !== attempt.base || await op.ref(`heads/${held.branch}`) !== stateHead || await op.ref(`heads/${attempt.branch}`) !== attempt.head) throw fail(409, 'Publication changed concurrently. Retry the same saved revision.');
       if (!pr) {
         op.reserve();
-        try { pr = await op.ask('/pulls', write({ title: `${action === 'unpublish' ? 'Unpublish' : 'Publish'} ${filename}`, head: attempt.branch, base: 'main', body: `Selected CMS saved revision ${head}; attempt ${attempt.attempt}. This is a proposal, not a validation result. Wait for validate and cms-publication-scope, review the diff, then merge in GitHub. Do not use Update branch; recreate through the CMS if main advances.` })); }
+        // Use the reserved snapshot even when recovering an interrupted request.
+        const [page] = await op.files([{ head: attempt.head, path: draft.path }], true);
+        if (!page) throw retry();
+        const title = publicationTitle(page.text, filename, action);
+        const link = `https://github.com/${owner}/${repo}/blob/${attempt.head}/${draft.path.split('/').map(encodeURIComponent).join('/')}`;
+        const body = `${action === 'unpublish' ? 'Removes this page from the published website' : 'Publishes saved changes to this page'} through the CMS.\n\nPage: [${area}/${filename}](${link})`;
+        try { pr = await op.ask('/pulls', write({ title, head: attempt.branch, base: 'main', body })); }
         catch (error) { [pr] = await op.pullRequests([attempt]); if (!pr) throw error; }
       }
       op.verifyPR(pr, attempt);
