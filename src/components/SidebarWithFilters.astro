@@ -1,4 +1,5 @@
 ---
+import NewsSidebar from './NewsSidebar.astro';
 import MobileMenuFooter from '@astrojs/starlight/components/MobileMenuFooter.astro';
 import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro';
 import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro';
@@ -41,7 +42,7 @@ const filteredSidebar = sidebar.filter((entry) => {
       </a>
     ))}
   </nav>
-  <SidebarSublist sublist={filteredSidebar} />
+  {activeNavGroup === 'blog' ? <NewsSidebar /> : <SidebarSublist sublist={filteredSidebar} />}
 </SidebarPersister>
 
 <div class="md:sl-hidden">

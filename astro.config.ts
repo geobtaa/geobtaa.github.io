@@ -104,6 +104,7 @@ export default defineConfig({
         Header: './src/components/Header.astro',
         Sidebar: './src/components/SidebarWithFilters.astro',
         PageTitle: './src/components/PageTitleWithMeta.astro',
+        Pagination: './src/components/NewsPagination.astro',
       },
       plugins: [
         starlightImageZoom(),

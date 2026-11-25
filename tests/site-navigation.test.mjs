@@ -15,7 +15,7 @@ const directChild = (node, name) => [...node.children].find((child) => child.loc
 const pages = [];
 for await (const filename of glob('**/*.html', { cwd: dist })) {
   const { document } = parseHTML(await readFile(`${dist}/${filename}`, 'utf8'));
-  const sidebar = document.querySelector('sl-sidebar-state-persist > ul.top-level');
+  const sidebar = document.querySelector('sl-sidebar-state-persist > ul.top-level, [data-news-sidebar]');
   if (sidebar) {
     pages.push({
       path: `/${filename.replace(/index\.html$/, '')}`,
@@ -25,12 +25,13 @@ for await (const filename of glob('**/*.html', { cwd: dist })) {
   }
 }
 
-const dates = new Map();
+const publishedNews = new Map();
 for await (const filename of glob('**/*.{md,mdx}', { cwd: content })) {
   const source = await readFile(`${content}/${filename}`, 'utf8');
   const frontmatter = parse(source.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? '');
   const date = frontmatter?.date ? new Date(frontmatter.date).valueOf() : 0;
-  dates.set(`/${filename.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '')}/`, date);
+  const url = `/${filename.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '')}/`;
+  if (/^(posts|updates)\//.test(filename) && frontmatter.draft !== true) publishedNews.set(url, { date, title: frontmatter.title });
 }
 
 function assertCollapsed(details, collapsed, path) {
@@ -70,44 +71,48 @@ test('built sidebars preserve configured organization, labels, and initial colla
   for (const page of pages) {
     const group = NAV_GROUPS.find(({ id }) => id === deriveGroupFromPath(page.path));
     assert.ok(group, `${page.path}: sidebar has a navigation group`);
-    assertOrganization(page.sidebar, group.sidebar, page.path);
+    if (group.id === 'blog') {
+      const archiveLinks = [...page.sidebar.querySelectorAll('.archive-links a')];
+      assert.deepEqual(archiveLinks.map(link => link.getAttribute('href')), ['/blog/']);
+      const stories = [...page.sidebar.querySelectorAll('.recent-stories a')];
+      const expectedStories = [...publishedNews].filter(([url]) => url.startsWith('/posts/')).sort((a, b) => b[1].date - a[1].date).slice(0, 5).map(([url]) => url);
+      assert.deepEqual(stories.map(link => link.getAttribute('href')), expectedStories, `${page.path}: only five recent stories`);
+      const recent = [...page.sidebar.querySelectorAll('.recent-updates a')];
+      const expected = [...publishedNews].filter(([url]) => url.startsWith('/updates/')).sort((a, b) => b[1].date - a[1].date).slice(0, 5).map(([url]) => url);
+      assert.deepEqual(recent.map(link => link.getAttribute('href')), expected, `${page.path}: only five recent updates`);
+      assert.equal(page.sidebar.querySelectorAll('details').length, 0);
+    } else assertOrganization(page.sidebar, group.sidebar, page.path);
   }
 });
 
-test('reverse-chronological groups and previous/next navigation agree on every built post and update', () => {
-  const sortedLabels = new Set();
-  function collect(entries) {
-    for (const entry of entries) {
-      if (entry.kind === 'autogenerate' && entry.sort === 'reverse-date') sortedLabels.add(entry.label);
-      if (entry.kind === 'group') collect(entry.items);
-    }
-  }
-  NAV_GROUPS.forEach(({ sidebar }) => collect(sidebar));
-  assert.ok(sortedLabels.size > 0, 'configuration exercises reverse-date sorting');
-  let checked = 0;
+test('every update links to its adjacent older/newer update and every story offers other stories', () => {
+  const updates = [...publishedNews].filter(([url]) => url.startsWith('/updates/')).sort((a, b) => b[1].date - a[1].date).map(([url]) => url);
+  let updateCount = 0;
+  let storyCount = 0;
   for (const page of pages) {
-    for (const details of page.sidebar.querySelectorAll('details')) {
-      const label = normalizeText(details.querySelector('summary .large'));
-      if (!sortedLabels.has(label)) continue;
-      const links = [...details.querySelectorAll('a[href]')];
-      assert.ok(links.length > 0, `${page.path}: ${label} is populated`);
-      const timestamps = links.map((link) => {
+    if (page.path.startsWith('/updates/')) {
+      const index = updates.indexOf(page.path);
+      assert.ok(index >= 0, `${page.path}: is a published update`);
+      const nav = page.document.querySelector('[data-news-pagination]');
+      assert.ok(nav);
+      assert.equal(nav.querySelector('[rel="prev"]')?.getAttribute('href'), updates[index + 1], `${page.path}: older neighbor`);
+      assert.equal(nav.querySelector('[rel="next"]')?.getAttribute('href'), updates[index - 1], `${page.path}: newer neighbor`);
+      updateCount++;
+    }
+    if (page.path.startsWith('/posts/')) {
+      const section = page.document.querySelector('[data-more-stories]');
+      assert.ok(section);
+      const links = [...section.querySelectorAll('li a')];
+      assert.equal(links.length, Math.min(3, [...publishedNews.keys()].filter(url => url.startsWith('/posts/') && url !== page.path).length));
+      links.forEach(link => {
         const href = link.getAttribute('href');
-        assert.ok(dates.has(href), `${page.path}: ${href} resolves to source content`);
-        const timestamp = dates.get(href);
-        assert.ok(Number.isFinite(timestamp), `${href}: date is valid`);
-        return timestamp;
+        assert.notEqual(href, page.path);
+        assert.ok(publishedNews.has(href));
+        assert.ok(href.startsWith('/posts/'));
       });
-      assert.deepEqual(timestamps, [...timestamps].sort((a, b) => b - a),
-        `${page.path}: ${label} is newest first`);
-      const current = links.findIndex((link) => link.getAttribute('aria-current') === 'page');
-      if (current === -1) continue;
-      assert.equal(page.document.querySelector('.pagination-links a[rel="prev"]')?.getAttribute('href'),
-        links[current - 1]?.getAttribute('href'), `${page.path}: previous is the adjacent newer entry`);
-      assert.equal(page.document.querySelector('.pagination-links a[rel="next"]')?.getAttribute('href'),
-        links[current + 1]?.getAttribute('href'), `${page.path}: next is the adjacent older entry`);
-      checked += 1;
+      storyCount++;
     }
   }
-  assert.ok(checked > 0, 'checks cover built entries in the sorted groups');
+  assert.equal(updateCount, updates.length);
+  assert.equal(storyCount, [...publishedNews.keys()].filter(url => url.startsWith('/posts/')).length);
 });

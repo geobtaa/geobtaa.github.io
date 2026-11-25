@@ -32,11 +32,12 @@ const knownIssue = reason => ({ ...options, ...(process.env.FILTER_REVIEW_STRICT
 before(async () => {
   if (!chrome && !process.env.CI) return;
   directory = await realpath(await mkdtemp(join(resolve('.'), '.filter-browser-')));
-  for (const folder of ['src/pages/blog', 'src/pages/library', 'src/components', 'src/utils', 'src/content', 'src/content/i18n', 'src/assets/images']) {
+  for (const folder of ['src/pages/blog', 'src/pages/library', 'src/components', 'src/utils', 'src/scripts', 'src/content', 'src/content/i18n', 'src/assets/images']) {
     await mkdir(join(directory, folder), { recursive: true });
   }
   for (const file of ['tsconfig.json', 'src/content.config.ts', 'src/content/BlogSchema.ts',
     'src/pages/blog/index.astro', 'src/pages/library/index.astro', 'src/components/ContentGrid.astro',
+    'src/components/BlogArchive.astro', 'src/scripts/blogArchive.ts', 'src/utils/blogArchive.ts',
     'src/components/PageFilterSection.astro', 'src/components/FilterPanel.astro',
     'src/utils/blogContent.ts', 'src/utils/libraryContent.ts', 'src/utils/filterConfig.ts']) {
     await copyFile(file, join(directory, file));
@@ -75,7 +76,7 @@ async function browse(run) {
       const origin = await evaluate('location.origin');
       const previous = await evaluate('performance.timeOrigin');
       await send('Page.navigate', { url: origin + path });
-      await waitFor(`performance.timeOrigin !== ${previous} && !!document.querySelector('form[data-filter-ready="true"]')`);
+      await waitFor(`performance.timeOrigin !== ${previous} && !!document.querySelector('form[data-filter-ready="true"], [data-blog-archive][data-ready]')`);
     };
     const visible = context => evaluate(`Array.from(document.querySelectorAll('[data-${context}-card]')).filter(el => getComputedStyle(el).display !== 'none').map(el => el.querySelector('h3, .library-list__link').textContent.trim())`);
     const choose = async (name, value) => {
@@ -86,48 +87,35 @@ async function browse(run) {
   }, { builtDirectory: join(directory, 'dist') });
 }
 
-for (const context of ['blog', 'library']) {
-  test(`${context}: individual controls, combined selections, badges, empty results and clearing`, options, async () => {
-    await browse(async ({ visit, visible, choose, clear, evaluate }) => {
-      await visit(`/${context}/`);
-      const all = context === 'blog' ? ['Coastal atlas', 'Urban survey', 'River update', 'Solo story', 'Object story', 'Bare story'] : ['Map handbook', 'Coastal report', 'Undated memo'];
-      assert.deepEqual(await visible(context), all);
-      await choose('tag', 'Maps');
-      assert.deepEqual(await visible(context), context === 'blog' ? ['Coastal atlas', 'Urban survey'] : ['Map handbook', 'Coastal report']);
-      await choose('year', '2026');
-      assert.deepEqual(await visible(context), [all[0]]);
-      await choose('year', '2025');
-      assert.deepEqual(await visible(context), all.slice(0, 2));
-      assert.equal(await evaluate('document.querySelector("[data-filter-count=years]").textContent.trim()'), '2');
-      assert.equal(await evaluate('document.querySelector("[data-filter-count=tags]").textContent.trim()'), '1');
-      await choose('tag', context === 'blog' ? 'Water' : 'Guide');
-      assert.deepEqual(await visible(context), [all[0]]);
-      await choose('year', '2026');
-      assert.deepEqual(await visible(context), []);
-      assert.equal(await evaluate(`document.querySelector('[data-${context}-empty]').hidden`), false);
-      await clear();
-      assert.deepEqual(await visible(context), all);
-      assert.equal(await evaluate(`document.querySelector('[data-${context}-empty]').hidden`), true);
-      assert.equal(await evaluate('document.querySelectorAll(".filter-panel input:checked").length'), 0);
-      assert.equal(await evaluate('location.search'), '');
-      await choose('year', '2025');
-      assert.deepEqual(await visible(context), [all[1]]);
-      await clear();
-      if (context === 'blog') {
-        await choose('author', 'Ana');
-        assert.deepEqual(await visible(context), all.slice(0, 2));
-        await choose('author', 'Ben');
-        assert.deepEqual(await visible(context), ['Coastal atlas']);
-        await choose('tag', 'Water');
-        assert.deepEqual(await visible(context), ['Coastal atlas']);
-        assert.equal(await evaluate('document.querySelector("[data-filter-count=authors]").textContent.trim()'), '2');
-      } else {
-        assert.equal(await evaluate('document.querySelectorAll("input[name=author]").length'), 0);
-        assert.equal(await evaluate('document.querySelector("[data-filter-section=tags] summary").textContent.trim()'), 'Type');
-      }
-    });
+test('Library controls, combined selections, badges, empty results and clearing', options, async () => {
+  await browse(async ({ visit, visible, choose, clear, evaluate }) => {
+    await visit('/library/');
+    const all = ['Map handbook', 'Coastal report', 'Undated memo'];
+    assert.deepEqual(await visible('library'), all);
+    await choose('tag', 'Maps');
+    assert.deepEqual(await visible('library'), all.slice(0, 2));
+    await choose('year', '2026');
+    assert.deepEqual(await visible('library'), [all[0]]);
+    await choose('year', '2025');
+    assert.deepEqual(await visible('library'), all.slice(0, 2));
+    assert.equal(await evaluate('document.querySelector("[data-filter-count=years]").textContent.trim()'), '2');
+    assert.equal(await evaluate('document.querySelector("[data-filter-count=tags]").textContent.trim()'), '1');
+    await choose('tag', 'Guide');
+    assert.deepEqual(await visible('library'), [all[0]]);
+    await choose('year', '2026');
+    assert.deepEqual(await visible('library'), []);
+    assert.equal(await evaluate('document.querySelector("[data-library-empty]").hidden'), false);
+    await clear();
+    assert.deepEqual(await visible('library'), all);
+    assert.equal(await evaluate('document.querySelector("[data-library-empty]").hidden'), true);
+    assert.equal(await evaluate('document.querySelectorAll(".filter-panel input:checked").length'), 0);
+    assert.equal(await evaluate('location.search'), '');
+    await choose('year', '2025');
+    assert.deepEqual(await visible('library'), [all[1]]);
+    assert.equal(await evaluate('document.querySelectorAll("input[name=author]").length'), 0);
+    assert.equal(await evaluate('document.querySelector("[data-filter-section=tags] summary").textContent.trim()'), 'Type');
   });
-}
+});
 
 test('optional search control supports keyboard input, combined filters, counts and clearing', options, async () => {
   await browse(async ({ visit, visible, evaluate, send, arrow, choose, clear }) => {
@@ -163,7 +151,7 @@ test('optional search control supports keyboard input, combined filters, counts 
   });
 });
 
-for (const context of ['blog', 'library']) {
+for (const context of ['library']) {
   test(`${context}: URL filters reload and cross-page Back/Forward remain isolated`, options, async () => {
     await browse(async ({ visit, visible, evaluate, send, waitFor }) => {
       await visit(`/${context}/?tag=Maps&year=2025`);
@@ -172,16 +160,16 @@ for (const context of ['blog', 'library']) {
       assert.equal(await evaluate('document.querySelectorAll("input:checked").length'), 2);
       const time = await evaluate('performance.timeOrigin');
       await send('Page.reload');
-      await waitFor(`performance.timeOrigin !== ${time} && !!document.querySelector('[data-filter-ready=true]')`);
+      await waitFor(`performance.timeOrigin !== ${time} && !!document.querySelector('[data-filter-ready=true], [data-blog-archive][data-ready]')`);
       assert.deepEqual(await visible(context), [expected]);
-      const other = context === 'blog' ? 'library' : 'blog';
-      await visit(`/${other}/?tag=${other === 'blog' ? 'People' : 'Guide'}`);
+      const other = 'blog';
+      await visit('/blog/?q=Solo');
       assert.deepEqual(await visible(other), [other === 'blog' ? 'Solo story' : 'Map handbook']);
       await evaluate('history.back()');
-      await waitFor(`location.pathname === '/${context}/' && !!document.querySelector('[data-filter-ready=true]')`);
+      await waitFor(`location.pathname === '/${context}/' && !!document.querySelector('[data-filter-ready=true], [data-blog-archive][data-ready]')`);
       assert.deepEqual(await visible(context), [expected]);
       await evaluate('history.forward()');
-      await waitFor(`location.pathname === '/${other}/' && !!document.querySelector('[data-filter-ready=true]')`);
+      await waitFor(`location.pathname === '/${other}/' && !!document.querySelector('[data-filter-ready=true], [data-blog-archive][data-ready]')`);
       assert.deepEqual(await visible(other), [other === 'blog' ? 'Solo story' : 'Map handbook']);
     });
   });
@@ -194,7 +182,7 @@ test('URL search handles case, punctuation and Library scalar/object authors; hi
       ['/library/?q=Dana', 'library', ['Map handbook']],
       ['/library/?q=Eli', 'library', ['Coastal report']],
       ['/library/?q=does-not-exist', 'library', []],
-      ['/blog/?tag=A%2FB&tag=A+B', 'blog', ['Urban survey']],
+      ['/blog/?q=Urban+survey', 'blog', ['Urban survey']],
       ['/library/?author=Ana&tag=Guide', 'library', ['Map handbook']],
     ]) {
       await visit(url);
@@ -204,9 +192,10 @@ test('URL search handles case, punctuation and Library scalar/object authors; hi
   });
 });
 
-// Confirmed defects: do not change expected results to match these bugs.
+// The Library has a pre-existing search persistence defect; News coverage is in tests/news-archive.browser.mjs.
+// Do not change expected results to match the Library bug.
 // Remove the TODO designation when each corresponding production fix is made.
-for (const context of ['blog', 'library']) {
+for (const context of ['library']) {
   test(`${context}: changing a checkbox preserves an active URL search`, knownIssue('Page config omits the search input; checkbox changes discard q'), async () => {
     await browse(async ({ visit, visible, choose, evaluate }) => {
       await visit(`/${context}/?q=coastal`);
@@ -218,40 +207,20 @@ for (const context of ['blog', 'library']) {
   });
 }
 
-for (const [author, title] of [['Solo Editor', 'Solo story'], ['Object Editor', 'Object story']]) test(`Blog author filtering includes schema-supported ${author}`, knownIssue('Blog loader ignores scalar/object authors accepted by the schema'), async () => {
-  await browse(async ({ visit, visible, evaluate }) => {
-    await visit('/blog/?' + new URLSearchParams({ author }));
-    assert.deepEqual(await visible('blog'), [title]);
-    assert.ok((await evaluate('[...document.querySelectorAll("input[name=author]")].map(el=>el.value)')).includes(author));
-  });
-});
-
-test('changing a filter preserves oldest-first ordering supplied through the URL', knownIssue('Form has no sort control; checkbox changes discard sort=oldest'), async () => {
-  await browse(async ({ visit, visible, choose, evaluate }) => {
-    await visit('/blog/?sort=oldest&tag=Maps');
-    assert.deepEqual(await visible('blog'), ['Urban survey', 'Coastal atlas']);
-    await choose('author', 'Ana');
-    assert.equal(await evaluate('new URLSearchParams(location.search).get("sort")'), 'oldest');
-    assert.deepEqual(await visible('blog'), ['Urban survey', 'Coastal atlas']);
-  });
-});
-
-
-test('current page wiring has no search input; filter changes replace rather than grow history', options, async () => {
+test('Library filters and News search stay isolated across history navigation', options, async () => {
   await browse(async ({ visit, choose, evaluate, visible, waitFor }) => {
     await visit('/library/');
     assert.equal(await evaluate('document.querySelectorAll(".filter-panel input[name=q]").length'), 0);
     await visit('/blog/');
-    assert.equal(await evaluate('document.querySelectorAll(".filter-panel input[name=q]").length'), 0);
+    assert.equal(await evaluate('document.querySelectorAll("[data-archive-controls] input[name=q]").length'), 1);
     const length = await evaluate('history.length');
-    await choose('tag', 'Maps');
-    await choose('year', '2025');
+    await evaluate(`document.querySelector('[name=type][value=post]').click(); const year = document.querySelector('#archive-year'); year.value = '2025'; year.dispatchEvent(new Event('change', {bubbles:true}));`);
     assert.equal(await evaluate('history.length'), length);
     await evaluate('history.back()');
-    await waitFor('location.pathname === "/library/" && !!document.querySelector("[data-filter-ready=true]")');
+    await waitFor('location.pathname === "/library/" && !!document.querySelector("[data-filter-ready=true], [data-blog-archive][data-ready]")');
     assert.deepEqual(await visible('library'), ['Map handbook', 'Coastal report', 'Undated memo']);
     await evaluate('history.forward()');
-    await waitFor('location.pathname === "/blog/" && !!document.querySelector("[data-filter-ready=true]")');
+    await waitFor('location.pathname === "/blog/" && !!document.querySelector("[data-filter-ready=true], [data-blog-archive][data-ready]")');
     assert.deepEqual(await visible('blog'), ['Urban survey']);
   });
 });

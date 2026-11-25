@@ -1,0 +1,96 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import ContentGrid from './ContentGrid.astro';
+import { loadBlogContent } from '../utils/blogContent';
+import { BLOG_PAGE_SIZE, archivePageUrl } from '../utils/blogArchive';
+
+interface Props { page?: number }
+const { page = 1 } = Astro.props;
+const start = (page - 1) * BLOG_PAGE_SIZE;
+
+const { items, years } = await loadBlogContent();
+const pageCount = Math.ceil(items.length / BLOG_PAGE_SIZE);
+const sortedItems = [...items].sort((a, b) =>
+  (b.published?.getTime() ?? 0) - (a.published?.getTime() ?? 0) || a.id.localeCompare(b.id)
+);
+---
+
+<StarlightPage frontmatter={{
+  title: 'News & Stories',
+  description: 'Stories and program updates from the BTAA Geospatial Information Network.',
+  tableOfContents: false,
+  template: 'doc',
+  prev: false,
+  next: false,
+}}>
+  <div class="blog-archive" data-blog-archive data-page={page}>
+    <p class="archive-intro">Explore stories, collection highlights, and program updates</p>
+    <form class="archive-controls not-content" data-archive-controls hidden role="search" aria-label="Search News & Stories">
+      <div class="archive-search">
+        <input id="archive-search" name="q" type="search" aria-label="Search News & Stories" placeholder="Search titles and summaries" autocomplete="off" />
+      </div>
+      <fieldset>
+        <legend>Show</legend>
+        <div class="archive-types">
+          <label><input type="radio" name="type" value="all" checked />All</label>
+          <label><input type="radio" name="type" value="post" />Stories</label>
+          <label><input type="radio" name="type" value="update" />Program Updates</label>
+        </div>
+      </fieldset>
+      <label class="archive-year" for="archive-year">Year
+        <span class="select-wrap"><select id="archive-year" name="year">
+          <option value="">All years</option>
+          {years.map((year) => <option value={year}>{year}</option>)}
+        </select></span>
+      </label>
+      <button type="reset">Clear</button>
+    </form>
+    <p data-archive-count role="status" aria-live="polite" aria-atomic="true">Showing {Math.min(start + 1, items.length)}–{Math.min(start + BLOG_PAGE_SIZE, items.length)} of {items.length}</p>
+    <ContentGrid items={sortedItems} start={start} end={start + BLOG_PAGE_SIZE} />
+    <p data-archive-empty hidden>No posts match your search. Try another phrase or clear your selections.</p>
+    <div class="archive-more"><button type="button" data-archive-more hidden>View older posts</button></div>
+    <nav data-archive-pagination aria-label="News & Stories archive pages">
+      {Array.from({ length: pageCount }, (_, index) => <a href={archivePageUrl(index + 1)} aria-current={index + 1 === page ? 'page' : undefined}>Page {index + 1}</a>)}
+    </nav>
+    <noscript><p>Use the page links to browse older posts. Search and filters are available with JavaScript enabled.</p></noscript>
+    <p class="archive-legacy">Earlier posts on <a href="https://geobtaa.blogspot.com">Blogspot</a>.</p>
+  </div>
+</StarlightPage>
+
+<script>
+  import { initializeBlogArchive } from '../scripts/blogArchive';
+  initializeBlogArchive();
+</script>
+
+<style>
+  /* Keep the archive close to its title instead of stacking panel padding. */
+  :global(main:has([data-blog-archive]) > .content-panel:has(.page-title)) { padding-block-end: .5rem; }
+  :global(main > .content-panel:has([data-blog-archive])) { padding-block-start: .5rem; }
+  .blog-archive { margin-block-start: 0; padding-block: 0 2rem; }
+  .archive-intro { margin: 0 0 1rem; }
+  .archive-controls { margin-top: 0; }
+  .archive-controls { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: end; }
+  [hidden] { display: none !important; }
+  .archive-controls label, legend { font-size: 1rem; font-weight: 600; }
+  .archive-search { flex: 1 1 100%; }
+  .archive-search, .archive-year { display: flex; flex-direction: column; gap: .4rem; }
+  input[type="search"], select, button { font: inherit; color: inherit; background: var(--sl-color-bg); border: 1px solid var(--sl-color-gray-3); border-radius: .35rem; padding: .55rem .75rem; }
+  input[type="search"] { width: 100%; }
+  fieldset { border: 0; padding: 0; margin: 0; min-width: 0; flex: 1 1 auto; }
+  legend { padding: 0; margin-bottom: .4rem; }
+  .archive-types { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .archive-types label { display: flex; align-items: center; gap: .4rem; padding: .55rem .7rem; border: 1px solid var(--sl-color-hairline); border-radius: .35rem; cursor: pointer; }
+  .archive-types label:has(:checked) { background: var(--sl-color-accent-low); border-color: var(--sl-color-accent); }
+  .archive-types input { margin: 0; accent-color: var(--sl-color-accent); }
+  .select-wrap { position: relative; }
+  .select-wrap::after { content: ''; position: absolute; right: 1rem; top: .85rem; width: .45rem; height: .45rem; border-right: 2px solid; border-bottom: 2px solid; transform: rotate(45deg); pointer-events: none; }
+  select { appearance: none; padding-right: 2.5rem; width: 100%; }
+  button { cursor: pointer; }
+  :is(input, select, button):focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 3px; }
+  [data-archive-count] { color: var(--sl-color-gray-2); font-size: .95rem; }
+  .archive-more { text-align: center; margin-top: 1.5rem; }
+  [data-archive-pagination] { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; }
+  [aria-current="page"] { font-weight: 700; }
+  .archive-legacy { border-top: 1px solid var(--sl-color-hairline); padding-top: 1.5rem; margin-top: 2rem; }
+  @media (max-width: 40rem) { .archive-year { flex: 1; } }
+</style>
