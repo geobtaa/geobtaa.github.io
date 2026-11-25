@@ -2,53 +2,34 @@
 
 Use the custom CMS (content management system) to create and update website pages. You can write, format text, add images, and save your work in the editor. When the page is ready, submit it for publication.
 
-**Use Text blocks for most of your content. Choose Save Draft while you are working. Choose Publish only when your saved version is ready to go online. You will review and confirm that version before publishing starts.**
+## Workflow at a glance
 
-Saving, submitting, and publishing are separate steps:
+1. **Open a page and edit.** Use Text blocks for most writing. Your changes stay in the editor until you save them.
+2. **Preview your work.** Toggle the editor **Preview** to see the current content, including unsaved changes.
+3. **Save Draft.** This keeps your changes without changing the website. It may take some time for the draft to save, as the changes are synced to GitHub.
+4. **Publish.** Click **Publish**, then confirm. Once **Publishing…** appears, the saved version will go online automatically, but it will take several minutes.
 
-| Step | What happens | Does the public website change? |
-| --- | --- | --- |
-| Save Draft | Saves the page and its attached new images in GitHub. Other authorized editors can open and edit this draft. | No. |
-| Publish | Asks you to confirm the saved version, then completes publication automatically after validation and deployment. | Yes, after the website update succeeds. |
-| Unpublish | Asks you to confirm removal from the public website. Saved work stays in the editor. | Yes, after the website update succeeds. |
+To take a page off the website, use **Unpublish** and confirm.
 
-Jump to [blocks](#work-with-blocks), [images](#add-and-edit-images),
-[saving drafts](#save-a-draft-and-return-later),
-[publication](#publish-a-page), or
-[troubleshooting](#troubleshooting-and-common-errors).
 
 ## Sign in and find a page
 
-The application header includes **Visit website**, which opens the public BTAA-GIN homepage in a new tab. On a document, **View live page** appears beside Edit/Preview only when the editor has confirmed that the page is published. It opens the deployed version at its resolved public address, including any custom slug; it does not show your working draft. If publication cannot be verified, the link is hidden.
+You need a GitHub account with permission to edit the website.
 
-You need a GitHub account with permission to edit the website. GitHub is the service that stores the website's files and saved changes. You do not need to install software or use computer commands.
-
-1. Open the editor link supplied by the website maintainer.
+1. Open the editor link.
 2. Click **Sign in with GitHub**.
 3. Sign in to your GitHub account. If GitHub asks you to authorize the editor, follow the prompts.
 4. On the editor dashboard, choose a content area, such as **Projects**, **Blog Posts**, or **Program Updates**.
-5. Click an existing entry to open it, or click the **New** button to create one. The button name depends on the area, such as **New Blog Post**.
+5. Click an existing file name to open it, or click the **New** button to create one.
 
-The list may show filenames with hyphens instead of page titles. Open an entry to see its title and current editing status.
+The list of pages may show **New draft**, **Unpublished changes**, or **Needs review**. 
 
-The list can show **New draft**, **Unpublished changes**, or **Needs review**. **Unpublished changes** means saved editorial content differs from the current main document; an old saved branch alone does not trigger the label. This does not confirm deployment status. Other pages have no status label. Open an entry to check its current editing and publication status.
-
-Saved drafts are shared with other authorized editors. Ask other editors before working on the same page at the same time.
 
 ## Create or edit a page
 
-1. Open an existing page or create a new one.
-2. Enter a **Title**. Every page needs one.
-3. Fill in the other fields that apply to the page.
-4. Write the main content under **Body**, mostly using Text blocks.
-5. Click **Preview** to review your work. Click **Edit** to continue writing.
-6. Click **Save Draft**. Wait for **All changes saved** before leaving.
-
-The Save Draft buttons at the top and bottom of the editor do the same thing.
-
 ### Page details
 
-The available fields depend on the content area and the page you opened.
+This is the frontmatter or metadata for the page. The available fields depend on the content area or type of page.
 
 | Field | What to enter |
 | --- | --- |
@@ -59,15 +40,15 @@ The available fields depend on the content area and the page you opened.
 | Excerpt | A short introduction or summary for an article. |
 | Authors | Click **Add author** and enter each author's name. |
 | Tags | Short topic labels, separated by commas. |
-| Cover image | An optional article image, with a description for people who cannot see it and an optional caption. |
+| Cover image | An optional article image, with required alt text and an optional caption. |
 | Year | The year associated with the item, where offered. |
 | Working group fields | Committee, lead, active dates, and members, where offered. |
 
-New Blog Posts and Program Updates get a filename based on the title when first saved. After a page is created, changing its title does not change its filename or web address. Ask a maintainer if you need to change an existing address.
+Note: After a page is created, changing its title does not change its filename or web address. 
 
 ### Page settings
 
-You can usually leave **Page settings** as they are. Open this section only when you need to change how the page appears or is found.
+ This controls the page navigation and visibility. is You can usually leave **Page settings** as they are by default.
 
 | Setting | What it controls |
 | --- | --- |
@@ -81,28 +62,15 @@ You can usually leave **Page settings** as they are. Open this section only when
 | Announcement banner | Adds a message to the page, where offered. Ask a maintainer for help with HTML formatting. |
 | Social sharing images | Sets image web addresses used when sharing the page, where offered. |
 
-An option marked **site default** follows the website's settings. Leave that option selected unless the page needs a specific setting.
+## Page setup
 
-## Work with blocks
+Some pages have Page setup panel(s). These show what code needs to be imported for customized layouts. These are for reference only and are not changeable in the Editor.
 
-A block is a section of page content. A Text block can contain many paragraphs, headings, lists, images, and tables. You do not need a separate block for each paragraph or heading.
+## Blocks
 
-### Use Text blocks most of the time
+A block is a section of page content.
 
-Text blocks are the main writing tool. Use them for ordinary page content, including links, images, and tables. Use the other block types only when their specific layout helps the reader.
-
-Click inside a Text block to write. Select text, then use the toolbar to format it. Hover over an icon to see its name.
-
-- **Paragraph and headings:** Use the text style menu. Normally, use **Heading 2** for main sections and **Heading 3** for sections within them. The Title field supplies the page's main heading.
-- **Text formatting:** Apply bold, italic, underline, or strikethrough to selected text.
-- **Links:** Select the words to link, click **Link**, enter the address, and confirm. Use the full address for another website, such as `https://example.org/`. A link within this website can use a path such as `/projects/`.
-- **Lists:** Use **Bullets** for an unordered list or **Numbered** for steps.
-- **Images:** Click **Image** to select or upload an image. See the image instructions below.
-- **Tables:** Click **Table** to insert a table. Click inside it to show tools for adding or deleting rows and columns, or deleting the table.
-- **Other tools:** Quote, Divider, Line break, Code, and Code block are available when needed.
-- **Undo and Redo:** Use these to reverse or repeat recent edits within the Text block.
-
-### Other block types
+### Block types
 
 Choose **Add block** to insert one of these blocks. Each has fields or controls for its content.
 
@@ -118,17 +86,21 @@ Choose **Add block** to insert one of these blocks. Each has fields or controls 
 | Card Grid | A group of cards, each with a title and editable content. Add, remove, or reorder cards. | Present several related items together. |
 | Metrics | A group of labels and values that you enter yourself. | Display figures such as “New records” and “1,250.” These values do not update automatically. |
 
-New Card and Callout messages use plain text. Some existing callouts have a formatting toolbar for editing their paragraphs, links, and lists. Info callouts appear as Note; Warning callouts appear as Caution. These names are standardized when you edit that callout. Use a Text block when you need images or tables. Card Grid has its own content editor inside each card.
+### Text blocks
 
-Some older pages use the `.md` file format. On these pages, Text is available but the special block types are disabled. Images and tables still work inside Text blocks. Ask a maintainer if the page needs a special block.
+Text blocks are the main writing tool. Use them for ordinary page content, including links, images, and tables. Use the other block types only when their specific layout helps the reader.
 
-**Page setup** contains preserved imports and page code in a collapsed, locked panel. Expand it to inspect the source. These blocks have no editing, movement, or removal controls and are omitted from Preview. Their original source positions stay unchanged. Other unsupported content has a separate expandable block labelled with its component or syntax type. On MDX pages, inspect a read-only content block, add its replacement using **Add block**, then choose **Remove original block**. **Undo removal** restores the most recently removed block until another block operation or Save Draft. A disclosure lists all original blocks marked for removal, with their source available until saved. Page setup, uncertain source, and legacy blocks with compatibility editors remain locked against whole-block removal.
+Click inside a Text block to write. Select text, then use the toolbar to format it. Hover over an icon to see its name.
 
-Existing Markdown tables can be edited directly in Text blocks, including tables with times, ratios, and map scales. Tables containing custom styling, embedded components, or other unsupported content may remain read-only.
+- **Paragraph and headings:** Use the text style menu. Normally, use **Heading 2** for main sections and **Heading 3** for sections within them. The Title field supplies the page's main heading.
+- **Text formatting:** Apply bold, italic, underline, or strikethrough to selected text.
+- **Links:** Select the words to link, click **Link**, enter the address, and confirm. Use the full address for another website, such as `https://example.org/`. A link within this website can use a path such as `/projects/`.
+- **Lists:** Use **Bullets** for an unordered list or **Numbered** for steps.
+- **Images:** Click **Image** to select or upload an image. See the image instructions below.
+- **Tables:** Click **Table** to insert a table. Click inside it to show tools for adding or deleting rows and columns, or deleting the table.
+- **Other tools:** Quote, Divider, Line break, Code, and Code block are available when needed.
+- **Undo and Redo:** Use these to reverse or repeat recent edits within the Text block.
 
-Some older Chip Lists now have the same item controls as new lists. You can edit, add, remove, and reorder their labels while their existing layout stays in place. These older blocks cannot be moved or removed as a whole. Lists with formatted labels or other unsupported content remain read-only.
-
-Some simpler older Card Grids now expose title and formatted-content fields. Cards that use an existing heading instead of a title expose a **First section heading** field; the same applies to supported standalone cards. Changing a heading can change its public anchor link. You can edit or reorder their cards while keeping the existing layout. Adding or removing cards and moving the whole grid are unavailable for these older grids. Additional section headings can be edited in the body; use **Section heading** to toggle a level-four heading. Other heading levels are unavailable for legacy card bodies. More complex cards and grids remain read-only.
 
 ### Add, move, or remove blocks
 
@@ -138,19 +110,20 @@ Some simpler older Card Grids now expose title and formatted-content fields. Car
 - **Undo removal** restores the most recently removed block. Use it before adding, moving, or removing another block, since those actions clear or replace this undo option.
 - Click **Save Draft** to save block changes.
 
-Text blocks next to each other may appear as one Text block when you reopen the page. Their content stays in the same order. Empty Text blocks are not saved as separate sections.
+Text blocks next to each other may appear as one Text block when you reopen the page. Their content stays in the same order. Empty Text blocks are not saved as separate sections. **Remove Text block** refers to the whole Text block above that control; it does not indicate an extra empty block.
 
 ### Protected blocks on existing pages
 
-Some existing pages contain layouts, embedded items, or code that the visual editor cannot edit. These appear as separate protected, read-only blocks labelled with their component or syntax type. Imports and page code appear in the locked **Page setup** panel. The labels identify the underlying source; you can edit surrounding text without changing it.
+Some existing pages contain older legacy layouts, embedded items, or code that the Editor is not configured to edit. These appear as separate protected, read-only blocks labelled with their component or syntax type.
 
-Keep protected blocks you still need; the editor preserves their source when saving. To replace eligible MDX content, build its replacement with **Add block**, inspect the original, then use **Remove original block** when offered. **Undo removal** restores the most recently removed block until another block operation or Save Draft. Blocks without that control remain locked; ask a maintainer to change their source. Preview shows retained protected content as placeholders and omits Page setup.
+You can delete these blocks.
 
-Some Link Cards inside older layouts show editable title, description, and URL fields. You can edit those fields while the surrounding layout stays read-only. These layouts cannot be moved or removed. Preview shows the cards without reproducing the complete surrounding layout.
 
-## Add and edit images
+## Images
 
-For a new page, click **Save Draft** once before uploading an image.
+### Add images
+
+For a new page, you need to click Save Draft once **before** uploading an image.
 
 1. Place the cursor in a Text block where the image should go.
 2. Click **Image** in that block's toolbar.
@@ -162,24 +135,22 @@ For a new page, click **Save Draft** once before uploading an image.
 
 Uploading alone does not save the image to GitHub. Until you save the draft, new uploads stay in the browser. Keep the tab open if you see a backup or storage error.
 
+### Styling images
+
 Select an image in the editor to access its controls. Use **Edit image** to change its source, alt text, or caption, then click **Apply Changes**. You can also choose **Left**, **Center**, or **Right**, and choose **Small**, **Medium**, or **Large**. **Reset formatting** returns it to the normal image format. Save the draft afterward.
 
-For a cover image, use **Add cover image**, then **Choose or upload image** in the page details. Save the draft afterward.
 
 ## Preview your work
 
-Click **Preview** near the top of the page. It shows the current content, including changes you have not saved yet. Click **Edit** to return to writing.
+Preview does not save, submit, or publish anything. It is a check of the content and an approximation of the page's appearance. Protected blocks appear as placeholders.
 
-Preview does not save, submit, or publish anything. It is a check of the content and an approximation of the page's appearance. It does not show the full website navigation, every page setting, cover images, or excerpts. Protected blocks appear as placeholders. Preview links open in a new tab.
-
-Before submitting, check the title, headings, spelling, links, images, captions, and tables. Check the public page again after publication.
 
 ## Save a draft and return later
 
 Choose **Save Draft** whenever you want to keep your progress without publishing it.
 
 1. Click **Save Draft**.
-2. Wait for **All changes saved** beneath the document title. The saved time uses your local timezone.
+2. Wait for **Saving…** to finish. The status normally becomes **Draft saved**, and Save Draft becomes unavailable until you make another change. During publication, the status may remain **Publishing…** while explaining that newer saved changes are not included. The saved time is shown as secondary information in your local timezone.
 3. You can now return to the content list or sign out.
 4. To continue later, sign in, choose the same content area, and open the same entry.
 
@@ -187,77 +158,106 @@ Saved drafts can be reopened from another browser or computer. Other authorized 
 
 There is no Draft/Published switch to set. Use Save Draft to keep work and Publish to authorize publication.
 
+### Understand the status
+
+The compact status area below the title describes your current work and any publication in progress. Brief text explains when the editor and website have different versions.
+
+| Status | What it means |
+| --- | --- |
+| Unsaved changes | You have edits that still need Save Draft. An earlier version may already be online. |
+| Draft saved | Your changes are kept, but they have not been confirmed as published. An earlier version may still be online. |
+| Publishing… | The submitted saved version is being published automatically. Newer edits are separate. You can leave the editor. |
+| Published | The latest saved version has been verified online. |
+| Unpublishing… | Removal is in progress. You can leave the editor. |
+| Unpublished | The page has been verified as removed from the website. |
+| Needs attention | The saved draft is safe, but an action needs review or maintainer help. Read the short explanation. |
+
+The editor and content list use the same publication terms. A temporary verification problem does not mean publication failed. The editor keeps checking automatically; **Checking publication status…** may appear while it obtains a result.
+
 ### Browser backups and downloaded backups
 
-The editor also tries to keep unsaved work in the current browser. This is separate from Save Draft.
+The editor tries to keep a recovery copy of unsaved edits in your browser. This helps you return to unfinished work, but it does not replace **Save Draft**. Use Save Draft to keep work that you or another authorized editor can reopen from another browser or computer.
 
-| Option or message | What it means |
+**Unsaved changes kept in this browser only** means a local recovery copy is available. It has not been confirmed saved as a draft. Browser copies belong to the account, editor address, and browser where you were working. Clearing browser data can remove them.
+
+#### Recover earlier work
+
+If a page shows **Unsaved changes available**, choose **Restore changes**. The editor either restores the matching copy or opens **Find unsaved work** when you need to choose a version or resolve a conflict.
+
+In that dialog, the available controls depend on the stored work:
+
+| Control | What it does |
 | --- | --- |
-| Unsaved changes kept in this browser only | The browser has a recovery copy. The changes have not been confirmed saved to GitHub. |
-| Save backup file or Download unsaved edits | Downloads a copy to your computer. It does not save a draft or publish the page. |
-| Restore changes or Resume editing | Brings a stored browser copy back into the editor for review. You still need to click Save Draft. |
-| Discard unsaved changes | Permanently removes the selected browser copy. It does not change the saved draft or public page. |
+| Resume editing | Opens the stored work for review when it can be restored safely. You still need Save Draft to save it. |
+| View earlier versions | Shows other stored versions, when there is more than one. Compare their dates and text before choosing. |
+| Resume this version | Restores the particular version you selected, when available. |
+| Save backup file | Downloads the indicated stored version as a `.json` file without changing the open editor, saved draft, or website. Check its date; it may be an earlier version rather than your current edits. |
+| Discard unsaved changes | Asks for confirmation, then permanently deletes that selected browser copy. Other copies, saved drafts, and the published page stay unchanged. |
 
-Browser copies are tied to the account, editor address, and browser where you were working. They do not travel to another computer. Clearing browser data can remove them.
+The short recovery notice also has **Discard**. If several copies exist, it opens the version-selection dialog first. Do not discard a copy until you are sure you no longer need it. Versions are not combined automatically, and the latest timestamp does not mean that copy includes all earlier edits.
 
-If you see **Unsaved changes available**, choose **Restore changes** to review the work. If several versions are offered, read their dates and previews and choose the version you need. The newest copy may not include changes from the others.
+#### Download a backup when offered
 
-A downloaded backup is a `.json` file. Keep it for recovery or give it to a maintainer for help. The editor has no backup-file upload button.
+**Download unsaved edits** appears when sign-in has expired or the editor reports a browser-storage problem. It downloads the current edits without saving or publishing them. **Save backup file**, in the recovery dialog, downloads the particular stored version shown there.
 
-If you try to leave with unsaved changes, choose **Keep editing** to return and save. **Leave editor** leaves without saving to GitHub; recovery depends on the browser copy being available.
+There is no general backup-download button during ordinary editing. If neither control is available and Save Draft fails, keep the tab open, copy important text into a separate document, and ask a maintainer for help retrieving the browser recovery copy. Do not reload or clear browser data before protecting your work.
+
+Keep downloaded `.json` files for recovery or share them with a maintainer when troubleshooting. The editor has no backup-file upload button.
+
+If you try to leave with unsaved changes, choose **Keep editing** to return and save. **Leave editor** leaves without saving a draft; later recovery depends on the browser copy being available.
 
 ## Publish a page
 
 1. Review the page in **Preview**.
-2. Click **Save Draft** and wait for **All changes saved**. Unsaved changes must be saved before you can open the confirmation.
-3. Click **Publish**. The confirmation identifies the saved version by its version code, with its saved time and editor when available. Check that it is the version you want online. If an earlier saved version is selected, the dialog explains that newer saved changes are not included.
-4. Choose **Cancel** to leave without publishing, or **Publish** to authorize the action.
-5. Follow the progress notice below the title or beside the page in the content list. Validation and the website update complete automatically. Wait for **Update deployed** before assuming your selected changes are online.
+2. Click **Save Draft** if there are unsaved changes and wait for saving to finish.
+3. Click **Publish**. The short confirmation asks **Publish this page?** or **Publish these changes?**
+4. Choose **Cancel** to keep working, or **Publish** to authorize publication of the saved version.
+5. Once **Publishing…** appears, you can return to the content list or close the editor. Publication continues automatically, usually taking about 5 minutes.
 
-For a new or unpublished page, the confirmation says **Publish this page?** For an already published page, it says **Publish these changes?** Both publish the identified saved version. A **Published** badge may still describe the previous website version while an update is in progress.
+Ordinary confirmations omit filenames, timestamps, and version codes. If recovery selects an earlier saved version, the confirmation identifies it and explains that newer saved changes are not included.
 
-You can close the editor after publication has been authorized. When you return, open the page to check progress. Visible pending actions are checked about every 20 seconds. Checks pause in hidden tabs and stop after a limited period or when attention is needed. Open the page and use **Check again** to resume.
+The editor confirms completion only after the submitted version is verified on the website. When there are no newer edits, the status becomes **Published**. Use **View published page** to review the result.
+
+### Continue editing during publication
+
+You can keep editing after publication has been authorized. You can also save newer edits without changing the version already submitted. The status explains whether newer unsaved or saved changes are excluded from that publication.
+
+Only one publication request can be active for a page. Wait for the earlier request to finish before publishing the next saved version. Completion of an earlier request does not mark newer changes as published.
+
+If an earlier publication finishes at the same moment you save, the editor may reject that save to protect both versions. Your unsaved edits remain in the editor. Try **Save Draft** again. If the error persists or another editor changed the page, keep your work and ask a maintainer for help.
+
+### Automatic progress and Technical details
+
+You do not need to check progress manually. The editor refreshes unresolved requests automatically while the tab is visible. It checks less often during a long wait or temporary connection problem. Checks pause when the tab is hidden and resume when you return. Reopening the page restores the request's status.
+
+**Technical details** is a secondary troubleshooting area. It contains diagnostic information, a GitHub request link when available, cancellation, and relevant recovery controls. Most editors will not need it.
+
+**Refresh status** makes an immediate manual check. It shows **Refreshing…** while working, then **Status check complete. The latest result is shown above.** A successful check shows that message even if nothing changed. If verification fails, it says so and automatic checks continue. Refreshing does not save, submit, or restart publication.
 
 ### Cancel a pending action
 
-While **Cancel publishing** or **Cancel unpublishing** is available, you can stop automatic completion. Your saved work stays available. Cancellation cannot undo changes already accepted for deployment. If the action completes while you are cancelling, the editor will explain that it was too late and continue checking the website update.
+Open **Technical details** and choose **Cancel publishing** or **Cancel unpublishing**, when available. Your saved work stays available. Cancellation stops an action that is still waiting; it cannot undo an update already accepted for the website. If cancellation cannot be confirmed, the action may still complete.
 
 ### If an action needs attention
 
-If the website changed while an action was waiting, use **Update and publish** or **Update and unpublish** when offered. Review the saved version in the confirmation, then confirm. If this page's content changed on the website, keep your saved work and ask a maintainer to reconcile it.
+Read the explanation beside **Needs attention**. Your saved draft is safe. Ask a maintainer for help with failed checks, changed website content, or repeated errors.
 
-For failed checks or other blocked actions, your saved work stays available. Follow the notice and ask a maintainer for help if needed. **View details** contains optional technical information and links for inspection. You do not need to open GitHub to determine whether a normal publication succeeded.
+For an incomplete or outdated publish request, **Publish** may offer a confirmation for the previously selected version. For unpublishing, **Resume unpublishing** may appear under **Technical details**. Review any earlier-version warning before confirming. These actions do not silently substitute newer edits.
 
-If Publish or Unpublish is disabled because the service is unavailable, ask a maintainer. The normal editor does not switch to a manual publishing process.
-
-### Changes made after submission
-
-A publication action uses the saved version selected in its confirmation. Edits made afterward, including later draft saves, do not update that request.
-
-If you need to correct a submitted version before it goes online, tell the person handling publication to wait and ask a maintainer to help replace the request with the correct version. Do not assume clicking Publish again will replace an earlier selected version.
-
-After the earlier action completes, reopen the page from the content list to make the next update. If you saved newer edits while the request was open, the editor keeps them and shows a notice. Review them, click **Save Draft**, and submit again when ready.
+If publishing is unavailable, keep your draft saved and contact the maintainer. You do not need to manage GitHub requests or website deployments yourself.
 
 ## Unpublish a page
 
-The status below the page title describes the public website. **Published** means the page is included in a verified website deployment. **Unpublished** means it is excluded from that deployment. **Publication status unavailable** means the editor could not confirm the result; it does not mean the page is offline.
+1. Save any unsaved changes. An unchanged page does not need another save.
+2. Click **Unpublish** at the top and read the short confirmation.
+3. Choose **Cancel** to leave the page online, or **Unpublish** to authorize removal.
+4. Once **Unpublishing…** appears, you can leave the editor. Removal completes automatically after the required checks and website update.
 
-Working drafts and pending requests are shown as smaller details beneath that status. Saving a draft does not change the website status.
+**Unpublished** confirms removal from the website. A temporary verification problem does not mean the page is offline; the editor continues checking automatically.
 
-1. If you have unsaved changes, keep them with **Save Draft**. An unchanged page does not need a manual save.
-2. Click **Unpublish**, then read the confirmation. Choose **Cancel** to leave the page online, or **Unpublish** to authorize removal after the required checks finish.
-3. Follow the progress notice. Removal completes automatically after validation and the website update.
-4. Return to the editor and click **Check again**. The page remains Published until the website update has been confirmed. A merged request alone does not mean it is offline.
+Unpublishing acts on the version currently on the website. It keeps the page, its images, and any separate saved editorial work in the editor. Site search and Navigation visibility settings are also kept. To put the page online again, open it, save any changes, and use **Publish**.
 
-While an automatic unpublish request is pending, **Cancel unpublishing** stops its automatic merge without removing the saved work. A completed merge cannot be cancelled.
-
-After confirmation, the editor prepares any required internal working copy automatically. Cancelling does not create one. If preparation succeeds but submission fails, the copy remains available and is reused when you retry.
-
-Unpublishing changes only the visibility of the current main version. It keeps the page file, its images, and your separate saved editorial work. It also keeps your Site search and Navigation visibility settings. After unpublishing, reopen the page normally to continue editing. Save your draft and use **Publish** to republish it.
-
-If an explicit navigation entry prevents unpublishing, ask a maintainer to update that entry. Ordinary links from other pages produce warnings so they can be fixed later; the editor does not change them automatically. If another website change makes a request out of date, use **Update and publish** or **Update and unpublish** in the editor. Review the latest page first if its content changed. Do not use GitHub's Update branch button on CMS publication requests.
-
-If the website update fails, the editor explains that deployment is not confirmed and keeps your work. Open **View details** for information to share with a maintainer. If Unpublish is unavailable, save outstanding edits or contact the maintainer; the feature may not yet be enabled.
+If navigation settings prevent removal or Unpublish is unavailable, ask a maintainer for help. Cancellation and any relevant recovery controls are under **Technical details**.
 
 ## Work with Program Updates
 
@@ -289,7 +289,7 @@ Read the message and keep the editing tab open. Fix a missing title or other fie
 
 If a new Blog Post or Program Update shows **Retry creation safely**, use that button to check and retry the original save. Do not start a second article. A lost response can leave the first save's result unconfirmed even when the page was created.
 
-If **All changes saved** appeared but the content list then failed to refresh, the confirmed save still stands. Return to the list and open the entry to check it.
+If saving finished successfully but the content list then failed to refresh, the confirmed save still stands. Return to the list and open the entry to check it.
 
 ### The page changed in GitHub or the draft uses an earlier published version
 
@@ -312,11 +312,11 @@ Save the draft first and wait for the save to finish. Submission requires a save
 
 ### Progress could not be confirmed
 
-Click **Check again** before submitting again. A request may already exist even if the browser did not receive its confirmation. Your saved draft remains available.
+The editor keeps checking automatically. A temporary verification problem does not mean the action failed, and it does not require another submission. Your saved draft remains available.
 
-If the status says the request is reserved, closed, or in conflict, the editor may offer **Update and publish** or **Update and unpublish**. This retries the version selected for that request, not newer edits. Use it only when that is still the version you want. It can replace an out-of-date request when other pages changed. Changes to this same page may require maintainer help.
+For an immediate check, open **Technical details** and choose **Refresh status**. The confirmation message means the check finished, even if the displayed result stayed the same. If the status remains uncertain or becomes **Needs attention**, give the maintainer the exact message and any request link.
 
-For repeated errors, failed checks, or messages about limits or uncertain request identity, give the maintainer the exact message and any request link. Do not use **Update branch** or remove CMS records to bypass the problem.
+Do not start a replacement request or remove CMS records to bypass an uncertain result. Any earlier saved version offered for recovery must be reviewed and confirmed before it can be published.
 
 ### I saved or submitted, but the public page has not changed
 
@@ -336,10 +336,13 @@ Keep the tab open. Use **Download unsaved edits** if offered, or copy the text i
 
 The saved page may have changed since the copy was made, or you may already have unsaved edits open. Download the older copy with **Save backup file** and compare it with the current page. Ask a maintainer to help recover text from the backup if needed. The editor does not combine different versions automatically.
 
+### Saving reports that read-only content changed
+
+Eligible protected content can be replaced: add a supported replacement block, then choose **Remove original block**. The editor records that deletion. Page setup and blocks without that removal control must remain unchanged.
+
+If saving rejects the result, keep the tab open and preserve your unsaved work. Send the maintainer the exact message and page address. Numeric ratios such as `4:3` and `16:9` are ordinary text in the updated editor. If an older editor still rejects them, writing “4 to 3” and “16 to 9” is a temporary workaround.
+
 ### A block cannot be edited or looks missing in Preview
 
 Check whether it is labeled protected or read-only. The editor keeps that content, but cannot display or edit every older layout. Ask a maintainer to change it or check its finished appearance. For disabled special blocks in a `.md` page, continue using Text blocks.
 
-### Getting help
-
-Send the website maintainer the content area, page title or filename, exact error message, and what you were trying to do. Include the publication request or deployment run link if there is one. Keep any backup file and the original editing tab until your work is safe.

@@ -84,10 +84,14 @@ const loadListPublicationStatus = (path: string, signal: AbortSignal) => loadPub
 
 
 
+function ExternalLinkIcon() {
+  return <svg className="external-link-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" focusable="false"><path d="M14 3h7v7M21 3 10 14M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5" /></svg>;
+}
+
 function ApplicationHeader({ compact = false, children }: { compact?: boolean; children?: React.ReactNode }) {
   return <header className="editor-header application-header">
     {compact ? <span className="application-name">BTAA-GIN Website Editor</span> : <h1>BTAA-GIN Website Editor</h1>}
-    <div className="application-header-links"><a href="https://gin.btaa.org/" target="_blank" rel="noopener noreferrer">Visit website</a>{children}</div>
+    <div className="application-header-links"><a href="https://gin.btaa.org/" target="_blank" rel="noopener noreferrer">gin.btaa.org <ExternalLinkIcon /></a>{children}</div>
   </header>;
 }
 
@@ -346,7 +350,6 @@ function RichTextEditor({ initialValue, onChange, structured = false, onRemove }
     selector: ({ editor }) => {
       const headingLevel = ([1, 2, 3, 4, 5, 6] as const).find((level) => editor?.isActive('heading', { level }));
       return {
-        empty: editor?.isEmpty ?? true,
         textStyle: headingLevel ? `heading-${headingLevel}` : 'paragraph',
         bold: editor?.isActive('bold') ?? false,
         italic: editor?.isActive('italic') ?? false,
@@ -421,7 +424,6 @@ function RichTextEditor({ initialValue, onChange, structured = false, onRemove }
       </div>}
       <EditorContent editor={editor} />
       {!structured && <div className="text-block-footer">
-        {active?.empty && <p className="text-block-empty">Empty Text block.</p>}
         <button type="button" className="link-button component-remove" title="Remove this Text block and all its content" onClick={onRemove}>Remove Text block</button>
       </div>}
       {structured && onRemove && <button type="button" className="link-button component-remove" onClick={onRemove}>Remove {collectionKind ? COLLECTION_BLOCKS[collectionKind].label : simpleKind ? SIMPLE_COMPONENTS[simpleKind].label : editor.state.doc.firstChild?.type.name === 'linkButtonBlock' ? 'Link Button' : 'Link Card'}</button>}
@@ -1140,7 +1142,7 @@ export default function ProjectEditor() {
     </main>
   );
 
-  const accountHeader = <><ApplicationHeader><button className="link-button" type="button" disabled={busy} onClick={logout}>Sign out</button></ApplicationHeader>{!area && <p>Signed in as <strong>{viewer}</strong>.</p>}</>;
+  const accountHeader = <><ApplicationHeader />{!area && <p>Signed in as <strong>{viewer}</strong> · <button className="link-button" type="button" disabled={busy} onClick={logout}>Sign out</button></p>}</>;
 
   if (!area || !config) return (
     <main className="editor-shell">
@@ -1246,7 +1248,7 @@ export default function ProjectEditor() {
           <button type="button" aria-pressed={!previewMode} aria-controls="document-edit" disabled={busy} onClick={() => setPreviewMode(false)}>Edit</button>
           <button type="button" aria-pressed={previewMode} aria-controls="document-preview" disabled={busy} onClick={() => setPreviewMode(true)}>Preview</button>
         </div>
-        {livePage && <a className="view-live-page" href={livePage} target="_blank" rel="noopener noreferrer">View live page</a>}
+        {livePage && <a className="view-live-page" href={livePage} target="_blank" rel="noopener noreferrer">View published page <ExternalLinkIcon /></a>}
       </div>
       {previewMode && <DocumentPreview project={project} area={area} apiBase={API} />}
       <form id="document-edit" hidden={previewMode} inert={previewMode} onSubmit={(event) => event.preventDefault()}>

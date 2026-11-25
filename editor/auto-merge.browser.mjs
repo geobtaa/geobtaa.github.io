@@ -56,10 +56,13 @@ test('confirmed publication, cancellation, outdated recovery and verified deploy
   await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r'});
   await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
   await waitFor('window.repo.pulls[0].auto_merge===false && document.body.textContent.includes("Automatic publishing cancelled")');
-  await evaluate(`window.repo.pulls[0].checksFailed=false;${button('Publish')}.click()`);await waitFor('document.querySelector("dialog")?.open');await evaluate('document.querySelector(".confirm-publication").click()');await waitFor('window.repo.pulls[0].auto_merge===true');
+  await evaluate('window.repo.pulls[0].checksFailed=false');
+  await waitFor('document.querySelector(".publish-document").disabled===false');
+  await evaluate(`${button('Publish')}.click()`);await waitFor('document.querySelector("dialog")?.open');await evaluate('document.querySelector(".confirm-publication").click()');await waitFor('window.repo.pulls[0].auto_merge===true');
   await evaluate("window.repo.put('unrelated.txt','Other website change')");
   await waitFor('document.querySelector(".publication-status").dataset.state==="conflict"');
   assert.match(await evaluate('document.querySelector(".publication-notice").textContent'),/Your draft is safe/);
+  await waitFor('document.querySelector(".publish-document").disabled===false');
   await evaluate(`${button('Publish')}.click()`);
   await waitFor('document.querySelector("dialog")?.open');
   assert.equal(await evaluate('window.repo.pulls.length'),1,'replacement is not submitted without confirmation');

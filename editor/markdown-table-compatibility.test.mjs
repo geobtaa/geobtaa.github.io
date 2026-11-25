@@ -41,10 +41,12 @@ test('labeled directives, attributes, expressions, components, references and HT
   }
 });
 
-test('normalization is limited to tables and never changes ordinary directives, code or containing layouts', async () => {
+test('numeric prose stays editable while directives, code and containing layouts retain their meaning', async () => {
   const prose = 'At 10:30, the ratio is 11.68:1.';
-  assert.equal(splitBody(prose)[0].kind, 'protected');
-  assert.ok(JSON.stringify(parseBodySyntax(prose)).includes('textDirective'));
+  assert.equal(splitBody(prose)[0].kind, 'markdown');
+  assert.ok(!JSON.stringify(parseBodySyntax(prose)).includes('textDirective'));
+  assert.equal(splitBody('A custom :widget directive.')[0].kind, 'protected');
+  await validateDocument(document(prose));
   const code = '```md\n' + table('11.68:1') + '\n```';
   assert.equal(parseBodySyntax(code).children[0].value, table('11.68:1'));
   const wrapped = `<Slideshow>\n${table('11.68:1')}\n</Slideshow>\n`;

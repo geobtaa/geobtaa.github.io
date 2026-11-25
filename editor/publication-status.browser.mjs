@@ -97,10 +97,15 @@ test('temporary request failures preserve background progress without certifying
   assert.match(await evaluate('document.querySelector(".publication-notice").textContent'),/Your draft is safe/);
  },{initialSearch:'?area=library&file=report.mdx'});
 });
-test('View live page uses only verified public URLs and stays beside Edit / Preview',options,async()=>{
+test('View published page uses only verified public URLs and stays beside Edit / Preview',options,async()=>{
  await withEditorBrowser(setup("{state:'none',website:{publication:'published',liveUrl:'https://gin.btaa.org/custom/published/'}}"),async({evaluate,waitFor})=>{
   await waitFor('!!document.querySelector(".view-live-page")');
   assert.equal(await evaluate('document.querySelector(".view-live-page").href'),'https://gin.btaa.org/custom/published/');
+  assert.equal(await evaluate('document.querySelector(".view-live-page").textContent.trim()'),'View published page');
+  assert.equal(await evaluate('document.querySelector(".application-header-links > a").textContent.trim()'),'gin.btaa.org');
+  assert.equal(await evaluate('document.querySelectorAll(".application-header-links > a svg[aria-hidden=true], .view-live-page svg[aria-hidden=true]").length'),2);
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".view-live-page")).borderTopStyle'),'solid');
+  assert.equal(await evaluate('document.querySelector(".view-live-page").target'),'_blank');
   assert.equal(await evaluate('!!document.querySelector(".document-toolbar .view-live-page")'),true);
   for(const url of ['https://evil.test/page/','javascript:alert(1)','https://gin.btaa.org@evil.test/','https://gin.btaa.org/page/?draft=1']){
    await evaluate(`window.setStatus({state:'none',website:{publication:'published',liveUrl:${JSON.stringify(url)}}});${refresh}`);
@@ -116,4 +121,27 @@ test('a verified live earlier blob does not mark a newer main version as publish
   await waitFor(`${heading}==='Draft saved'`);
   assert.match(await evaluate('document.querySelector(".publication-notice").textContent'),/An earlier version is live/);
  },{initialSearch:'?area=library&file=report.mdx'});
+});
+
+test('manual refresh acknowledges unchanged results, prevents duplicate clicks and distinguishes verification failures',options,async()=>{
+ const scenario=`import React from 'react';import{createRoot}from'react-dom/client';import{PublicationStatus}from'../src/components/editor/PublicationStatus';
+ window.reads=0;window.result={state:'none',website:{publication:'published'}};
+ const load=async()=>{window.reads++;if(window.reads===1)return window.result;return new Promise((resolve,reject)=>{window.finish=()=>window.fail?reject(Error('Unavailable')):resolve(window.result);});};
+ createRoot(document.getElementById('root')).render(React.createElement(PublicationStatus,{path:'test',dirty:false,hasDraft:false,refreshVersion:0,disabled:false,onRetry:()=>{},load}));`;
+ await withEditorBrowser(scenario,async({evaluate,waitFor})=>{
+  await waitFor('document.querySelector(".publication-heading")?.textContent==="Published"');
+  assert.equal(await evaluate('document.querySelector(".publication-refresh-feedback").textContent.trim()'),'');
+  await evaluate('document.querySelector(".publication-history").open=true;document.querySelector(".publication-refresh").click()');
+  await waitFor('window.reads===2 && document.querySelector(".publication-refresh").disabled');
+  assert.equal(await evaluate('document.querySelector(".publication-refresh").textContent'),'Refreshing…');
+  await evaluate('document.querySelector(".publication-refresh").click()');assert.equal(await evaluate('window.reads'),2);
+  await evaluate('window.finish()');
+  await waitFor('document.querySelector(".publication-refresh-feedback").textContent.includes("Status check complete")');
+  assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'),'Published');
+  assert.equal(await evaluate('document.querySelector(".publication-refresh").disabled'),false);
+  await evaluate('window.fail=true;document.querySelector(".publication-refresh").click()');
+  await waitFor('window.reads===3');await evaluate('window.finish()');
+  await waitFor('document.querySelector(".publication-refresh-feedback").textContent.includes("could not be verified")');
+  assert.equal(await evaluate('document.querySelector(".publication-refresh").disabled'),false);
+ });
 });
