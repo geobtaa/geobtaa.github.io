@@ -34,7 +34,7 @@ Body and cover images use the same image library and upload safeguards. Pending 
 
 The preferred workflow, when enabled, is **Edit → Save Draft → Publish → required GitHub checks/reviews → native squash merge → GitHub Pages deployment → verified update**. Manual submission and merging remain available internally for administrative exceptions, without normal editor controls. Unpublish uses the same explicit authorization after the unpublish confirmation; it changes only current main visibility and preserves independent saved work.
 
-GitHub native auto-merge performs the waiting. There is no privileged Actions merger, GitHub App migration, background publishing worker, status database, automatic branch cleanup, or unattended request refresh. The CMS keeps request status separate from deployment status. Merged does not mean deployed. On-demand website verification uses the existing production marker and matching GitHub Pages run/deployment; missing or contradictory evidence remains unverified.
+GitHub native auto-merge performs the waiting. There is no privileged Actions merger, GitHub App migration, background publishing worker, status database, or unattended request refresh. The CMS keeps request status separate from deployment status. Merged does not mean deployed. On-demand website verification uses the existing production marker and matching GitHub Pages run/deployment; missing or contradictory evidence remains unverified.
 
 Submission operates on one exact saved head, never unsaved form contents:
 
@@ -60,7 +60,15 @@ The server verifies the recorded merge and that current main still has the exact
 
 Version 2 draft identity binds a successor cycle to the published base blob and predecessor head. A metadata-only preservation commit retains the predecessor tree; a successor starts from current main. The first save atomically advances the predecessor and creates the successor. Concurrent starts elect one successor; stale saves cannot advance the retired predecessor. Version 1 histories remain supported.
 
-Same-document or required-image changes beyond the recorded publication block continuation. Install trusted validation supporting new cycle metadata before deployed code creates those cycles. No old branch, tag, snapshot, or coordinator is deleted automatically.
+Same-document or required-image changes beyond the recorded publication block continuation. Install trusted validation supporting new cycle metadata before deployed code creates those cycles. Completed branch chains may be removed by the maintenance workflow after the checks below pass.
+
+## Clean up completed publication branches
+
+The daily `cms-branch-cleanup.yml` workflow executes trusted main code. It verifies the entire page's draft chain, confirms merged publication records and the exact current page on the live website, and requires a 24-hour recovery window after every recorded merge. Newer saved edits, unpublished uploads (including unused retained uploads), open or reserved requests, conflicting main content, and incomplete evidence keep the chain intact.
+
+For an eligible page, one atomic GraphQL `updateRefs` transaction deletes its draft branches, publication-state branches, publication snapshots, and associated publication-lock tags. Every deletion includes the verified prior OID. Concurrent saves, continuations, and publication replacements invalidate the transaction without partial removal. Main, page files, images, PRs, and route-reservation tags are unchanged. After cleanup, another edit starts a fresh version 1 draft from main. A stale browser must reopen the page before saving; its unsaved text is not overwritten.
+
+Cleanup skips chains requiring more than 100 reference updates and reports the reason. It does not remove orphaned or corrupt branches, expire unpublished work, or bypass conflicts. Manual workflow runs default to dry run. See [cleanup operations](deployment.md#automatic-branch-cleanup) for controls and logs.
 
 ## Preserve unsupported content and recover unsaved work
 

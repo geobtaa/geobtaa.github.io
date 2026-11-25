@@ -230,6 +230,73 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     if (!file) throw failure(404, 'This document is not present on main or in a saved draft.');
     return { filename, sha: file.sha, content: await text(file), branch: 'main', head: baseline.head, hasDraft: false, baselineExists: true };
   }
+  // Maintenance only: never called by read endpoints or the editing UI. Remove
+  // whole continuation chains so discovery never sees a missing predecessor.
+  async function cleanupPublishedDrafts({ area, filename, dryRun = true, now = Date.now(), minAgeMs = 86_400_000 } = {}) {
+    if (typeof dryRun !== 'boolean' || !Number.isFinite(now) || !Number.isFinite(minAgeMs) || minAgeMs < 86_400_000) throw failure(400, 'Cleanup requires a recovery window of at least 24 hours.');
+    const path = documentPath(area, filename), baseline = await main(), heads = await inventory();
+    const selected = await selectDraft(area, filename, heads, commit);
+    const skip = reason => ({ path, state: 'kept', reason });
+    if (!selected) return skip('No saved draft.');
+    const draft = await inspect(selected.branch, selected.head, baseline);
+    const fresh = await resumed(draft, baseline);
+    if (!fresh || fresh.preservedEdits) return skip('Unmerged publication or newer saved edits.');
+    for (const [image, sha] of Object.entries(draft.meta.assets)) {
+      if (baseline.files.get(`${IMAGE_DIRECTORY}/${image}`)?.sha !== sha) return skip('Unpublished uploads remain in the draft.');
+    }
+    const completed = await publication.getPublicationStatus(area, filename, draft);
+    const website = await websiteStatus({ request, path, fetchPublic, publicationRequest: completed });
+    if (website.requestApplied !== true || website.deployedBlob !== baseline.files.get(path)?.sha) return skip('Publication has not been verified on the live website.');
+    const legacy = await draftBranch(area, filename), identity = (await digest(path)).slice(0, 32);
+    const chain = heads.filter(item => item.branch === legacy || item.branch.startsWith(`${legacy}-cycle-`));
+    const updates = new Map();
+    const remove = (name, beforeOid) => {
+      if (!/^[a-f0-9]{40}$/.test(beforeOid || '')) throw failure(409, 'Cleanup reference is incomplete.');
+      if (updates.has(name) && updates.get(name).beforeOid !== beforeOid) throw failure(409, 'Cleanup references disagree.');
+      updates.set(name, { name, beforeOid, afterOid: ZERO });
+    };
+    for (const item of chain) {
+      // Verify retired history too; metadata alone never authorizes deletion.
+      const historical = await inspect(item.branch, item.head, baseline);
+      const stateBranch = `cms/publication-state/${identity}-${publicationBaseKey(historical.meta)}`;
+      const stateHead = await ref(`heads/${stateBranch}`);
+      if (!stateHead) return skip('A draft cycle has no completed publication record.');
+      const state = await readPublicationState(stateHead, path, commit);
+      const status = await publication.getPublicationStatus(area, filename, historical);
+      if (status.state !== 'merged') return skip('A draft cycle has no verified merged PR.');
+      for (const attempt of state.attempts) {
+        if (attempt.branch !== `cms/publish/${identity}-${state.selectedHead}-${attempt.base}-${attempt.attempt}`) throw failure(409, 'Unexpected cleanup snapshot identity.');
+        // Every attempt needs an intact ref and a closed PR. A reserved attempt
+        // or an open historical PR stays available for explicit reconciliation.
+        const prs = await request(`/pulls?state=all&head=${encodeURIComponent(`${owner}:${attempt.branch}`)}&base=main&per_page=2`);
+        if (!Array.isArray(prs) || prs.length !== 1) return skip('Publication attempt has incomplete PR evidence.');
+        const pr = prs[0], mergedAt = Date.parse(pr.merged_at || '');
+        if (pr.state !== 'closed' || pr.head?.ref !== attempt.branch || pr.head?.sha !== attempt.head || pr.head?.repo?.full_name !== `${owner}/${repo}` || pr.base?.ref !== 'main') return skip('Publication attempt is open or changed.');
+        if (pr.merged_at && (!Number.isFinite(mergedAt) || mergedAt > now - minAgeMs)) return skip('Publication is still within the recovery window.');
+        if (await ref(`heads/${attempt.branch}`) !== attempt.head) return skip('Publication snapshot changed.');
+        remove(`refs/heads/${attempt.branch}`, attempt.head);
+      }
+      const lock = `refs/tags/cms-publication-locks/${identity}-${publicationBaseKey(historical.meta)}`;
+      if (await ref(lock.slice(5)) !== state.attempts[0].head) throw failure(409, 'Cleanup lock identity mismatch.');
+      remove(lock, state.attempts[0].head);
+      remove(`refs/heads/${stateBranch}`, stateHead);
+      remove(`refs/heads/${item.branch}`, item.head);
+    }
+    // One transaction per page, never partial deletion or an unconditional
+    // DELETE. Saves/continuations/publication replacements change guarded refs.
+    if (updates.size > 100) return skip('Branch chain exceeds the automatic cleanup transaction limit.');
+    const refs = [...updates.values()];
+    if (dryRun) return { path, state: 'eligible', refs: refs.map(item => item.name) };
+    const repositoryId = await authorize();
+    try { await atomic(refs, repositoryId); }
+    catch (error) {
+      // A lost response may follow a successful deletion. Confirm that case;
+      // never retry writes against refs that might now belong to a new cycle.
+      const actual = await batchReads(refs.map(item => () => ref(item.name.slice(5))));
+      if (actual.some(Boolean)) throw error;
+    }
+    return { path, state: 'deleted', refs: refs.map(item => item.name) };
+  }
   async function authorize() {
     const repository = await request('');
     if (!repository.permissions?.push || !repository.node_id) throw Object.assign(failure(403, 'Repository write permission could not be verified. Sign in again with an authorized account.'), { code: 'access_denied' });
@@ -508,6 +575,7 @@ export function createDraftStore({ request, owner = 'geobtaa', repo = 'geobtaa.g
     return { website, mainDraft, unpublishEnabled: enabled, ...(deployment ? { deployment } : {}) };
   }
   return {
+    cleanupPublishedDrafts,
     assertUnpublishEnabled, getWebsiteInfo, initializeUnpublish,
     publicationPlan, verifyPublication,
     ...publication,

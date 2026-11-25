@@ -1,0 +1,47 @@
+name: Clean up completed CMS branches
+
+on:
+  schedule:
+    - cron: '35 6 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Report eligible branches without deleting them
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: read
+  actions: read
+  deployments: read
+
+concurrency:
+  group: cms-branch-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    if: github.ref == 'refs/heads/main' && github.repository == 'geobtaa/geobtaa.github.io'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Inspect completed drafts and remove eligible branch chains
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          APPLY: ${{ github.event_name == 'schedule' || inputs.dry_run == false }}
+        run: |
+          if [ "$APPLY" = "true" ]; then
+            node scripts/cleanup-cms-branches.mjs --apply
+          else
+            node scripts/cleanup-cms-branches.mjs
+          fi

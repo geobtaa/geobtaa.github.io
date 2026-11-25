@@ -28,9 +28,20 @@ test('publication is a one-document snapshot on fresh main, not a draft merge, w
   assert.match(doc, /draft: false/);
   assert.equal(repo.refs.get(`refs/heads/${saved.branch}`), saved.head);
   assert.match(commit.message, /\[CF-Pages-Skip\]/);
+  assert.match(commit.message, /^\[CF-Pages-Skip\] Publish: Report\n/);
+  const request = JSON.parse(repo.requests.find(call => call.path === '/pulls' && call.method === 'POST').body);
+  assert.equal(request.title, 'Publish: Report');
+  assert.equal(request.body, `Publishes saved changes to this page through the CMS.\n\nPage: [library/report.mdx](https://github.com/geobtaa/geobtaa.github.io/blob/${pr.head.sha}/${path})`);
   assert.equal(repo.pulls[0].auto_merge, undefined);
   assert.equal(repo.requests.some(call => call.body?.includes('enablePullRequestAutoMerge')), false);
   await publicationTestClient({ request: repo.request }).verifyPublication(pr.head.ref, pr.head.sha);
+});
+test('publication names the selected page even when a newer draft has a different title', async () => {
+  const { repo, store, saved, publish } = await fixture({ initial: '---\ntitle: |\n  Annual\n  report\n---\n\nOriginal.\n' });
+  await savePage(store(), 'library', filename, { ...saved, ...parsePage(saved.content), title: 'Future report' });
+  await publish();
+  const request = JSON.parse(repo.requests.find(call => call.path === '/pulls' && call.method === 'POST').body);
+  assert.equal(request.title, 'Publish: Annual report');
 });
 test('duplicate, concurrent and closed/merged publication requests reuse exactly one PR', async () => {
   const { repo, publish } = await fixture();

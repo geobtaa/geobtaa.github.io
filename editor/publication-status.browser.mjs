@@ -39,14 +39,21 @@ test('document title and publication status remain visible independently of requ
     assert.equal(await evaluate('!!document.querySelector(".dashboard-link")'),false);
     assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'),'Checking publication status…');
     assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),'All changes saved');
+    const savedColor = await evaluate('getComputedStyle(document.querySelector(".top-save")).backgroundColor');
     assert.equal(await evaluate('document.body.textContent.includes("This creates a GitHub publication request.")'),false);
     await evaluate('window.finishStatus()');
     await evaluate(`${title}.focus();${title}.select()`);await send('Input.insertText',{text:'Actual revised title'});
     await waitFor('document.querySelector("h1").textContent==="Actual revised title"');
+    assert.notEqual(await evaluate('getComputedStyle(document.querySelector(".top-save")).backgroundColor'), savedColor);
+    assert.equal(await evaluate('document.querySelector(".publish-document").disabled'), true);
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".publish-document")).backgroundColor'), 'rgb(229, 231, 235)');
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".unpublish-document")).backgroundColor'), 'rgb(229, 231, 235)');
     assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'),'Publication status unavailable');
     assert.equal(await evaluate('window.statusReads'),1,'presentation changes add no status requests');
     await evaluate(`${title}.select()`);await send('Input.insertText',{text:'Newer saved draft'});
     await waitFor('document.querySelector(".publish-document").disabled===false');
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".top-save")).backgroundColor'), savedColor);
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".publish-document")).backgroundColor'), 'rgb(35, 112, 78)');
     await evaluate(`window.setStatus({state:'pr-open',number:42,url:'https://github.com/geobtaa/geobtaa.github.io/pull/42'});document.querySelector('.publish-document').click()`);
     await waitFor('document.querySelector("dialog")?.open');await evaluate('document.querySelector(".confirm-publication").click()');
     await waitFor('document.querySelector(".publication-status")?.dataset.state==="pr-open"');
@@ -143,9 +150,21 @@ test('closed requests keep their actions in keyboard-accessible history without 
   }, {initialSearch:'?area=library&file=report.mdx'});
 });
 test('request and website problems share a compact notice and resolved warnings move out of view', options, async () => {
-  const scenario = fixture.replace("createRoot(document.getElementById('root'))", `window.setStatus({...window.statusResult,checks:'failed',website:{publication:'unavailable',message:'The website status could not be verified. Your saved work is safe.'}});createRoot(document.getElementById('root'))`);
+  const scenario = fixture.replace("createRoot(document.getElementById('root'))", `window.setStatus({...window.statusResult,checks:'failed',website:{publication:'unavailable',message:'The website status could not be verified. Your saved work is safe.'}});
+    const gateway=window.fetch;let deferred=false;
+    window.fetch=async(url,options={})=>{
+      if(!deferred&&String(url).includes('/api/publish/')&&!options.method){
+        deferred=true;return new Promise(resolve=>{window.finishInitialStatus=()=>resolve(Response.json(window.statusResult));});
+      }
+      return gateway(url,options);
+    };
+    createRoot(document.getElementById('root'))`);
   await withEditorBrowser(scenario, async ({evaluate,waitFor,send}) => {
-    await waitFor('!!document.querySelector(".publication-notice")');
+    // The notice also exists during loading, before check results arrive.
+    await waitFor('!!document.querySelector(".publication-notice") && !!window.finishInitialStatus');
+    assert.equal(await evaluate('document.querySelector(".publication-status").dataset.state'), 'checking');
+    await evaluate('window.finishInitialStatus()');
+    await waitFor('document.querySelector(".publication-status")?.dataset.state === "pr-open"');
     assert.equal(await evaluate('document.querySelectorAll(".publication-notice").length'), 1);
     assert.match(await evaluate('document.querySelector(".publication-notice").textContent'), /Checks failed/);
     assert.equal(await evaluate('document.querySelector(".publication-notice").textContent.split("website status could not be verified").length'), 2);

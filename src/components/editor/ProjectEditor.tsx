@@ -1186,6 +1186,7 @@ export default function ProjectEditor() {
   const livePage = publishedPageUrl(publicationInfo);
   const savedDate = project.lastSavedAt ? new Date(project.lastSavedAt) : null;
   const savedTime = savedDate && Number.isFinite(savedDate.getTime()) ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(savedDate) : null;
+  const needsSave = dirty || !project.sha || !!project.creationAttempt || !!(project.resumeHead && project.preservedEdits);
   const saveStatus = <span className="working-copy-status" role="status"><span className="save-state draft-status">{busy ? restoringChanges ? 'Restoring changes…' : 'Working…' : !project.sha ? 'Not saved yet' : dirty ? 'Unsaved changes' : 'All changes saved'}</span>{!dirty && project.sha && <>{savedTime && <> · <time dateTime={project.lastSavedAt}>{savedTime}</time></>}{project.lastSavedBy && <> · {project.lastSavedBy}</>}</>}</span>;
 
   return (
@@ -1212,7 +1213,7 @@ export default function ProjectEditor() {
         onConfirm={confirmPublication} />)}
       <nav className="editor-navigation" aria-label="Editor navigation">
         <button className="back" type="button" disabled={busy} onClick={backToList}>← Back to {config.label}</button>
-        <div className="navigation-actions"><button className="primary top-save" type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue || unpublishPending || !autoMergeAvailable} title={dirty ? 'Save your changes before publishing.' : !autoMergeAvailable ? 'Publishing is not enabled yet. Ask a maintainer.' : undefined} onClick={() => requestPublicationConfirmation('publish')}>Publish</button><span className="publication-action-slot" ref={setPublicationActionTarget}>{!project.sha && <button type="button" disabled>Unpublish</button>}</span></div>
+        <div className="navigation-actions"><button className="top-save" data-unsaved={needsSave} title={needsSave ? "You have unsaved edits. Save Draft to keep them in GitHub." : "All changes saved."} type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue || unpublishPending || !autoMergeAvailable} title={dirty ? 'Save your changes before publishing.' : !autoMergeAvailable ? 'Publishing is not enabled yet. Ask a maintainer.' : undefined} onClick={() => requestPublicationConfirmation('publish')}>Publish</button><span className="publication-action-slot" ref={setPublicationActionTarget}>{!project.sha && <button className="unpublish-document" type="button" disabled>Unpublish</button>}</span></div>
       </nav>
       <h1>{project.title.trim() || 'Untitled page'}</h1>
       {!project.sha && <div className="document-status-row"><strong className="publication-heading visibility-badge status-unknown">Not yet published</strong>{saveStatus}</div>}

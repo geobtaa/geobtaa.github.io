@@ -26,6 +26,10 @@ test('confirmed initialization copies exact saved bytes, is retryable, and uses 
  const client = () => publicationTestClient({ request: f.repo.request });
  await client().publishContent({ area, filename, head: prepared.head, action: 'unpublish' });
  const request = f.repo.pulls[0]; await client().verifyPublication(request.head.ref, request.head.sha);
+ const payload = JSON.parse(f.repo.requests.find(call => call.path === '/pulls' && call.method === 'POST').body);
+ assert.equal(payload.title, 'Unpublish: Older page');
+ assert.equal(payload.body, `Removes this page from the published website through the CMS.\n\nPage: [library/old.mdx](https://github.com/geobtaa/geobtaa.github.io/blob/${request.head.sha}/${path})`);
+ assert.match(f.repo.commits.get(request.head.sha).message, /^\[CF-Pages-Skip\] Unpublish: Older page\n/);
  const recovered = await f.store().initializeUnpublish(f.input);
  assert.equal(recovered.head, prepared.head);
  await client().publishContent({ area, filename, head: recovered.head, action: 'unpublish' });

@@ -193,6 +193,37 @@ input, textarea, .area-selector select { width: 100%; padding: .7rem; border: 1p
 .navigation-actions { display: flex; flex-wrap: wrap; gap: .65rem; }
 .navigation-actions button { min-height: 44px; }
 .top-save { min-height: 44px; font-weight: 700; }
+.navigation-actions .top-save { --action-color: #1d4ed8; --action-hover: #1e40af; }
+.navigation-actions .publish-document { --action-color: #23704e; --action-hover: #18583c; }
+.navigation-actions .unpublish-document { --action-color: #92400e; --action-hover: #78350f; }
+.navigation-actions :is(.top-save, .publish-document, .unpublish-document) {
+  min-height: 44px;
+  font-weight: 700;
+  background: var(--action-color);
+  border-color: var(--action-color);
+  color: #fff;
+}
+.navigation-actions :is(.top-save, .publish-document, .unpublish-document):hover:not(:disabled) {
+  background: var(--action-hover);
+  border-color: var(--action-hover);
+}
+.navigation-actions .top-save[data-unsaved="false"]:not(:disabled) {
+  background: var(--editor-surface);
+  border-color: var(--editor-border-strong);
+  color: var(--editor-muted);
+}
+.navigation-actions .top-save[data-unsaved="false"]:hover:not(:disabled) { background: var(--editor-hover); }
+.navigation-actions :is(.top-save, .publish-document, .unpublish-document):disabled {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #6b7280;
+  opacity: 1;
+  cursor: not-allowed;
+}
+.navigation-actions :is(.top-save, .publish-document, .unpublish-document):focus-visible {
+  outline: 3px solid var(--action-color);
+  outline-offset: 3px;
+}
 .content-badges { display: inline-flex; flex-wrap: wrap; gap: .4rem; }
 .visibility-badge { display: inline-block; padding: .3rem .6rem; border: 1px solid; border-radius: .35rem; font-size: .8rem; font-weight: 750; line-height: 1.4; }
 .status-draft { color: var(--editor-warning-text); background: var(--editor-warning-bg); border-color: var(--editor-warning-border); }

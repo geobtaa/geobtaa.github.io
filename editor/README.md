@@ -82,6 +82,8 @@ The editing view also shows **Not saved yet**, **Unsaved changes**, **Working…
 
 **Save Draft** updates a document branch and does not publish the live site. Draft-save commits suppress Cloudflare builds. Required branch controls are documented in [hosting and deployment](../docs/cms-editor/deployment.md).
 
+Completed CMS branches are checked daily for [automatic cleanup](../docs/cms-editor/deployment.md#automatic-branch-cleanup). Cleanup waits at least 24 hours after merging and verifies the live page before removing a complete branch chain. Newer edits, unpublished uploads, and unfinished requests stay intact. Manual runs default to a dry run; reports explain which pages were kept. GitHub's automatic head-branch deletion remains disabled.
+
 The editor warns before leaving unsaved changes. Its modal offers **Keep editing** (also Escape) and **Leave editor**, explaining that a recovery copy stays in this browser and the changes have not been saved to the website. If a browser backup cannot be kept, it warns that leaving may lose the changes. Failed saves leave your work in the open editor, and browser backups support returning after navigation, reload, or sign-in. Recovery is separate from saving to GitHub; see the navigation and recovery details below. For repository conflicts, keep/download the backup and reconcile against the latest version rather than repeatedly submitting a stale file.
 
 Both API implementations share the draft store, blog serialization, and creation logic. Updates use the loaded blob SHA and authoritative repository frontmatter. New posts use a Git tree snapshot and a fast-forward-only branch update so competing writes cannot overwrite an existing file or create an equivalent route unnoticed.

@@ -142,7 +142,10 @@ export async function draftTestRepository(initial = {}) {
           const updates = input.variables.input.refUpdates;
           if (updates.some(update => (refs.get(update.name) || '0'.repeat(40)) !== update.beforeOid || update.force !== false)) return { errors: [{ message: 'beforeOid does not match', type: 'UNPROCESSABLE' }] };
           if (repository.fault === 'before') { repository.fault = ''; throw new TypeError('Connection lost before update'); }
-          for (const update of updates) refs.set(update.name, update.afterOid);
+          for (const update of updates) {
+            if (update.afterOid === '0'.repeat(40)) refs.delete(update.name);
+            else refs.set(update.name, update.afterOid);
+          }
           const fault = repository.fault; repository.fault = '';
           if (fault === 'unavailable-after') { repository.unavailable = true; throw new TypeError('Connection lost after update'); }
           if (fault === 'after') throw new TypeError('Connection lost after update');
