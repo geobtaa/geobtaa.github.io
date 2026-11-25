@@ -208,7 +208,7 @@ test('recovery checks the latest SHA at restore time and preserves stale copies 
     assert.equal(await browser.evaluate(`!!(${button('Restore changes')})`),true);
     await browser.evaluate(`${button('Restore changes')}.click()`);
     assert.ok(await browser.evaluate(`${recoveryKeys}.length > 0`));
-    await browser.evaluate(`window.downloaded=''; const originalCreate=URL.createObjectURL; URL.createObjectURL=blob=>{blob.text().then(text=>window.downloaded=text);return originalCreate(blob)}; HTMLAnchorElement.prototype.click=function(){}; ${button('Save backup file')}.click()`);
+    await browser.evaluate(`window.downloaded=''; const originalCreate=URL.createObjectURL; URL.createObjectURL=blob=>{blob.text().then(text=>window.downloaded=text);return originalCreate(blob)}; HTMLAnchorElement.prototype.click=function(){}; [...document.querySelectorAll('.recovery-manager button')].find(button=>button.textContent==='Save backup file').click()`);
     await browser.waitFor('!!window.downloaded');
     assert.equal(JSON.parse(await browser.evaluate('window.downloaded')).fields.title,'Keep this recovery');
     assert.equal(await browser.evaluate('window.requests.some(request=>request.method==="PUT")'),false);
@@ -266,4 +266,144 @@ test('local copies are private to the signed-in account and workspace; navigatio
     await browser.evaluate('window.finishSave()'); await browser.waitFor('document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     assert.equal(await browser.evaluate(`${recoveryKeys}.length`),0);
   });
+});
+
+test('Save backup file in Recovery options downloads current unsaved work without a save or reload', options, async()=>{
+ await withEditorBrowser(fixture,async browser=>{
+  const {evaluate,waitFor}=browser;
+  await open(browser);await fill(browser,'Current unsaved backup');
+  await evaluate(`window.downloaded='';window.downloadName='';const create=URL.createObjectURL;URL.createObjectURL=blob=>{blob.text().then(text=>window.downloaded=text);return create(blob);};HTMLAnchorElement.prototype.click=function(){window.downloadName=this.download;};`);
+  const writes=await evaluate('window.requests.filter(r=>r.method!=="GET").length');
+  await evaluate('document.querySelector(".recovery-file-options").open=true;document.querySelector(".recovery-file-options .save-backup").click()');
+  await waitFor('!!window.downloaded');
+  const copy=JSON.parse(await evaluate('window.downloaded'));
+  assert.equal(copy.fields.title,'Current unsaved backup');
+  assert.equal(copy.route.filename,'existing.mdx');
+  assert.equal(copy.baseSha,'base-1');
+  assert.match(await evaluate('window.downloadName'),/^unsaved-changes-backup-.*\.json$/);
+  assert.equal(await evaluate('window.requests.filter(r=>r.method!=="GET").length'),writes);
+  assert.equal(await evaluate(`${title}.value`),'Current unsaved backup');
+  assert.equal(await evaluate('document.querySelector(".top-save").disabled'),false);
+ });
+});
+
+async function chooseBackup(browser, source, name='backup.json') {
+  await browser.evaluate(`(() => {const transfer=new DataTransfer();transfer.items.add(new File([${JSON.stringify(source)}],${JSON.stringify(name)},{type:'application/json'}));const input=document.querySelector('.recovery-file-options input[type=file]');input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+}
+async function downloadedCopy(browser) {
+  await browser.evaluate(`(()=>{window.downloaded='';const create=URL.createObjectURL;URL.createObjectURL=blob=>{blob.text().then(text=>window.downloaded=text);return create(blob);};HTMLAnchorElement.prototype.click=function(){};document.querySelector('.recovery-file-options').open=true;document.querySelector('.save-backup').click();})()`);
+  await browser.waitFor('!!window.downloaded');
+  return JSON.parse(await browser.evaluate('window.downloaded'));
+}
+
+test('Recovery options is unobtrusive, links to help, and restores a downloaded backup only after confirmation',options,async()=>{
+ await withEditorBrowser(fixture,async browser=>{
+  const {evaluate,waitFor,send}=browser;
+  await open(browser);
+  assert.equal(await evaluate('document.querySelector(".recovery-file-options").open'),false);
+  assert.equal(await evaluate('document.querySelector(".document-toolbar .save-backup")'),null);
+  assert.doesNotMatch(await evaluate('document.body.innerText'),/Save backup file|Restore backup file|Did something go wrong/);
+  await evaluate('document.querySelector(".recovery-file-options summary").focus()');
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r'});
+  await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+  await waitFor('document.querySelector(".recovery-file-options").open');
+  assert.equal(await evaluate('document.querySelector(".recovery-file-panel > a").href'),'https://github.com/geobtaa/geobtaa.github.io/blob/main/docs/CMS_USER_GUIDE.md#troubleshooting-and-common-errors');
+  for(const width of [1280,390,320]){
+   await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width<500});
+   assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth'),true);
+   assert.equal(await evaluate('(()=>{const r=document.querySelector(".recovery-file-panel").getBoundingClientRect();return r.left>=0&&r.right<=innerWidth})()'),true);
+  }
+  await fill(browser,'Backed up title');const copy=await downloadedCopy(browser);
+  await allowNativeDialogs(browser);await reload(browser);
+  await waitFor(`${title}?.value==='Original'`);
+  await evaluate('document.querySelector(".recovery-file-options").open=true');
+  await chooseBackup(browser,JSON.stringify(copy));await waitFor('document.querySelector(".backup-restore-dialog")?.open');
+  assert.equal(await evaluate(`${title}.value`),'Original');
+  assert.match(await evaluate('document.querySelector(".backup-restore-dialog").textContent'),/Backed up title/);
+  await evaluate('document.querySelector(".backup-restore-dialog button").click()');
+  await waitFor('!document.querySelector(".backup-restore-dialog")');
+  assert.equal(await evaluate(`${title}.value`),'Original');
+  const before=await evaluate('window.requests.filter(r=>r.method!=="GET").length');
+  await chooseBackup(browser,JSON.stringify(copy));await waitFor('document.querySelector(".backup-restore-dialog")?.open');
+  await evaluate('document.querySelector(".confirm-backup-restore").click()');
+  await waitFor(`${title}.value==='Backed up title' && !document.querySelector('.backup-restore-dialog')`);
+  assert.equal(await evaluate('window.requests.filter(r=>r.method!=="GET").length'),before,'restoring a file never saves or publishes');
+  assert.match(await evaluate('document.body.innerText'),/Review them, then choose Save Draft/);
+  await evaluate('document.querySelector(".top-save").click()');
+  await waitFor('document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent==="Save Draft"');
+  assert.match(await evaluate('window.readRepo()["existing.mdx"].content'),/Backed up title/);
+ });
+});
+
+test('file recovery rejects invalid, wrong-page, oversized and stale backups without replacing the current page',options,async()=>{
+ await withEditorBrowser(fixture,async browser=>{
+  const {evaluate,waitFor}=browser;await open(browser);const copy=await downloadedCopy(browser);
+  for(const source of ['{',JSON.stringify({...copy,version:2}),JSON.stringify({...copy,fields:{...copy.fields,sha:'invented'}}),JSON.stringify({...copy,route:{area:'posts',filename:'other.mdx'},fields:{...copy.fields,filename:'other.mdx'}})]){
+   await chooseBackup(browser,source);await waitFor('!!document.querySelector(".recovery-file-panel [role=alert]")');
+   assert.equal(await evaluate('!!document.querySelector(".backup-restore-dialog")'),false);
+   assert.equal(await evaluate(`${title}.value`),'Original');
+  }
+  await evaluate(`(()=>{const file=new File(['{}'],'large.json',{type:'application/json'});Object.defineProperty(file,'size',{value:200*1024*1024});const transfer=new DataTransfer();transfer.items.add(file);const input=document.querySelector('.recovery-file-options input');input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+  await waitFor('document.querySelector(".recovery-file-error")?.textContent.includes("too large")');
+  await chooseBackup(browser,JSON.stringify(copy));await waitFor('document.querySelector(".backup-restore-dialog")?.open');
+  await evaluate('window.editorBefore=document.querySelector(".rich-editor .tiptap");window.changeServer()');
+  await evaluate('document.querySelector(".confirm-backup-restore").click()');
+  await waitFor('document.querySelector(".backup-restore-dialog [role=alert]")?.textContent.includes("saved page has changed")');
+  assert.equal(await evaluate(`${title}.value`),'Original');
+  assert.equal(await evaluate('document.querySelector(".rich-editor .tiptap")===window.editorBefore'),true);
+  assert.equal(await evaluate('window.requests.some(r=>r.method!=="GET")'),false);
+ });
+});
+
+test('current unsaved edits block file restoration but remain downloadable, including when storage fails',options,async()=>{
+ await withEditorBrowser(fixture,async browser=>{
+  const {evaluate,waitFor}=browser;await open(browser);const copy=await downloadedCopy(browser);
+  await evaluate('Storage.prototype.setItem=function(){throw new Error("Storage full")};');
+  await fill(browser,'Keep my current edits');
+  await waitFor('document.querySelector(".restore-backup").disabled');
+  await waitFor('document.querySelector(".message.error")?.textContent.includes("could not be kept")');
+  await chooseBackup(browser,JSON.stringify(copy));
+  assert.equal(await evaluate('!!document.querySelector(".backup-restore-dialog")'),false);
+  const current=await downloadedCopy(browser);
+  assert.equal(current.fields.title,'Keep my current edits');
+  assert.equal(await evaluate(`${title}.value`),'Keep my current edits');
+ });
+});
+
+test('a never-saved backup can restore into a blank new page in the same area, preserving creation retry information',options,async()=>{
+ await withEditorBrowser(fixture,async browser=>{
+  const {evaluate,waitFor}=browser;
+  await waitFor('!!document.querySelector(".body-editor")');
+  const copy=await downloadedCopy(browser);
+  copy.route={area:'posts',draftId:'original-new-page'};
+  copy.fields.title='Restored new article';copy.fields.filename='';copy.fields.body='Unsaved article body.';
+  copy.fields.creationAttempt={id:'original-creation-attempt-1234',filename:'original-article.mdx'};
+  await chooseBackup(browser,JSON.stringify(copy));await waitFor('document.querySelector(".backup-restore-dialog")?.open');
+  await evaluate('document.querySelector(".confirm-backup-restore").click()');
+  await waitFor(`${title}.value==='Restored new article' && !document.querySelector('.backup-restore-dialog')`);
+  const roundtrip=await downloadedCopy(browser);
+  assert.deepEqual(roundtrip.fields.creationAttempt,copy.fields.creationAttempt);
+  assert.equal(roundtrip.fields.body,'Unsaved article body.');
+  assert.equal(await evaluate('window.requests.some(r=>r.method!=="GET")'),false);
+ },{initialSearch:'?area=posts&new=blank-new-page'});
+});
+
+test('a delayed file read cannot apply after navigation, and a changed form invalidates confirmation',options,async()=>{
+ await withEditorBrowser(fixture,async browser=>{
+  const {evaluate,waitFor}=browser;await open(browser);const copy=await downloadedCopy(browser);
+  copy.fields.title='Imported title';
+  await evaluate('window.fileText=File.prototype.text;File.prototype.text=function(){return new Promise(resolve=>{window.finishBackupRead=resolve})};');
+  await chooseBackup(browser,JSON.stringify(copy));await waitFor('!!window.finishBackupRead');
+  await evaluate('document.querySelector(".editor-navigation .back").click()');await waitFor('!!document.querySelector(".project-list button")');
+  await evaluate(`window.finishBackupRead(${JSON.stringify(JSON.stringify(copy))});File.prototype.text=window.fileText;document.querySelector('.project-list button').click()`);
+  await waitFor(`${title}?.value==='Original'`);
+  assert.equal(await evaluate('!!document.querySelector(".backup-restore-dialog")'),false);
+  await evaluate('document.querySelector(".recovery-file-options").open=true');
+  await chooseBackup(browser,JSON.stringify(copy));await waitFor('document.querySelector(".backup-restore-dialog")?.open');
+  await evaluate(`{const input=${title};Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'Edits made after selection');input.dispatchEvent(new Event('input',{bubbles:true}));}`);
+  await waitFor('!document.querySelector(".backup-restore-dialog")');
+  assert.equal(await evaluate(`${title}.value`),'Edits made after selection');
+  assert.match(await evaluate('document.querySelector(".recovery-file-error").textContent'),/open page changed/);
+  assert.equal(await evaluate('window.requests.some(r=>r.method!=="GET")'),false);
+ });
 });

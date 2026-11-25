@@ -55,6 +55,18 @@ export function parseRecovery(source: string): RecoveryCopy | null {
     return copy as RecoveryCopy;
   } catch { return null; }
 }
+// A file is user-selected recovery data, never an authoritative revision or a
+// destination to navigate to. Saved pages must match exactly. A never-saved
+// backup may be loaded into a blank new page in the same content area.
+export const MAX_RECOVERY_FILE_BYTES = 150 * 1024 * 1024;
+export function parseRecoveryFile(source: string, route: EditorRoute): RecoveryCopy {
+  if (source.length > MAX_RECOVERY_FILE_BYTES) throw new Error('This backup file is too large to restore in the editor. Keep the file and ask a maintainer for help.');
+  const copy = parseRecovery(source);
+  if (!copy || copy.fields.metadata?.year != null && !['string', 'number'].includes(typeof copy.fields.metadata.year)) throw new Error('This is not a valid editor backup file. Choose the original .json file downloaded from the editor.');
+  if (routeKey(route) === routeKey(copy.route)) return copy;
+  if (route.area && route.area === copy.route.area && route.draftId && !route.filename && copy.route.draftId && !copy.route.filename && copy.baseSha === null) return { ...copy, route: { ...route } };
+  throw new Error(`This backup is for ${copy.route.area}/${copy.route.filename || 'a new page'}. Open that page, or a new page in that content area for an unsaved backup, before restoring it.`);
+}
 export function readRecoveryCopies(storage: Storage, scope: string, route?: EditorRoute) {
   const copies: RecoveryCopy[] = [];
   let unreadable = false;
