@@ -49,7 +49,7 @@ async function insert(browser, label, row) {
 }
 async function save(browser, count) {
   await browser.evaluate('document.querySelector(".top-save").click()');
-  await browser.waitFor(`window.writes.length === ${count} && document.querySelector('.save-state').textContent === 'All changes saved'`);
+  await browser.waitFor(`window.writes.length === ${count} && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"`);
 }
 
 async function cardState(browser, card) {
@@ -164,6 +164,7 @@ test('chips and rich card grids insert, reorder entries, preserve cursors and fo
     await evaluate('document.querySelector(".project-list button").click()');
     await waitFor('document.querySelectorAll(".collection-cardGrid .card-body .tiptap").length === 2');
     assert.equal(await evaluate(`${card(1)}.querySelector('.card-body .tiptap strong').textContent`), 'An important update with <literal> & {data}.');
+    await fill(browser, 'document.querySelector(".editor-fields input[required]")', 'Updated metadata');
     await save(browser, 2);
     assert.equal(await evaluate('window.record.body'), saved, 'unchanged reopening preserves exact source');
     await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
@@ -194,7 +195,7 @@ test('conversion previews show chips and formatted cards without editable contro
     assert.equal(await browser.evaluate('document.querySelectorAll(".conversion-preview-content .collection-block input, .conversion-preview-content .collection-block button").length'), 0);
     await click(browser, button('Cancel preview'));
     assert.equal(await browser.evaluate('window.writes.length'), 0);
-    assert.equal(await browser.evaluate('document.querySelector(".save-state").textContent'), 'All changes saved');
+    assert.equal(await browser.evaluate('document.querySelector(".top-save").disabled'), true);
   });
 });
 
@@ -232,6 +233,7 @@ test('Metrics inserts editable free-form values, previews responsively, reorders
     await evaluate('document.querySelector(".editor-navigation .back").click()'); await waitFor('!!document.querySelector(".project-list button")');
     await evaluate('document.querySelector(".project-list button").click()'); await waitFor('document.querySelectorAll(".collection-metrics .collection-entry").length===4');
     assert.deepEqual(await evaluate('[...document.querySelectorAll(".collection-metrics dd")].map(item=>item.textContent)'),expected.map(item=>item.value));
+    await fill(browser, 'document.querySelector(".editor-fields input[required]")', 'Updated metadata');
     await save(browser,2); assert.equal(await evaluate('window.record.body'),source);
     await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
     assert.equal(await evaluate('document.documentElement.scrollWidth<=window.innerWidth'),true);

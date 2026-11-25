@@ -28,6 +28,8 @@ import ProjectEditor from '../src/components/editor/ProjectEditor.tsx';
 import '../src/components/editor/editor.css';
 window.record = ${JSON.stringify({ filename: 'preview.mdx', sha: 'loaded', title: 'Preview title', description: 'Library summary', draft: true, date: '2026-11-13T23:30:00-06:00', authors: [{ name: 'Editor One' }, 'Editor Two'], tags: ['Maps'], metadata: { year: 2026 }, cover: { image, alt: 'Cover intentionally omitted' }, body, content: '---\ntitle: Preview title\n---\n\n' + body })};
 window.requests = [];
+// Background publication verification may resume when a preview link tab closes.
+window.previewRequests = () => window.requests.filter(request => !request.path.startsWith('/api/publish/') && !request.path.startsWith('/api/publication-status/')).length;
 window.confirm = () => true;
 window.fetch = async (url, options = {}) => {
   const path = new URL(String(url), location.origin).pathname;
@@ -59,7 +61,7 @@ async function checkPreviewLinks(browser) {
   await send('Page.enable');
   const before = await evaluate(`({ url: location.href, history: history.length,
     selection: window.originalView.state.selection.toJSON(), markdown: window.originalEditor.editor.getMarkdown(),
-    requests: window.requests.length })`);
+    requests: window.previewRequests() })`);
   const links = await evaluate(`[...document.querySelectorAll('.cms-preview a[href]')].map(a => ({ href: a.href, target: a.target, rel: a.rel }))`);
   assert.equal(links.length, 8, 'text links, card, button and nested card-body link are all anchors');
   try {
@@ -106,7 +108,7 @@ async function checkPreviewLinks(browser) {
       await send('Target.closeTarget', { targetId: tabs[0].targetId });
       assert.deepEqual(await evaluate(`({ url: location.href, history: history.length,
         selection: window.originalView.state.selection.toJSON(), markdown: window.originalEditor.editor.getMarkdown(),
-        requests: window.requests.length })`), before);
+        requests: window.previewRequests() })`), before);
       assert.equal(await evaluate(`document.querySelector('.body-editor .tiptap') === window.originalEditor &&
         document.querySelector('#document-edit').hidden &&
         document.querySelector('.save-state').textContent === 'Unsaved changes' &&
@@ -135,7 +137,7 @@ test('preview renders unsaved content and supported blocks without writes, and p
     await evaluate(`window.originalCardEditor.editor.commands.focus('end')`);
     await waitFor('document.activeElement === window.originalCardEditor');
     await send('Input.insertText', { text: ' Unsaved card body.' });
-    await evaluate('window.requestCountBefore = window.requests.length');
+    await evaluate('window.requestCountBefore = window.previewRequests()');
     await preview(browser);
     await waitFor('document.querySelector(".cms-preview").textContent.includes("Unsaved sentence.")');
     assert.equal(await evaluate('document.querySelector(".cms-preview h1").textContent'), 'Unsaved title');
@@ -189,7 +191,7 @@ test('preview renders unsaved content and supported blocks without writes, and p
     await waitFor('window.originalEditor.textContent.includes("Unsaved sentence.")');
     await preview(browser);
     await waitFor('document.querySelector(".cms-preview").textContent.includes("Unsaved sentence.")');
-    assert.equal(await evaluate('window.requests.length === window.requestCountBefore'), true, 'toggling does not call any API');
+    assert.equal(await evaluate('window.previewRequests() === window.requestCountBefore'), true, 'toggling does not call any API');
     assert.equal(await evaluate('window.requests.some(request => request.method !== "GET")'), false);
     assert.equal(await evaluate('window.record.sha'), 'loaded');
   }, { initialSearch: '?area=posts&file=preview.mdx' });
@@ -205,7 +207,7 @@ test('documentation preview uses current library metadata and document image beh
     assert.equal(await browser.evaluate(`getComputedStyle(${previewImage('Ordinary image')}).maxWidth`), '100%');
     assert.equal(await browser.evaluate(`${previewImage('Formatted image')}.querySelector('figcaption').hidden`), false);
     await edit(browser);
-    assert.equal(await browser.evaluate('document.querySelector(".save-state").textContent'), 'All changes saved');
+    assert.equal(await browser.evaluate('document.querySelector(".top-save").disabled'), true);
     assert.equal(await browser.evaluate('window.requests.some(request => request.method !== "GET")'), false);
   }, { initialSearch: '?area=library&file=preview.mdx' });
 });
@@ -221,7 +223,7 @@ test('never-saved pages preview current form content and reset mode when leaving
     await browser.send('Input.insertText', { text: 'New page, never saved.' });
     await preview(browser);
     await browser.waitFor('document.querySelector(".cms-preview").textContent.includes("New page, never saved.")');
-    assert.equal(await browser.evaluate('document.querySelector(".save-state").textContent'), 'Not saved yet');
+    assert.equal(await browser.evaluate('document.querySelector(".save-state").textContent'), 'Unsaved changes');
     await browser.evaluate('document.querySelector(".editor-navigation .back").click()');
     await answerLeaveDialog(browser);
     await browser.waitFor('!!document.querySelector(".project-list button")');

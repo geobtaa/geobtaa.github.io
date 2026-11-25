@@ -102,7 +102,7 @@ window.fetch = async (url, options = {}) => {
 };
 createRoot(document.getElementById('root')).render(React.createElement(ProjectEditor));`;
 
-test('draft metadata is read-only, navigation visibility stays separate, and both buttons save drafts without publishing', {
+test('draft metadata is read-only, navigation visibility stays separate, and saving changes never publishes', {
   skip: chrome ? false : 'Set CHROME_BIN to an installed Chrome/Chromium executable.', timeout: 30_000,
 }, async () => {
   await withEditorBrowser(visibilityFixture, async ({ evaluate, waitFor, send }) => {
@@ -117,19 +117,21 @@ test('draft metadata is read-only, navigation visibility stays separate, and bot
     await evaluate('document.querySelector("form input[required]").focus();document.querySelector("form input[required]").select()');
     await send('Input.insertText', { text: 'Edited draft' });
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     assert.equal(await evaluate('window.writes[0].input.draft'), true);
     assert.equal(await evaluate('window.writes[0].input.publish'), undefined);
-    await evaluate('document.querySelector(".editor-actions .primary").click()');
-    await waitFor('window.writes.length === 2');
+    await evaluate('document.querySelector(".top-save").click()');
+    assert.equal(await evaluate('window.writes.length'),1,'an unchanged draft cannot be saved again');
     await evaluate('document.querySelector(".editor-navigation .back").click()');
     await waitFor('!!document.querySelector(".project-list")');
     await evaluate('[...document.querySelectorAll(".project-list button")].find(button => button.querySelector(".content-name").textContent === "navigation-only").click()');
     await waitFor('document.querySelector("form input[required]")?.value === "navigation-only"');
     assert.equal(await evaluate('[...document.querySelectorAll("label")].find(label=>label.textContent.startsWith("Navigation visibility")).querySelector("select").value'), 'true');
     assert.equal(await evaluate('document.querySelectorAll("[data-publication-state]").length'), 0);
+    await evaluate('document.querySelector("form input[required]").focus()');
+    await send('Input.insertText', {text: 'Revised '});
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 3');
+    await waitFor('window.writes.length === 2');
     assert.equal(await evaluate('window.writes.at(-1).input.draft'), false, 'main metadata stays unchanged');
     assert.equal(await evaluate('window.writes.at(-1).input.publish'), undefined);
   });

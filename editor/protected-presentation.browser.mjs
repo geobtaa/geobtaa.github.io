@@ -62,7 +62,7 @@ test('page setup is a locked inspector; adjacent protected content is named and 
     await send('Input.insertText', { text: 'Metadata edit' });
     const save = async count => {
       await evaluate('document.querySelector(".top-save").click()');
-      await waitFor(`window.writes.length === ${count} && document.querySelector('.save-state').textContent === 'All changes saved'`);
+      await waitFor(`window.writes.length === ${count} && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"`);
       const saved = await evaluate('window.saved');
       await validateDocument(saved, { originalBody: body });
       return parseContent(saved).body;
@@ -129,7 +129,7 @@ test('protected content removal can be undone, saved explicitly, previewed and r
     assert.ok(!(await evaluate('document.querySelector("#document-edit").textContent')).includes('marked for removal'));
     await evaluate('document.querySelector(".remove-protected").click()');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('window.writes.length === 1 && document.querySelector(".save-state").textContent === "All changes saved"');
+    await waitFor('window.writes.length === 1 && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     const input = await evaluate('window.writes[0]');
     assert.equal(input.protectedRemovals.length, 1);
     assert.match(input.protectedRemovals[0], /LegacyPanel/);

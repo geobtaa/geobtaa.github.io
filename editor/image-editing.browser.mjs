@@ -177,7 +177,7 @@ test('tiny and custom images stay unchanged on open and remain selectable; prese
       await evaluate(`[...document.querySelector(${JSON.stringify(scope)}).querySelectorAll('button')].find(button => button.textContent.trim() === ${JSON.stringify(label)}).click()`);
     };
     await waitFor('document.querySelector(".editor-image img")?.naturalWidth > 0');
-    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'All changes saved');
+    assert.equal(await evaluate('document.querySelector(".top-save").disabled'), true);
     assert.equal(await evaluate('document.querySelector(".body-editor .tiptap").editor.getMarkdown()'), body);
     assert.deepEqual(await evaluate('[...document.querySelectorAll(".image-format-controls select")].map(select => select.selectedOptions[0].textContent)'), ['Custom (5px)', 'Custom (137px)', 'Custom (9600px)']);
     const point = await evaluate(`(() => {
@@ -197,8 +197,10 @@ test('tiny and custom images stay unchanged on open and remain selectable; prese
     await click('Edit image', '.editor-image');
     await waitFor('!!document.querySelector(".image-picker")');
     await click('Cancel', '.image-picker');
-    assert.equal(await evaluate('document.querySelector(".save-state").textContent'), 'All changes saved');
-    // A save without resizing retains even the tiny width and original Markdown syntax.
+    assert.equal(await evaluate('document.querySelector(".top-save").disabled'), true);
+    // A metadata edit enables saving without changing the image source.
+    await evaluate('document.querySelector(".editor-fields input[required]").focus()');
+    await send('Input.insertText', {text: 'Revised '});
     await click('Save Draft', '.editor-navigation');
     await waitFor('window.writes.length === 1 && !document.querySelector(".editor-navigation .back").disabled');
     assert.equal(await evaluate('window.record.body'), body);

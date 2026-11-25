@@ -2,7 +2,7 @@ import { PageSetup, ProtectedSource } from './ProtectedSource';
 import { FieldLabel } from './FieldLabel.ts';
 import { preparePublicationCandidate } from '../../../editor/publicationCandidate.mjs';
 import { PublicationStatus, type PublicationState } from './PublicationStatus';
-import { publishedPageUrl } from './publicationProgress';
+import { publishedPageUrl, publicationApplied, publicationBlocksNewRequest, publicationCanResume } from './publicationProgress';
 import { PublicationDialog } from './PublicationDialog';
 import { UnpublishDialog } from './UnpublishDialog';
 import { LibraryPublicationProgress } from './LibraryPublicationProgress';
@@ -36,7 +36,7 @@ import { PROGRAM_UPDATE_OUTLINE } from '../../../editor/programUpdates.mjs';
 import { COLLECTION_BLOCKS, COLLECTION_KINDS, collectionKindForNode, createCollectionMdx, emptyCollectionData, ensureCollectionImport, type CollectionKind } from './collectionMdx';
 
 const API = import.meta.env.PUBLIC_PROJECT_EDITOR_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8787' : '');
-const CONFLICT = 'This page has changed in GitHub since you opened it. Reload the latest version before saving.';
+const CONFLICT = 'The saved version changed while you were editing. Your unsaved edits are still here. Download a backup before reopening the page; if an earlier publication just completed, try Save Draft again.';
 
 const DraftImages = createContext<{ area: string; filename: string; add: (image: PendingImage) => void } | null>(null);
 
@@ -725,6 +725,7 @@ export default function ProjectEditor() {
   const [recoveryManager, setRecoveryManager] = useState<string | null>(null);
   const [resumeRequest, setResumeRequest] = useState<{ copy: RecoveryCopy; scope: string } | null>(null);
   const [restoringChanges, setRestoringChanges] = useState(false);
+  const [saving, setSaving] = useState(false);
   const recoveryRef = useRef<EditorRecovery | null>(null);
   const requestSequence = useRef(0);
   // BodyEditor consumes initialValue on mount. Advance only when replacing the
@@ -746,7 +747,6 @@ export default function ProjectEditor() {
   const refreshedDeployments = useRef(new Set<string>());
   const deploymentListRead = useRef(0);
   useEffect(() => { recentPublications.current.clear(); refreshedDeployments.current.clear(); }, [viewer]);
-  const [unpublishPending, setUnpublishPending] = useState(false);
   const [submittedPR, setSubmittedPR] = useState<{ path: string; status: PublicationState }>();
   const [authIssue, setAuthIssue] = useState('');
   const [checkingSignIn, setCheckingSignIn] = useState(false);
@@ -941,8 +941,17 @@ export default function ProjectEditor() {
       const conflict = projects.find(item => item.name === filename || (item.route ?? (item.visibilityKnown === false ? undefined : documentRoute(`${area}/${item.name}`))) === route);
       if (conflict) return setError(routeConflictMessage(route, conflict.path));
     }
-    setBusy(true); setError(''); setNotice('');
+    setBusy(true); setSaving(true); setError(''); setNotice('');
     try {
+      // Only adopt a verified continuation of the exact draft we opened. Never
+      // reload form fields: newer local edits, uploads and undo remain intact.
+      let saveRevision = project;
+      if (project.hasDraft && publicationInfo?.number) {
+        const fresh = await api<Project>(`/api/content/${area}/${encodeContentPath(filename)}`);
+        if (fresh.resumeHead === project.head && fresh.resumeSourceSha === project.sha) {
+          saveRevision = { ...project, sha: fresh.sha, head: fresh.head, resumeHead: fresh.resumeHead, content: fresh.content };
+        }
+      }
       const saved = await api<Project & { commitSha: string; replayed?: boolean }>(creatingArticle ? `/api/content/${area}` : `/api/content/${area}/${encodeURIComponent(filename)}`, {
         method: creatingArticle ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -955,11 +964,11 @@ export default function ProjectEditor() {
           description: project.description,
           body: project.body,
           protectedRemovals: project.protectedRemovals,
-          head: project.head,
-          resumeHead: project.resumeHead,
+          head: saveRevision.head,
+          resumeHead: saveRevision.resumeHead,
           assets: project.assets,
-          sha: project.sha,
-          originalContent: project.content,
+          sha: saveRevision.sha,
+          originalContent: saveRevision.content,
         }),
       });
       if (!saved.sha || typeof saved.sha !== 'string' || !saved.commitSha || typeof saved.commitSha !== 'string' || typeof saved.content !== 'string' || typeof saved.body !== 'string' || typeof saved.title !== 'string' || (attempt && saved.filename !== attempt.filename)) throw new Error('The save response did not identify the committed document. Its outcome could not be confirmed.');
@@ -984,11 +993,12 @@ export default function ProjectEditor() {
       setSuggestedFilename(attempt && failure.creationState !== 'not-created' ? '' : failure.suggestedFilename || '');
       const message = (err as Error).message;
       setError(attempt && failure.creationState !== 'not-created' ? `${message} Creation is not confirmed. Use Retry creation safely to check the original request; do not create another article.` : !isArticle && message.includes('changed in GitHub') ? CONFLICT : message);
-    } finally { setBusy(false); }
+    } finally { setSaving(false); setBusy(false); }
   };
 
   const requestPublicationConfirmation = (action: 'publish' | 'unpublish', head = project?.head, existing?: PublicationState) => {
     if (!project || !head || !/^[a-f0-9]{40}$/.test(head) || dirty || busy || authIssue || !autoMergeAvailable || (action === 'publish' && !project.hasDraft)) return;
+    if (publicationBlocksNewRequest(publicationInfo) && !(publicationCanResume(publicationInfo) && head === publicationInfo?.selectedHead && action === (publicationInfo.action || 'publish'))) return;
     // Capture the immutable revision and loaded form together. Status refreshes
     // or concurrent saves must never substitute another revision after consent.
     setPublicationConfirmation({ action, head, loaded: JSON.stringify(project), existing });
@@ -1002,7 +1012,7 @@ export default function ProjectEditor() {
       const result = await api<PublicationState>(path, { method: 'POST', body: JSON.stringify({ autoMerge: enabled, head: status.selectedHead, snapshotHead: status.snapshotHead, action: status.action || 'publish' }) });
       setSubmittedPR({ path, status: result }); recentPublications.current.add(path);
       if (!enabled) setNotice(result.state === 'merged' ? 'This update was already accepted for deployment and could not be cancelled. The website update still needs verification.' : `Automatic ${status.action === 'unpublish' ? 'unpublishing' : 'publishing'} cancelled. Your saved work is still available.`);
-    } catch (error) { setPublicationIssue((error as Error).message); setError(enabled ? 'This action could not be authorized. Your saved work is safe. Check again before trying again.' : 'Cancellation could not be confirmed. This action may still complete. Check again and retry cancellation.'); }
+    } catch (error) { setPublicationIssue(`${enabled ? 'Authorization' : 'Cancellation'} could not be confirmed. This action may still complete. ${(error as Error).message}`); }
     finally { setBusy(false); setPublicationVersion(value => value + 1); }
   };
 
@@ -1010,24 +1020,21 @@ export default function ProjectEditor() {
     if (!area || !project || !project.head || (action === 'publish' && !project.hasDraft) || dirty || busy) return;
     setBusy(true); setError(''); setNotice('');
     setPublicationIssue('');
-    let copyReady = false, initializingCopy = false;
     try {
       const path = `/api/publish/${area}/${encodeContentPath(project.filename)}`;
       if (action === 'unpublish' && !project.hasDraft) {
-        initializingCopy = true;
         const initialized = await api<{ head: string; document: Project }>(path, { method: 'POST', body: JSON.stringify({ action, initialize: true, expectedSha: project.sha, expectedHead: project.head, resumeHead: project.resumeHead }) });
         const document = initialized.document;
         if (!/^[a-f0-9]{40}$/.test(initialized.head || '') || document?.hasDraft !== true || !/^[a-f0-9]{40}$/.test(document.sha || '') || !/^[a-f0-9]{40}$/.test(document.head || '') || document.filename !== project.filename || document.content !== project.content) throw new Error('The saved page changed during preparation. Reopen it before unpublishing. Your work is safe.');
         const next = { ...project, ...document };
         setProject(next); setBaseline(next); setSavedSnapshot(JSON.stringify(next));
         selectedHead = initialized.head;
-        copyReady = true;
       }
       const prepared = await api<{ head: string; content: string; assets: Record<string, string>; action?: 'publish' | 'unpublish' }>(path, { method: 'POST', body: JSON.stringify({ head: selectedHead, action, prepare: true }) });
       if (prepared.head !== selectedHead || (prepared.action || 'publish') !== action) throw new Error('The selected saved revision changed. Your edits remain here.');
       const candidate = preparePublicationCandidate(prepared, project.filename);
       const result = await api<PublicationState>(path, { method: 'POST', body: JSON.stringify({ head: selectedHead, action, candidate }) });
-      if (!Number.isInteger(result.number) || !['pr-open', 'closed', 'merged'].includes(result.state)) throw new Error('PR creation could not be confirmed. Use Check status before retrying; your saved draft is intact.');
+      if (!Number.isInteger(result.number) || !['pr-open', 'closed', 'merged'].includes(result.state)) throw new Error('PR creation could not be confirmed. Wait for status verification before retrying; your saved draft is intact.');
       recentPublications.current.add(path);
       setSubmittedPR({ path, status: { ...result, autoMerge: result.autoMerge ?? null } });
       if (automatically && result.state === 'pr-open') {
@@ -1037,7 +1044,7 @@ export default function ProjectEditor() {
         setSubmittedPR({ path, status: authorized });
       }
       setNotice('');
-    } catch (err) { setPublicationIssue((err as Error).message); setError(copyReady || initializingCopy ? 'Preparation or submission could not be confirmed. Your saved work is safe. Check again before trying to unpublish again.' : 'This action could not be confirmed. Your saved work is safe. Check again before trying again.'); }
+    } catch (err) { setPublicationIssue(`Submission could not be confirmed. Your saved work is safe. ${(err as Error).message}`); }
     finally { setBusy(false); setPublicationVersion(value => value + 1); }
   };
 
@@ -1187,7 +1194,15 @@ export default function ProjectEditor() {
   const savedDate = project.lastSavedAt ? new Date(project.lastSavedAt) : null;
   const savedTime = savedDate && Number.isFinite(savedDate.getTime()) ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(savedDate) : null;
   const needsSave = dirty || !project.sha || !!project.creationAttempt || !!(project.resumeHead && project.preservedEdits);
-  const saveStatus = <span className="working-copy-status" role="status"><span className="save-state draft-status">{busy ? restoringChanges ? 'Restoring changes…' : 'Working…' : !project.sha ? 'Not saved yet' : dirty ? 'Unsaved changes' : 'All changes saved'}</span>{!dirty && project.sha && <>{savedTime && <> · <time dateTime={project.lastSavedAt}>{savedTime}</time></>}{project.lastSavedBy && <> · {project.lastSavedBy}</>}</>}</span>;
+  const saveStatus = <span className="working-copy-status">{!dirty && project.sha && <>{savedTime && <time dateTime={project.lastSavedAt}>{savedTime}</time>}{project.lastSavedBy && <> · {project.lastSavedBy}</>}</>}</span>;
+  const resumePublication = publicationCanResume(publicationInfo) && publicationInfo?.action !== 'unpublish';
+  const publicationBlocked = publicationBlocksNewRequest(publicationInfo) && !resumePublication;
+  const alreadyPublished = publicationInfo && publicationApplied(publicationInfo) && !project.preservedEdits && !publicationInfo.newerDraft && publicationInfo.selectedHead === project.head;
+  const primaryPublish = () => {
+    if (resumePublication && publicationInfo) requestPublicationConfirmation('publish', publicationInfo.selectedHead, publicationInfo.state === 'pr-open' ? publicationInfo : undefined);
+    else requestPublicationConfirmation('publish');
+  };
+
 
   return (
     <DraftImages.Provider value={{ area, filename: project.sha ? project.filename : '', add: image => {
@@ -1213,12 +1228,11 @@ export default function ProjectEditor() {
         onConfirm={confirmPublication} />)}
       <nav className="editor-navigation" aria-label="Editor navigation">
         <button className="back" type="button" disabled={busy} onClick={backToList}>← Back to {config.label}</button>
-        <div className="navigation-actions"><button className="top-save" data-unsaved={needsSave} title={needsSave ? "You have unsaved edits. Save Draft to keep them in GitHub." : "All changes saved."} type="button" disabled={busy || !!authIssue} onClick={() => save()}>{busy ? restoringChanges ? 'Restoring changes…' : 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button><button className="publish-document" type="button" disabled={busy || dirty || !project.hasDraft || !!authIssue || unpublishPending || !autoMergeAvailable} title={dirty ? 'Save your changes before publishing.' : !autoMergeAvailable ? 'Publishing is not enabled yet. Ask a maintainer.' : undefined} onClick={() => requestPublicationConfirmation('publish')}>Publish</button><span className="publication-action-slot" ref={setPublicationActionTarget}>{!project.sha && <button className="unpublish-document" type="button" disabled>Unpublish</button>}</span></div>
+        <div className="navigation-actions"><button className="top-save" data-unsaved={needsSave} title={needsSave ? "Save your changes as a draft." : "Draft saved."} type="button" disabled={busy || !!authIssue || !needsSave} onClick={() => save()}>{restoringChanges ? 'Restoring changes…' : saving ? 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button><button className="publish-document" type="button" disabled={busy || dirty || (!project.hasDraft && !resumePublication) || !!authIssue || publicationBlocked || !!alreadyPublished || !autoMergeAvailable} title={dirty ? 'Save your changes before publishing.' : !autoMergeAvailable ? 'Publishing is not enabled yet. Ask a maintainer.' : undefined} onClick={primaryPublish}>Publish</button><span className="publication-action-slot" ref={setPublicationActionTarget}>{!project.sha && <button className="unpublish-document" type="button" disabled>Unpublish</button>}</span></div>
       </nav>
       <h1>{project.title.trim() || 'Untitled page'}</h1>
-      {!project.sha && <div className="document-status-row"><strong className="publication-heading visibility-badge status-unknown">Not yet published</strong>{saveStatus}</div>}
-      {project.sha && <PublicationStatus onAutoMergeAvailable={setAutoMergeAvailable} onStatus={setPublicationInfo} technicalError={publicationIssue} technicalDetails={project.mainChanged ? <p>This draft's main document changed. For repeat editing, <a href={`https://github.com/geobtaa/geobtaa.github.io/edit/main/src/content/docs/${area}/${encodeContentPath(project.filename)}`} target="_blank" rel="noopener noreferrer">edit the current source on GitHub</a> and propose a PR, or ask a maintainer. Do not delete drafts or locks.</p> : undefined} onAutoMerge={(status, enabled) => { if (enabled) requestPublicationConfirmation(status.action || 'publish', status.selectedHead, status); else void setAutomaticPublication(status, false); }} actionTarget={publicationActionTarget} saveStatus={saveStatus} key={`${area}/${project.filename}`} path={`/api/publish/${area}/${encodeContentPath(project.filename)}`} head={project.head} dirty={dirty} hasDraft={!!project.hasDraft} onUnpublishPending={setUnpublishPending} newPage={project.baselineExists === false} onUnpublish={() => requestPublicationConfirmation('unpublish')} refreshVersion={publicationVersion} disabled={busy || !!authIssue} load={loadPublicationStatus} submitted={submittedPR?.path === `/api/publish/${area}/${encodeContentPath(project.filename)}` ? submittedPR.status : undefined} onRetry={(head, action) => requestPublicationConfirmation(action || 'publish', head)} />}
-      {project.resumeHead && project.preservedEdits && <p className="message">An earlier update was accepted for deployment. Your newer saved changes are preserved below. Use Save Draft before publishing them.</p>}
+      {!project.sha && <section className="publication-status"><div className="publication-summary"><div className="document-status-row"><strong className="publication-heading save-state draft-status visibility-badge status-draft">Unsaved changes</strong></div><p className="publication-notice">This page has not been published.</p></div><span className="publication-details-placeholder" /></section>}
+      {project.sha && <PublicationStatus onAutoMergeAvailable={setAutoMergeAvailable} onStatus={setPublicationInfo} technicalError={publicationIssue} technicalDetails={project.mainChanged ? <p>This draft's main document changed. For repeat editing, <a href={`https://github.com/geobtaa/geobtaa.github.io/edit/main/src/content/docs/${area}/${encodeContentPath(project.filename)}`} target="_blank" rel="noopener noreferrer">edit the current source on GitHub</a> and propose a PR, or ask a maintainer. Do not delete drafts or locks.</p> : undefined} onAutoMerge={(status, enabled) => { if (enabled) requestPublicationConfirmation(status.action || 'publish', status.selectedHead, status); else void setAutomaticPublication(status, false); }} actionTarget={publicationActionTarget} saveStatus={saveStatus} key={`${area}/${project.filename}`} path={`/api/publish/${area}/${encodeContentPath(project.filename)}`} head={project.head} sha={project.sha} dirty={dirty} hasDraft={!!project.hasDraft} preservedEdits={!!project.preservedEdits} newPage={project.baselineExists === false} onUnpublish={() => requestPublicationConfirmation('unpublish')} refreshVersion={publicationVersion} disabled={busy || !!authIssue} load={loadPublicationStatus} submitted={submittedPR?.path === `/api/publish/${area}/${encodeContentPath(project.filename)}` ? submittedPR.status : undefined} onRetry={(head, action) => requestPublicationConfirmation(action || 'publish', head)} />}
       {project.mainChanged && <p className="message error">This saved version is based on an older website version. Saving is blocked to protect the current page. Keep or download your changes and ask a maintainer for help.</p>}
       {recoveryPanel}
       {notice && <p className="message success" role="status">{notice}</p>}
@@ -1281,7 +1295,7 @@ export default function ProjectEditor() {
             return { ...current, body, protectedRemovals: protectedRemovals.length ? protectedRemovals : undefined };
           }); }} /></div>
         </>}
-        <div className="actions editor-actions"><button className="back" disabled={busy} type="button" onClick={backToList}>← Back to {config.label}</button><button disabled={busy || !!authIssue} className="primary" type="button" onClick={() => save()}>{busy ? 'Saving…' : project.creationAttempt ? 'Retry creation safely' : 'Save Draft'}</button></div>
+        <div className="actions editor-actions"><button className="back" disabled={busy} type="button" onClick={backToList}>← Back to {config.label}</button></div>
         </fieldset>
       </form>
     </main>

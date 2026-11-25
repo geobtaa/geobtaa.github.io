@@ -28,188 +28,92 @@ window.fetch=async(url,options={})=>{
 createRoot(document.getElementById('root')).render(React.createElement(ProjectEditor));`;
 const options = { skip: chrome ? false : 'Chrome/Chromium is required.', timeout: 45000 };
 const title = 'document.querySelector(".editor-fields input[required]")';
-test('document title and publication status remain visible independently of requests',options,async()=>{
-  const empty=fixture.replace("createRoot(document.getElementById('root'))",`window.setStatus({state:'none'});
-    const gateway=window.fetch;window.statusReads=0;
-    window.fetch=async(url,options={})=>{if(String(url).includes('/api/publish/')&&!options.method){window.statusReads++;if(window.statusReads===1)return new Promise(resolve=>{window.finishStatus=()=>resolve(Response.json({state:'none'}));});}return gateway(url,options);};
-    createRoot(document.getElementById('root'))`);
-  await withEditorBrowser(empty,async({evaluate,waitFor,send})=>{
-    await waitFor(`!!${title} && !!window.finishStatus`);
-    assert.equal(await evaluate('document.querySelector("h1").textContent'),'Newer saved draft');
-    assert.equal(await evaluate('!!document.querySelector(".dashboard-link")'),false);
-    assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'),'Checking publication status…');
-    assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),'All changes saved');
-    const savedColor = await evaluate('getComputedStyle(document.querySelector(".top-save")).backgroundColor');
-    assert.equal(await evaluate('document.body.textContent.includes("This creates a GitHub publication request.")'),false);
-    await evaluate('window.finishStatus()');
-    await evaluate(`${title}.focus();${title}.select()`);await send('Input.insertText',{text:'Actual revised title'});
-    await waitFor('document.querySelector("h1").textContent==="Actual revised title"');
-    assert.notEqual(await evaluate('getComputedStyle(document.querySelector(".top-save")).backgroundColor'), savedColor);
-    assert.equal(await evaluate('document.querySelector(".publish-document").disabled'), true);
-    assert.equal(await evaluate('getComputedStyle(document.querySelector(".publish-document")).backgroundColor'), 'rgb(229, 231, 235)');
-    assert.equal(await evaluate('getComputedStyle(document.querySelector(".unpublish-document")).backgroundColor'), 'rgb(229, 231, 235)');
-    assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'),'Publication status unavailable');
-    assert.equal(await evaluate('window.statusReads'),1,'presentation changes add no status requests');
-    await evaluate(`${title}.select()`);await send('Input.insertText',{text:'Newer saved draft'});
-    await waitFor('document.querySelector(".publish-document").disabled===false');
-    assert.equal(await evaluate('getComputedStyle(document.querySelector(".top-save")).backgroundColor'), savedColor);
-    assert.equal(await evaluate('getComputedStyle(document.querySelector(".publish-document")).backgroundColor'), 'rgb(35, 112, 78)');
-    await evaluate(`window.setStatus({state:'pr-open',number:42,url:'https://github.com/geobtaa/geobtaa.github.io/pull/42'});document.querySelector('.publish-document').click()`);
-    await waitFor('document.querySelector("dialog")?.open');await evaluate('document.querySelector(".confirm-publication").click()');
-    await waitFor('document.querySelector(".publication-status")?.dataset.state==="pr-open"');
-    assert.equal(await evaluate('window.writes.length'),3,'prepare, creation and authorization remain separate');
-  },{initialSearch:'?area=library&file=report.mdx'});
+const heading = 'document.querySelector(".publication-heading")?.textContent';
+const refresh = `document.querySelector('.publication-history button').click()`;
+const setup = value => fixture.replace("createRoot(document.getElementById('root'))", `window.setStatus(${value});createRoot(document.getElementById('root'))`);
+test('compact unified status distinguishes drafts and live versions, with secondary technical controls', options, async () => {
+ await withEditorBrowser(setup("{state:'none',mainDraft:false,unpublishEnabled:true,website:{publication:'published'}}"),async({evaluate,waitFor,send})=>{
+  await waitFor('document.querySelector(".publish-document")?.disabled===false');
+  assert.equal(await evaluate(heading),'Draft saved');
+  assert.equal(await evaluate('document.querySelector(".top-save").disabled'),true);
+  assert.equal(await evaluate('document.querySelector(".publication-history").open'),false);
+  assert.equal(await evaluate('document.querySelector(".publication-options")'),null);
+  assert.equal(await evaluate('document.querySelector(".unpublish-document").offsetHeight > 0'),true);
+  assert.equal(await evaluate('document.querySelectorAll(".navigation-actions > button").length'),2);
+  assert.equal(await evaluate('document.querySelectorAll(".save-state").length'),1);
+  assert.doesNotMatch(await evaluate('document.body.innerText'),/GitHub|Refresh status|More options|Check again/);
+  await evaluate(`${title}.focus();${title}.select()`);await send('Input.insertText',{text:'New local edits'});
+  await waitFor(`${heading}==='Unsaved changes'`);
+  assert.equal(await evaluate('document.querySelector(".top-save").disabled'),false);
+  assert.equal(await evaluate('document.querySelector(".publish-document").disabled'),true);
+  assert.equal(await evaluate('document.querySelector(".unpublish-document").disabled'),true);
+ },{initialSearch:'?area=library&file=report.mdx'});
 });
-test('manual PR status refresh preserves unsaved text, never writes, and recovers after another login/reload', options, async () => {
-  await withEditorBrowser(fixture, async browser => {
-    const {evaluate,waitFor,send}=browser;
-    await waitFor(`!!${title} && document.querySelector('.publication-status')?.dataset.state==='pr-open'`);
-    assert.equal(await evaluate('document.querySelector(".publication-status strong").textContent'),'Published');
-    assert.equal(await evaluate('document.querySelector(".publication-status p[role=status]").textContent'),'Automatic publishing is not authorized. Choose Publish to review and confirm the saved version.');
-    assert.equal(await evaluate('document.querySelector(".publication-status a").textContent'),'Publication request #42 on GitHub');
-    assert.equal(await evaluate('document.querySelector(".publication-status button").textContent'),'Check again');
-    await evaluate(`window.originalEditor=document.querySelector('.tiptap');${title}.focus();${title}.select()`);
-    await send('Input.insertText',{text:'Keep my unsaved title'});
-    await evaluate(`window.setStatus({...window.statusResult,state:'closed',website:{publication:'unavailable'},message:'Publication PR closed without merging.'});document.querySelector('.publication-status button').click()`);
-    await waitFor('document.querySelector(".publication-status").dataset.state==="closed"');
-    assert.equal(await evaluate(`${title}.value`),'Keep my unsaved title');
-    assert.equal(await evaluate('document.querySelector(".tiptap")===window.originalEditor'),true);
-    await evaluate(`window.setStatus({...window.statusResult,state:'merged',message:'PR merged. GitHub Pages handles deployment; deployment is not verified here.'});document.querySelector('.publication-status button').click()`);
-    await waitFor('document.querySelector(".publication-status").dataset.state==="merged"');
-    assert.equal(await evaluate(`${title}.value`),'Keep my unsaved title');
-    assert.match(await evaluate('document.querySelector(".publication-status").textContent'),/Newer edits.*not included/);
-    assert.equal(await evaluate('window.writes.length'),0);
-    await evaluate(`${title}.focus();${title}.select()`);await send('Input.insertText',{text:'Newer saved draft'});
-    await waitFor('document.querySelector(".save-state").textContent==="All changes saved"');
-    const load=await evaluate('window.loadId');
-    await evaluate('localStorage.setItem("publication-login","second-editor")');await send('Page.reload');
-    await waitFor(`window.loadId!==${JSON.stringify(load)} && document.querySelector('.publication-status')?.dataset.state==='merged'`);
-    assert.equal(await evaluate('window.writes.length'),0);
-    assert.equal(await evaluate('document.querySelector(".publication-status a").href'),'https://github.com/geobtaa/geobtaa.github.io/pull/42');
-    await evaluate(`window.setStatus({state:'published',message:'Unverified deployment claim'});document.querySelector('.publication-status button').click()`);
-    await waitFor('document.querySelector(".publication-status").dataset.state==="checking"');
-    assert.equal(await evaluate('[...document.querySelectorAll(".publication-status a")].some(link=>link.textContent==="View live")'),false);
-  },{initialSearch:'?area=library&file=report.mdx'});
+test('progress, failures, and verified completion preserve controls, newer edits and undo', options, async()=>{
+ const initial=`{state:'pr-open',autoMerge:true,selectedHead:'${head}',number:42,url:'https://github.com/geobtaa/geobtaa.github.io/pull/42',website:{publication:'published'}}`;
+ await withEditorBrowser(setup(initial),async({evaluate,waitFor,send})=>{
+  await waitFor(`${heading}==='Publishing…'`);
+  assert.equal(await evaluate('document.querySelector(".publish-document").disabled'),true);
+  assert.match(await evaluate('document.querySelector(".publication-notice").textContent'),/You can leave the editor/);
+  for(const width of [1280,768,640,501,390,320]){
+   await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width<500});
+   const y=await evaluate('document.querySelector(".document-toolbar").getBoundingClientRect().y');
+   for(const state of ["{...window.statusResult,state:'merged',website:{publication:'published',requestApplied:false}}", "{...window.statusResult,state:'merged',website:{publication:'published',requestApplied:true}}"]){
+    await evaluate(`window.setStatus(${state});${refresh}`);await waitFor('document.querySelector(".publication-status").dataset.state==="merged"');
+    await waitFor(`${heading}===${state.includes('requestApplied:true')?"'Published'":"'Publishing…'"}`);
+    assert.equal(await evaluate('document.querySelector(".document-toolbar").getBoundingClientRect().y'),y);
+   }
+   assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth'),true);
+  }
+  await evaluate(`window.originalEditor=document.querySelector('.tiptap');${title}.focus();${title}.select()`);await send('Input.insertText',{text:'Keep my newer edits'});
+  await waitFor(`${heading}==='Unsaved changes'`);
+  await evaluate(`window.setStatus({...window.statusResult,website:{publication:'unavailable'}});${refresh}`);
+  await waitFor('document.querySelector(".publication-notice").textContent.includes("temporarily unavailable")');
+  assert.equal(await evaluate(`${title}.value`),'Keep my newer edits');
+  assert.equal(await evaluate('document.querySelector(".tiptap")===window.originalEditor'),true);
+  assert.equal(await evaluate('window.writes.length'),0);
+ },{initialSearch:'?area=library&file=report.mdx'});
 });
-test('Publish prepares the saved revision in the browser and retains a PR link if status refresh fails', options, async () => {
-  await withEditorBrowser(fixture, async ({evaluate,waitFor}) => {
-    await waitFor(`!!${title} && document.querySelector('.publish-document')?.disabled===false`);
-    assert.equal(await evaluate('document.querySelector(".publish-document").textContent'),'Publish');
-    await evaluate('window.failStatus=true;document.querySelector(".publish-document").click()');
-    await waitFor('document.querySelector("dialog")?.open');await evaluate('document.querySelector(".confirm-publication").click()');
-    await waitFor('window.writes.length===3 && !!document.querySelector(".publication-status a") && document.querySelector(".publish-document").disabled===false');
-    const writes=await evaluate('window.writes');
-    assert.equal(writes[0].input.prepare,true);
-    assert.equal(writes[1].input.head,head);
-    assert.match(writes[1].input.candidate.content,/draft: false/);
-    assert.deepEqual(writes[1].input.candidate.assets,[]);
-    assert.equal(await evaluate('document.querySelector(".publication-status a").href'),'https://github.com/geobtaa/geobtaa.github.io/pull/42');
-  },{initialSearch:'?area=library&file=report.mdx'});
+test('reopening under another account discovers authorized publishing without writes',options,async()=>{
+ await withEditorBrowser(setup(`{state:'pr-open',autoMerge:true,selectedHead:'${selected}',number:42,url:'https://github.com/geobtaa/geobtaa.github.io/pull/42',newerDraft:true,website:{publication:'published'}}`),async({evaluate,waitFor,send})=>{
+  await waitFor(`${heading}==='Publishing…'`);
+  assert.match(await evaluate('document.querySelector(".publication-notice").textContent'),/Newer saved changes are not included/);
+  const load=await evaluate('window.loadId');
+  await evaluate('localStorage.setItem("publication-login","second-editor")');await send('Page.reload');
+  await waitFor(`window.loadId!==${JSON.stringify(load)} && ${heading}==='Publishing…'`);
+  assert.equal(await evaluate('window.writes.length'),0);
+  assert.equal(await evaluate('document.querySelector(".publish-document").disabled'),true);
+ },{initialSearch:'?area=library&file=report.mdx'});
 });
-
-test('compact header keeps actions stable, formats local save time, and wraps on narrow screens', options, async () => {
-  const scenario = fixture.replace("createRoot(document.getElementById('root'))", `window.record.lastSavedAt='2026-11-20T16:42:00Z';window.record.lastSavedBy='Editor';createRoot(document.getElementById('root'))`);
-  await withEditorBrowser(scenario, async ({ evaluate, waitFor, send }) => {
-    await waitFor('!!document.querySelector(".publication-status button") && !!document.querySelector(".unpublish-document")');
-    assert.deepEqual(await evaluate('[...document.querySelectorAll(".navigation-actions button")].map(button=>button.textContent)'), ['Save Draft', 'Publish', 'Unpublish']);
-    assert.equal(await evaluate('document.querySelectorAll(".save-state").length'), 1);
-    assert.equal(await evaluate('document.querySelector(".document-controls")'), null);
-    assert.equal(await evaluate('document.querySelector("time").textContent === new Intl.DateTimeFormat(undefined,{dateStyle:"medium",timeStyle:"short"}).format(new Date(window.record.lastSavedAt))'), true);
-    assert.equal(await evaluate('getComputedStyle(document.querySelector(".publication-status")).borderTopWidth'), '0px');
-    const positions = await evaluate('[...document.querySelectorAll(".navigation-actions button")].map(button=>{const r=button.getBoundingClientRect();return [r.x,r.y]})');
-    await evaluate(`window.setStatus({state:'none',website:{publication:'published'},mainDraft:false,unpublishEnabled:true});document.querySelector('.publication-status button').click()`);
-    await waitFor('document.querySelector(".publication-status").dataset.state === "none"');
-    assert.equal(await evaluate('!!document.querySelector(".publication-status button")'), false, 'verified status has no permanent refresh button');
-    assert.deepEqual(await evaluate('[...document.querySelectorAll(".navigation-actions button")].map(button=>{const r=button.getBoundingClientRect();return [r.x,r.y]})'), positions);
-    for (const width of [1280, 768, 390, 320]) {
-      await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 500 });
-      assert.equal(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, `no horizontal overflow at ${width}px`);
-      assert.equal(await evaluate('document.querySelector(".document-toolbar").getBoundingClientRect().bottom <= document.querySelector("#document-edit").getBoundingClientRect().top'), true);
-      assert.equal(await evaluate('[...document.querySelectorAll(".navigation-actions button")].every(button=>{const r=button.getBoundingClientRect();return r.left>=0 && r.right<=window.innerWidth})'), true);
-    }
-    assert.equal(await evaluate('window.writes.length'), 0);
-  }, { initialSearch: '?area=library&file=report.mdx' });
+test('temporary request failures preserve background progress without certifying deployment',options,async()=>{
+ await withEditorBrowser(setup(`{state:'pr-open',autoMerge:true,selectedHead:'${head}',number:42,url:'https://github.com/geobtaa/geobtaa.github.io/pull/42',website:{publication:'published'}}`),async({evaluate,waitFor})=>{
+  await waitFor(`${heading}==='Publishing…'`);
+  await evaluate(`window.failStatus=true;${refresh}`);
+  await waitFor('document.querySelector(".publication-notice").textContent.includes("temporarily unavailable")');
+  assert.equal(await evaluate(heading),'Publishing…');
+  assert.equal(await evaluate('document.querySelector(".publish-document").disabled'),true);
+  await evaluate(`window.failStatus=false;window.setStatus({...window.statusResult,checks:'failed'});${refresh}`);
+  await waitFor(`${heading}==='Needs attention'`);
+  assert.match(await evaluate('document.querySelector(".publication-notice").textContent'),/Your draft is safe/);
+ },{initialSearch:'?area=library&file=report.mdx'});
 });
-
-test('closed requests keep their actions in keyboard-accessible history without a permanent warning', options, async () => {
-  const scenario = fixture.replace("createRoot(document.getElementById('root'))", `window.setStatus({...window.statusResult,state:'closed',checks:'failed',deployment:{state:'failed'}});createRoot(document.getElementById('root'))`);
-  await withEditorBrowser(scenario, async ({evaluate,waitFor,send}) => {
-    await waitFor('!!document.querySelector(".publication-history")');
-    assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'), 'Published');
-    assert.equal(await evaluate('!!document.querySelector(".publication-notice")'), false);
-    assert.equal(await evaluate('document.querySelector(".publication-history").open'), false);
-    assert.equal(await evaluate('[...document.querySelectorAll("button")].some(button=>button.textContent==="Check again")'), false);
-    await evaluate('document.querySelector(".publication-history summary").focus()');
-    await send('Input.dispatchKeyEvent', {type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r'});
-    await send('Input.dispatchKeyEvent', {type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
-    await waitFor('document.querySelector(".publication-history").open');
-    assert.match(await evaluate('document.querySelector(".publication-history").textContent'), /closed without merging/);
-    assert.equal(await evaluate('document.querySelector(".publication-history button").textContent'), 'Update and publish');
-    assert.equal(await evaluate('document.querySelector(".publication-history a").href'), 'https://github.com/geobtaa/geobtaa.github.io/pull/42');
-    assert.equal(await evaluate('window.writes.length'), 0);
-  }, {initialSearch:'?area=library&file=report.mdx'});
-});
-test('request and website problems share a compact notice and resolved warnings move out of view', options, async () => {
-  const scenario = fixture.replace("createRoot(document.getElementById('root'))", `window.setStatus({...window.statusResult,checks:'failed',website:{publication:'unavailable',message:'The website status could not be verified. Your saved work is safe.'}});
-    const gateway=window.fetch;let deferred=false;
-    window.fetch=async(url,options={})=>{
-      if(!deferred&&String(url).includes('/api/publish/')&&!options.method){
-        deferred=true;return new Promise(resolve=>{window.finishInitialStatus=()=>resolve(Response.json(window.statusResult));});
-      }
-      return gateway(url,options);
-    };
-    createRoot(document.getElementById('root'))`);
-  await withEditorBrowser(scenario, async ({evaluate,waitFor,send}) => {
-    // The notice also exists during loading, before check results arrive.
-    await waitFor('!!document.querySelector(".publication-notice") && !!window.finishInitialStatus');
-    assert.equal(await evaluate('document.querySelector(".publication-status").dataset.state'), 'checking');
-    await evaluate('window.finishInitialStatus()');
-    await waitFor('document.querySelector(".publication-status")?.dataset.state === "pr-open"');
-    assert.equal(await evaluate('document.querySelectorAll(".publication-notice").length'), 1);
-    assert.match(await evaluate('document.querySelector(".publication-notice").textContent'), /Checks failed/);
-    assert.equal(await evaluate('document.querySelector(".publication-notice").textContent.split("website status could not be verified").length'), 2);
-    assert.equal(await evaluate('document.querySelector(".publication-notice-actions button").textContent'), 'Check again');
-    assert.equal(await evaluate('getComputedStyle(document.querySelector(".publication-notice-actions button")).borderTopWidth'), '0px');
-    for (const width of [390,320]) {
-      await send('Emulation.setDeviceMetricsOverride', {width,height:900,deviceScaleFactor:1,mobile:true});
-      assert.equal(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, 'active notice fits narrow screens');
-    }
-    await evaluate(`window.setStatus({...window.statusResult,state:'merged',deployment:{state:'failed'},website:{publication:'published',requestApplied:false}});document.querySelector('.publication-notice button').click()`);
-    await waitFor('document.querySelector(".publication-notice").textContent.includes("website update failed")');
-    assert.equal(await evaluate('document.querySelector(".publication-heading").textContent'), 'Published');
-    assert.doesNotMatch(await evaluate('document.querySelector(".publication-notice").textContent'), /failed validation/);
-    await evaluate(`window.setStatus({...window.statusResult,website:{publication:'published',requestApplied:true}});document.querySelector('.publication-notice button').click()`);
-    await waitFor('!!document.querySelector(".publication-history") && !document.querySelector(".publication-notice")');
-    assert.equal(await evaluate('document.querySelector(".publication-history").open'), false);
-    assert.doesNotMatch(await evaluate('document.querySelector(".publication-status").textContent'), /website update failed|failed validation/);
-    assert.equal(await evaluate('!!document.querySelector(".publication-history a")'), true);
-    for (const width of [1280,390,320]) {
-      await send('Emulation.setDeviceMetricsOverride', {width,height:900,deviceScaleFactor:1,mobile:width<500});
-      assert.equal(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true);
-      assert.equal(await evaluate('document.querySelector(".editor-mode-toggle").getBoundingClientRect().left === document.querySelector("#document-edit").getBoundingClientRect().left'), true);
-    }
-    assert.equal(await evaluate('window.writes.length'), 0);
-  }, {initialSearch:'?area=library&file=report.mdx'});
-});
-test('minimal branding and live link follow verified deployed URLs, never working-copy metadata',options,async()=>{
- const scenario=fixture.replace("createRoot(document.getElementById('root'))",`window.record.content='---\\ntitle: Working title\\nslug: draft-only-url\\n---\\n\\nDraft body';window.setStatus({...window.statusResult,website:{publication:'published',liveUrl:'https://gin.btaa.org/custom/published/'}});createRoot(document.getElementById('root'))`);
- await withEditorBrowser(scenario,async({evaluate,waitFor,send})=>{
+test('View live page uses only verified public URLs and stays beside Edit / Preview',options,async()=>{
+ await withEditorBrowser(setup("{state:'none',website:{publication:'published',liveUrl:'https://gin.btaa.org/custom/published/'}}"),async({evaluate,waitFor})=>{
   await waitFor('!!document.querySelector(".view-live-page")');
-  assert.equal(await evaluate('document.querySelector(".application-name").textContent'),'BTAA-GIN Website Editor');
-  const home=await evaluate('(()=>{const a=[...document.querySelectorAll(".application-header a")].find(a=>a.textContent==="Visit website");return {href:a.href,target:a.target,rel:a.rel};})()');
-  assert.deepEqual(home,{href:'https://gin.btaa.org/',target:'_blank',rel:'noopener noreferrer'});
-  const live=await evaluate('(()=>{const a=document.querySelector(".view-live-page");return {href:a.href,target:a.target,rel:a.rel,inToolbar:!!a.closest(".document-toolbar")};})()');
-  assert.deepEqual(live,{href:'https://gin.btaa.org/custom/published/',target:'_blank',rel:'noopener noreferrer',inToolbar:true});
-  for(const width of [1280,390,320]){await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width<500});assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth'),true);}
-  const check=async expression=>{await evaluate(`window.setStatus(${expression});[...document.querySelectorAll('.publication-status button')].find(button=>button.textContent==='Check again').click()`);};
-  await check("{...window.statusResult,website:{publication:'unpublished',liveUrl:'https://gin.btaa.org/custom/published/'}}");
-  await waitFor('!document.querySelector(".view-live-page")');
-  await check("{...window.statusResult,website:{publication:'unavailable',liveUrl:'https://gin.btaa.org/custom/published/'}}");
-  await waitFor('document.querySelector(".publication-heading").textContent==="Publication status unavailable"');assert.equal(await evaluate('!!document.querySelector(".view-live-page")'),false);
+  assert.equal(await evaluate('document.querySelector(".view-live-page").href'),'https://gin.btaa.org/custom/published/');
+  assert.equal(await evaluate('!!document.querySelector(".document-toolbar .view-live-page")'),true);
   for(const url of ['https://evil.test/page/','javascript:alert(1)','https://gin.btaa.org@evil.test/','https://gin.btaa.org/page/?draft=1']){
-   await check(`{...window.statusResult,website:{publication:'published',liveUrl:${JSON.stringify(url)}}}`);
-   await evaluate('new Promise(resolve=>setTimeout(resolve,30))');assert.equal(await evaluate('!!document.querySelector(".view-live-page")'),false);
+   await evaluate(`window.setStatus({state:'none',website:{publication:'published',liveUrl:${JSON.stringify(url)}}});${refresh}`);
+   await waitFor('!document.querySelector(".view-live-page")');
   }
   assert.equal(await evaluate('window.writes.length'),0);
+ },{initialSearch:'?area=library&file=report.mdx'});
+});
+
+test('a verified live earlier blob does not mark a newer main version as published',options,async()=>{
+ const scenario=setup(`{state:'none',website:{publication:'published',deployedBlob:'${'d'.repeat(40)}'}}`).replace("window.setStatus({state:'none'", "window.record.hasDraft=false;window.setStatus({state:'none'");
+ await withEditorBrowser(scenario,async({evaluate,waitFor})=>{
+  await waitFor(`${heading}==='Draft saved'`);
+  assert.match(await evaluate('document.querySelector(".publication-notice").textContent'),/An earlier version is live/);
  },{initialSearch:'?area=library&file=report.mdx'});
 });

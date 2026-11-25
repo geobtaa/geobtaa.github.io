@@ -60,7 +60,7 @@ test('real Markdown files disable MDX blocks and retain text, images, tables, pr
     assert.match(await evaluate('document.querySelector(".cms-preview").textContent'), /Added safely/);
     assert.match(await evaluate('document.querySelector(".cms-preview").textContent'), /Legacy source/);
     await evaluate('[...document.querySelectorAll(".editor-mode-toggle button")].find(button => button.textContent === "Edit").click(); document.querySelector(".top-save").click()');
-    await waitFor('document.querySelector(".save-state").textContent === "All changes saved"');
+    await waitFor('document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     assert.equal(await evaluate('window.writes[0].filename'), 'brand-gin.md');
     const saved = await evaluate('window.records["brand-gin.md"]');
     assert.match(parsePage(saved).body, /Added safely/);
@@ -100,7 +100,7 @@ test('new-page validation rejects known route aliases and preserves the draft on
     assert.match(await evaluate('location.search'), /new=/);
     await fill('Filename', 'unique');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('document.querySelector(".save-state").textContent === "All changes saved"');
+    await waitFor('document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     assert.equal(await evaluate('window.writes[1].filename'), 'unique.mdx');
     assert.equal(await evaluate('window.writes[1].input.title'), 'A draft worth keeping');
   }, { initialSearch: '?area=about&new=route-test' });

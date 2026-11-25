@@ -37,7 +37,7 @@ test('legacy chips edit, reorder, add, remove, preview, save/reopen and clear/re
     const values = () => evaluate(`[...${root}.querySelectorAll('input')].map(input => input.value)`);
     const save = async count => {
       await evaluate('document.querySelector(".top-save").click()');
-      await waitFor(`window.writes.length === ${count} && document.querySelector('.save-state').textContent === 'All changes saved'`);
+      await waitFor(`window.writes.length === ${count} && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"`);
       const saved = await evaluate('window.record.body');
       await validateDocument(`---\ntitle: Chips\n---\n\n${saved}`, { originalBody });
       return saved;

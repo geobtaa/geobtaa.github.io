@@ -27,7 +27,7 @@ window.concurrentSave=async()=>{const file=await window.store.getContent('librar
 window.fetch=async(url,options={})=>{
  const parsed=new URL(String(url),location.origin),pathname=parsed.pathname;
  try{
-  if(pathname.startsWith('/api/publication-status/'))return Response.json({autoMergeEnabled:true,mainDraft:false,website:{publication:'unavailable'}});
+  if(pathname.startsWith('/api/publication-status/'))return Response.json({autoMergeEnabled:true,mainDraft:false,website:window.deployed?{publication:'published',requestApplied:true}:{publication:'unavailable'}});
   if(pathname.startsWith('/api/publish/')&&(!options.method||options.method==='GET'))return Response.json(await window.store.getPublicationStatus('library','report.mdx'));
   if(pathname.startsWith('/api/publish/')&&Object.hasOwn(JSON.parse(options.body),'autoMerge'))return Response.json(await window.store.setPublicationAutoMerge({area:'library',filename:'report.mdx',...JSON.parse(options.body),enabled:JSON.parse(options.body).autoMerge}));
   if(pathname.startsWith('/api/publish/'))return Response.json(await (JSON.parse(options.body).prepare ? window.store.preparePublication({area:'library',filename:'report.mdx',head:JSON.parse(options.body).head}) : window.store.publishContent({area:'library',filename:'report.mdx',...JSON.parse(options.body)})));
@@ -67,17 +67,17 @@ test('retained matching generations have no chip; newer editorial work shows Unp
       assert.deepEqual(await evaluate('[...document.querySelectorAll(".project-list .visibility-badge")].map(b=>b.textContent)'),later?['Unpublished changes']:[]);
       assert.equal(await evaluate('document.querySelector(".project-list").textContent.includes("Saved draft")'),false);
       await evaluate('document.querySelector(".project-list button").click()');await waitFor(`!!${title}`);
-      assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),'All changes saved');
+      assert.equal(await evaluate('document.querySelector(".top-save").disabled'),!later);
       assert.equal(await evaluate(`${title}.value`),later?'Newer saved revision':'Selected revision');
-      assert.equal(await evaluate('document.querySelector(".save-state").textContent'),'All changes saved','browser status is independent of publication');
+      assert.equal(await evaluate('document.querySelector(".top-save").disabled'),!later,'continuation saves stay available for preserved revisions');
       const text=await evaluate('document.body.textContent');
-      if(later){assert.match(text,/newer saved changes are preserved/);assert.doesNotMatch(text,/editing the current published page/);}
-      else {assert.match(text,/Publication status unavailable/);assert.doesNotMatch(text,/previous PR merged|no saved draft/);}
+      if(later){assert.match(text,/Publishing…/);assert.doesNotMatch(text,/editing the current published page/);}
+      else {assert.match(text,/Publishing…/);assert.doesNotMatch(text,/previous PR merged|no saved draft/);}
       assert.equal(await evaluate('JSON.stringify([...window.repo.refs])===window.beforeRefs'),true,'listing and opening never alter retained generations');
       assert.equal(await evaluate('document.querySelector(".publish-document").disabled'),true,'continuation still requires Save Draft');
       await fill(browser,'Browser-only change');
-      await waitFor('document.querySelector(".save-state").textContent==="Unsaved changes"');
-      assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),'Unsaved changes','typing shows the working-copy state');
+      await waitFor('!document.querySelector(".top-save").disabled');
+      assert.equal(await evaluate('document.querySelector(".draft-status").textContent'),'Publishing…','earlier publication remains separate from newer edits');
     },{initialSearch:'?area=library'});
   }
 });
@@ -89,9 +89,9 @@ test('real draft store saves, reloads under another account, and rejects a concu
     const main = await evaluate('window.repo.refs.get("refs/heads/main")');
     await fill(browser, 'Shared draft');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('document.querySelector(".save-state").textContent==="All changes saved"');
+    await waitFor('document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     assert.equal(await evaluate('document.querySelector(".message.error")?.textContent || ""'), '', 'post-save discovery refresh succeeds with GitHub prefix-relative refs');
-    assert.equal(await evaluate('document.querySelector(".draft-status").textContent'), 'All changes saved');
+    assert.equal(await evaluate('document.querySelector(".top-save").disabled'), true);
     const loadId = await evaluate('window.loadId');
     await evaluate('localStorage.setItem("test-draft-login","second-editor")');
     await send('Page.reload');
@@ -100,7 +100,7 @@ test('real draft store saves, reloads under another account, and rejects a concu
     await fill(browser, 'My unsaved edits');
     await evaluate('window.liveEditor=document.querySelector(".tiptap");window.concurrentSave()');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('document.querySelector(".message.error")?.textContent.includes("changed in GitHub")');
+    await waitFor('document.querySelector(".message.error")?.textContent.includes("saved version changed")');
     assert.equal(await evaluate(`${title}.value`), 'My unsaved edits');
     assert.equal(await evaluate('document.querySelector(".tiptap")===window.liveEditor'), true);
     assert.equal(await evaluate('window.repo.refs.get("refs/heads/main")'), main);
@@ -128,7 +128,7 @@ test('pending uploads stay in browser recovery and enter Git with the document o
     await evaluate(`${button('Restore changes')}.click()`);
     await waitFor('document.querySelector(".save-state").textContent==="Unsaved changes"');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('document.querySelector(".save-state").textContent==="All changes saved"');
+    await waitFor('document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     assert.equal(await evaluate(`(()=>{const head=[...window.repo.refs].find(([name])=>name.startsWith('refs/heads/cms/drafts/'))[1];return [...window.repo.filesAt(head).keys()].filter(path=>path.startsWith('src/assets/images/')).length})()`),1);
   },{initialSearch:'?area=library&file=report.mdx'});
 });
@@ -140,11 +140,11 @@ test('Publish is separate from Save Draft, requires a clean saved revision, and 
     assert.equal(await evaluate('document.querySelector(".publish-document").disabled'), true);
     await fill(browser, 'Publication test');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('document.querySelector(".save-state").textContent==="All changes saved"');
+    await waitFor('document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     assert.equal(await evaluate('window.repo.pulls.length'), 0, 'Save Draft never opens a PR');
     await evaluate('window.repo.protection={};document.querySelector(".publish-document").click()');
     await waitFor('document.querySelector("dialog")?.open');await evaluate('document.querySelector(".confirm-publication").click()');
-    await waitFor('document.querySelector(".message.error")?.textContent.includes("could not be confirmed")');
+    await waitFor('document.querySelector(".publication-heading")?.textContent==="Needs attention"');
     assert.match(await evaluate('document.querySelector(".publication-history").textContent'),/policy blocked/);
     assert.equal(await evaluate(`${title}.value`), 'Publication test');
     assert.equal(await evaluate('window.repo.pulls.length'), 0);
@@ -162,26 +162,28 @@ test('after manual merge, reopening and saving another edit works without branch
     const {evaluate,waitFor,send}=browser;
     await waitFor(`!!${title}`);await fill(browser,'First round');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('document.querySelector(".save-state").textContent==="All changes saved"');
+    await waitFor('document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
     await evaluate('document.querySelector(".publish-document").click()');
     await waitFor('document.querySelector("dialog")?.open');await evaluate('document.querySelector(".confirm-publication").click()');
-    await waitFor('window.repo.pulls.length===1 && document.querySelector(".publish-document").disabled===false');
+    await waitFor('window.repo.pulls[0]?.auto_merge===true && !document.querySelector(".editor-navigation .back").disabled');
     // Keep a browser-only edit made after submission but before the manual merge.
     await fill(browser,'Keep unsaved second round');
     await evaluate(`(async()=>{window.mergeSubmitted=async()=>{const pr=window.repo.pulls.at(-1),file=window.repo.filesAt(pr.head.sha).get('src/content/docs/library/report.mdx');const main=await window.repo.put('src/content/docs/library/report.mdx',new TextDecoder().decode(window.repo.objects.get(file.sha)));pr.state='closed';pr.merged_at='2026-11-19T12:00:00Z';pr.merge_commit_sha=main;};await window.mergeSubmitted();await window.fetch('/api/publish/library/report.mdx');window.dispatchEvent(new Event('pagehide'));})()`);
     await send('Page.enable'); browser.onEvent('Page.javascriptDialogOpening',()=>{void send('Page.handleJavaScriptDialog',{accept:true})});
     await send('Page.reload');
     await waitFor(`!!${title} && !!${button('Restore changes')}`);
-    assert.match(await evaluate('document.body.textContent'),/Publication status unavailable/);
+    assert.match(await evaluate('document.body.textContent'),/Publishing…/);
     const restore=await evaluate(`[...document.querySelectorAll('button')].find(button=>button.textContent.startsWith('Restore')&&!button.disabled)?.textContent`);
     assert.ok(restore,'same saved source can restore pre-merge unsaved edits');
     await evaluate(`[...document.querySelectorAll('button')].find(button=>button.textContent===${JSON.stringify(restore)}).click()`);
     await waitFor(`${title}.value==='Keep unsaved second round'`);
+    await evaluate('window.deployed=true;document.querySelector(".publication-history button").click()');
+    await waitFor('document.querySelector(".publication-status").dataset.state==="merged"');
     await evaluate('document.querySelector(".top-save").click()');
-    await waitFor('document.querySelector(".save-state").textContent==="All changes saved" && document.querySelector(".publish-document").disabled===false');
+    await waitFor('document.querySelector(".top-save").disabled && document.querySelector(".publish-document").disabled===false');
     await evaluate('document.querySelector(".publish-document").click()');
     await waitFor('document.querySelector("dialog")?.open');await evaluate('document.querySelector(".confirm-publication").click()');
-    await waitFor('window.repo.pulls.length===2 && document.querySelector(".publish-document").disabled===false');
+    await waitFor('window.repo.pulls[1]?.auto_merge===true && !document.querySelector(".editor-navigation .back").disabled');
     assert.equal(await evaluate(`${title}.value`),'Keep unsaved second round');
     assert.equal(await evaluate('window.repo.pulls[0].state'),'closed');
     assert.equal(await evaluate('window.repo.pulls[1].state'),'open');

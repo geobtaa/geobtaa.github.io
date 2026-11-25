@@ -39,7 +39,7 @@ test('opening/reopening a document skips list reads; return and Save Draft refre
   await evaluate("document.querySelector('#document-edit input[required]').focus()");
   await send('Input.insertText',{text:' edited'});
   await evaluate('document.querySelector(".top-save").click()');
-  await waitFor('window.record.sha === "saved" && !document.querySelector(".top-save").disabled');
+  await waitFor('window.record.sha === "saved" && document.querySelector(".top-save").disabled && document.querySelector(".top-save").textContent === "Save Draft"');
   assert.equal(await listCount(),3);
  },{initialSearch:'?area=library'});
 });

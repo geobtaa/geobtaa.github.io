@@ -354,26 +354,23 @@ code { font-size: .9em; }
 
 .publication-status { margin-block: .5rem 1rem; }
 .publication-status p { margin: .25rem 0 .6rem; }
-/* Notices only appear for requests or verification that need attention. */
-.publication-notice { margin-top: .5rem; padding-left: .75rem; border-left: 2px solid var(--editor-border-strong); font-size: .9rem; overflow-wrap: anywhere; }
 .publication-notice-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1rem; }
 .publication-notice-actions a, .publication-text-action { display: inline-flex; align-items: center; min-height: 44px; }
 .publication-text-action { padding: .25rem 0; border: 0; border-radius: 0; background: transparent; color: var(--editor-accent); text-decoration: underline; text-underline-offset: .15em; font-size: inherit; }
 .publication-text-action:hover:not(:disabled) { background: transparent; color: var(--editor-accent-hover); }
 .publication-text-action:disabled { color: var(--editor-muted); cursor: not-allowed; }
-.publication-history { margin-top: .5rem; font-size: .85rem; color: var(--editor-muted); }
+.publication-history { margin-top: 0; font-size: .85rem; color: var(--editor-muted); }
 .publication-history summary { cursor: pointer; padding-block: .4rem; }
 .publication-history p { margin-block: .25rem; }
 
-.publication-heading { font-size: .8rem; }
+.publication-heading { font-size: .875rem; }
 
 .library-publication-progress { display: inline-block; min-height: 1px; min-width: 1px; font-size: .85rem; color: var(--editor-muted); overflow-wrap: anywhere; }
 
-.publication-complete { color: var(--editor-success-text); font-size: .85rem; font-weight: 650; }
+.publication-cancellation-limit { color: var(--editor-muted); font-size: .85rem; overflow-wrap: anywhere; }
 
-.publication-version, .publication-cancellation-limit { color: var(--editor-muted); font-size: .85rem; overflow-wrap: anywhere; }
-
-.publication-history > summary { color: var(--editor-accent); text-decoration: underline; text-underline-offset: .15em; }
+.publication-history > summary { color: var(--editor-muted); font-size: .8rem; }
+.publication-history > summary:hover { text-decoration: underline; }
 
 .application-header { align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
 .application-header h1 { margin: 0; }
@@ -386,3 +383,15 @@ code { font-size: .9em; }
 .pending-removals { padding: .75rem; border: 1px solid var(--editor-border-strong); border-radius: .4rem; }
 .pending-removals > summary { cursor: pointer; font-weight: 650; }
 .pending-removals .protected-block { margin-top: .5rem; }
+
+/* Reserve the ordinary status footprint so progress never moves Edit / Preview. */
+.publication-summary { min-height: 4.8rem; }
+.publication-status .publication-notice { margin: .2rem 0 0; padding: 0; border: 0; font-size: .875rem; line-height: 1.45; max-width: 80ch; overflow-wrap: anywhere; }
+.working-copy-status { color: var(--editor-muted); font-size: .8rem; }
+.publication-details-placeholder { display: block; height: 2rem; }
+@media (min-width: 501px) and (max-width: 640px) {
+  .publication-summary { min-height: 6.4rem; }
+}
+@media (max-width: 500px) {
+  .publication-summary { min-height: 10rem; }
+}
