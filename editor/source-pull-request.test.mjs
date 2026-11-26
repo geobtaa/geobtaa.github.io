@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { draftTestRepository } from './draftTestRepository.mjs';
 import { verifyPullRequestEligibility } from './pullRequestEligibility.mjs';
-import { validateSourceText } from './sourcePullRequest.mjs';
+import { reviewedSourceMdxBaseline, validateSourceText } from './sourcePullRequest.mjs';
 async function sourceFixture({ initial = {}, changes = { 'functions/example.js': 'export const value = 1;' } } = {}) {
   const repo = await draftTestRepository(initial), main = repo.refs.get('refs/heads/main');
   const ref = 'feature/ordinary-source'; repo.refs.set(`refs/heads/${ref}`, main);
@@ -36,6 +36,42 @@ test('new standalone MDX and executable frontmatter cannot bypass source checks'
     const value = await sourceFixture({ changes: { 'src/content/docs/library/new.mdx': content } });
     await assert.rejects(verifyPullRequestEligibility(value.options));
   }
+});
+
+test('byte-identical MDX renames retain source authority without granting it to copies or edited moves', async () => {
+  const oldPath = 'src/content/docs/guides/data-cite.mdx', newPath = 'src/content/docs/guides/citation.mdx';
+  const content = "---\ntitle: Citation\n---\n\nimport Tool from './Tool.astro';\n\n<Tool />\n";
+  const renamed = await sourceFixture({ initial: { [oldPath]: content }, changes: { [newPath]: content } });
+  renamed.repo.filesAt(renamed.pr.head.sha).delete(oldPath);
+  assert.equal(await verifyPullRequestEligibility(renamed.options), 'validated-source');
+  const copied = await sourceFixture({ initial: { [oldPath]: content }, changes: { [newPath]: content } });
+  await assert.rejects(verifyPullRequestEligibility(copied.options), /unsupported|read-only/);
+  const edited = await sourceFixture({ initial: { [oldPath]: content }, changes: { [newPath]: content.replace('<Tool />', '<OtherTool />') } });
+  edited.repo.filesAt(edited.pr.head.sha).delete(oldPath);
+  await assert.rejects(verifyPullRequestEligibility(edited.options), /unsupported|read-only/);
+  const changedFormat = await sourceFixture({ initial: { [oldPath]: content }, changes: { [newPath.replace('.mdx', '.md')]: content } });
+  changedFormat.repo.filesAt(changedFormat.pr.head.sha).delete(oldPath);
+  await assert.rejects(verifyPullRequestEligibility(changedFormat.options), /unsupported|component|read-only/i);
+});
+
+test('reviewed Conference migration permits only its named setup and exact previous blob', async () => {
+  const path = 'src/content/docs/conference/index.mdx', oldBlob = '68bfed190085a75cc35a5fc11349e41d02f9b1d6';
+  const original = '---\ntitle: Conference\n---\n\n<OldLayout>Original text.</OldLayout>\n';
+  const baseline = reviewedSourceMdxBaseline(path, oldBlob);
+  assert.ok(baseline);
+  assert.equal(reviewedSourceMdxBaseline(path, 'a'.repeat(40)), undefined);
+  assert.equal(reviewedSourceMdxBaseline('src/content/docs/other.mdx', oldBlob), undefined);
+  const content = '---\ntitle: Conference\n---\n\n' + baseline.replace('<ConferenceArchiveLinks />', '## Conference\n\nEditable paragraphs.\n\n<ConferenceArchiveLinks />');
+  // The fake repository pins the old blob identity to exercise the migration
+  // guard without coupling this regression to the live event's prose.
+  const candidate = await sourceFixture({ initial: { [path]: { content: original, sha: oldBlob } }, changes: { [path]: content } });
+  assert.equal(await verifyPullRequestEligibility(candidate.options), 'validated-source');
+  for (const changed of [content.replace('wrapper: ConferenceLanding', 'wrapper: OtherLayout'), content + '\n{process.env.SECRET}\n', content.replace('<ConferenceArchiveLinks />', '<DifferentComponent />')]) {
+    const invalid = await sourceFixture({ initial: { [path]: { content: original, sha: oldBlob } }, changes: { [path]: changed } });
+    await assert.rejects(verifyPullRequestEligibility(invalid.options), /unsupported|read-only/);
+  }
+  const differentBase = await sourceFixture({ initial: { [path]: original }, changes: { [path]: content } });
+  await assert.rejects(verifyPullRequestEligibility(differentBase.options), /unsupported|read-only/);
 });
 test('CMS-looking ordinary branches and CMS metadata cannot grant snapshot eligibility', async () => {
   const value = await sourceFixture();
