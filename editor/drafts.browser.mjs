@@ -172,6 +172,7 @@ test('after manual merge, reopening and saving another edit works without branch
     await send('Page.enable'); browser.onEvent('Page.javascriptDialogOpening',()=>{void send('Page.handleJavaScriptDialog',{accept:true})});
     await send('Page.reload');
     await waitFor(`!!${title} && !!${button('Restore changes')}`);
+    await waitFor('document.querySelector(".draft-status")?.textContent === "Publishing…"');
     assert.match(await evaluate('document.body.textContent'),/Publishing…/);
     const restore=await evaluate(`[...document.querySelectorAll('.recovery-notice button')].find(button=>button.textContent==='Restore changes'&&!button.disabled)?.textContent`);
     assert.ok(restore,'same saved source can restore pre-merge unsaved edits');
