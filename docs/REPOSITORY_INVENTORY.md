@@ -20,7 +20,7 @@ cleanup remain outstanding; Decap and DataCitation reviews were deferred.
 | `src/content/` | 172 | Website content, schemas, and translations. `src/content/docs/` contains 169 Markdown/MDX documents and one gallery CSV. |
 | `src/assets/` | 630 | Website image assets. |
 | `src/components/` | 74 | 30 general site components, 39 editor UI/support files, and five editor block-rendering files. |
-| `src/pages/` | 5 | Blog and Library indexes, gallery preview JSON, provider demo, and editor entry page. |
+| `src/pages/` | 5 | Blog and Library indexes, gallery preview JSON, and editor entry page. |
 | `src/plugins/`, `src/middleware/` | 8 | Markdown transforms and Starlight navigation/table-of-contents integration. |
 | `src/styles/`, `src/utils/` | 8 | Shared styles; blog, library, gallery, and filter data helpers. |
 | `src/tables/` | 30 | CSV data for tables, reports, and team information. |
@@ -82,9 +82,9 @@ configuration. Live settings were not inspected for this inventory.
 - **Interactive features:** `DataCitation.tsx` implements the citation generator;
   `MapGallery.astro`, `FilterableGallery.tsx`, and `src/utils/mapGallery.ts` use
   submission CSV data and public thumbnails. `InstitutionsMap.astro` uses public
-  map data. `ProviderSnapshot.tsx` powers the provider demo.
+  map data.
 - **External services:** citation autofill calls DataCite, Crossref, and the BTAA
-  Geoportal. The provider demo uses a development API URL. The institution map
+  Geoportal. The institution map
   loads Leaflet from CDNs and external map tiles. External service availability
   is separate from a successful local build.
 - **Route middleware:** `src/plugins/reverseDateSidebar.ts` and
@@ -200,7 +200,7 @@ File length alone is not an outstanding cleanup task.
 | Deferred by maintainer | `DataCitation.tsx` still combines metadata retrieval/mapping, citation formatting, exports, and form UI. | Review behavior and establish representative formatting/mapping/export checks before proposing extractions. No DataCitation production changes were made. |
 | Optional filter/accessibility work | Production Blog/Library pages have no text-search input; the component supports one. Filter changes replace history entries rather than recording each selection. Result changes have no live announcement or total-result count. | Treat search UI, history policy, and result feedback as explicit product/accessibility decisions, separate from the confirmed defects. Complement browser keyboard/name checks with screen-reader and real-page layout review. |
 | Optional tooling simplification | Deployment still detects a package manager despite npm-only configuration. The focused `test:editor:publication` shortcut remains a subset of `test:editor:render`. | Package-manager detection was intentionally left unchanged. If simplified later, preserve Pages site/base arguments, workflow identity, marker generation, required job IDs, trusted-base contracts, and deployment guards. Keep the publication shortcut unless removing it offers a concrete benefit; do not repeat it in full validation. |
-| Later: utilities and broad reference audit | `scripts/csv_row_tables.py`, the provider demo, images, public documents, CSV data, layouts, dependencies, and styles still need a usage/purpose review. | Trace MDX, CSS, HTML, aliases, CSV rows, constructed paths, configuration, and public URLs before removal. Account for external inbound links and manual workflows. No broad asset/dependency deletion has been authorized by this inventory. |
+| Later: utilities and broad reference audit | `scripts/csv_row_tables.py`, images, public documents, CSV data, layouts, dependencies, and styles still need a usage/purpose review. | Trace MDX, CSS, HTML, aliases, CSV rows, constructed paths, configuration, and public URLs before removal. Account for external inbound links and manual workflows. No broad asset/dependency deletion has been authorized by this inventory. |
 | Later: bundles and diagnostics | Builds emit large-chunk and MDX module-directive warnings. Astro reports four existing hints. | Inspect bundle composition/browser-server boundaries and address diagnostics when useful. Preserve content-protection and artifact-hydration tests; do not split code solely to reduce line counts. |
 
 ## Validation baseline
