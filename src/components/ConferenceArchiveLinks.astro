@@ -1,0 +1,13 @@
+---
+import { loadConferenceYears } from '../utils/conferenceContent';
+const years = await loadConferenceYears();
+---
+<nav class="conference-years not-content" aria-label="Past conferences">
+  {years.map(year => <a href={`/conference/${year}/`}>{year}</a>)}
+</nav>
+<style>
+  .conference-years { display: flex; flex-wrap: wrap; gap: .75rem; }
+  a { display: inline-flex; padding: .5rem 1rem; border: 1px solid var(--sl-color-hairline); border-radius: .375rem; color: var(--sl-color-text-accent); font-family: var(--font-family-nav); font-weight: 600; text-decoration: none; }
+  a:hover { background: var(--sl-color-accent-low); }
+  a:focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 3px; }
+</style>

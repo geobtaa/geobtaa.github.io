@@ -15,84 +15,17 @@ head:
 sidebar:
   order: 1
 ---
-import { LinkCard } from '@astrojs/starlight/components';
-import TwoThirdsLayout from '@components/TwoThirdsLayout.astro'
+import ConferenceLanding from '@components/ConferenceLanding.astro'
+import ConferenceArchiveLinks from '@components/ConferenceArchiveLinks.astro'
+import { LinkButton } from '@astrojs/starlight/components';
 
-
-<TwoThirdsLayout>
-<div slot="right">
-![conference banner](@images/conference-2026.png)
-<br />
-
-<div class="homepage-card homepage-card--light-blue newsletter-signup-card">
-  <h2>Stay Connected</h2>
-  <p>Subscribe to our quarterly newsletter, <em>Coordinates</em>, for our latest news, events, and resources.</p>
-
-  <form
-    action="https://umn.us4.list-manage.com/subscribe/post?u=f56349594c4ba02808786a168&amp;id=587345a050&amp;f_id=004329e6f0"
-    method="post"
-    id="mc-embedded-subscribe-form-conference"
-    name="mc-embedded-subscribe-form-conference"
-    target="_blank"
-  >
-    <div class="mc-field-group">
-      <label for="mce-EMAIL-conference">Email Address <span class="asterisk">*</span></label>
-      <input
-        type="email"
-        name="EMAIL"
-        class="required email"
-        id="mce-EMAIL-conference"
-        required
-        value=""
-      />
-    </div>
-
-    <div aria-hidden="true" style="position:absolute; left:-5000px;">
-      <input type="text" name="b_f56349594c4ba02808786a168_587345a050" tabindex="-1" value="" />
-    </div>
-
-    <div class="clear">
-      <input type="submit" name="subscribe" id="mc-embedded-subscribe-conference" class="button" value="Subscribe" />
-    </div>
-  </form>
-</div>
-
-<section class="conference-share-note">
-  <h3>Share the Conference</h3>
-  <p>Invite colleagues and students.</p>
-  <div class="conference-share-actions">
-    <button
-      type="button"
-      data-share-url="https://gin.btaa.org/conference/"
-      class="conference-share-action conference-share-action--button"
-      onclick="navigator.clipboard.writeText(this.dataset.shareUrl).then(() => this.textContent = 'Copied').catch(() => window.prompt('Copy this link:', this.dataset.shareUrl));"
-    >
-      Copy Link
-    </button>
-    <a
-      href="mailto:?subject=Big%20Ten%20GIS%20Conference%20(April%2017%2C%202026)&body=Join%20me%20at%20the%20Big%20Ten%20GIS%20Conference%3A%20https%3A%2F%2Fgin.btaa.org%2Fconference%2F"
-      class="conference-share-action"
-    >
-      Email
-    </a>
-    <a
-      href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fgin.btaa.org%2Fconference%2F"
-      class="conference-share-action"
-      target="_blank"
-      rel="noreferrer"
-    >
-      LinkedIn
-    </a>
-  </div>
-</section>
-</div>
-
-<div slot="left">
-
+export const components = { wrapper: ConferenceLanding };
 
 ## SAVE THE DATE: April 16, 2027
 
-The Big Ten GIS Conference is a free virtual event for anyone who works with geospatial information, including students, faculty, researchers, librarians, and GIS professionals. 
+The Big Ten GIS Conference is a free virtual event for anyone who works with geospatial information, including students, faculty, researchers, librarians, and GIS professionals.
+
+<LinkButton href="/conference/2026/#conference-recordings" variant="primary">Watch the 2026 recordings</LinkButton>
 
 Participants join from across the United States and beyond for research presentations, lightning talks, a gallery of original maps, and keynote speakers exploring current applications of GIS. Recent sessions have examined topics ranging from soil erosion in the St. Joseph River Watershed to redlining and mental health access in Wayne County and the impact of a 1907 typhoon in Micronesia. 
 
@@ -112,25 +45,19 @@ We will post dates here and announce them in *Coordinates*, our quarterly email 
 ## What We Welcome
 Presentations, lightning talks, and map gallery submissions from anyone who uses geospatial information in their work. Past topics include:
 
-- Agriculture and natural resources<br />
-- AI and machine learning<br />
-- Urban planning and infrastructure<br />
-- GIS education and methods<br />
-- Health sciences, humanities, and social sciences<br />
-- Cultural heritage and spatial storytelling<br />
-- IDEA and environmental justice<br />
-- UAVs<br />
+- Agriculture and natural resources
+- AI and machine learning
+- Urban planning and infrastructure
+- GIS education and methods
+- Health sciences, humanities, and social sciences
+- Cultural heritage and spatial storytelling
+- IDEA and environmental justice
+- UAVs
 - Applied GIS in campus and municipal projects
-
-
-</div>
-</TwoThirdsLayout>
 
 
 ## Past Conferences
 
-- [2025](/conference/2025/)
-- [2023](/conference/2023/)
-- [2022](/conference/2022/)
-- [2021](/conference/2021/)
-- [2020](/conference/2020/)
+Browse agendas and session recordings from previous conferences.
+
+<ConferenceArchiveLinks />

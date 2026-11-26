@@ -82,6 +82,7 @@ export default defineConfig({
   },
   integrations: [
     starlight({
+      routeMiddleware: './src/middleware/conferenceSidebar.ts',
       title: 'BTAA-GIN',
       favicon: 'favicon.ico',
       logo: {

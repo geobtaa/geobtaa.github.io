@@ -26,13 +26,16 @@ for await (const filename of glob('**/*.html', { cwd: dist })) {
 }
 
 const publishedNews = new Map();
+const publishedConferences = [];
 for await (const filename of glob('**/*.{md,mdx}', { cwd: content })) {
   const source = await readFile(`${content}/${filename}`, 'utf8');
   const frontmatter = parse(source.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? '');
   const date = frontmatter?.date ? new Date(frontmatter.date).valueOf() : 0;
   const url = `/${filename.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '')}/`;
   if (/^(posts|updates)\//.test(filename) && frontmatter.draft !== true) publishedNews.set(url, { date, title: frontmatter.title });
+  if (/^conference\/\d{4}\.(md|mdx)$/.test(filename) && frontmatter.draft !== true) publishedConferences.push(url);
 }
+publishedConferences.sort((a, b) => Number(b.split('/')[2]) - Number(a.split('/')[2]));
 
 function assertCollapsed(details, collapsed, path) {
   const containsCurrent = details.querySelector('a[aria-current="page"]') !== null;
@@ -81,8 +84,24 @@ test('built sidebars preserve configured organization, labels, and initial colla
       const expected = [...publishedNews].filter(([url]) => url.startsWith('/updates/')).sort((a, b) => b[1].date - a[1].date).slice(0, 5).map(([url]) => url);
       assert.deepEqual(recent.map(link => link.getAttribute('href')), expected, `${page.path}: only five recent updates`);
       assert.equal(page.sidebar.querySelectorAll('details').length, 0);
+    } else if (group.id === 'conference') {
+      assertOrganization(page.sidebar, [
+        { kind: 'link', label: 'Conference overview', link: '/conference/' },
+        { kind: 'link', label: 'Map Gallery', link: '/conference/map-gallery/' },
+        { kind: 'group', label: 'Past Conferences', collapsed: false, items: publishedConferences.map(link => ({ kind: 'link', label: link.split('/')[2], link })) },
+      ], page.path);
+      assert.ok(page.document.documentElement.hasAttribute('data-has-sidebar'), `${page.path}: sidebar is enabled`);
+      const currentLinks = [...page.sidebar.querySelectorAll('[aria-current="page"]')];
+      const expected = ['/conference/', '/conference/map-gallery/', ...publishedConferences].includes(page.path) ? [page.path] : [];
+      assert.deepEqual(currentLinks.map(link => link.getAttribute('href')), expected, `${page.path}: active link`);
     } else assertOrganization(page.sidebar, group.sidebar, page.path);
   }
+});
+
+test('conference overview, gallery, guidelines, and all published years share the sidebar', () => {
+  const conferencePages = pages.filter(page => page.path.startsWith('/conference/')).map(page => page.path);
+  assert.deepEqual(conferencePages.sort(), ['/conference/', '/conference/map-gallery/', '/conference/map-gallery/submission-guidelines/', ...publishedConferences].sort());
+  assert.ok(publishedConferences.includes('/conference/2026/'));
 });
 
 test('every update links to its adjacent older/newer update and every story offers other stories', () => {

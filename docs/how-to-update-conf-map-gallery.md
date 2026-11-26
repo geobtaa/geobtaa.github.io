@@ -2,6 +2,9 @@
 
 This document is for BTAA-GIN Team members maintaining the conference map gallery in this repository. It is intended to live in the repo only and not be published on the website.
 
+For the conference announcement, agenda, and annual archives, see
+[Conference page maintenance](how-to-update-conference.md).
+
 This gallery is driven by two things:
 
 - submission metadata in [submissions.csv](../src/content/docs/conference/map-gallery/submissions.csv)
