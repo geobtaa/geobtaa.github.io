@@ -1,0 +1,93 @@
+---
+import { Image } from 'astro:assets';
+import banner from '../assets/images/conference-2026.png';
+
+const shareUrl = 'https://gin.btaa.org/conference/';
+const emailLink = `mailto:?subject=${encodeURIComponent('Big Ten GIS Conference (April 16, 2027)')}&body=${encodeURIComponent(`Join me at the Big Ten GIS Conference on April 16, 2027: ${shareUrl}`)}`;
+---
+
+<div class="conference-landing">
+  <div class="conference-landing__grid">
+    <div class="conference-landing__main"><slot /></div>
+    <aside class="conference-landing__aside not-content" aria-label="Conference information and sharing">
+      <figure class="conference-panel">
+        <Image src={banner} alt="Big Ten GIS Conference — April 16, 2027. Present, learn, and connect across disciplines." widths={[400, 800]} sizes="(min-width: 1200px) 24vw, 90vw" />
+      </figure>
+
+      <section class="conference-panel" aria-labelledby="conference-newsletter-heading">
+        <h2 id="conference-newsletter-heading">Stay Connected</h2>
+        <p>Subscribe to our quarterly newsletter, <em>Coordinates</em>, for our latest news, events, and resources.</p>
+        <form
+          action="https://umn.us4.list-manage.com/subscribe/post?u=f56349594c4ba02808786a168&amp;id=587345a050&amp;f_id=004329e6f0"
+          method="post"
+          id="mc-embedded-subscribe-form-conference"
+          name="mc-embedded-subscribe-form-conference"
+          target="_blank"
+        >
+          <label for="mce-EMAIL-conference">Email Address <span aria-hidden="true">*</span></label>
+          <input type="email" name="EMAIL" id="mce-EMAIL-conference" required autocomplete="email" />
+          <div class="conference-honeypot" aria-hidden="true">
+            <input type="text" name="b_f56349594c4ba02808786a168_587345a050" tabindex="-1" value="" />
+          </div>
+          <button class="conference-button conference-button--primary" type="submit" name="subscribe" value="Subscribe" id="mc-embedded-subscribe-conference">Subscribe</button>
+        </form>
+      </section>
+
+      <section class="conference-panel" aria-labelledby="conference-share-heading">
+        <h2 id="conference-share-heading">Share the Conference</h2>
+        <p>Invite colleagues and students.</p>
+        <div class="conference-panel__actions">
+          <button type="button" data-conference-copy data-share-url={shareUrl} class="conference-button conference-button--primary" aria-live="polite">Copy Link</button>
+          <a href={emailLink} class="conference-button">Email</a>
+          <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`} class="conference-button" target="_blank" rel="noreferrer">LinkedIn</a>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>('[data-conference-copy]');
+  button?.addEventListener('click', async () => {
+    const url = button.dataset.shareUrl!;
+    try {
+      await navigator.clipboard.writeText(url);
+      button.textContent = 'Copied';
+    } catch {
+      window.prompt('Copy this link:', url);
+    }
+  });
+</script>
+
+<style>
+  .conference-landing {
+    container-type: inline-size;
+    --conference-panel-bg: #f1f7fb;
+    --conference-panel-border: #cadde9;
+    --conference-panel-heading: var(--btaa-dark-blue);
+  }
+  .conference-landing__grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(17rem, 1fr); gap: 2rem; align-items: start; }
+  .conference-landing__grid > * { margin: 0; min-width: 0; }
+  .conference-landing__aside { display: grid; gap: 1rem; }
+  .conference-panel { margin: 0; padding: 1.25rem; border: 1px solid var(--conference-panel-border); border-radius: .75rem; background: var(--conference-panel-bg); color: var(--sl-color-text); }
+  .conference-panel img { display: block; width: 100%; height: auto; border-radius: .375rem; }
+  .conference-panel h2 { margin: 0; padding: 0; border: 0; font-size: 1.25rem; line-height: 1.3; color: var(--conference-panel-heading); }
+  .conference-panel p { margin: .75rem 0 0; font-size: 1rem; line-height: 1.5; }
+  .conference-panel form { display: flex; flex-direction: column; align-items: start; gap: .5rem; margin-top: 1rem; }
+  .conference-panel label { font-family: var(--font-family-nav); font-size: .875rem; font-weight: 600; }
+  .conference-panel input[type="email"] { box-sizing: border-box; width: 100%; min-width: 0; border: 1px solid var(--sl-color-gray-3); border-radius: .375rem; padding: .6rem .75rem; background: var(--sl-color-bg); color: var(--sl-color-text); font: inherit; }
+  .conference-honeypot { position: absolute; left: -5000px; }
+  .conference-panel__actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+  .conference-button { display: inline-flex; justify-content: center; align-items: center; min-height: 2.5rem; padding: .5rem .85rem; border: 1px solid var(--conference-panel-border); border-radius: .375rem; background: var(--sl-color-bg); color: var(--conference-panel-heading); font-family: var(--font-family-nav); font-size: .875rem; font-weight: 600; line-height: 1.4; text-decoration: none; cursor: pointer; }
+  .conference-button--primary { background: var(--btaa-med-blue); border-color: var(--btaa-med-blue); color: var(--btaa-white); }
+  form .conference-button { margin-top: .25rem; }
+  .conference-button:hover { border-color: var(--conference-panel-heading); }
+  .conference-button--primary:hover { background: var(--btaa-dark-blue); border-color: var(--btaa-dark-blue); }
+  :is(.conference-button, input):focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 3px; }
+  .conference-landing__main :global(.sl-link-button) { padding: .65rem 1rem; margin-block: 1rem; border: 0; border-radius: .375rem; font-family: var(--font-family-nav); font-size: 1rem; font-weight: 600; line-height: 1.5; }
+  .conference-landing__main :global(.sl-link-button.primary) { color: var(--sl-color-text-invert); }
+  .conference-landing__main :global(.sl-link-button:hover) { text-decoration: underline; }
+  .conference-landing__main :global(.sl-link-button:focus-visible) { outline: 2px solid var(--sl-color-text-accent); outline-offset: 3px; }
+  :global(:root[data-theme="dark"]) .conference-landing { --conference-panel-bg: var(--sl-color-gray-6); --conference-panel-border: var(--sl-color-gray-4); --conference-panel-heading: var(--sl-color-white); }
+  @container (max-width: 52rem) { .conference-landing__grid { grid-template-columns: minmax(0, 1fr); } }
+</style>

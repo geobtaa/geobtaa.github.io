@@ -113,6 +113,7 @@ const cover = undefined;
     <div id={PAGE_TITLE_ID} class="page-title-sentinel" aria-hidden="true"></div>
   ) : (
     <div class="page-title not-content">
+      {(id.startsWith('posts/') || id.startsWith('updates/')) && <nav class="news-breadcrumb" aria-label="Breadcrumb"><a href="/blog/">News &amp; Stories</a><span aria-hidden="true"> / </span><a href={id.startsWith('updates/') ? '/blog/?type=update' : '/blog/?type=post'}>{id.startsWith('updates/') ? 'Program Updates' : 'Stories'}</a></nav>}
       <h1 id={PAGE_TITLE_ID}>{entry.data.title}</h1>
       {showMeta && <ArticleMeta authors={authors} date={published} tags={tags} year={year} />}
       {description && <p class="page-title__description"><span class="page-title__description-label">Summary:</span> {description}</p>}

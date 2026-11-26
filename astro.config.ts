@@ -75,12 +75,14 @@ export default defineConfig({
     '/updates/': '/blog/',
     '/policies/harmful-language': '/library/harmful-language',
     '/policies/collection-development': '/library/collection-development',
-    '/citation': '/guides/data-cite/',
+    '/citation': '/guides/citation/',
+    '/guides/data-cite/': '/guides/citation/',
     '/mapgallery': '/conference/map-gallery/',
-    "/tools/data-citation": "/guides/data-cite/"
+    "/tools/data-citation": "/guides/citation/"
   },
   integrations: [
     starlight({
+      routeMiddleware: './src/middleware/conferenceSidebar.ts',
       title: 'BTAA-GIN',
       favicon: 'favicon.ico',
       logo: {
@@ -104,6 +106,7 @@ export default defineConfig({
         Header: './src/components/Header.astro',
         Sidebar: './src/components/SidebarWithFilters.astro',
         PageTitle: './src/components/PageTitleWithMeta.astro',
+        Pagination: './src/components/NewsPagination.astro',
       },
       plugins: [
         starlightImageZoom(),

@@ -1,0 +1,41 @@
+---
+import DefaultPagination from '@astrojs/starlight/components/Pagination.astro';
+import { loadBlogContent } from '../utils/blogContent';
+
+const id = Astro.locals.starlightRoute.entry.id;
+const isUpdate = id.startsWith('updates/');
+const isStory = id.startsWith('posts/');
+const { items } = isUpdate || isStory ? await loadBlogContent() : { items: [] };
+const siblings = items.filter(item => item.category === (isUpdate ? 'update' : 'post'))
+  .sort((a, b) => (b.published?.getTime() ?? 0) - (a.published?.getTime() ?? 0) || a.id.localeCompare(b.id));
+const current = siblings.findIndex(item => item.id === id);
+const newer = current >= 0 ? siblings[current - 1] : undefined;
+const older = current >= 0 ? siblings[current + 1] : undefined;
+const stories = siblings.filter(item => item.id !== id).slice(0, 3);
+---
+{isUpdate ? (
+  <nav class="news-pagination" aria-label="Program Update navigation" data-news-pagination>
+    {older && <a href={older.url} rel="prev"><span>Older update</span><strong>{older.title}</strong></a>}
+    {newer && <a href={newer.url} rel="next"><span>Newer update</span><strong>{newer.title}</strong></a>}
+    <a class="all-updates" href="/blog/?type=update">View all Program Updates</a>
+  </nav>
+) : isStory ? (
+  <section class="more-stories" aria-labelledby="more-stories-heading" data-more-stories>
+    <h2 id="more-stories-heading">More stories</h2>
+    <ul>{stories.map(item => <li><a href={item.url}>{item.title}</a></li>)}</ul>
+    <a href="/blog/?type=post">Browse all stories</a>
+  </section>
+) : <DefaultPagination />}
+<style>
+  .news-pagination { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr)); gap: 1rem; }
+  .news-pagination a:not(.all-updates) { display: flex; flex-direction: column; gap: .5rem; border: 1px solid var(--sl-color-hairline); border-radius: .5rem; padding: 1rem; text-decoration: none; }
+  .news-pagination strong { font-size: 1.15rem; color: var(--sl-color-white); }
+  .all-updates { grid-column: 1 / -1; }
+  .more-stories { border-top: 1px solid var(--sl-color-hairline); padding-top: 1.5rem; }
+  h2 { font-size: 1.5rem; margin-bottom: 1rem; }
+  ul { padding-left: 1.25rem; margin-bottom: 1.5rem; }
+  li + li { margin-top: .75rem; }
+  a { color: var(--sl-color-text-accent); }
+  a:focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 3px; }
+  @media print { .news-pagination, .more-stories { display: none; } }
+</style>

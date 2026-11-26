@@ -17,13 +17,18 @@ content and is processed by Astro and Starlight into published pages.
 - [Local setup](LOCAL_SETUP.md): first-time installation and local development
 - [Local Decap testing](DECAP_LOCAL.md): run and test the CMS locally
 
+## Conference
+
+- [Conference page maintenance](how-to-update-conference.md): edit the current
+  event, archive its agenda and recordings, and prepare for the next year
+- [Conference map gallery maintenance](how-to-update-conf-map-gallery.md): add,
+  preview, optimize, and publish gallery submissions
+
 ## Site maintenance
 
 - [Repository inventory](REPOSITORY_INVENTORY.md): application structure,
   compatibility support, tooling, documentation, cleanup review targets, and
   validation baseline
-- [Conference map gallery maintenance](how-to-update-conf-map-gallery.md): add,
-  preview, optimize, and publish gallery submissions
 
 ## Feature documentation
 

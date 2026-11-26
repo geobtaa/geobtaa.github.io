@@ -43,7 +43,7 @@ created in the browser from the same form values.
 
 ## Where it is maintained
 
-- User-facing page: `src/content/docs/guides/data-cite.mdx`
+- User-facing page: `src/content/docs/guides/citation.mdx`
 - Generator logic and interface: `src/components/DataCitation.tsx`
 - Styling: `src/styles/data-citation.css`
 - Autofill mapping: `docs/data-citation-autofill-crosswalk.md`

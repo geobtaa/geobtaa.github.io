@@ -1,0 +1,39 @@
+---
+import { loadBlogContent } from '../utils/blogContent';
+const { items } = await loadBlogContent();
+const sorted = [...items].sort((a, b) => (b.published?.getTime() ?? 0) - (a.published?.getTime() ?? 0) || a.id.localeCompare(b.id));
+const recentStories = sorted.filter(item => item.category === 'post').slice(0, 5);
+const recentUpdates = sorted.filter(item => item.category === 'update').slice(0, 5);
+const current = Astro.url.pathname;
+---
+<nav class="news-sidebar" data-news-sidebar aria-label="News & Stories">
+  <ul class="archive-links">
+    <li><a href="/blog/">All News & Stories</a></li>
+  </ul>
+  <h2>Recent Stories</h2>
+  <ul class="recent-stories">
+    {recentStories.map(item => <li><a href={item.url} aria-current={current === item.url ? 'page' : undefined}>{item.title}</a></li>)}
+  </ul>
+  <a class="view-all" href="/blog/?type=post">View all Stories</a>
+  <h2>Recent Program Updates</h2>
+  <ul class="recent-updates">
+    {recentUpdates.map(item => <li><a href={item.url} aria-current={current === item.url ? 'page' : undefined}>{item.title}</a></li>)}
+  </ul>
+  <a class="view-all" href="/blog/?type=update">View all Program Updates</a>
+</nav>
+<style>
+  .news-sidebar { --sl-sidebar-item-padding-inline: .5rem; font-size: var(--sl-text-base); }
+  ul { list-style: none; margin: 0; padding: 0; }
+  a { display: block; padding: .3em var(--sl-sidebar-item-padding-inline); color: var(--sl-color-gray-2); text-decoration: none; border-radius: .25rem; line-height: 1.4; overflow-wrap: anywhere; }
+  a:hover, a:focus-visible { background: var(--sl-color-gray-6); color: var(--sl-color-white); }
+  a:focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 2px; }
+  a[aria-current="page"] { background: var(--sl-color-accent-low); color: var(--sl-color-text-accent); font-weight: 600; }
+  .archive-links a { font-size: var(--sl-text-lg); font-weight: 600; }
+  h2 { font-size: var(--sl-text-lg); line-height: 1.4; margin: .75rem 0 0; padding: .2em var(--sl-sidebar-item-padding-inline); }
+  .view-all { margin-top: .5rem; text-decoration: underline; }
+  @media (min-width: 50rem) {
+    a { font-size: var(--sl-text-sm); }
+    .archive-links a, h2 { font-size: var(--sl-text-base); }
+    h2 { margin-top: .5rem; }
+  }
+</style>

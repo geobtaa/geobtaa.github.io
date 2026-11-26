@@ -12,6 +12,7 @@
     "test:editor:browser": "node --test --test-concurrency=1 editor/*.browser.mjs",
     "test:editor:render": "node --test tests/cms-links-render.test.mjs && node --test tests/unpublish-build.test.mjs",
     "test:editor:publication": "node --test tests/unpublish-build.test.mjs",
+    "test:news": "node --test tests/news-archive.test.mjs tests/news-archive.browser.mjs",
     "test:navigation": "node --test tests/site-navigation.test.mjs",
     "test:config": "node --test tests/fullview-mode.test.mjs",
     "build": "astro build",
