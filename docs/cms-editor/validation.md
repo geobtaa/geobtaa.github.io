@@ -14,6 +14,19 @@ The independent scope checker runs trusted base code with read-only credentials 
 
 Changes to opaque MDX components, imports, executable source, and sensitive frontmatter can fail source policy even when editorially harmless. Do not rename branches, add approvals, or weaken the checker to bypass that boundary. Deliberate policy extensions require a reviewed technical change.
 
+Ordinary source PRs preserve protected-source authority across a byte-identical
+Markdown or MDX rename when the original path is deleted and the format stays
+the same. Copying a page, editing its source during the move, or changing formats
+does not gain this authority.
+
+The Conference landing-page migration has a bounded exception in
+`reviewedSourceMdxBaseline`: it requires the exact previous Git blob and permits
+only the named imports, layout-wrapper export, and archive component. Ordinary
+Markdown and supported Editor blocks remain editable; other executable changes
+still fail. This exception must reach trusted `main` before the dependent source
+PR can use it. CMS saves and publication snapshots retain their existing
+protected-source checks without this exception.
+
 ### Legacy compatibility and intentional removals
 
 The legacy-review release recognizes supported callout directives, contained
